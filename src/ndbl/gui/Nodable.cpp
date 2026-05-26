@@ -45,7 +45,14 @@ using namespace tools;
 using namespace ndbl;
 using namespace tools;
 
-Nodable* Nodable::s_instance = nullptr;
+static NodableState* g_nodable_state = nullptr;
+
+
+NodableState* ndbl::nodable_state()
+{
+    ASSERT(g_nodable_state != nullptr);
+    return g_nodable_state;
+}
 
 template<typename T>
 static FunctionDescriptor* create_variable_node_signature()
@@ -54,34 +61,29 @@ static FunctionDescriptor* create_variable_node_signature()
     return descriptor;
 }
 
-void Nodable::show_splashscreen(bool show )
+void ndbl::nodable_init(NodableState* state)
 {
-    m_view->base.show_splashscreen = show;
-}
-
-void Nodable::init()
-{
-    s_instance = this;
-
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "init ...\n");
+ 
+    ASSERT(g_nodable_state == nullptr);
+    g_nodable_state = state;
 
-    m_config = init_config();
-    
-    m_view = new Nodable::View();
+    state->config = init_config();
+    state->view = new ndbl::NodableState::View();
 
-    app_init_ex(&m_base_app, &m_view->base, m_config->tools_cfg ); // the pointers are owned by this class, base app just use them.
-    m_language = init_language();
+    app_init_ex(&state->base, &state->view->base, state->config->tools_cfg ); // the pointers are owned by this class, base app just use them.
+    state->language = init_language();
 
     // Initialize Base View
-    tools::appview_init(&m_view->base, &m_base_app);
+    tools::appview_init(&state->view->base, &state->base);
 
-    m_view->base.signal_reset_layout.connect<&ndbl::Nodable::on_reset_layout>(this);
-    m_view->base.signal_draw_splashscreen_content.connect<&ndbl::Nodable::on_draw_splashscreen_content>(this);
+    state->view->base.signal_reset_layout.connect(&_nodable_on_reset_layout);
+    state->view->base.signal_draw_splashscreen_content.connect(&_nodable_on_draw_splashscreen_content);
 
     // Load splashscreen image
     Config* cfg = get_config();
     tools::Path path = Path::get_asset_path(cfg->ui_splashscreen_imagePath );
-    m_view->logo = get_texture_manager()->load(path);
+    state->view->logo = get_texture_manager()->load(path);
 
     // Add a bunch of new actions
     tools::ActionManager* action_manager = get_action_manager();
@@ -130,10 +132,10 @@ void Nodable::init()
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "init " TOOLS_OK "\n");
 }
 
-void Nodable::_do_frame()
+void ndbl::nodable_do_frame(NodableState* state)
 {
-    update();
-    draw();
+    nodable_update(state);
+    nodable_draw(state);
 }
 
 #ifdef __EMSCRIPTEN__
@@ -148,42 +150,42 @@ namespace ndbl
 }
 #endif
 
-void Nodable::run()
+void ndbl::nodable_run(NodableState* state)
 {
   #ifdef __EMSCRIPTEN__
     g_instance = this;
     emscripten_set_main_loop(&ndbl::emscripten_loop, 0, true);
   #else
-    while( !should_stop() )
+    while( !nodable_should_stop(state) )
     {
-        _do_frame();
+        nodable_do_frame(state);
     }    
   #endif
 }
 
-void Nodable::update()
+void ndbl::nodable_update(NodableState* state)
 {
-    tools::app_update(&m_base_app);
+    tools::app_update(&state->base);
 
-    const float dt = m_view->base.dt_in_s;
+    const float dt = state->view->base.dt_in_s;
 
     // 0. Update Views (TODO: is this the right moment to do this? )
-    if( m_current_file )
-        m_current_file->view.update( dt);
+    if( state->current_file )
+        state->current_file->view.update( dt);
 
     // 1. delete flagged files
-    for( File* file : m_flagged_to_delete_file )
+    for( File* file : state->flagged_to_delete_file )
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file->filename().c_str());
         delete file;
     }
-    m_flagged_to_delete_file.clear();
+    state->flagged_to_delete_file.clear();
 
     // 2. Update current file
-    if (m_current_file)
+    if (state->current_file)
     {
-        m_current_file->set_isolation( m_config->isolation ); // might change
-        m_current_file->update();
+        state->current_file->set_isolation( state->config->isolation ); // might change
+        state->current_file->update();
     }
 
     // 3. Handle events
@@ -191,37 +193,37 @@ void Nodable::update()
     // Nodable events
     IEvent*       event = nullptr;
     EventManager* event_manager     = get_event_manager();
-    GraphView*    graph_view        = m_current_file ? m_current_file->graph()->component<GraphView>() : nullptr; // TODO: should be included in the event
-    History*      curr_file_history = m_current_file ? &m_current_file->history : nullptr; // TODO: should be included in the event
+    GraphView*    graph_view        = state->current_file ? state->current_file->graph()->component<GraphView>() : nullptr; // TODO: should be included in the event
+    History*      curr_file_history = state->current_file ? &state->current_file->history : nullptr; // TODO: should be included in the event
     while( (event = event_manager->poll_event()) )
     {
         switch ( event->id )
         {
             case EventID_RESET_GRAPH:
             {
-                m_current_file->set_graph_dirty();
+                state->current_file->set_graph_dirty();
                 break;
             }
 
             case EventID_TOGGLE_ISOLATION_FLAGS:
             {
-                m_config->isolation = ~m_config->isolation;
-                if(m_current_file)
+                state->config->isolation = ~state->config->isolation;
+                if(state->current_file)
                 {
-                    m_current_file->set_graph_dirty();
+                    state->current_file->set_graph_dirty();
                 }
                 break;
             }
 
             case EventID_REQUEST_EXIT:
             {
-                tools::app_request_stop(&m_base_app);
+                tools::app_request_stop(&state->base);
                 break;
             }
 
             case EventID_FILE_CLOSE:
             {
-                if(m_current_file) close_file(m_current_file);
+                nodable_close_file(state);
                 break;
             }
             case EventID_UNDO:
@@ -241,7 +243,7 @@ void Nodable::update()
                 Path path;
                 if( pick_file_path(path, DIALOG_Browse) )
                 {
-                    open_file(path);
+                    nodable_open_file(state, path);
                     break;
                 }
                 TOOLS_LOG(tools::Verbosity_Diagnostic, "App", "Browse file aborted by user.\n");
@@ -251,18 +253,18 @@ void Nodable::update()
 
             case EventID_FILE_NEW:
             {
-                new_file();
+                nodable_new_file(state);
                 break;
             }
 
             case EventID_FILE_SAVE_AS:
             {
-                if (m_current_file != nullptr)
+                if (state->current_file != nullptr)
                 {
                     Path path;
                     if( pick_file_path(path, DIALOG_SaveAs))
                     {
-                        save_file_as(m_current_file, path);
+                       nodable_save_file_as(state, state->current_file, path);
                     }
                 }
 
@@ -271,17 +273,17 @@ void Nodable::update()
 
             case EventID_FILE_SAVE:
             {
-                if (!m_current_file) break;
-                if( !m_current_file->path.empty())
+                if (!state->current_file) break;
+                if( !state->current_file->path.empty())
                 {
-                    save_file(m_current_file);
+                    nodable_save_file(state, state->current_file);
                 }
                 else
                 {
                     Path path;
                     if( pick_file_path(path, DIALOG_SaveAs))
                     {
-                        save_file_as(m_current_file, path);
+                        nodable_save_file_as(state, state->current_file, path);
                     }
                 }
                 break;
@@ -292,7 +294,7 @@ void Nodable::update()
                 auto _event = reinterpret_cast<Event_ShowWindow*>(event);
                 if ( _event->data.window_id == "splashscreen" )
                 {
-                    m_view->base.show_splashscreen = _event->data.visible;
+                    state->view->base.show_splashscreen = _event->data.visible;
                 }
                 break;
             }
@@ -307,9 +309,9 @@ void Nodable::update()
 
             case EventID_FILE_OPENED:
             {
-                ASSERT(m_current_file != nullptr );
-                m_current_file->view.clear_overlay();
-                m_current_file->view.refresh_overlay(Condition_ENABLE_IF_HAS_NO_SELECTION );
+                ASSERT(state->current_file != nullptr );
+                state->current_file->view.clear_overlay();
+                state->current_file->view.refresh_overlay(Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
             }
             case Event_DeleteSelection::id:
@@ -519,47 +521,48 @@ void Nodable::update()
     }
 }
 
-void Nodable::shutdown()
+void ndbl::nodable_shutdown(NodableState* state)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_shutdown ...\n");
 
-    for( File* each_file : m_loaded_files )
+    for( File* each_file : state->loaded_files )
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::App", "Delete file %s ...\n", each_file->path.c_str());
         delete each_file;
     }
 
     // shutdown managers & co.
-    shutdown_language(m_language);
+    shutdown_language(state->language);
     // We could do this there, but the base view is responsible for shutdow the texture manager we used, so all textures will be released.
-    // get_texture_manager()->release(m_view->logo);
-    m_view->base.signal_reset_layout.disconnect();
-    m_view->base.signal_draw_splashscreen_content.disconnect();
-    appview_shutdown(&m_view->base);
-    tools::app_shutdown(&m_base_app);
-    ndbl::shutdown_config(m_config);
+    // get_texture_manager()->release(state->view->logo);
+    state->view->base.signal_reset_layout.disconnect();
+    state->view->base.signal_draw_splashscreen_content.disconnect();
+    appview_shutdown(&state->view->base);
+    tools::app_shutdown(&state->base);
+    ndbl::shutdown_config(state->config);
 
-    delete m_view;
-    s_instance = nullptr;
+    delete state->view;
 
+    g_nodable_state = nullptr;
+    
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_shutdown " TOOLS_OK "\n");
 }
 
-File* Nodable::open_asset_file(const tools::Path& _path)
+File* ndbl::nodable_open_asset_file(NodableState* state, const tools::Path& _path)
 {
     if ( _path.is_absolute() )
-        return open_file(_path);
+        return nodable_open_file(state, _path);
 
-    return open_file( Path::absolute(_path) );
+    return nodable_open_file(state, Path::absolute(_path) );
 }
 
-File* Nodable::open_file(const tools::Path& _path)
+File* ndbl::nodable_open_file(NodableState* state, const tools::Path& _path)
 {
     File* file = new File();
 
     if ( File::read( *file, _path ) )
     {
-        return add_file(file);
+        return nodable_add_file(state, file);
     }
 
     delete file;
@@ -567,16 +570,16 @@ File* Nodable::open_file(const tools::Path& _path)
     return nullptr;
 }
 
-File* Nodable::add_file( File* _file)
+File* ndbl::nodable_add_file(NodableState* state, File* _file)
 {
     VERIFY(_file, "File is nullptr");
-    m_loaded_files.push_back( _file );
-    m_current_file = _file;
+    state->loaded_files.push_back( _file );
+    state->current_file = _file;
     get_event_manager()->dispatch( EventID_FILE_OPENED );
     return _file;
 }
 
-void Nodable::save_file( File* _file) const
+void ndbl::nodable_save_file(const NodableState* state, File* _file)
 {
     VERIFY(_file, "file must be defined");
 
@@ -588,7 +591,7 @@ void Nodable::save_file( File* _file) const
     TOOLS_LOG(tools::Verbosity_Message, "ndbl::App", "File saved: %s\n", _file->path.c_str());
 }
 
-void Nodable::save_file_as(File* _file, const tools::Path& _path) const
+void ndbl::nodable_save_file_as(const NodableState* state, File* _file, const tools::Path& _path)
 {
     if ( !File::write(*_file, _path) )
     {
@@ -598,61 +601,62 @@ void Nodable::save_file_as(File* _file, const tools::Path& _path) const
     TOOLS_LOG(tools::Verbosity_Message, "ndbl::App", "File saved: %s\n", _path.c_str());
 }
 
-void Nodable::close_file( File* _file)
+void ndbl::nodable_close_file(NodableState* state)
+{
+    if ( state->current_file == nullptr )
+        return;
+    nodable_close_file(state, state->current_file);
+}
+void ndbl::nodable_close_file(NodableState* state, File* _file)
 {
     // Find and delete the file
     VERIFY(_file, "Cannot close a nullptr File!");
-    auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), _file);
-    VERIFY(it != m_loaded_files.end(), "Unable to find the file in the loaded_files");
-    it = m_loaded_files.erase(it);
-    m_flagged_to_delete_file.push_back(_file);
+    auto it = std::find(state->loaded_files.begin(), state->loaded_files.end(), _file);
+    VERIFY(it != state->loaded_files.end(), "Unable to find the file in the loaded_files");
+    it = state->loaded_files.erase(it);
+    state->flagged_to_delete_file.push_back(_file);
 
     // Switch to the next file if possible
-    if ( it != m_loaded_files.end() )
+    if ( it != state->loaded_files.end() )
     {
-        m_current_file = *it;
+        state->current_file = *it;
     }
     else
     {
-        m_current_file = nullptr;
+        state->current_file = nullptr;
     }
 }
 
-void Nodable::reset_current_graph()
+void ndbl::nodable_reset_current_graph(NodableState* state)
 {
-    if(!m_current_file) return;
+    if(!state->current_file) return;
 
     // n.b. nodable is still text oriented
-    m_current_file->set_graph_dirty();
+    state->current_file->set_graph_dirty();
 }
 
-File*Nodable::new_file()
+File*ndbl::nodable_new_file(NodableState* state)
 {
-    m_untitled_file_count++;
+    state->untitled_file_count++;
 
     string32 name;
-    name.append_fmt("Untitled_%i.cpp", m_untitled_file_count);
+    name.append_fmt("Untitled_%i.cpp", state->untitled_file_count);
     auto* file = new File();
     file->path = name.c_str();
 
-    return add_file(file);
+    return nodable_add_file(state, file);
 }
 
-Nodable::View* Nodable::get_view() const
+bool ndbl::nodable_should_stop(const NodableState* state)
 {
-    return m_view;
+    return tools::app_should_stop(&state->base);
 }
 
-bool Nodable::should_stop() const
+void ndbl::nodable_set_current_file(NodableState* state, File* file)
 {
-    return tools::app_should_stop(&m_base_app);
-}
-
-void Nodable::set_current_file(File* file)
-{
-    if ( m_current_file == nullptr )
+    if ( state->current_file == nullptr )
     {
-        m_current_file = file;
+        state->current_file = file;
         return;
     }
 
@@ -660,18 +664,19 @@ void Nodable::set_current_file(File* file)
     //  - unload current file?
     //  - keep the last N files loaded?
     //  - save graph to a temp file to restore it later without using memory and altering original source file?
-    // close_file(m_current_file); ??
+    // close_file(state->current_file); ??
 
-    m_current_file = file;
+    state->current_file = file;
 }
 
-void Nodable::on_draw_splashscreen_content()
+void ndbl::_nodable_on_draw_splashscreen_content()
 {
+    NodableState* state = nodable_state();
     ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
     // Image
-    ImGui::SameLine((ImGui::GetContentRegionAvail().x - (float)m_view->logo->width) * 0.5f); // center img
-    ImGuiEx::Image(m_view->logo);
+    ImGui::SameLine((ImGui::GetContentRegionAvail().x - (float)state->view->logo->width) * 0.5f); // center img
+    ImGuiEx::Image(state->view->logo);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {50.0f, 30.0f});
 
@@ -689,39 +694,40 @@ void Nodable::on_draw_splashscreen_content()
     // close on left/rightmouse btn click
     if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
     {
-        m_view->base.show_splashscreen = false;
+        state->view->base.show_splashscreen = false;
     }
     ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
 }
 
-void ndbl::Nodable::on_reset_layout()
+void ndbl::_nodable_on_reset_layout()
 {
-    Config* cfg  = get_config();
+    Config*         cfg   = get_config();
+    NodableState*   state = nodable_state();
 
     // Dock windows to specific dockspace
-    appview_dock_window( &m_view->base, cfg->ui_help_window_label             , Dockspace_RIGHT );
-    appview_dock_window( &m_view->base, cfg->ui_config_window_label           , Dockspace_RIGHT );
-    appview_dock_window( &m_view->base, cfg->ui_file_info_window_label        , Dockspace_RIGHT );
-    appview_dock_window( &m_view->base, cfg->ui_node_properties_window_label  , Dockspace_RIGHT );
-    appview_dock_window( &m_view->base, cfg->ui_interpreter_window_label      , Dockspace_RIGHT );
-    appview_dock_window( &m_view->base, cfg->ui_imgui_config_window_label     , Dockspace_RIGHT );
-    appview_dock_window( &m_view->base, cfg->ui_toolbar_window_label          , Dockspace_TOP   );
+    appview_dock_window( &state->view->base, cfg->ui_help_window_label             , Dockspace_RIGHT );
+    appview_dock_window( &state->view->base, cfg->ui_config_window_label           , Dockspace_RIGHT );
+    appview_dock_window( &state->view->base, cfg->ui_file_info_window_label        , Dockspace_RIGHT );
+    appview_dock_window( &state->view->base, cfg->ui_node_properties_window_label  , Dockspace_RIGHT );
+    appview_dock_window( &state->view->base, cfg->ui_interpreter_window_label      , Dockspace_RIGHT );
+    appview_dock_window( &state->view->base, cfg->ui_imgui_config_window_label     , Dockspace_RIGHT );
+    appview_dock_window( &state->view->base, cfg->ui_toolbar_window_label          , Dockspace_TOP   );
 };
 
-void ndbl::Nodable::draw()
+void ndbl::nodable_draw(NodableState* state)
 {
-    VERIFY(m_view->logo != nullptr, "Logo is nullptr, did you call init_ex() ?");
+    VERIFY(state->view->logo != nullptr, "Logo is nullptr, did you call init_ex() ?");
 
-    const float dt = m_view->base.dt_in_s;
+    const float dt = state->view->base.dt_in_s;
 
     // note: we draw this view nested in base view's begin/end (similar to ImGui API).
-    tools::appview_begin(&m_view->base);
+    tools::appview_begin(&state->view->base);
 
     EventManager*   event_manager   = get_event_manager();
     Config*         cfg             = get_config();
     tools::Config*  tools_cfg       = tools::get_config();
     bool            redock_all      = true;
-    File*           current_file    = get_current_file();
+    File*           current_file    = state->current_file;
 
     // 1. Draw Menu Bar
     if (ImGui::BeginMenuBar())
@@ -790,22 +796,22 @@ void ndbl::Nodable::draw()
             ImGui::Unindent();
 
             ImGui::Separator();
-            m_view->show_properties_editor = ImGui::MenuItem(ICON_FA_COGS " Show Properties", "",
-                                                       m_view->show_properties_editor);
-            m_view->show_imgui_demo = ImGui::MenuItem("Show ImGui Demo", "", m_view->show_imgui_demo);
+            state->view->show_properties_editor = ImGui::MenuItem(ICON_FA_COGS " Show Properties", "",
+                                                       state->view->show_properties_editor);
+            state->view->show_imgui_demo = ImGui::MenuItem("Show ImGui Demo", "", state->view->show_imgui_demo);
 
             ImGui::Separator();
 
-            const bool is_fullscreen = appview_is_fullscreen(&m_view->base);
+            const bool is_fullscreen = appview_is_fullscreen(&state->view->base);
             if (ImGui::MenuItem("Fullscreen", "", is_fullscreen ))
             {
-                appview_set_fullscreen(&m_view->base, !is_fullscreen);
+                appview_set_fullscreen(&state->view->base, !is_fullscreen);
             }
             ImGui::Separator();
 
             if (ImGui::MenuItem("Reset Layout", ""))
             {
-                appview_reset_layout_next_frame(&m_view->base);
+                appview_reset_layout_next_frame(&state->view->base);
             }
             ImGui::EndMenu();
         }
@@ -909,7 +915,7 @@ void ndbl::Nodable::draw()
         {
             if (ImGui::MenuItem("Show Splash Screen", "F1"))
             {
-                m_view->base.show_splashscreen = true;
+                state->view->base.show_splashscreen = true;
             }
 
             if (ImGui::MenuItem("Browse source code"))
@@ -931,38 +937,38 @@ void ndbl::Nodable::draw()
     // 2. Draw windows
     // All draw_xxx_window() are ImGui windows docked to a dockspace (defined in signal_reset_layout() )
 
-    ImGuiID ds_root = m_view->base.dockspaces[Dockspace_ROOT];
-    if(!has_files())
+    ImGuiID ds_root = state->view->base.dockspaces[Dockspace_ROOT];
+    if( state->loaded_files.empty() )
     {
-        bool show_startup_window = !m_view->base.show_splashscreen;
+        bool show_startup_window = !state->view->base.show_splashscreen;
         if( show_startup_window )
         {
-            draw_startup_window(dt, ds_root);
+            nodable_draw_startup_window(state, ds_root);
         }
     }
     else
     {
-        draw_toolbar_window(dt);
+        nodable_draw_toolbar_window(state);
 
-        for ( File* each_file: get_files() )
+        for ( File* each_file : state->loaded_files )
         {
-            draw_file_window( dt, ds_root, redock_all, each_file);
+            nodable_draw_file_window( state, ds_root, redock_all, each_file);
         }
 
-        draw_file_info_window(dt);
-        draw_config_window(dt);
-        draw_imgui_config_window(dt);
+        nodable_draw_file_info_window(state);
+        nodable_draw_config_window(state);
+        nodable_draw_imgui_config_window(state);
 
-        if ( draw_node_properties_window(dt) )
-            get_current_file()->set_text_dirty();
-        draw_help_window(dt);
+        if ( nodable_draw_node_properties_window(state) )
+            state->current_file->set_text_dirty();
+        nodable_draw_help_window(state);
     }
 
     // end the drawing
-    appview_end(&m_view->base);
+    appview_end(&state->view->base);
 }
 
-void ndbl::Nodable::draw_help_window(float dt) const
+void ndbl::nodable_draw_help_window(const NodableState* state)
 {
     Config*      cfg  = get_config();
     if (ImGui::Begin( cfg->ui_help_window_label))
@@ -1001,7 +1007,7 @@ void ndbl::Nodable::draw_help_window(float dt) const
     ImGui::End();
 }
 
-void ndbl::Nodable::draw_imgui_config_window(float dt)
+void ndbl::nodable_draw_imgui_config_window(NodableState* state)
 {
     Config*      cfg  = get_config();
     tools::Config* tools_cfg = tools::get_config();
@@ -1017,32 +1023,32 @@ void ndbl::Nodable::draw_imgui_config_window(float dt)
     ImGui::End();
 }
 
-void ndbl::Nodable::draw_file_info_window(float dt)
+void ndbl::nodable_draw_file_info_window(NodableState* state)
 {
     Config* cfg  = get_config();
 
-    if ( m_current_file == nullptr )
+    if ( state->current_file == nullptr )
     {
         return;
     }
 
     if (ImGui::Begin( cfg->ui_file_info_window_label))
     {
-        m_current_file->view.draw_info_panel();
+        state->current_file->view.draw_info_panel();
     }
 
     ImGui::End();
 }
 
-bool ndbl::Nodable::draw_node_properties_window(float dt)
+bool ndbl::nodable_draw_node_properties_window(NodableState* state)
 {
     bool changed = false;
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_node_properties_window_label))
     {
-        if( m_current_file )
+        if( state->current_file )
         {
-            const GraphView* graph_view = m_current_file->graph()->component<GraphView>(); // Graph can't be null
+            const GraphView* graph_view = state->current_file->graph()->component<GraphView>(); // Graph can't be null
             switch ( graph_view->selection().count<ASTNodeView*>() )
             {
                 case 0:
@@ -1051,7 +1057,7 @@ bool ndbl::Nodable::draw_node_properties_window(float dt)
                 {
                     ImGui::Indent(10.0f);
                     auto* first_nodeview = graph_view->selection().first_of<ASTNodeView*>();
-                    changed |= ASTNodeView::draw_as_properties_panel(first_nodeview, &m_view->show_advanced_node_properties);
+                    changed |= ASTNodeView::draw_as_properties_panel(first_nodeview, &state->view->show_advanced_node_properties);
                     break;
                 }
                 default:
@@ -1064,7 +1070,7 @@ bool ndbl::Nodable::draw_node_properties_window(float dt)
     return changed;
 }
 
-void ndbl::Nodable::draw_startup_window(float dt, ImGuiID dockspace_id)
+void ndbl::nodable_draw_startup_window(NodableState* state, ImGuiID dockspace_id)
 {
     Config*      cfg  = get_config();
 
@@ -1125,7 +1131,7 @@ void ndbl::Nodable::draw_startup_window(float dt, ImGuiID dockspace_id)
                 if (i % columns != 0) ImGui::SameLine();
                 if (ImGui::Button(examples[i].label, example_btn_size))
                 {
-                    open_asset_file(examples[i].path);
+                    nodable_open_asset_file(state, examples[i].path);
                 }
             }
 
@@ -1139,9 +1145,10 @@ void ndbl::Nodable::draw_startup_window(float dt, ImGuiID dockspace_id)
     ImGui::End(); // Startup Window
 }
 
-void ndbl::Nodable::draw_file_window( float dt, ImGuiID dockspace_id, bool redock_all, File*file)
+void ndbl::nodable_draw_file_window( NodableState* state, ImGuiID dockspace_id, bool redock_all, File*file)
 {
-    Config*      cfg  = get_config();
+    Config* cfg = get_config();
+    float   dt  = state->view->base.dt_in_s;
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar
@@ -1162,8 +1169,8 @@ void ndbl::Nodable::draw_file_window( float dt, ImGuiID dockspace_id, bool redoc
     {
         // Set current file if window is focused
         if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
-            if ( !is_current(file) )
-                set_current_file(file);
+            if ( state->current_file != file )
+                nodable_set_current_file(state, file);
 
         // Draw content
         file->view.draw( dt );
@@ -1172,11 +1179,11 @@ void ndbl::Nodable::draw_file_window( float dt, ImGuiID dockspace_id, bool redoc
 
     if ( !open )
     {
-        close_file(file);
+        nodable_close_file(state, file);
     }
 }
 
-void ndbl::Nodable::draw_config_window(float dt)
+void ndbl::nodable_draw_config_window(NodableState* state)
 {
     Config*      cfg  = get_config();
     auto* tools_cfg = tools::get_config();
@@ -1304,7 +1311,7 @@ void ndbl::Nodable::draw_config_window(float dt)
     ImGui::End();
 }
 
-void ndbl::Nodable::draw_toolbar_window(float dt)
+void ndbl::nodable_draw_toolbar_window(NodableState* state)
 {
     Config*      cfg  = get_config();
 

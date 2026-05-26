@@ -9,9 +9,13 @@ TEST(SimpleDelegate, default_constructor )
     SimpleDelegate d;
 }
 
-TEST(SimpleDelegate, default_call )
+void my_static_function_the_answer()
 {
-    SimpleDelegate d;
+}
+
+TEST(SimpleDelegate, call_static_function )
+{
+    SimpleDelegate d{&my_static_function_the_answer};
     d.call();
 }
 

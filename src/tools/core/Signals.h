@@ -1,6 +1,7 @@
 #pragma once
 #include "Delegate.h"
 #include <algorithm>
+#include <functional>
 #include <vector>
 
 namespace tools
@@ -34,10 +35,10 @@ namespace tools
     //      Number another_number;
     //      signal_change.connect<&Number::set_value>(&another_number);
     //
-    template<typename SignalReturnT, typename ...SignalArgsT>
-    struct Signal<SignalReturnT(SignalArgsT...)>
+    template<typename R, typename ...Args>
+    struct Signal<R(Args...)>
     {
-        using DelegateT = Delegate<SignalReturnT(SignalArgsT...)>; // the expected delegate type to connect with
+        using DelegateT = Delegate<R(Args...)>; // the expected delegate type to connect with
 
         Signal() = default;
         Signal(const DelegateT& delegate)
@@ -54,9 +55,15 @@ namespace tools
             connect(delegate);
         }
 
+        void connect(R(*function)(Args...) )
+        {
+            DelegateT delegate{function};
+            connect(delegate);
+        }
+        
         void connect(const DelegateT& delegate)
         {
-            ASSERT_DEBUG_ONLY(!_m_delegate.callable()); // Did you forgot to disconnect() before?
+            ASSERT_DEBUG_ONLY(_m_delegate.is_null()); // Did you forgot to disconnect() before?
                                                         // Broadcasting not allowed. Did you called this multiple times on purpose?
                                                         // Use SignalN or SignalNR instead.
             ASSERT_DEBUG_ONLY(delegate.callable());     // Delegate should be callable..
@@ -68,11 +75,12 @@ namespace tools
 
         void disconnect()
         {
-            ASSERT_DEBUG_ONLY(_m_delegate.callable()); // Did you call connect() before?
+            ASSERT_DEBUG_ONLY(!_m_delegate.is_null()); // Did you call connect() before?
             _m_delegate = {};
+            ASSERT_DEBUG_ONLY(_m_delegate.is_null());
         }
 
-        SignalReturnT emit(SignalArgsT...args) const // emit signal to the listener, if any.
+        R emit(Args...args) const // emit signal to the listener, if any.
         {
             _m_delegate.call(args...); // calling a null delegate has no effect
         }
@@ -84,10 +92,10 @@ namespace tools
     //
     // Similar to SignalR, but can be connected to multiple Delegates
     //
-    template<typename SignalReturnT, typename ...SignalArgsT>
-    struct BroadcastSignal<SignalReturnT(SignalArgsT...)>
+    template<typename R, typename ...Args>
+    struct BroadcastSignal<R(Args...)>
     {
-        using DelegateT = Delegate<SignalReturnT(SignalArgsT...)>; // the expected delegate type to connect with
+        using DelegateT = Delegate<R(Args...)>; // the expected delegate type to connect with
 
         BroadcastSignal() = default;
         BroadcastSignal(const BroadcastSignal&) = delete;
@@ -131,7 +139,7 @@ namespace tools
             return true;
         }
 
-        SignalReturnT broadcast(SignalArgsT...args) const // broadcast to all the listeners
+        R broadcast(Args...args) const // broadcast to all the listeners
         {
             for(const auto& delegate : _m_delegate )
                 delegate.call(args...);

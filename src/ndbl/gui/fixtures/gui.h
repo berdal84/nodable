@@ -29,12 +29,12 @@ namespace testing
         /**
          * run some loops for a given iteration count
          */
-        static void loop_count(ndbl::Nodable & app, size_t iteration_count, double sleep_in_sec = 1.0)
+        static void loop_count(ndbl::NodableState* state, size_t iteration_count, double sleep_in_sec = 1.0)
         {
             for(size_t i = 0; i < iteration_count; ++i)
             {
-                EXPECT_NO_THROW(app.update());
-                EXPECT_NO_THROW(app.draw());
+                EXPECT_NO_THROW(nodable_update(state));
+                EXPECT_NO_THROW(nodable_draw(state));
             }
             SLEEP_FOR_HUMAN((long)(1000.0 * sleep_in_sec));
         }
@@ -42,7 +42,7 @@ namespace testing
         /**
          * run some loops for a given duration
          */
-        static void loop_for_x_sec(ndbl::Nodable & app, double duration_in_sec)
+        static void loop_for_x_sec(ndbl::NodableState* state, double duration_in_sec)
         {
             auto start = std::chrono::system_clock::now();
             auto end   = std::chrono::system_clock::now();
@@ -54,13 +54,13 @@ namespace testing
                 , iteration
                 , float(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()) / 1000.0f
                 , duration_in_sec);
-                EXPECT_NO_THROW(app.update());
-                EXPECT_NO_THROW(app.draw());
+                EXPECT_NO_THROW(nodable_update(state));
+                EXPECT_NO_THROW(nodable_draw(state));
                 ++iteration;
             }
         }
 
-        void save_screenshot(ndbl::Nodable & app, const char* relative_path)
+        void save_screenshot(ndbl::NodableState* state, const char* relative_path)
         {
             TOOLS_LOG(tools::Verbosity_Message, "Test", "Taking screenshot ...\n");
             auto path = tools::Path::get_executable_path().parent_path() / "screenshots" / relative_path;
@@ -68,7 +68,7 @@ namespace testing
             {
                 tools::Path::create_directories(path.parent_path());
             }
-            tools::appview_save_screenshot(&app.get_view()->base, path);
+            tools::appview_save_screenshot(&state->view->base, path);
         }
     };
 }
