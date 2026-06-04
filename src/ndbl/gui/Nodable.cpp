@@ -140,11 +140,10 @@ void ndbl::nodable_do_frame(AppState* app)
 #ifdef __EMSCRIPTEN__
 namespace ndbl
 {
-    Nodable* g_instance = nullptr;
     void emscripten_loop()
     {
-        VERIFY(g_instance != nullptr, "Did you forgot to set g_instance prior to set_main_loop?");
-        g_instance->_do_frame();
+        VERIFY( g_nodable_state != nullptr, "Did you forgot to set g_instance prior to set_main_loop?");
+        nodable_do_frame(g_nodable_state);
     }
 }
 #endif
@@ -152,7 +151,6 @@ namespace ndbl
 void ndbl::nodable_run(AppState* app)
 {
   #ifdef __EMSCRIPTEN__
-    g_instance = this;
     emscripten_set_main_loop(&ndbl::emscripten_loop, 0, true);
   #else
     while( !nodable_should_stop(app) )

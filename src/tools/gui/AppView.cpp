@@ -582,7 +582,7 @@ EM_JS(void, call_pick_file_path, (bool), {
   alert('pick_file_path_impl not implemented yet');
   throw 'all done';
 });
-static bool tools::pick_file_path(Path& _out_path, DialogType _dialog_type) const
+bool tools::pick_file_path(Path& _out_path, DialogType _dialog_type)
 {
     bool result;
     call_pick_file_path(result);
