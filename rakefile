@@ -391,6 +391,9 @@ task :run =>  'nodable:run'
 desc "Build nodable"
 multitask :build => 'nodable:build'
 
+desc "Build nodable"
+multitask :build_all => ['nodable:build', 'tools-app-example:build']
+
 if PLATFORM == PLATFORM_WINDOWS or PLATFORM == PLATFORM_LINUX
     desc "Run all tests"
     task :test => [
