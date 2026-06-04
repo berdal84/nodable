@@ -6,7 +6,7 @@ int main(int argc, char *argv[])
 
     TOOLS_try
     {
-        ndbl::NodableState state;
+        ndbl::AppState state;
         nodable_init(&state);
         nodable_run(&state);
         nodable_shutdown(&state);
