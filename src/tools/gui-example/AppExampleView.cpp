@@ -1,5 +1,6 @@
 #include "AppExampleView.h"
 #include "AppExample.h"
+#include "gui/AppView.h"
 
 using namespace tools;
 
@@ -11,14 +12,14 @@ constexpr const char* TOP_WINDOW    = "Top View";
 void AppExampleView::init(AppExample *_app)
 {
     // Store ptr
-    m_app = _app;
+    this->m_app = _app;
     // Initialize our base view
-    m_base_view.init(_app->base_app_handle() );
-    m_base_view.set_title("AppExample default title - (you can change this title from " __FILE__ ")");
+    appview_init(this, _app );
+    appview_set_title(this, "AppExample default title - (you can change this title from " __FILE__ ")");
 
     // Change behavior by connecting signals with our custom methods
-    m_base_view.signal_draw_splashscreen_content.connect<&AppExampleView::_draw_splashscreen_content>(this);
-    m_base_view.signal_reset_layout.connect<&AppExampleView::_reset_layout>(this);
+    this->signal_draw_splashscreen_content.connect<&AppExampleView::_draw_splashscreen_content>(this);
+    this->signal_reset_layout.connect<&AppExampleView::_reset_layout>(this);
 }
 
 void AppExampleView::_draw_splashscreen_content()
@@ -33,66 +34,63 @@ void AppExampleView::_draw_splashscreen_content()
 void AppExampleView::_reset_layout()
 {
     // Bind each window to a dockspace
-    m_base_view.dock_window( CENTER_WINDOW, AppView::Dockspace_CENTER );
-    m_base_view.dock_window( RIGHT_WINDOW,  AppView::Dockspace_RIGHT );
-    m_base_view.dock_window( TOP_WINDOW,    AppView::Dockspace_TOP );
+    appview_dock_window( this, CENTER_WINDOW, Dockspace_CENTER );
+    appview_dock_window( this, RIGHT_WINDOW,  Dockspace_RIGHT );
+    appview_dock_window( this, TOP_WINDOW,    Dockspace_TOP );
 };
 
 void AppExampleView::shutdown()
 {
-    m_base_view.signal_draw_splashscreen_content.disconnect();
-    m_base_view.signal_reset_layout.disconnect();
+    this->signal_draw_splashscreen_content.disconnect();
+    this->signal_reset_layout.disconnect();
 
     // Here we undo what we did in init()
-    m_base_view.shutdown(); // base view will release its resources
+    appview_shutdown(this); // base view will release its resources
 }
 
 void AppExampleView::draw()
 {
     VERIFY(m_app != nullptr, "Did you call init_ex? m_app should not be null.");
-    m_base_view.begin_draw();
+    appview_begin(this);
 
     // Add a simple menu bar
     if ( ImGui::BeginMainMenuBar() )
     {
         if ( ImGui::BeginMenu( "File" ) )
         {
-            if ( ImGui::MenuItem( "Show splashscreen" ) ) m_base_view.show_splashscreen = true;
+            if ( ImGui::MenuItem( "Show splashscreen" ) ) this->show_splashscreen = true;
             if ( ImGui::MenuItem( "Quit" ) ) m_app->request_stop();
             ImGui::EndMenu();
         }
         ImGui::EndMainMenuBar();
     }
 
-    // do not draw windows when splashscreen is visible
-    if ( m_base_view.show_splashscreen )
+    // draw our windows only when splashscreen is not visible
+    if ( !this->show_splashscreen )
     {
-        m_base_view.end_draw();
-        return;
-    };
+        if ( ImGui::Begin( TOP_WINDOW ) )
+        {
+            ImGui::TextWrapped( "This is the TOP_WINDOW content" );
+        }
+        ImGui::End();
 
-    if ( ImGui::Begin( TOP_WINDOW ) )
-    {
-        ImGui::TextWrapped( "This is the TOP_WINDOW content" );
+        if ( ImGui::Begin( RIGHT_WINDOW ) )
+        {
+            ImGui::TextWrapped( "This is the RIGHT_WINDOW content" );
+        }
+        ImGui::End();
+
+        if ( ImGui::Begin( CENTER_WINDOW ) )
+        {
+            ImGui::TextWrapped( "This is the CENTER_WINDOW content" );
+        }
+        ImGui::End();
     }
-    ImGui::End();
 
-    if ( ImGui::Begin( RIGHT_WINDOW ) )
-    {
-        ImGui::TextWrapped( "This is the RIGHT_WINDOW content" );
-    }
-    ImGui::End();
-
-    if ( ImGui::Begin( CENTER_WINDOW ) )
-    {
-        ImGui::TextWrapped( "This is the CENTER_WINDOW content" );
-    }
-    ImGui::End();
-
-    m_base_view.end_draw();
+    appview_end(this);
 }
 
 void AppExampleView::update()
 {
-    m_base_view.update();
+    appview_update(this);
 }

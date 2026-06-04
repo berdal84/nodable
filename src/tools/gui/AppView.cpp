@@ -31,10 +31,15 @@ void tools::appview_init(AppViewState* view, AppState* app)
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "init ...\n");
     ASSERT(app != nullptr);
     
-    view->app = app;
-    view->texture_manager = init_texture_manager();
-    view->event_manager   = init_event_manager();
-    view->action_manager  = init_action_manager();
+    view->dt_in_ms      = 1000 / 30;
+    view->dt_in_s       = 1.f/30.f;
+    view->smoothed_fps  = 30.f;
+    view->should_reset_layout   = true;
+    view->show_splashscreen     = true;
+    view->app               = app;
+    view->texture_manager   = init_texture_manager();
+    view->event_manager     = init_event_manager();
+    view->action_manager    = init_action_manager();
 
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
@@ -336,7 +341,7 @@ void tools::appview_begin(AppViewState* view)
         appview_draw_splashscreen(view);
 
         // Build layout
-        if ( !view->is_layout_initialized )
+        if ( view->should_reset_layout )
         {
             // Dockspace IDs
             view->dockspaces[Dockspace_ROOT] = ImGui::GetID( "Dockspace_ROOT" );
@@ -381,7 +386,7 @@ void tools::appview_begin(AppViewState* view)
             // Finish the build
             ImGui::DockBuilderFinish( view->dockspaces[Dockspace_ROOT] );
 
-            view->is_layout_initialized = true;
+            view->should_reset_layout = false;
         }
 
         // Define root as current dockspace
@@ -668,9 +673,4 @@ void tools::appview_set_title(AppViewState* view, const char* title )
 {
     view->title = title;
     SDL_SetWindowTitle( view->sdl_window, view->title.c_str() );
-}
-
-void tools::appview_reset_layout_next_frame(AppViewState* view)
-{
-    view->is_layout_initialized = false;
 }

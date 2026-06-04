@@ -811,7 +811,7 @@ void ndbl::nodable_draw(NodableState* state)
 
             if (ImGui::MenuItem("Reset Layout", ""))
             {
-                appview_reset_layout_next_frame(&state->view->base);
+                state->view->base.should_reset_layout = true;
             }
             ImGui::EndMenu();
         }

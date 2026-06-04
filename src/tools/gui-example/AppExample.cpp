@@ -15,7 +15,7 @@ void AppExample::init()
     m_view.init(this);
 
     // Init the base application using our data
-    m_base_app.init_ex(m_view.base_view_handle(), m_config );
+    app_init_ex(this, &m_view, m_config );
 
     //
     // Your code here
@@ -55,7 +55,7 @@ void AppExample::run()
 
 void AppExample::update()
 {
-    m_base_app.update();
+    app_update(this);
     //
     // Your code here
     //
@@ -69,7 +69,7 @@ void AppExample::draw()
 void AppExample::shutdown()
 {
     // Shutdown our stuff
-    m_base_app.shutdown();
+    app_shutdown(this);
     m_view.shutdown();
     shutdown_config(m_config);
 
@@ -80,5 +80,5 @@ void AppExample::shutdown()
 
 void AppExample::request_stop()
 {
-    m_base_app.request_stop();
+    app_request_stop(this);
 }

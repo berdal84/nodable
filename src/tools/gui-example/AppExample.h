@@ -8,7 +8,7 @@ namespace tools
     // forward declaration
     class AppExampleView;
     
-    class AppExample
+    class AppExample : public AppState
     {
         friend AppExampleView;
     public:
@@ -17,13 +17,11 @@ namespace tools
         void        shutdown();
         void        update();
         void        draw();
-        bool        should_stop() const { return m_base_app.should_stop(); };
-        App*        base_app_handle() { return &m_base_app; }
+        bool        should_stop() const { return app_should_stop(this); };
         void        _do_frame();
     private:
         void        request_stop();
 
-        App             m_base_app; // wrapped
         AppExampleView  m_view;
         Config*         m_config = nullptr;
     };

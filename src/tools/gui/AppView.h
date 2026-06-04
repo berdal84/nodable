@@ -58,14 +58,13 @@ namespace tools
         ActionManager*      action_manager   = nullptr;
         SDL_GLContext       sdl_gl_context   = nullptr;
         SDL_Window*         sdl_window       = nullptr;
-        u32_t               dt_in_ms         = 1000 / 30;
-        float               dt_in_s          = 1.f/30.f;
-        float               smoothed_fps     = 30.f;
+        u32_t               dt_in_ms         = 0;
+        float               dt_in_s          = 0.f;
+        float               smoothed_fps     = 0.f;
         AppState*           app              = nullptr;
-        bool                is_layout_initialized = false;
-        bool                show_splashscreen = true; // flag to show/hide splashscreen
-        std::array<ImGuiID, Dockspace_COUNT>
-                            dockspaces{};
+        bool                should_reset_layout = false;
+        bool                show_splashscreen = false;
+        ImGuiID             dockspaces[Dockspace_COUNT] = {0};
     };
 
     void        appview_init(AppViewState*, AppState*);
@@ -81,7 +80,6 @@ namespace tools
     void        appview_set_fullscreen(AppViewState*, bool b );
     void        appview_set_title(AppViewState*, const char* string );
     void        appview_dock_window(AppViewState*,const char* window_name, Dockspace); // Must be called within signal_reset_layout
-    void        appview_reset_layout_next_frame(AppViewState*);
     std::vector<unsigned char> appview_take_screenshot(const AppViewState*);
     
     bool        pick_file_path(tools::Path& _out_path, DialogType); // pick a file and store its path in _out_path
