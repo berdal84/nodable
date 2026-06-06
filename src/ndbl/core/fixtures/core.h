@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ndbl/core/NodableHeadless.h"
+#include "ndbl/core/Nodable_Headless.h"
 #include "ndbl/core/language/Nodlang.h"
-#include "tools/core/FileSystem.h"
+#include "tools/core/File_System.h"
 #include <exception>
 #include <gtest/gtest.h>
 #include <string>
@@ -17,7 +17,7 @@ namespace testing
 class Core : public Test
 {
 public:
-    NodableHeadless app;
+    Nodable_Headless app;
 
     void SetUp() override
     {

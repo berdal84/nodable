@@ -6,7 +6,7 @@
 #include "geometry/Vec2.h"
 #include "geometry/Vec4.h"
 
-#include "FontManagerConfig.h"
+#include "Font_Manager_Config.h"
 #include "Size.h"
 
 namespace tools
@@ -45,7 +45,7 @@ namespace tools
             Vec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
             Vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
         };
-        FontManagerConfig font_manager
+        Font_Manager_Config font_manager
         {
             {{
                     "default",                  // id
@@ -55,10 +55,10 @@ namespace tools
                     18.0f                       // icons size in px.
             }},
             {
-                    "default",// FontSlot_Paragraph
-                    "default",// FontSlot_Heading
-                    "default",// FontSlot_Code
-                    "default" // FontSlot_ToolBtn
+                    "default",// Font_Slot_Paragraph
+                    "default",// Font_Slot_Heading
+                    "default",// Font_Slot_Code
+                    "default" // Font_Slot_ToolBtn
             },
             {
                 "FA-solid-900",                  // Icon font name

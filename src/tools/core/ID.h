@@ -1,5 +1,5 @@
 #pragma once
-#include "tools/core/assertions.h"
+#include "tools/core/Asserts.h"
 
 #define TOOLS_ENABLE_POINTER_COMPATIBILITY 1
 

@@ -1,5 +1,5 @@
 #include "tools/gui/index.h"
-#include "AppExample.h"
+#include "App_Example.h"
 
 using namespace tools;
 
@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     TOOLS_try
     {
         // Instantiate the application using the predefined configuration
-        AppExample app;
+        App_Example app;
         app.init();
         app.run();
         app.shutdown();

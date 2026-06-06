@@ -2,10 +2,9 @@
 
 namespace tools
 {
-    class PoolManager;
-    struct TaskManager;
+    struct Task_Manager;
     struct Config;
-    struct AppViewState;
+    struct App_View_State;
 
     typedef int AppFlags;
     enum AppFlag_
@@ -16,20 +15,20 @@ namespace tools
         AppFlag_SHOULD_STOP        = 1 << 2  // when set, app will stop next frame.
     };
 
-    struct AppState
+    struct App_State
     {
         AppFlags        flags           = AppFlag_NONE;
         Config*         config          = nullptr; // owned or not depending on flags
-        AppViewState*   view            = nullptr; // owned or not depending on flags
-        TaskManager*    task_manager    = nullptr;
+        App_View_State* view            = nullptr; // owned or not depending on flags
+        Task_Manager*   task_manager    = nullptr;
     };
 
-    void    app_init(AppState* app);
-    void    app_init_ex(AppState* app, AppViewState* , Config*);
-    void    app_main_loop(AppState* app);
-    void    app_shutdown(AppState* app);
-    void    app_update(AppState* app);
-    void    app_draw(AppState* app); // Consider overriding AppView::draw instead of App::draw
-    static bool app_should_stop(const AppState* app) { return app->flags & AppFlag_SHOULD_STOP; }
-    static void app_request_stop(AppState* app) { app->flags |= AppFlag_SHOULD_STOP; }
+    void    app_init(App_State* app);
+    void    app_init_ex(App_State* app, App_View_State* , Config*);
+    void    app_main_loop(App_State* app);
+    void    app_shutdown(App_State* app);
+    void    app_update(App_State* app);
+    void    app_draw(App_State* app); // Consider overriding AppView::draw instead of App::draw
+    static bool app_should_stop(const App_State* app) { return app->flags & AppFlag_SHOULD_STOP; }
+    static void app_request_stop(App_State* app) { app->flags |= AppFlag_SHOULD_STOP; }
 }

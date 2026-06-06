@@ -5,13 +5,13 @@
 #include <vector>
 
 #include "Signals.h"
-#include "assertions.h"
-#include "core/reflection/Type.h"
+#include "Asserts.h"
+#include "core/reflection/Type_Descriptor.h"
 
 namespace tools
 {
     template<typename T>
-    struct ComponentBag;
+    struct Component_Bag;
 
     //
     // Base class to implement a new Component for class/struct EntityT
@@ -20,14 +20,14 @@ namespace tools
     requires std::is_object_v<EntityT>
     class Component
     {
-        friend class ComponentBag<EntityT>;
+        friend class Component_Bag<EntityT>;
 //====== Data ==========================================================================================================
     protected:
-        tools::SimpleSignal signal_init; // called after component knows its entity
-        tools::SimpleSignal signal_shutdown; // called before to be deleted, when component still knows its entity
+        tools::Simple_Signal signal_init; // called after component knows its entity
+        tools::Simple_Signal signal_shutdown; // called before to be deleted, when component still knows its entity
     private:
         EntityT*              _m_entity{};
-        const TypeDescriptor* _m_type_desc{};
+        const Type_Descriptor* _m_type_desc{};
         std::string           _m_name{};
 //====== Methods =======================================================================================================
     public:
@@ -37,7 +37,7 @@ namespace tools
         , _m_type_desc(type::get<Component>())
         {}
         virtual ~Component() = default;
-        // TODO: if ComponentBag could delete from the real type (not this base), we could remove virtual destructor no?
+        // TODO: if Component_Bag could delete from the real type (not this base), we could remove virtual destructor no?
 
         EntityT* entity() const
         {
@@ -55,14 +55,14 @@ namespace tools
             _m_name = name;
         }
 
-        const TypeDescriptor* get_class() const
+        const Type_Descriptor* get_class() const
         {
             return _m_type_desc;
         }
 
 //====== Internal================================== ====================================================================
     private:
-        void _init(EntityT* entity, const TypeDescriptor* type_desc )
+        void _init(EntityT* entity, const Type_Descriptor* type_desc )
         {
             auto level = tools::Verbosity_Diagnostic;
             TOOLS_DEBUG_LOG(level, "Component", "_init \"%s\" (type: %s ) ...\n", _m_name.c_str(), type_desc->name() );
@@ -81,12 +81,12 @@ namespace tools
     };
 
     template<typename T, typename EntityT>
-    concept ComponentFor = requires (T t) {
+    concept Component_For = requires (T t) {
         std::is_base_of_v<Component<EntityT>, T>;
     };
 
     //
-    // ComponentBag:
+    // Component_Bag:
     //      Handle a set of components for an entity class EntityT
     //
     // Minimalist example with components having a default constructor:
@@ -95,11 +95,11 @@ namespace tools
     //         template<typename T>   create_component() { return _m_components.create<T>(); }
     //         template<typename T>   get_component()    { return _m_components.get<T>(); }
     //    private:
-    //         ComponentBag<MyEntity> _m_components;
+    //         Component_Bag<MyEntity> _m_components;
     //    }
     //
     template<typename EntityT>
-    struct ComponentBag
+    struct Component_Bag
 	{
         using ComponentT     = Component<EntityT>;
         using iterator       = typename std::vector<ComponentT*>::iterator;
@@ -112,16 +112,16 @@ namespace tools
         EntityT*                 _m_entity;
 //====== Methods =======================================================================================================
     public:
-        ComponentBag() = delete;
-        explicit ComponentBag(EntityT* entity)
+        Component_Bag() = delete;
+        explicit Component_Bag(EntityT* entity)
         : _m_entity(entity)
         {
             ASSERT(entity);
         };
-        ComponentBag(const ComponentBag&) = delete;
-        ComponentBag(ComponentBag&&) = delete;
+        Component_Bag(const Component_Bag&) = delete;
+        Component_Bag(Component_Bag&&) = delete;
 
-        ~ComponentBag()
+        ~Component_Bag()
         {
             assert(_m_component.empty()); // did you called shutdown() before to delete?
             assert(_m_component_indexed_by_typeid.empty()); // should be empty if _m_component is.
@@ -144,7 +144,7 @@ namespace tools
             return _m_component.size();
         }
 
-        template<ComponentFor<EntityT> T>
+        template<Component_For<EntityT> T>
         bool has() const
         {
             return get<T>() != nullptr;
@@ -155,7 +155,7 @@ namespace tools
             return _m_component;
         }
 
-        template<ComponentFor<EntityT> T>
+        template<Component_For<EntityT> T>
         T* create()
         {
             auto* c = _allocate<T>();
@@ -163,7 +163,7 @@ namespace tools
             return c;
         }
 
-        template<ComponentFor<EntityT> T, typename ...Args>
+        template<Component_For<EntityT> T, typename ...Args>
         T* create(Args...args)
         {
             auto* c = _allocate<T>(args...);
@@ -171,7 +171,7 @@ namespace tools
             return c;
         }
 
-        template<ComponentFor<EntityT> T>
+        template<Component_For<EntityT> T>
         void destroy(T* component)
         {
             auto it = std::find_if(_m_component_indexed_by_typeid.begin(), _m_component_indexed_by_typeid.end(), [&](const auto& pair) { return pair.second == component; });
@@ -182,7 +182,7 @@ namespace tools
             _deallocate(component);
         }
 
-        template<ComponentFor<EntityT> T>
+        template<Component_For<EntityT> T>
         T* get() const
         {
             const T* c = _get_by_type<T>();
@@ -191,13 +191,13 @@ namespace tools
             return nullptr;
         }
 
-        template<ComponentFor<EntityT> T>
-        static std::vector<T*> get_every(const std::vector<ComponentBag*>& entities)
+        template<Component_For<EntityT> T>
+        static std::vector<T*> get_every(const std::vector<Component_Bag*>& entities)
         {
             std::vector<T*> result;
             result.reserve( entities.size() );
 
-            for(ComponentBag* _entity : entities)
+            for(Component_Bag* _entity : entities)
             {
                 result.push_back(_entity->get<T>() );
             }
@@ -205,7 +205,7 @@ namespace tools
             return result;
         }
 
-        template<ComponentFor<EntityT> T>
+        template<Component_For<EntityT> T>
         T* require(const char* reason) const
         {
             T* component = get<T>();
@@ -219,7 +219,7 @@ namespace tools
         const_iterator cend() const   { return _m_component.cend(); }
     private:
 
-        template<ComponentFor<EntityT> T>
+        template<Component_For<EntityT> T>
         const T* _get_by_type() const
         {
             auto it = _m_component_indexed_by_typeid.find(std::type_index(typeid(T)));
@@ -230,13 +230,13 @@ namespace tools
             return nullptr;
         }
 
-        template<ComponentFor<EntityT> T>
+        template<Component_For<EntityT> T>
         const_iterator _find(T* ptr) const
         {
             return std::find(_m_component.begin(), _m_component.end(), ptr);
         }
 
-        template<ComponentFor<EntityT> T>
+        template<Component_For<EntityT> T>
         void _append(T* c)
         {
             _m_component.push_back(c );

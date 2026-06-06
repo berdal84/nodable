@@ -1,6 +1,6 @@
 #include "../fixtures/core.h"
 #include <gtest/gtest.h>
-#include "tools/core/log.h"
+#include "tools/core/Log.h"
 
 using namespace ndbl;
 using namespace tools;

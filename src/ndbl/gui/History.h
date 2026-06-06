@@ -15,7 +15,7 @@ namespace ndbl
 	/* TextEditorBuffer is a class to handle TextEditor UndoRecords
 	This class will catch these object using AddUndo method.
 	*/
-	class TextEditorBuffer : public TextEditor::IExternalUndoBuffer
+	class TextEditor_Buffer : public TextEditor::IExternalUndoBuffer
     {
 	public:
         void set_enable(bool _val){ m_enabled = _val; }
@@ -57,11 +57,11 @@ namespace ndbl
 		size_t  get_size()const; /** To get the set_size of the history (command count) */
 		void                move_cursor(int _pos); /** Move time cursor to past (negative value) or future (positive value). */
 		std::string         get_cmd_description_at(int _cmd_position);
-		TextEditorBuffer*   configure_text_editor_undo_buffer(TextEditor* _textEditor); /** To get the special buffer for TextEditor */
+		TextEditor_Buffer*   configure_text_editor_undo_buffer(TextEditor* _textEditor); /** To get the special buffer for TextEditor */
         std::pair<int, int> get_command_id_range(); /** return the command position range. Ex: (-100, 20) if we have 100 commands to undo and 20 to redo */
     private:
         using Commands = std::deque<std::shared_ptr<AbstractCommand>>;
-		TextEditorBuffer m_text_editor_buffer;
+		TextEditor_Buffer m_text_editor_buffer;
 		Commands         m_past;
 		Commands         m_future;
     };

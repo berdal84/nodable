@@ -9,11 +9,11 @@
 #include "tools/gui/geometry/Vec2.h"
 #include "tools/gui/geometry/Vec4.h"
 #include "tools/gui/geometry/Space.h"
-#include "tools/core/types.h"
+#include "tools/core/Types.h"
 
-#include "ActionManager.h"
-#include "tools/core/EventManager.h"
-#include "tools/gui/geometry/BezierCurveSegment2D.h"
+#include "Action_Manager.h"
+#include "tools/core/Event_Manager.h"
+#include "tools/gui/geometry/Bezier_Curve_Segment_2D.h"
 
 namespace tools
 {
@@ -51,20 +51,20 @@ namespace tools
         extern void ShadowedText(
                 const Vec2& _offset,
                 const Vec4& _shadowColor,
-                const char *_format,
+                const char *_Format,
                 ...);
 
         extern void ColoredShadowedText(
                 const Vec2& _offset,
                 const Vec4& _textColor,
                 const Vec4& _shadowColor,
-                const char *_format,
+                const char *_Format,
                 ...);
 
         extern void DrawWire(
                 ImGuiID id,
                 ImDrawList* draw_list,
-                const BezierCurveSegment2D& curve,
+                const Bezier_Curve_Segment_2D& curve,
                 const WireStyle& style);
 
         extern void     EndFrame();
@@ -82,7 +82,7 @@ namespace tools
         template<class EventT>
         static void MenuItem_EventTrigger(bool selected = false, bool enable = true) // Shorthand to get a given action from the manager and draw a MenuItem from it.
         {
-            ActionManager* action_manager = get_action_manager();
+            Action_Manager* action_manager = get_action_manager();
             const IAction* action = action_manager->get_action_with_id(EventT::id);
 
             if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
@@ -92,7 +92,7 @@ namespace tools
         };
 
         template<typename ...Args>
-        static void DrawHelperEx(float _alpha, const char* _format, Args... args)
+        static void DrawHelperEx(float _alpha, const char* _Format, Args... args)
         {
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, _alpha);
             ImGui::Text(ICON_FA_QUESTION_CIRCLE);
@@ -100,14 +100,14 @@ namespace tools
 
             if( BeginTooltip() )
             {
-                ImGui::Text(_format, args...);
+                ImGui::Text(_Format, args...);
                 EndTooltip();
             }
         }
 
         template<typename ...Args>
-        static void DrawHelper(const char* _format, Args... args)
-        { DrawHelperEx(0.25f, _format, args...); } // simple "?" test with a tooltip.
+        static void DrawHelper(const char* _Format, Args... args)
+        { DrawHelperEx(0.25f, _Format, args...); } // simple "?" test with a tooltip.
 
         void MultiSegmentLineBehavior(
                 ImGuiID id,

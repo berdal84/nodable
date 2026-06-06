@@ -3,7 +3,8 @@
 #include <cstring>
 #include <type_traits>
 #include <xxhash/xxhash64.h>
-#include "core/types.h"
+
+#include "Types.h"
 
 namespace tools
 {

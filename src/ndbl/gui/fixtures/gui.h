@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "gui/AppView.h"
+#include "gui/App_View.h"
 #include "ndbl/gui/Nodable.h"
 #include "tools/core/System.h"
 
@@ -29,7 +29,7 @@ namespace testing
         /**
          * run some loops for a given iteration count
          */
-        static void loop_count(ndbl::AppState* state, size_t iteration_count, double sleep_in_sec = 1.0)
+        static void loop_count(ndbl::App_State* state, size_t iteration_count, double sleep_in_sec = 1.0)
         {
             for(size_t i = 0; i < iteration_count; ++i)
             {
@@ -42,7 +42,7 @@ namespace testing
         /**
          * run some loops for a given duration
          */
-        static void loop_for_x_sec(ndbl::AppState* state, double duration_in_sec)
+        static void loop_for_x_sec(ndbl::App_State* state, double duration_in_sec)
         {
             auto start = std::chrono::system_clock::now();
             auto end   = std::chrono::system_clock::now();
@@ -60,7 +60,7 @@ namespace testing
             }
         }
 
-        void save_screenshot(ndbl::AppState* state, const char* relative_path)
+        void save_screenshot(ndbl::App_State* state, const char* relative_path)
         {
             TOOLS_LOG(tools::Verbosity_Message, "Test", "Taking screenshot ...\n");
             auto path = tools::Path::get_executable_path().parent_path() / "screenshots" / relative_path;

@@ -1,12 +1,12 @@
 #pragma once
 #include "Invokable.h"
-#include "Type.h"
-#include "TypeRegister.h"
+#include "Type_Descriptor.h"
+#include "Type_Register.h"
 
 namespace tools
 {
     // Forward declarations
-    template<typename T> class  InvokableStaticFunction;
+    template<typename T> class  Invokable_Static_Function;
 
     namespace type
     {
@@ -22,12 +22,12 @@ namespace tools
         struct Initializer<T, false>
         {
             static_assert(!std::is_class_v<T>);
-            TypeDescriptor *m_type;
+            Type_Descriptor *m_type;
 
             explicit Initializer(const char *_name)
             {
-                TypeDescriptor *type = TypeDescriptor::create<T>(_name);
-                m_type = TypeRegister::insert_or_merge(type);
+                Type_Descriptor *type = Type_Descriptor::create<T>(_name);
+                m_type = Type_Register::insert_or_merge(type);
             }
         };
 
@@ -36,18 +36,18 @@ namespace tools
         struct Initializer<T, true>
         {
             static_assert(std::is_class_v<T>);
-            ClassDescriptor *m_class;
+            Class_Descriptor *m_class;
 
             explicit Initializer(const char *_name)
             {
-                TypeDescriptor *type = ClassDescriptor::create<T>(_name);
-                m_class = (ClassDescriptor *) TypeRegister::insert_or_merge(type);
+                Type_Descriptor *type = Class_Descriptor::create<T>(_name);
+                m_class = (Class_Descriptor *) Type_Register::insert_or_merge(type);
             }
 
             template<typename F>
             Initializer &add_method(F* func_ptr, const char *_name, const char *_alt_name = "")
             {
-                auto *invokable = new InvokableStaticFunction<F>( _name, func_ptr); // TODO: delete?
+                auto *invokable = new Invokable_Static_Function<F>( _name, func_ptr); // TODO: delete?
                 m_class->add_static(_name, invokable);
 
                 if (_alt_name[0] != '\0')
@@ -59,7 +59,7 @@ namespace tools
             template<typename R, typename C, typename ...Ts>
             Initializer &add_method(R(C::*func_ptr)(Ts...), const char *_name) // non static
             {
-                auto *invokable = new InvokableMethod<R(C::*)(Ts...)>(_name, func_ptr);  // TODO: delete?
+                auto *invokable = new Invokable_Method<R(C::*)(Ts...)>(_name, func_ptr);  // TODO: delete?
                 m_class->add_method(_name, invokable);
                 return *this;
             }
@@ -70,7 +70,7 @@ namespace tools
                 static_assert(std::is_class_v<BaseClassT>);
                 static_assert(std::is_base_of_v<BaseClassT, T>);
 
-                auto base_class = const_cast<ClassDescriptor *>( type::get_class<BaseClassT>()); // get or create
+                auto base_class = const_cast<Class_Descriptor *>( type::get_class<BaseClassT>()); // get or create
                 m_class->add_parent(base_class->id());
                 base_class->add_child(m_class->id());
                 return *this;

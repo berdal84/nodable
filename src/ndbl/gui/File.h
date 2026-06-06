@@ -5,16 +5,16 @@
 #include <string>
 
 #include "Isolation.h"
-#include "ndbl/gui/FileView.h"
+#include "ndbl/gui/File_View.h"
 #include "ndbl/gui/History.h"
 #include "ndbl/gui/Nodable.h"
 
 namespace ndbl
 {
     // forward declarations
-    class ASTNode;
+    class Node;
     class Graph;
-    class GraphView;
+    class Graph_View;
     class History;
 
     /**
@@ -41,7 +41,7 @@ namespace ndbl
         ~File();
 
         tools::Path            path; // file path on disk
-        FileView               view;
+        File_View               view;
         History                history; // history of changes
     private:
         Isolation              _isolation = Isolation_OFF;

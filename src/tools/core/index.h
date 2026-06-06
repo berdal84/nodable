@@ -1,6 +1,6 @@
 #pragma once
-#include "TryCatch.h"
-#include "tools/core/log.h"
+#include "Try_Catch.h"
+#include "tools/core/Log.h"
 #include "tools/core/reflection/index.h"
 
 namespace tools

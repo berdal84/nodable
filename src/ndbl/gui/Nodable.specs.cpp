@@ -7,19 +7,19 @@ using namespace ndbl;
 
 TEST_F(Gui_App, constructor)
 {
-    ndbl::AppState app;
+    ndbl::App_State app;
 }
 
 TEST_F(Gui_App, init_shutdown)
 {
-    ndbl::AppState app;
+    ndbl::App_State app;
     nodable_init(&app);
     nodable_shutdown(&app);
 }
 
 TEST_F(Gui_App, update)
 {
-    ndbl::AppState app;
+    ndbl::App_State app;
     nodable_init(&app);
     nodable_update(&app);
     nodable_shutdown(&app);
@@ -27,7 +27,7 @@ TEST_F(Gui_App, update)
 
 TEST_F(Gui_App, loop_count_1)
 {
-    ndbl::AppState app;
+    ndbl::App_State app;
     nodable_init(&app);
     loop_count(&app, 1);
     nodable_shutdown(&app);
@@ -35,7 +35,7 @@ TEST_F(Gui_App, loop_count_1)
 
 TEST_F(Gui_App, loop_duration_5s)
 {
-    ndbl::AppState app;
+    ndbl::App_State app;
     nodable_init(&app);
     loop_for_x_sec(&app, 5.0 );
     nodable_shutdown(&app);
@@ -43,7 +43,7 @@ TEST_F(Gui_App, loop_duration_5s)
 
 TEST_F(Gui_App, new_file)
 {
-    ndbl::AppState app;
+    ndbl::App_State app;
     nodable_init(&app);
     app.view->show_splashscreen = false;
     nodable_new_file(&app);
@@ -54,7 +54,7 @@ TEST_F(Gui_App, new_file)
 
 TEST_F(Gui_App, open_file)
 {
-    ndbl::AppState app;
+    ndbl::App_State app;
     nodable_init(&app);
     app.view->show_splashscreen = false;
     loop_for_x_sec(&app, 1.0 );
@@ -67,7 +67,7 @@ TEST_F(Gui_App, open_file)
 
 TEST_F(Gui_App, close_file)
 {
-    ndbl::AppState app;
+    ndbl::App_State app;
     nodable_init(&app);
     app.view->show_splashscreen = false;
     File* file = nodable_open_asset_file(&app, "examples/arithmetic.cpp");
@@ -81,7 +81,7 @@ TEST_F(Gui_App, close_file)
 
 TEST_F(Gui_App, open_examples)
 {
-    ndbl::AppState app;
+    ndbl::App_State app;
     nodable_init(&app);
     app.view->show_splashscreen = false;
     nodable_update(&app);

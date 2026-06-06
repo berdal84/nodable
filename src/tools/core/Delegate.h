@@ -1,12 +1,12 @@
 #pragma once
 #include <functional>
 #include <type_traits>
-#include "tools/core/assertions.h"
-#include "tools/core/reflection/FunctionTraits.h"
+#include "tools/core/Asserts.h"
+#include "tools/core/reflection/Function_Traits.h"
 
 namespace tools
 {
-    template<typename FunctionT>
+    template<typename Function_Type>
     struct Delegate;
 
     //
@@ -23,23 +23,23 @@ namespace tools
     // b.bind(my_class_instance_ptr);
     // d.call();
     //
-    template<typename R, typename ...Args>
-    struct Delegate<R(Args...)>
+    template<typename Result_Type, typename ...Args_Type>
+    struct Delegate<Result_Type(Args_Type...)>
     {
         enum Type {
             DELEGATE_TYPE_STATIC = 1,
             DELEGATE_TYPE_METHOD = 2
         };
 
-        using StaticCallerT = R(*)(Args...);
-        using MethodCallerT = R(*)(void*, Args...);
+        using Static_Caller_Type = Result_Type(*)(Args_Type...);
+        using Method_Caller_Type = Result_Type(*)(void*, Args_Type...);
 
         Delegate()
         : _m_static_function_ptr(&_null_function)
         , _m_type(DELEGATE_TYPE_STATIC)
         {}
 
-        Delegate(R(*func)(Args...)) // static/global functions are easy to handle, we add a constructor.
+        Delegate(Result_Type(*func)(Args_Type...)) // static/global functions are easy to handle, we add a constructor.
         : _m_static_function_ptr(func)
         , _m_type(DELEGATE_TYPE_STATIC)
         {
@@ -78,7 +78,7 @@ namespace tools
             _m_method.object_ptr = object_ptr;
         }
 
-        R call(Args... args) const
+        Result_Type call(Args_Type... args) const
         {
             switch ( _m_type)
             {
@@ -106,15 +106,15 @@ namespace tools
 
         }
 
-        template<auto TMethod>
-        requires std::is_member_function_pointer_v<decltype(TMethod)>
+        template<auto Method_Type>
+        requires std::is_member_function_pointer_v<decltype(Method_Type)>
         static Delegate from_method(void* object_ptr)
         {
-            using T = typename FunctionTrait<decltype(TMethod)>::class_t;
+            using Class_Type = typename Function_Trait<decltype(Method_Type)>::Class_Type;
             Delegate delegate;
             delegate._m_type = DELEGATE_TYPE_METHOD;
             delegate._m_method.object_ptr   = object_ptr;
-            delegate._m_method.function_ptr = &_method_caller<T, TMethod>; // <-- get address of a static function able to call the method
+            delegate._m_method.function_ptr = &_method_caller<Class_Type, Method_Type>; // <-- get address of a static function able to call the method
             return delegate;
         }
 
@@ -122,31 +122,31 @@ namespace tools
         Type _m_type; // We could avoid this, but at some brain damage cost due to "template hell".
 
         union {
-            StaticCallerT _m_static_function_ptr;
+            Static_Caller_Type _m_static_function_ptr;
             struct {
                 void*         object_ptr;
-                MethodCallerT function_ptr;
+                Method_Caller_Type function_ptr;
             } _m_method;
         };
 
         // Can convert a methods to a regular static function with 1arg for the object ptr
-        static R _null_function(Args... args)
+        static Result_Type _null_function(Args_Type... args)
         {
-            if constexpr ( !std::is_void_v<R>) {
+            if constexpr ( !std::is_void_v<Result_Type>) {
                 return {};
             }
             return;
         }
 
         // Can convert a methods to a regular static function with 1arg for the object ptr
-        template <class TClass,  R(TClass::*TMethod)(Args...)>
-        static R _method_caller(void* ptr, Args... args)
+        template <class TClass,  Result_Type(TClass::*Method_Type)(Args_Type...)>
+        static Result_Type _method_caller(void* ptr, Args_Type... args)
         {
             TClass* object_ptr = static_cast<TClass*>(ptr);
-            return (object_ptr->*TMethod)(args...); // The trick is here, the method IS A TYPE!
+            return (object_ptr->*Method_Type)(args...); // The trick is here, the method IS A TYPE!
         }
     };
 
     // define few alias
-    using SimpleDelegate = Delegate<void()>;
+    using Simple_Delegate = Delegate<void()>;
 }

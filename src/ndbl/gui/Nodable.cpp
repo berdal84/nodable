@@ -13,54 +13,54 @@ using namespace tools;
 #include <emscripten/html5.h>
 #endif
 
-#include "tools/core/assertions.h"
-#include "tools/core/EventManager.h"
-#include "tools/core/log.h"
+#include "tools/core/Asserts.h"
+#include "tools/core/Event_Manager.h"
+#include "tools/core/Log.h"
 #include "tools/core/System.h"
-#include "tools/gui/ActionManagerView.h"
-#include "tools/gui/AppView.h"
+#include "tools/gui/Action_Manager_View.h"
+#include "tools/gui/App_View.h"
 #include "tools/gui/Config.h"
-#include "tools/gui/FontManager.h"
+#include "tools/gui/Font_Manager.h"
 #include "tools/gui/Texture.h"
-#include "tools/gui/TextureManager.h"
+#include "tools/gui/Texture_Manager.h"
 
-#include "ndbl/core/ASTUtils.h"
-#include "ndbl/core/ASTNodeSlot.h"
+#include "ndbl/core/Node.h"
+#include "ndbl/core/Node_Slot.h"
 #include "ndbl/core/language/Nodlang.h"
 
 #include "commands/Cmd_ConnectEdge.h"
 #include "commands/Cmd_DeleteEdge.h"
 #include "commands/Cmd_Group.h"
 
-#include "ASTNodeSlotView.h"
-#include "ASTNodeView.h"
+#include "Node_Slot_View.h"
+#include "Node_View.h"
 #include "Condition.h"
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
-#include "FileView.h"
-#include "GraphView.h"
+#include "File_View.h"
+#include "Graph_View.h"
 #include "History.h"
 
 using namespace ndbl;
 using namespace tools;
 
-static ndbl::AppState* g_nodable_state = nullptr;
+static ndbl::App_State* g_nodable_state = nullptr;
 
-ndbl::AppState* ndbl::nodable_state()
+ndbl::App_State* ndbl::nodable_state()
 {
     ASSERT(g_nodable_state != nullptr);
     return g_nodable_state;
 }
 
 template<typename T>
-static FunctionDescriptor* create_variable_node_signature()
+static Function_Descriptor* create_variable_node_signature()
 {
-    static FunctionDescriptor* descriptor = FunctionDescriptor::create<T(T)>("variable");
+    static Function_Descriptor* descriptor = Function_Descriptor::create<T(T)>("variable");
     return descriptor;
 }
 
-void ndbl::nodable_init(AppState* app)
+void ndbl::nodable_init(App_State* app)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "init ...\n");
  
@@ -68,7 +68,7 @@ void ndbl::nodable_init(AppState* app)
     g_nodable_state = app;
 
     app->config = init_config();
-    app->view = new ndbl::AppViewState();
+    app->view = new ndbl::App_View_State();
 
     app_init_ex(app, app->view, app->config->tools_cfg ); // the pointers are owned by this class, base app just use them.
     app->language = init_language();
@@ -85,7 +85,7 @@ void ndbl::nodable_init(AppState* app)
     app->view->logo = get_texture_manager()->load(path);
 
     // Add a bunch of new actions
-    tools::ActionManager* action_manager = get_action_manager();
+    tools::Action_Manager* action_manager = get_action_manager();
     ASSERT(action_manager != nullptr); // initialized by base_view
     // (With shortcut)
     action_manager->new_action<Event_DeleteSelection>("Delete", Shortcut{SDLK_DELETE, KMOD_NONE } );
@@ -97,33 +97,33 @@ void ndbl::nodable_init(AppState* app)
     action_manager->new_action<Event_FileClose>(ICON_FA_TIMES "  Close", Shortcut{SDLK_w, KMOD_CTRL } );
     action_manager->new_action<Event_FileBrowse>(ICON_FA_FOLDER_OPEN " Open", Shortcut{SDLK_o, KMOD_CTRL } );
     action_manager->new_action<Event_FileNew>(ICON_FA_FILE " New", Shortcut{SDLK_n, KMOD_CTRL } );
-    action_manager->new_action<Event_ShowWindow>("Splashscreen", Shortcut{SDLK_F1 }, EventPayload_ShowWindow{"splashscreen" } );
+    action_manager->new_action<Event_ShowWindow>("Splashscreen", Shortcut{SDLK_F1 }, Event_Payload__Show_Window{"splashscreen" } );
     action_manager->new_action<Event_Exit>(ICON_FA_SIGN_OUT_ALT " Exit", Shortcut{SDLK_F4, KMOD_ALT } );
     action_manager->new_action<Event_Undo>("Undo", Shortcut{SDLK_z, KMOD_CTRL } );
     action_manager->new_action<Event_Redo>("Redo", Shortcut{SDLK_y, KMOD_CTRL } );
     action_manager->new_action<Event_ToggleIsolationFlags>("Isolation", Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
     action_manager->new_action<Event_MoveSelection>("Drag whole graph", Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{FrameMode::SelectedNodeViews }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{FrameMode::RootNodeView} );
+    action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNode_Views{Frame_Mode::Selected_Node_Views }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL }, EventPayload_FrameNode_Views{Frame_Mode::Root_Node_View} );
     // (to create block nodes)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_CONDITION } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_FOR_LOOP } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_WHILE_LOOP } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_SCOPE } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{CreateNodeType_ROOT } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__BLOCK_CONDITION } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__BLOCK_FOR_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__BLOCK_WHILE_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__BLOCK_SCOPE } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__ROOT } );
     // (to create variables)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__VARIABLE_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__VARIABLE_STRING, create_variable_node_signature<std::string>() } );
     //(to create literals)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__LITERAL_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__LITERAL_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__LITERAL_STRING, create_variable_node_signature<std::string>() } );
     // (to create functions/operators from the API)
     // TODO: add a list of preset to create operators/functions
-    // action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{CreateNodeType_FUNCTION, invokable->get_sig() } );
+    // action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{Create_Node_Type__FUNCTION, invokable->get_sig() } );
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::NodableView", "init_ex " TOOLS_OK "\n");
 
@@ -131,7 +131,7 @@ void ndbl::nodable_init(AppState* app)
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "init " TOOLS_OK "\n");
 }
 
-void ndbl::nodable_do_frame(AppState* app)
+void ndbl::nodable_do_frame(App_State* app)
 {
     nodable_update(app);
     nodable_draw(app);
@@ -148,7 +148,7 @@ namespace ndbl
 }
 #endif
 
-void ndbl::nodable_run(AppState* app)
+void ndbl::nodable_run(App_State* app)
 {
   #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(&ndbl::emscripten_loop, 0, true);
@@ -160,7 +160,7 @@ void ndbl::nodable_run(AppState* app)
   #endif
 }
 
-void ndbl::nodable_update(AppState* app)
+void ndbl::nodable_update(App_State* app)
 {
     tools::app_update(app);
 
@@ -189,20 +189,20 @@ void ndbl::nodable_update(AppState* app)
 
     // Nodable events
     IEvent*       event = nullptr;
-    EventManager* event_manager     = get_event_manager();
-    GraphView*    graph_view        = app->current_file ? app->current_file->graph()->component<GraphView>() : nullptr; // TODO: should be included in the event
+    Event_Manager* event_manager     = get_event_manager();
+    Graph_View*    graph_view        = app->current_file ? app->current_file->graph()->component<Graph_View>() : nullptr; // TODO: should be included in the event
     History*      curr_file_history = app->current_file ? &app->current_file->history : nullptr; // TODO: should be included in the event
     while( (event = event_manager->poll_event()) )
     {
         switch ( event->id )
         {
-            case EventID_RESET_GRAPH:
+            case Event_ID_RESET_GRAPH:
             {
                 app->current_file->set_graph_dirty();
                 break;
             }
 
-            case EventID_TOGGLE_ISOLATION_FLAGS:
+            case Event_ID_TOGGLE_ISOLATION_FLAGS:
             {
                 app->config->isolation = ~app->config->isolation;
                 if(app->current_file)
@@ -212,33 +212,33 @@ void ndbl::nodable_update(AppState* app)
                 break;
             }
 
-            case EventID_REQUEST_EXIT:
+            case Event_ID_REQUEST_EXIT:
             {
                 tools::app_request_stop(app);
                 break;
             }
 
-            case EventID_FILE_CLOSE:
+            case Event_ID_FILE_CLOSE:
             {
                 nodable_close_file(app);
                 break;
             }
-            case EventID_UNDO:
+            case Event_ID_UNDO:
             {
                 if(curr_file_history) curr_file_history->undo();
                 break;
             }
 
-            case EventID_REDO:
+            case Event_ID_REDO:
             {
                 if(curr_file_history) curr_file_history->redo();
                 break;
             }
 
-            case EventID_FILE_BROWSE:
+            case Event_ID_FILE_BROWSE:
             {
                 Path path;
-                if( pick_file_path(path, DIALOG_Browse) )
+                if( pick_file_path(path, Dialog_Type_Browse) )
                 {
                     nodable_open_file(app, path);
                     break;
@@ -248,18 +248,18 @@ void ndbl::nodable_update(AppState* app)
 
             }
 
-            case EventID_FILE_NEW:
+            case Event_ID_FILE_NEW:
             {
                 nodable_new_file(app);
                 break;
             }
 
-            case EventID_FILE_SAVE_AS:
+            case Event_ID_FILE_SAVE_AS:
             {
                 if (app->current_file != nullptr)
                 {
                     Path path;
-                    if( pick_file_path(path, DIALOG_SaveAs))
+                    if( pick_file_path(path, Dialog_Type_SaveAs))
                     {
                        nodable_save_file_as(app, app->current_file, path);
                     }
@@ -268,7 +268,7 @@ void ndbl::nodable_update(AppState* app)
                 break;
             }
 
-            case EventID_FILE_SAVE:
+            case Event_ID_FILE_SAVE:
             {
                 if (!app->current_file) break;
                 if( !app->current_file->path.empty())
@@ -278,7 +278,7 @@ void ndbl::nodable_update(AppState* app)
                 else
                 {
                     Path path;
-                    if( pick_file_path(path, DIALOG_SaveAs))
+                    if( pick_file_path(path, Dialog_Type_SaveAs))
                     {
                         nodable_save_file_as(app, app->current_file, path);
                     }
@@ -304,7 +304,7 @@ void ndbl::nodable_update(AppState* app)
                 break;
             }
 
-            case EventID_FILE_OPENED:
+            case Event_ID_FILE_OPENED:
             {
                 ASSERT(app->current_file != nullptr );
                 app->current_file->view.clear_overlay();
@@ -317,10 +317,10 @@ void ndbl::nodable_update(AppState* app)
                 {
                     for(const Selectable& elem : graph_view->selection() )
                     {
-                        if ( auto nodeview = elem.get_if<ASTNodeView*>() )
-                            graph_view->graph()->flag_node_to_delete(nodeview->node(), GraphFlag_NONE);
-                        else if ( auto scopeview = elem.get_if<ASTScopeView*>() )
-                            graph_view->graph()->flag_node_to_delete(scopeview->node(), GraphFlag_ALLOW_SIDE_EFFECTS);
+                        if ( auto nodeview = elem.get_if<Node_View*>() )
+                            graph_view->graph()->flag_node_to_delete(nodeview->node(), Graph_Flag_NONE);
+                        else if ( auto scopeview = elem.get_if<Scope_View*>() )
+                            graph_view->graph()->flag_node_to_delete(scopeview->node(), Graph_Flag_ALLOW_SIDE_EFFECTS);
                     }
                 }
 
@@ -335,11 +335,11 @@ void ndbl::nodable_update(AppState* app)
                     {
                         switch ( elem.index() )
                         {
-                            case Selectable::index_of<ASTNodeView*>():
-                                elem.get<ASTNodeView*>()->arrange_recursively();
+                            case Selectable::index_of<Node_View*>():
+                                elem.get<Node_View*>()->arrange_recursively();
                                 break;
-                            case Selectable::index_of<ASTScopeView*>():
-                                elem.get<ASTScopeView*>()->arrange_content();
+                            case Selectable::index_of<Scope_View*>():
+                                elem.get<Scope_View*>()->arrange_content();
                                 break;
                         }
                     }
@@ -350,12 +350,12 @@ void ndbl::nodable_update(AppState* app)
 
             case Event_SelectNext::id:
             {
-                if ( graph_view && graph_view->selection().contains<ASTNodeView*>() )
+                if ( graph_view && graph_view->selection().contains<Node_View*>() )
                 {
                     graph_view->selection().clear();
-                    for(auto* _view : graph_view->selection().collect<ASTNodeView*>() )
-                        for (auto* _successor : _view->node()->component<ASTNode>()->flow_outputs() )
-                            if (auto* _successor_view = _successor->component<ASTNodeView>() )
+                    for(auto* _view : graph_view->selection().collect<Node_View*>() )
+                        for (auto* _successor : _view->node()->component<Node>()->flow_outputs() )
+                            if (auto* _successor_view = _successor->component<Node_View>() )
                                 graph_view->selection().append( _successor_view );
                 }
                 break;
@@ -366,7 +366,7 @@ void ndbl::nodable_update(AppState* app)
                 if ( graph_view )
                     break;
 
-                for( ASTNodeView* view : graph_view->selection().collect<ASTNodeView*>() )
+                for( Node_View* view : graph_view->selection().collect<Node_View*>() )
                 {
                     auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
                     _event->data.mode == RECURSIVELY ? view->expand_toggle_rec()
@@ -375,16 +375,16 @@ void ndbl::nodable_update(AppState* app)
                 break;
             }
 
-            case Event_SlotDropped::id:
+            case Event_Node_SlotDropped::id:
             {
                 ASSERT(curr_file_history != nullptr);
-                auto _event = reinterpret_cast<Event_SlotDropped*>(event);
-                ASTNodeSlot* tail = _event->data.first;
-                ASTNodeSlot* head = _event->data.second;
+                auto _event = reinterpret_cast<Event_Node_SlotDropped*>(event);
+                Node_Slot* tail = _event->data.first;
+                Node_Slot* head = _event->data.second;
                 ASSERT(head != tail);
-                if ( tail->order() == SlotFlag_ORDER_2ND )
+                if ( tail->order() == Node_Slot_Flag_ORDER_2ND )
                 {
-                    if ( head->order() == SlotFlag_ORDER_2ND )
+                    if ( head->order() == Node_Slot_Flag_ORDER_2ND )
                     {
                         TOOLS_LOG(tools::Verbosity_Error, "Nodable", "Unable to connect incompatible edges\n");
                         break; // but if it still the case, that's because edges are incompatible
@@ -392,7 +392,7 @@ void ndbl::nodable_update(AppState* app)
                     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Nodable", "Swapping edges to try to connect them\n");
                     std::swap(tail, head);
                 }
-                ASTSlotLink edge(tail, head);
+                Node_Slot_Link edge(tail, head);
                 auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                 curr_file_history->push_command(cmd);
 
@@ -407,17 +407,17 @@ void ndbl::nodable_update(AppState* app)
                 break;
             }
 
-            case Event_SlotDisconnectAll::id:
+            case Event_Node_SlotDisconnectAll::id:
             {
                 ASSERT(curr_file_history != nullptr);
-                auto _event = static_cast<Event_SlotDisconnectAll*>(event);
-                ASTNodeSlot* slot = _event->data.first;
+                auto _event = static_cast<Event_Node_SlotDisconnectAll*>(event);
+                Node_Slot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
                 Graph* graph = _event->data.first->node->graph();
-                for(ASTNodeSlot* adjacent_slot : slot->adjacent() )
+                for(Node_Slot* adjacent_slot : slot->adjacent() )
                 {
-                    auto each_cmd = std::make_shared<Cmd_DeleteEdge>(ASTSlotLink{slot, adjacent_slot}, graph );
+                    auto each_cmd = std::make_shared<Cmd_DeleteEdge>(Node_Slot_Link{slot, adjacent_slot}, graph );
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));
@@ -436,60 +436,60 @@ void ndbl::nodable_update(AppState* app)
                     continue;
                 }
 
-                ASTNode* new_node  = graph->create_node( _event->data.node_type,
+                Node* new_node  = graph->create_node( _event->data.node_type,
                                                          _event->data.node_signature,
                                                          graph->root_scope() );
 
                 // Insert an end of line and end of instruction
                 switch ( _event->data.node_type )
                 {
-                    case CreateNodeType_BLOCK_CONDITION:
-                    case CreateNodeType_BLOCK_FOR_LOOP:
-                    case CreateNodeType_BLOCK_WHILE_LOOP:
-                    case CreateNodeType_BLOCK_SCOPE:
-                    case CreateNodeType_ROOT:
-                        new_node->set_suffix(ASTToken::s_end_of_line );
+                    case Create_Node_Type__BLOCK_CONDITION:
+                    case Create_Node_Type__BLOCK_FOR_LOOP:
+                    case Create_Node_Type__BLOCK_WHILE_LOOP:
+                    case Create_Node_Type__BLOCK_SCOPE:
+                    case Create_Node_Type__ROOT:
+                        new_node->set_suffix(Token::s_end_of_line );
                         break;
-                    case CreateNodeType_VARIABLE_BOOLEAN:
-                    case CreateNodeType_VARIABLE_DOUBLE:
-                    case CreateNodeType_VARIABLE_INTEGER:
-                    case CreateNodeType_VARIABLE_STRING:
-                        new_node->set_suffix(ASTToken::s_end_of_instruction );
+                    case Create_Node_Type__VARIABLE_BOOLEAN:
+                    case Create_Node_Type__VARIABLE_DOUBLE:
+                    case Create_Node_Type__VARIABLE_INTEGER:
+                    case Create_Node_Type__VARIABLE_STRING:
+                        new_node->set_suffix(Token::s_end_of_instruction );
                         break;
-                    case CreateNodeType_LITERAL_BOOLEAN:
-                    case CreateNodeType_LITERAL_DOUBLE:
-                    case CreateNodeType_LITERAL_INTEGER:
-                    case CreateNodeType_LITERAL_STRING:
-                    case CreateNodeType_FUNCTION:
+                    case Create_Node_Type__LITERAL_BOOLEAN:
+                    case Create_Node_Type__LITERAL_DOUBLE:
+                    case Create_Node_Type__LITERAL_INTEGER:
+                    case Create_Node_Type__LITERAL_STRING:
+                    case Create_Node_Type__FUNCTION:
                         break;
                 }
 
                 // 2) handle connections
-                if ( ASTNodeSlotView* slot_view = _event->data.active_slotview )
+                if ( Node_Slot_View* slot_view = _event->data.active_slotview )
                 {
-                    SlotFlags             complementary_flags = switch_order(slot_view->slot->type_and_order());
-                    const TypeDescriptor* type                = slot_view->property()->get_type();
-                    ASTNodeSlot*                 complementary_slot  = new_node->find_slot_by_property_type(complementary_flags, type);
+                    Node_Slot_Flags             complementary_flags = switch_order(slot_view->slot->type_and_order());
+                    const Type_Descriptor* type                = slot_view->property()->get_type();
+                    Node_Slot*                 complementary_slot  = new_node->find_slot_by_property_type(complementary_flags, type);
 
                     if ( !complementary_slot )
                     {
                         // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
-                        TOOLS_LOG(tools::Verbosity_Error,  "GraphView", "unable to connect this primary_child" );
+                        TOOLS_LOG(tools::Verbosity_Error,  "Graph_View", "unable to connect this primary_child" );
                     }
                     else
                     {
-                        ASTNodeSlot* out = slot_view->slot;
-                        ASTNodeSlot* in  = complementary_slot;
+                        Node_Slot* out = slot_view->slot;
+                        Node_Slot* in  = complementary_slot;
 
-                        if ( out->has_flags( SlotFlag_ORDER_2ND ) )
+                        if ( out->has_flags( Node_Slot_Flag_ORDER_2ND ) )
                             std::swap( out, in );
 
-                        graph->connect(out, in, GraphFlag_ALLOW_SIDE_EFFECTS );
+                        graph->connect(out, in, Graph_Flag_ALLOW_SIDE_EFFECTS );
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
-                        if (ASTUtils::is_instruction(out->node ) && out->type() == SlotFlag_TYPE_FLOW )
+                        if (node_is_instruction(out->node ) && out->type() == Node_Slot_Flag_TYPE_FLOW )
                         {
-                            ASTToken& token = out->node->suffix();
+                            Token& token = out->node->suffix();
                             std::string buffer = token.string();
                             if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
                                 token.suffix_push_back("\n");
@@ -498,7 +498,7 @@ void ndbl::nodable_update(AppState* app)
                 }
 
                 // set new_node's view position, select it
-                if ( auto view = new_node->component<ASTNodeView>() )
+                if ( auto view = new_node->component<Node_View>() )
                 {
                     view->spatial_node()->set_position(_event->data.desired_screen_pos, WORLD_SPACE);
                     graph_view->selection().clear();
@@ -518,7 +518,7 @@ void ndbl::nodable_update(AppState* app)
     }
 }
 
-void ndbl::nodable_shutdown(AppState* app)
+void ndbl::nodable_shutdown(App_State* app)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_shutdown ...\n");
 
@@ -545,7 +545,7 @@ void ndbl::nodable_shutdown(AppState* app)
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_shutdown " TOOLS_OK "\n");
 }
 
-File* ndbl::nodable_open_asset_file(AppState* app, const tools::Path& _path)
+File* ndbl::nodable_open_asset_file(App_State* app, const tools::Path& _path)
 {
     if ( _path.is_absolute() )
         return nodable_open_file(app, _path);
@@ -553,7 +553,7 @@ File* ndbl::nodable_open_asset_file(AppState* app, const tools::Path& _path)
     return nodable_open_file(app, Path::absolute(_path) );
 }
 
-File* ndbl::nodable_open_file(AppState* app, const tools::Path& _path)
+File* ndbl::nodable_open_file(App_State* app, const tools::Path& _path)
 {
     File* file = new File();
 
@@ -567,16 +567,16 @@ File* ndbl::nodable_open_file(AppState* app, const tools::Path& _path)
     return nullptr;
 }
 
-File* ndbl::nodable_add_file(AppState* app, File* _file)
+File* ndbl::nodable_add_file(App_State* app, File* _file)
 {
     VERIFY(_file, "File is nullptr");
     app->loaded_files.push_back( _file );
     app->current_file = _file;
-    get_event_manager()->dispatch( EventID_FILE_OPENED );
+    get_event_manager()->dispatch( Event_ID_FILE_OPENED );
     return _file;
 }
 
-void ndbl::nodable_save_file(const AppState* app, File* _file)
+void ndbl::nodable_save_file(const App_State* app, File* _file)
 {
     VERIFY(_file, "file must be defined");
 
@@ -588,7 +588,7 @@ void ndbl::nodable_save_file(const AppState* app, File* _file)
     TOOLS_LOG(tools::Verbosity_Message, "ndbl::App", "File saved: %s\n", _file->path.c_str());
 }
 
-void ndbl::nodable_save_file_as(const AppState* app, File* _file, const tools::Path& _path)
+void ndbl::nodable_save_file_as(const App_State* app, File* _file, const tools::Path& _path)
 {
     if ( !File::write(*_file, _path) )
     {
@@ -598,13 +598,13 @@ void ndbl::nodable_save_file_as(const AppState* app, File* _file, const tools::P
     TOOLS_LOG(tools::Verbosity_Message, "ndbl::App", "File saved: %s\n", _path.c_str());
 }
 
-void ndbl::nodable_close_file(AppState* app)
+void ndbl::nodable_close_file(App_State* app)
 {
     if ( app->current_file == nullptr )
         return;
     nodable_close_file(app, app->current_file);
 }
-void ndbl::nodable_close_file(AppState* app, File* _file)
+void ndbl::nodable_close_file(App_State* app, File* _file)
 {
     // Find and delete the file
     VERIFY(_file, "Cannot close a nullptr File!");
@@ -624,7 +624,7 @@ void ndbl::nodable_close_file(AppState* app, File* _file)
     }
 }
 
-void ndbl::nodable_reset_current_graph(AppState* app)
+void ndbl::nodable_reset_current_graph(App_State* app)
 {
     if(!app->current_file) return;
 
@@ -632,11 +632,11 @@ void ndbl::nodable_reset_current_graph(AppState* app)
     app->current_file->set_graph_dirty();
 }
 
-File*ndbl::nodable_new_file(AppState* app)
+File*ndbl::nodable_new_file(App_State* app)
 {
     app->untitled_file_count++;
 
-    string32 name;
+    String_32 name;
     name.append_fmt("Untitled_%i.cpp", app->untitled_file_count);
     auto* file = new File();
     file->path = name.c_str();
@@ -644,12 +644,12 @@ File*ndbl::nodable_new_file(AppState* app)
     return nodable_add_file(app, file);
 }
 
-bool ndbl::nodable_should_stop(const AppState* app)
+bool ndbl::nodable_should_stop(const App_State* app)
 {
     return tools::app_should_stop(app);
 }
 
-void ndbl::nodable_set_current_file(AppState* app, File* file)
+void ndbl::nodable_set_current_file(App_State* app, File* file)
 {
     if ( app->current_file == nullptr )
     {
@@ -668,7 +668,7 @@ void ndbl::nodable_set_current_file(AppState* app, File* file)
 
 void ndbl::_nodable_on_draw_splashscreen_content()
 {
-    AppState* app = nodable_state();
+    App_State* app = nodable_state();
     ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
     // Image
@@ -699,7 +699,7 @@ void ndbl::_nodable_on_draw_splashscreen_content()
 void ndbl::_nodable_on_reset_layout()
 {
     Config*         cfg   = get_config();
-    AppState*   app = nodable_state();
+    App_State*   app = nodable_state();
 
     // Dock windows to specific dockspace
     appview_dock_window( app->view, cfg->ui_help_window_label             , Dockspace_RIGHT );
@@ -711,7 +711,7 @@ void ndbl::_nodable_on_reset_layout()
     appview_dock_window( app->view, cfg->ui_toolbar_window_label          , Dockspace_TOP   );
 };
 
-void ndbl::nodable_draw(AppState* app)
+void ndbl::nodable_draw(App_State* app)
 {
     VERIFY(app->view->logo != nullptr, "Logo is nullptr, did you call init_ex() ?");
 
@@ -720,7 +720,7 @@ void ndbl::nodable_draw(AppState* app)
     // note: we draw this view nested in base view's begin/end (similar to ImGui API).
     tools::appview_begin(app->view);
 
-    EventManager*   event_manager   = get_event_manager();
+    Event_Manager*   event_manager   = get_event_manager();
     Config*         cfg             = get_config();
     tools::Config*  tools_cfg       = tools::get_config();
     bool            redock_all      = true;
@@ -730,7 +730,7 @@ void ndbl::nodable_draw(AppState* app)
     if (ImGui::BeginMenuBar())
     {
         History* current_file_history = current_file ? &current_file->history : nullptr;
-        auto has_selection = current_file != nullptr ? !current_file->graph()->component<GraphView>()->selection().empty()
+        auto has_selection = current_file != nullptr ? !current_file->graph()->component<Graph_View>()->selection().empty()
                                                      : false;
 
         if (ImGui::BeginMenu("File"))
@@ -765,7 +765,7 @@ void ndbl::nodable_draw(AppState* app)
                 ImGui::Separator();
             }
             if (ImGui::MenuItem("Delete Node", "Del.", false, has_selection ))
-                event_manager->dispatch( EventID_DELETE_NODE );
+                event_manager->dispatch( Event_ID_DELETE_NODE );
 
             ImGui::EndMenu();
         }
@@ -777,19 +777,19 @@ void ndbl::nodable_draw(AppState* app)
 
             ImGui::Separator();
 
-            auto menu_item_node_view_detail = [current_file, cfg](ViewDetail _detail, const char *_label) {
+            auto menu_item_node_view_detail = [current_file, cfg](View_Detail _detail, const char *_label) {
                 if (ImGui::MenuItem(_label, "", cfg->ui_node_detail == _detail))
                 {
                     cfg->ui_node_detail = _detail;
                     if (current_file != nullptr)
-                        current_file->graph()->component<GraphView>()->reset_all_properties();
+                        current_file->graph()->component<Graph_View>()->reset_all_properties();
                 }
             };
 
             ImGui::Text("View Detail:");
             ImGui::Indent();
-            menu_item_node_view_detail(ViewDetail::MINIMALIST, "Minimalist");
-            menu_item_node_view_detail(ViewDetail::NORMAL,     "Normal");
+            menu_item_node_view_detail(View_Detail::MINIMALIST, "Minimalist");
+            menu_item_node_view_detail(View_Detail::NORMAL,     "Normal");
             ImGui::Unindent();
 
             ImGui::Separator();
@@ -823,7 +823,7 @@ void ndbl::nodable_draw(AppState* app)
         {
 
             if (ImGui::MenuItem("Reset"))
-                event_manager->dispatch( EventID_RESET_GRAPH );
+                event_manager->dispatch( Event_ID_RESET_GRAPH );
 
             ImGuiEx::MenuItem_EventTrigger<Event_ArrangeSelection>(false, has_selection);
             ImGuiEx::MenuItem_EventTrigger<Event_ToggleFolding>(false, has_selection);
@@ -842,12 +842,12 @@ void ndbl::nodable_draw(AppState* app)
 
         if (ImGui::BeginMenu("Developer"))
         {
-            bool debug = cfg->flags & ConfigFlag_DRAW_DEBUG_LINES;
+            bool debug = cfg->flags & Config_Flag_DRAW_DEBUG_LINES;
             if ( ImGui::MenuItem("Debug Mode", "", debug ) )
             {
                 cfg->tools_cfg->runtime_debug = !debug;
-                cfg->clear_flags( ConfigFlag_DRAW_DEBUG_LINES );
-                cfg->set_flags( !debug * ConfigFlag_DRAW_DEBUG_LINES);
+                cfg->clear_flags( Config_Flag_DRAW_DEBUG_LINES );
+                cfg->set_flags( !debug * Config_Flag_DRAW_DEBUG_LINES);
                 ImGuiEx::set_debug( !debug );
             }
 
@@ -878,7 +878,7 @@ void ndbl::nodable_draw(AppState* app)
 
             if (ImGui::BeginMenu("Experimental"))
             {
-                auto checkbox_flag = [&](const char* label, ConfigFlag_ flag )
+                auto checkbox_flag = [&](const char* label, Config_Flag_ flag )
                 {
                     bool enabled = cfg->has_flags(flag);
                     if ( ImGui::Checkbox(label, &enabled) )
@@ -889,8 +889,8 @@ void ndbl::nodable_draw(AppState* app)
                             cfg->set_flags(flag);
                     }
                 };
-                checkbox_flag("Hybrid history"       , ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY);
-                checkbox_flag("Multi-Selection"      , ConfigFlag_EXPERIMENTAL_MULTI_SELECTION);
+                checkbox_flag("Hybrid history"       , Config_Flag_EXPERIMENTAL_HYBRID_HISTORY);
+                checkbox_flag("Multi-Selection"      , Config_Flag_EXPERIMENTAL_MULTI_SELECTION);
                 ImGui::EndMenu();
             }
             ImGui::EndMenu();
@@ -898,11 +898,11 @@ void ndbl::nodable_draw(AppState* app)
 
         if (ImGui::BeginMenu("An issue ?")) {
             if (ImGui::MenuItem("Report on Github.com")) {
-                System::open_url_async("https://github.com/berdal84/nodable/issues");
+                system_open_url_async("https://github.com/berdal84/nodable/issues");
             }
 
             if (ImGui::MenuItem("Report by email")) {
-                System::open_url_async("mail:berenger@42borgata.com");
+                system_open_url_async("mail:berenger@42borgata.com");
             }
 
             ImGui::EndMenu();
@@ -917,12 +917,12 @@ void ndbl::nodable_draw(AppState* app)
 
             if (ImGui::MenuItem("Browse source code"))
             {
-                System::open_url_async("https://www.github.com/berdal84/nodable");
+                system_open_url_async("https://www.github.com/berdal84/nodable");
             }
 
             if (ImGui::MenuItem("Credits"))
             {
-                System::open_url_async("https://github.com/berdal84/nodable#credits-");
+                system_open_url_async("https://github.com/berdal84/nodable#credits-");
             }
 
             ImGui::EndMenu();
@@ -965,13 +965,13 @@ void ndbl::nodable_draw(AppState* app)
     appview_end(app->view);
 }
 
-void ndbl::nodable_draw_help_window(const AppState* app)
+void ndbl::nodable_draw_help_window(const App_State* app)
 {
     Config*      cfg  = get_config();
     if (ImGui::Begin( cfg->ui_help_window_label))
     {
-        FontManager* font_manager = get_font_manager();
-        ImGui::PushFont(font_manager->get_font(FontSlot_Heading));
+        Font_Manager* font_manager = get_font_manager();
+        ImGui::PushFont(font_manager->get_font(Font_Slot_Heading));
         ImGui::Text("Welcome to Nodable!");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -986,7 +986,7 @@ void ndbl::nodable_draw_help_window(const AppState* app)
         ImGuiEx::BulletTextWrapped(
                 "but keep in mind the app is the text, any change not affecting the text (such as child positions or orphan primary_child) will be lost.");
         ImGui::NewLine();
-        ImGui::PushFont(font_manager->get_font(FontSlot_Heading));
+        ImGui::PushFont(font_manager->get_font(Font_Slot_Heading));
         ImGui::Text("Quick start");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -1004,7 +1004,7 @@ void ndbl::nodable_draw_help_window(const AppState* app)
     ImGui::End();
 }
 
-void ndbl::nodable_draw_imgui_config_window(AppState* app)
+void ndbl::nodable_draw_imgui_config_window(App_State* app)
 {
     Config*      cfg  = get_config();
     tools::Config* tools_cfg = tools::get_config();
@@ -1020,7 +1020,7 @@ void ndbl::nodable_draw_imgui_config_window(AppState* app)
     ImGui::End();
 }
 
-void ndbl::nodable_draw_file_info_window(AppState* app)
+void ndbl::nodable_draw_file_info_window(App_State* app)
 {
     Config* cfg  = get_config();
 
@@ -1037,7 +1037,7 @@ void ndbl::nodable_draw_file_info_window(AppState* app)
     ImGui::End();
 }
 
-bool ndbl::nodable_draw_node_properties_window(AppState* app)
+bool ndbl::nodable_draw_node_properties_window(App_State* app)
 {
     bool changed = false;
     Config* cfg = get_config();
@@ -1045,16 +1045,16 @@ bool ndbl::nodable_draw_node_properties_window(AppState* app)
     {
         if( app->current_file )
         {
-            const GraphView* graph_view = app->current_file->graph()->component<GraphView>(); // Graph can't be null
-            switch ( graph_view->selection().count<ASTNodeView*>() )
+            const Graph_View* graph_view = app->current_file->graph()->component<Graph_View>(); // Graph can't be null
+            switch ( graph_view->selection().count<Node_View*>() )
             {
                 case 0:
                     break;
                 case 1:
                 {
                     ImGui::Indent(10.0f);
-                    auto* first_nodeview = graph_view->selection().first_of<ASTNodeView*>();
-                    changed |= ASTNodeView::draw_as_properties_panel(first_nodeview, &app->view->show_advanced_node_properties);
+                    auto* first_nodeview = graph_view->selection().first_of<Node_View*>();
+                    changed |= Node_View::draw_as_properties_panel(first_nodeview, &app->view->show_advanced_node_properties);
                     break;
                 }
                 default:
@@ -1067,7 +1067,7 @@ bool ndbl::nodable_draw_node_properties_window(AppState* app)
     return changed;
 }
 
-void ndbl::nodable_draw_startup_window(AppState* app, ImGuiID dockspace_id)
+void ndbl::nodable_draw_startup_window(App_State* app, ImGuiID dockspace_id)
 {
     Config*      cfg  = get_config();
 
@@ -1076,8 +1076,8 @@ void ndbl::nodable_draw_startup_window(AppState* app, ImGuiID dockspace_id)
 
     ImGui::Begin( cfg->ui_startup_window_label);
     {
-        EventManager* event_manager = get_event_manager();
-        FontManager*  font_manager  = get_font_manager();
+        Event_Manager* event_manager = get_event_manager();
+        Font_Manager*  font_manager  = get_font_manager();
 
         ImGui::PopStyleColor();
 
@@ -1091,15 +1091,15 @@ void ndbl::nodable_draw_startup_window(AppState* app, ImGuiID dockspace_id)
         {
             ImGui::Indent(center_area.x * 0.05f);
 
-            ImGui::PushFont(font_manager->get_font(FontSlot_ToolBtn));
+            ImGui::PushFont(font_manager->get_font(Font_Slot_ToolBtn));
             ImGui::NewLine();
 
             ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
             if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                event_manager->dispatch( EventID_FILE_NEW );
+                event_manager->dispatch( Event_ID_FILE_NEW );
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                event_manager->dispatch( EventID_FILE_BROWSE );
+                event_manager->dispatch( Event_ID_FILE_BROWSE );
 
             ImGui::NewLine();
             ImGui::Separator();
@@ -1142,7 +1142,7 @@ void ndbl::nodable_draw_startup_window(AppState* app, ImGuiID dockspace_id)
     ImGui::End(); // Startup Window
 }
 
-void ndbl::nodable_draw_file_window( AppState* app, ImGuiID dockspace_id, bool redock_all, File*file)
+void ndbl::nodable_draw_file_window( App_State* app, ImGuiID dockspace_id, bool redock_all, File*file)
 {
     Config* cfg = get_config();
 
@@ -1179,7 +1179,7 @@ void ndbl::nodable_draw_file_window( AppState* app, ImGuiID dockspace_id, bool r
     }
 }
 
-void ndbl::nodable_draw_config_window(AppState* app)
+void ndbl::nodable_draw_config_window(App_State* app)
 {
     Config*      cfg  = get_config();
     auto* tools_cfg = tools::get_config();
@@ -1207,15 +1207,15 @@ void ndbl::nodable_draw_config_window(AppState* app)
             ImGui::Indent();
             if ( ImGui::CollapsingHeader("Colors", flags ))
             {
-                ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[ASTNodeType_NULL].x );
-                ImGui::ColorEdit4("entry point" , &cfg->ui_node_fill_color[ASTNodeType_SCOPE].x );
-                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[ASTNodeType_IF_ELSE].x );
-                ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[ASTNodeType_FOR_LOOP].x );
-                ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[ASTNodeType_WHILE_LOOP].x );
-                ImGui::ColorEdit4("variable"    , &cfg->ui_node_fill_color[ASTNodeType_VARIABLE].x );
-                ImGui::ColorEdit4("literal"     , &cfg->ui_node_fill_color[ASTNodeType_LITERAL].x );
-                ImGui::ColorEdit4("function"    , &cfg->ui_node_fill_color[ASTNodeType_FUNCTION].x );
-                ImGui::ColorEdit4("operator"    , &cfg->ui_node_fill_color[ASTNodeType_OPERATOR].x );
+                ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[Node_Type_NULL].x );
+                ImGui::ColorEdit4("entry point" , &cfg->ui_node_fill_color[Node_Type_SCOPE].x );
+                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[Node_Type_IF_ELSE].x );
+                ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[Node_Type_FOR_LOOP].x );
+                ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[Node_Type_WHILE_LOOP].x );
+                ImGui::ColorEdit4("variable"    , &cfg->ui_node_fill_color[Node_Type_VARIABLE].x );
+                ImGui::ColorEdit4("literal"     , &cfg->ui_node_fill_color[Node_Type_LITERAL].x );
+                ImGui::ColorEdit4("function"    , &cfg->ui_node_fill_color[Node_Type_FUNCTION].x );
+                ImGui::ColorEdit4("operator"    , &cfg->ui_node_fill_color[Node_Type_OPERATOR].x );
                 ImGui::Separator();
                 ImGui::ColorEdit4("highlighted"         , &cfg->ui_node_highlightedColor.x);
                 ImGui::ColorEdit4("shadow"              , &cfg->ui_node_shadowColor.x);
@@ -1226,14 +1226,14 @@ void ndbl::nodable_draw_config_window(AppState* app)
                 ImGui::ColorEdit4("slot (hovered)"      , &cfg->ui_slot_hovered_color.x);
             }
 
-            if ( ImGui::CollapsingHeader("Slots", flags ))
+            if ( ImGui::CollapsingHeader("Node_Slots", flags ))
             {
-                ImGui::Text("Property Slots:");
+                ImGui::Text("Property Node_Slots:");
                 ImGui::SliderFloat("slot radius", &cfg->ui_slot_circle_radius_base, 5.0f, 10.0f);
 
                 ImGui::Separator();
 
-                ImGui::Text("Code Flow Slots:");
+                ImGui::Text("Code Flow Node_Slots:");
                 ImGui::SliderFloat2("slot set_size##codeflow"   , &cfg->ui_slot_rectangle_size.x, 2.0f, 100.0f);
                 ImGui::SliderFloat("slot padding##codeflow" , &cfg->ui_slot_gap, 0.0f, 100.0f);
                 ImGui::SliderFloat("slot radius##codeflow"  , &cfg->ui_slot_border_radius, 0.0f, 40.0f);
@@ -1288,8 +1288,8 @@ void ndbl::nodable_draw_config_window(AppState* app)
 
         if (ImGui::CollapsingHeader("Shortcuts", flags ))
         {
-            ActionManager*  action_manager = get_action_manager();
-            draw_action_manager_ui(action_manager);
+            Action_Manager*  action_manager = get_action_manager();
+            action_manager_view_draw(action_manager);
         }
 
 #if TOOLS_POOL_ENABLE
@@ -1298,7 +1298,7 @@ void ndbl::nodable_draw_config_window(AppState* app)
             ImGui::Text("Pool stats:");
             auto pool = get_pool_manager()->get_pool();
             ImGui::Text(" - Node.................... %8zu", pool->get_all<Node>().size() );
-            ImGui::Text(" - NodeView................ %8zu", pool->get_all<NodeView>().size() );
+            ImGui::Text(" - Node_View................ %8zu", pool->get_all<Node_View>().size() );
             ImGui::Text(" - Physics................. %8zu", pool->get_all<Physics>().size() );
             ImGui::Text(" - Scope................... %8zu", pool->get_all<Scope>().size() );
         }
@@ -1307,7 +1307,7 @@ void ndbl::nodable_draw_config_window(AppState* app)
     ImGui::End();
 }
 
-void ndbl::nodable_draw_toolbar_window(AppState* app)
+void ndbl::nodable_draw_toolbar_window(App_State* app)
 {
     Config*      cfg  = get_config();
 
@@ -1316,17 +1316,17 @@ void ndbl::nodable_draw_toolbar_window(AppState* app)
 
     if ( ImGui::Begin( cfg->ui_toolbar_window_label, NULL, flags ) )
     {
-        FontManager*  font_manager  = get_font_manager();
-        EventManager* event_manager = get_event_manager();
+        Font_Manager*  font_manager  = get_font_manager();
+        Event_Manager* event_manager = get_event_manager();
         const Vec2&   button_size   = cfg->ui_toolButton_size;
 
         ImGui::PopStyleVar();
-        ImGui::PushFont(font_manager->get_font(FontSlot_ToolBtn));
+        ImGui::PushFont(font_manager->get_font(Font_Slot_ToolBtn));
         ImGui::BeginGroup();
 
         // reset
         if (ImGui::Button(ICON_FA_UNDO " regen. graph", button_size)) {
-            event_manager->dispatch( EventID_RESET_GRAPH );
+            event_manager->dispatch( Event_ID_RESET_GRAPH );
         }
         ImGui::SameLine();
 
@@ -1334,7 +1334,7 @@ void ndbl::nodable_draw_toolbar_window(AppState* app)
         bool isolation_on = cfg->isolation & Isolation_ON;
         if (ImGui::Button(isolation_on ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF", button_size))
         {
-            event_manager->dispatch( EventID_TOGGLE_ISOLATION_FLAGS );
+            event_manager->dispatch( Event_ID_TOGGLE_ISOLATION_FLAGS );
         }
         ImGui::SameLine();
         ImGui::EndGroup();

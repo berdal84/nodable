@@ -2,15 +2,15 @@
 #include "tools/core/Component.h"
 #include "tools/core/reflection/Initializer.h"
 #include "ndbl/core/index.h"
-#include "ndbl/core/ASTNode.h"
-#include "ndbl/gui/GraphView.h"
-#include "ndbl/gui/PhysicsComponent.h"
+#include "ndbl/core/Node.h"
+#include "ndbl/gui/Graph_View.h"
+#include "ndbl/gui/Physics_Component.h"
 
 void ndbl::init_reflection_with_gui()
 {
     ndbl::init_reflection();
     
-    DEFINE_REFLECT(ndbl::ASTNodeView).extends<tools::Component<ASTNode>>();
-    DEFINE_REFLECT(ndbl::GraphView).extends<tools::Component<Graph>>();
-    DEFINE_REFLECT(ndbl::PhysicsComponent).extends<tools::Component<ASTNode>>();
+    DEFINE_REFLECT(ndbl::Node_View).extends<tools::Component<Node>>();
+    DEFINE_REFLECT(ndbl::Graph_View).extends<tools::Component<Graph>>();
+    DEFINE_REFLECT(ndbl::Physics_Component).extends<tools::Component<Node>>();
 } 

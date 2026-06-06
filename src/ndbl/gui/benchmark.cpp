@@ -231,8 +231,8 @@ BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_w
 //
 //BENCHMARK(BM_empty_constructor<std::string>);
 //BENCHMARK(BM_empty_constructor<string>);
-//BENCHMARK(BM_empty_constructor<string64>);
-//BENCHMARK(BM_empty_constructor<string128>);
+//BENCHMARK(BM_empty_constructor<String64>);
+//BENCHMARK(BM_empty_constructor<String128>);
 //
 //BENCHMARK(BM_constructor<std::string>)->Range(1, 16);
 //BENCHMARK(BM_constructor<string>)->Range(1, 16);
@@ -242,8 +242,8 @@ BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_w
 //
 //BENCHMARK(BM_constructor_then_append_a_char<std::string>);
 //BENCHMARK(BM_constructor_then_append_a_char<string>);
-//BENCHMARK(BM_constructor_then_append_a_char<string64>);
-//BENCHMARK(BM_constructor_then_append_a_char<string128>);
+//BENCHMARK(BM_constructor_then_append_a_char<String64>);
+//BENCHMARK(BM_constructor_then_append_a_char<String128>);
 //
 //
 //#define BENCHMARK_STRNCPY(BM_strncpy_, size) \

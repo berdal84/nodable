@@ -1,20 +1,20 @@
 #include "App.h"
 
-#include "core/assertions.h"
-#include "tools/core/TaskManager.h"
+#include "core/Asserts.h"
+#include "tools/core/Task_Manager.h"
 #include "tools/core/System.h"
 
-#include "AppView.h"
+#include "App_View.h"
 #include "Config.h"
 #include "ImGuiEx.h"
-#include "TextureManager.h"
+#include "Texture_Manager.h"
 
 using namespace tools;
 
-void tools::app_init(AppState* app)
+void tools::app_init(App_State* app)
 {
     // Create and initialize a view
-    auto* view = new AppViewState();
+    auto* view = new App_View_State();
     appview_init(view, app);
     app->flags |= AppFlag_OWNS_VIEW_MEMORY;
 
@@ -26,7 +26,7 @@ void tools::app_init(AppState* app)
     app_init_ex(app, view, config);
 }
 
-void tools::app_init_ex(AppState* app, AppViewState* view, Config* config)
+void tools::app_init_ex(App_State* app, App_View_State* view, Config* config)
 {
     // Guards
     VERIFY(app->view == nullptr, "A view already exist. Did you call set_name twice?");
@@ -42,7 +42,7 @@ void tools::app_init_ex(AppState* app, AppViewState* view, Config* config)
     app->task_manager = init_task_manager();
 }
 
-void tools::app_main_loop(AppState* app)
+void tools::app_main_loop(App_State* app)
 {    
     while( !app_should_stop(app) )
     {
@@ -58,7 +58,7 @@ void tools::app_main_loop(AppState* app)
     }
 }
 
-void tools::app_shutdown(AppState* app)
+void tools::app_shutdown(App_State* app)
 {
     TOOLS_LOG(tools::Verbosity_Message, "tools::BaseApp", "Shutting down ...\n");
 
@@ -82,7 +82,7 @@ void tools::app_shutdown(AppState* app)
     TOOLS_LOG(tools::Verbosity_Message, "tools::BaseApp", "Shutdown OK\n");
 }
 
-void tools::app_update(AppState* app)
+void tools::app_update(App_State* app)
 {
     appview_update(app->view);
     app->task_manager->update();

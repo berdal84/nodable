@@ -1,29 +1,29 @@
 #include "Containers.h"
-#include "tools/core/log.h"
+#include "tools/core/Log.h"
 #include <gtest/gtest.h>
 
 using namespace tools;
 
-TEST(InlineVector, constructor )
+TEST(Inline_Vector, constructor )
 {
-    InlineVector<u32_t, 16> vec;
+    Inline_Vector<u32_t, 16> vec;
     EXPECT_EQ(vec.size, 0);
     EXPECT_EQ(vec.capacity(), 16);
 }
 
-TEST(InlineVector, push_back )
+TEST(Inline_Vector, push_back )
 {
-    InlineVector<u32_t, 16> vec;
+    Inline_Vector<u32_t, 16> vec;
     vec.push_back(42);
     EXPECT_EQ(vec.size, 1);
     EXPECT_EQ(vec[0], 42);
 }
 
-TEST(InlineVector, erase )
+TEST(Inline_Vector, erase )
 {
     {
         // without a single item
-        InlineVector<u32_t, 16> vec;
+        Inline_Vector<u32_t, 16> vec;
         vec.push_back(1);
         auto it = vec.erase(vec.begin());
         EXPECT_EQ(it, vec.end());
@@ -32,7 +32,7 @@ TEST(InlineVector, erase )
 
     {
         // without trailing items
-        InlineVector<u32_t, 16> vec;
+        Inline_Vector<u32_t, 16> vec;
         vec.push_back(1);
         vec.push_back(2);
         vec.push_back(3);
@@ -43,7 +43,7 @@ TEST(InlineVector, erase )
 
     {
         // with trailing items
-        InlineVector<u32_t, 16> vec;           // prepare
+        Inline_Vector<u32_t, 16> vec;           // prepare
         vec.push_back(1);
         vec.push_back(2);
         vec.push_back(3);
@@ -55,9 +55,9 @@ TEST(InlineVector, erase )
     }
 }
 
-TEST(InlineVector, for_loop_auto )
+TEST(Inline_Vector, for_loop_auto )
 {
-    InlineVector<u32_t, 16> vec;
+    Inline_Vector<u32_t, 16> vec;
     vec.push_back(1);
     vec.push_back(2);
     vec.push_back(3);
@@ -73,9 +73,9 @@ TEST(InlineVector, for_loop_auto )
     printf("]\n");
 }
 
-TEST(InlineVector, for_loop_with_iterators )
+TEST(Inline_Vector, for_loop_with_iterators )
 {
-    InlineVector<u32_t, 16> vec;
+    Inline_Vector<u32_t, 16> vec;
     vec.push_back(1);
     vec.push_back(2);
     vec.push_back(3);

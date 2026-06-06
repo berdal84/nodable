@@ -2,13 +2,13 @@
 
 #include <fstream>
 
-#include "ndbl/core/ASTUtils.h"
+#include "ndbl/core/Node.h"
 #include "ndbl/core/language/Nodlang.h"
 
-#include "GraphView.h"
-#include "FileView.h"
+#include "Graph_View.h"
+#include "File_View.h"
 #include "History.h"
-#include "ASTNodeView.h"
+#include "Node_View.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -23,7 +23,7 @@ File::File()
 
     // Graph
     _graph = new Graph();
-    auto* graph_view = _graph->components()->create<GraphView>();
+    auto* graph_view = _graph->components()->create<Graph_View>();
 
     _graph->signal_change.connect<&File::set_text_dirty>(this);
     graph_view->signal_change.connect<&File::set_text_dirty>(this);
@@ -33,7 +33,7 @@ File::File()
         if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
             graph_view->add_action_to_node_menu(create_node_action);
 
-    // FileView
+    // File_View
     view.init(*this);
     view.signal_text_view_changed.connect<&File::set_graph_dirty>(this);
     view.signal_graph_view_changed.connect<&File::set_text_dirty>(this);
@@ -42,7 +42,7 @@ File::File()
 
     // History
     TextEditor*       text_editor     = view.get_text_editor();
-    TextEditorBuffer* text_editor_buf = history.configure_text_editor_undo_buffer(text_editor);
+    TextEditor_Buffer* text_editor_buf = history.configure_text_editor_undo_buffer(text_editor);
     view.set_undo_buffer(text_editor_buf);
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "Constructor being called.\n");
 }
@@ -50,7 +50,7 @@ File::File()
 File::~File()
 {
     assert(_graph->signal_change.disconnect<&File::set_text_dirty>(this));
-    _graph->component<GraphView>()->signal_change.disconnect();
+    _graph->component<Graph_View>()->signal_change.disconnect();
     view.signal_text_view_changed.disconnect();
     view.signal_graph_view_changed.disconnect();
 
@@ -62,7 +62,7 @@ void File::_update_text_from_graph()
     if ( auto* root_node = _graph->root_node() )
     {
         std::string code;
-        get_language()->serialize_node(code, root_node, SerializeFlag_RECURSE);
+        get_language()->serialize_node(code, root_node, Serialization_Flag_RECURSE);
         view.set_text(code, _isolation );
     }
     else
@@ -78,7 +78,7 @@ void File::update()
     // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
     if ( history.is_dirty )
     {
-        if ( get_config()->has_flags(ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY) )
+        if ( get_config()->has_flags(Config_Flag_EXPERIMENTAL_HYBRID_HISTORY) )
         {
             ASSERT(false); // Not implemented yet
         }

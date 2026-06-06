@@ -1,6 +1,6 @@
 #pragma once
 #include "geometry/Vec4.h"
-#include "tools/core/types.h"
+#include "tools/core/Types.h"
 
 namespace tools
 {

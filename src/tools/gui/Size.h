@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tools/gui/geometry/Vec2.h"
-#include "tools/core/assertions.h"
+#include "tools/core/Asserts.h"
 
 namespace tools
 {

@@ -125,7 +125,7 @@ std::pair<int, int> History::get_command_id_range()
     return std::make_pair(-(int)m_past.size(), (int)m_future.size());
 }
 
-TextEditorBuffer* History::configure_text_editor_undo_buffer( TextEditor* _textEditor )
+TextEditor_Buffer* History::configure_text_editor_undo_buffer( TextEditor* _textEditor )
 {
     m_text_editor_buffer.set_text_editor(_textEditor);
     m_text_editor_buffer.set_history(this);
@@ -143,7 +143,7 @@ void History::enable_text_editor( bool _val )
     m_text_editor_buffer.set_enable(_val);
 }
 
-void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord)
+void TextEditor_Buffer::AddUndo(TextEditor::UndoRecord& _undoRecord)
 {
     if ( m_enabled )
     {

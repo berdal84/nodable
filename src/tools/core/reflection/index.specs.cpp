@@ -5,7 +5,7 @@
 #define protected public
 
 #include "index.h"
-#include "../log.h"
+#include "../Log.h"
 
 using namespace tools;
 
@@ -71,7 +71,7 @@ TEST(Reflection, is_child_of)
 
 TEST(Reflection, pass_by_ref)
 {
-   FunctionDescriptor f;
+   Function_Descriptor f;
    f.init<void(double &d)>("function");
    EXPECT_TRUE(f.arg_at(0).pass_by_ref );
 }

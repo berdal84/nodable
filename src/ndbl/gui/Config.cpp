@@ -78,11 +78,11 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     for (auto& col : ui_node_fill_color)
         col = Vec4(0.7f, 0.9f, 0.7f, 1.0f); // green;
 
-    ui_node_fill_color[ASTNodeType_VARIABLE]     =  Color(171, 190, 255);
-    ui_node_fill_color[ASTNodeType_VARIABLE_REF] =  ui_node_fill_color[ASTNodeType_VARIABLE];
-    ui_node_fill_color[ASTNodeType_LITERAL]      =  Color(200, 200, 200);
-    ui_node_fill_color[ASTNodeType_FUNCTION]     =  Color(255, 199, 115);
-    ui_node_fill_color[ASTNodeType_OPERATOR]     =  ui_node_fill_color[ASTNodeType_FUNCTION];
+    ui_node_fill_color[Node_Type_VARIABLE]     =  Color(171, 190, 255);
+    ui_node_fill_color[Node_Type_VARIABLE_REF] =  ui_node_fill_color[Node_Type_VARIABLE];
+    ui_node_fill_color[Node_Type_LITERAL]      =  Color(200, 200, 200);
+    ui_node_fill_color[Node_Type_FUNCTION]     =  Color(255, 199, 115);
+    ui_node_fill_color[Node_Type_OPERATOR]     =  ui_node_fill_color[Node_Type_FUNCTION];
 
     ui_slot_border_color                  = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
     ui_slot_hovered_color                 = Color(200, 200, 200);
@@ -91,7 +91,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_node_gap_base                      = Vec2(40.0f, 40.f);
     ui_node_speed                         = 20.0f;
     ui_node_physics_frequency             = 120.f;
-    ui_node_detail                        = ViewDetail::NORMAL;
+    ui_node_detail                        = View_Detail::NORMAL;
     ui_slot_rectangle_size                = Vec2{10.f, 10.f};
     ui_slot_gap                           = 4.0f;
     ui_slot_border_radius                 = 0.1f;
@@ -152,8 +152,8 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_grid_size                          = 100.0f;
 
     // Misc.
-    flags                                 = ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY
-                                          | ConfigFlag_EXPERIMENTAL_MULTI_SELECTION;
+    flags                                 = Config_Flag_EXPERIMENTAL_HYBRID_HISTORY
+                                          | Config_Flag_EXPERIMENTAL_MULTI_SELECTION;
     isolation                             = Isolation_OFF;
     graph_view_unfold_duration            = 2.0f; // in sec.
 
@@ -175,10 +175,10 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
         { k_tool       , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true   , 16.0f      }
     };
 
-    tools_cfg->font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
-    tools_cfg->font_manager.defaults[FontSlot_Heading]   = k_heading;
-    tools_cfg->font_manager.defaults[FontSlot_Code]      = k_code;
-    tools_cfg->font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
+    tools_cfg->font_manager.defaults[Font_Slot_Paragraph] = k_paragraph;
+    tools_cfg->font_manager.defaults[Font_Slot_Heading]   = k_heading;
+    tools_cfg->font_manager.defaults[Font_Slot_Code]      = k_code;
+    tools_cfg->font_manager.defaults[Font_Slot_ToolBtn]   = k_tool;
     tools_cfg->font_manager.subsamples                   = 1.0f;
     tools_cfg->font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
     tools_cfg->app_default_title = NDBL_APP_NAME " " NDBL_BUILD_REF " - Built " __DATE__ " at " __TIME__;
@@ -204,9 +204,9 @@ float ndbl::Config::ui_slot_circle_radius(tools::Size size) const
     return ui_slot_circle_radius_base * tools_cfg->size_factor[size];
 }
 
-Vec4& ndbl::Config::ui_slot_color(ndbl::SlotFlags slot_flags)
+Vec4& ndbl::Config::ui_slot_color(ndbl::Node_Slot_Flags slot_flags)
 {
-    if ( (slot_flags & SlotFlag_INPUT) == SlotFlag_INPUT )
+    if ( (slot_flags & Node_Slot_Flag_INPUT) == Node_Slot_Flag_INPUT )
         return ui_slot_color_light;
 
     return ui_slot_color_dark;

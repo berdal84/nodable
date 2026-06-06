@@ -5,7 +5,7 @@
 namespace tools
 {
     // forward declaration
-    enum class Operator_t;
+    enum class Operator_Type;
 
     /**
      * Simple structure to define an operator
@@ -16,14 +16,14 @@ namespace tools
 
         Operator() = delete;
         Operator(const Operator&) = delete;
-        Operator(const std::string& _identifier, Operator_t _type, int _precedence)
+        Operator(const std::string& _identifier, Operator_Type _type, int _precedence)
                 : identifier(_identifier)
                 , type(_type)
                 , precedence(_precedence)
         {};
         const std::string identifier;
         const int         precedence;
-        const Operator_t  type;
+        const Operator_Type  type;
     };
 
 }// namespace tools

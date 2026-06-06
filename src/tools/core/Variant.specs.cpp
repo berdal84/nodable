@@ -1,5 +1,5 @@
 #include "Variant.h"
-#include "tools/core/log.h"
+#include "tools/core/Log.h"
 #include <gtest/gtest.h>
 
 using namespace tools;

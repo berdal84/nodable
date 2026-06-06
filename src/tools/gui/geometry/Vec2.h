@@ -5,7 +5,7 @@
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/vec2.hpp"
 
-#include "tools/core/types.h"
+#include "tools/core/Types.h"
 
 namespace tools
 {

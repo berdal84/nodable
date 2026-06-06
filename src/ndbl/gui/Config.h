@@ -1,14 +1,15 @@
 #pragma once
 
-#include "tools/core/types.h"
+#include "gui/geometry/Rect.h"
+#include "tools/core/Types.h"
 #include "tools/gui/Config.h"
 #include "tools/gui/Size.h"
-#include "tools/gui/ImGuiEx.h"
+#include "ImGuiColorTextEdit/TextEditor.h"
 
-#include "ndbl/core/ASTNodeType.h"
-#include "ndbl/core/ASTNodeSlotFlag.h"
+#include "ndbl/core/Node.h"
+#include "ndbl/core/Node_Slot.h"
 
-#include "ViewDetail.h"
+#include "View_Detail.h"
 #include "Isolation.h"
 
 namespace ndbl
@@ -17,13 +18,13 @@ namespace ndbl
     using tools::Vec4;
     using tools::Color;
 
-    typedef int ConfigFlags;
-    enum ConfigFlag_
+    typedef int Config_Flags;
+    enum Config_Flag_
     {
-        ConfigFlag_NONE                              = 0,
-        ConfigFlag_DRAW_DEBUG_LINES                  = 1 << 0,
-        ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY       = 1 << 2,
-        ConfigFlag_EXPERIMENTAL_MULTI_SELECTION      = 1 << 3,
+        Config_Flag_NONE                              = 0,
+        Config_Flag_DRAW_DEBUG_LINES                  = 1 << 0,
+        Config_Flag_EXPERIMENTAL_HYBRID_HISTORY       = 1 << 2,
+        Config_Flag_EXPERIMENTAL_MULTI_SELECTION      = 1 << 3,
     };
 
     struct Config
@@ -42,7 +43,7 @@ namespace ndbl
         Vec4           ui_slot_border_color;
         Vec4           ui_slot_color_light;
         Vec4           ui_slot_color_dark;
-        Vec4&          ui_slot_color(SlotFlags slot_flags);
+        Vec4&          ui_slot_color(Node_Slot_Flags slot_flags);
         Vec4           ui_slot_hovered_color;
         Vec2           ui_slot_rectangle_size;
         float          ui_slot_gap;
@@ -53,14 +54,14 @@ namespace ndbl
         Vec4           ui_node_padding; // left, top, right, bottom
         float          ui_node_borderWidth;
         float          ui_node_instructionBorderRatio; // ratio to apply to borderWidth
-        std::array<Vec4,ASTNodeType_COUNT> ui_node_fill_color;
+        std::array<Vec4,Node_Type_COUNT> ui_node_fill_color;
         Vec4           ui_node_shadowColor;
         Vec4           ui_node_borderColor;
         Vec4           ui_node_borderHighlightedColor;
         Vec4           ui_node_highlightedColor;
         float          ui_node_speed;
         float          ui_node_physics_frequency;
-        ViewDetail     ui_node_detail;
+        View_Detail    ui_node_detail;
         Vec4           ui_codeflow_color;
         Vec4           ui_codeflow_shadowColor;
         float          ui_codeflow_thickness_ratio;
@@ -99,12 +100,12 @@ namespace ndbl
         float          ui_scope_gap(tools::Size size = tools::Size_DEFAULT) const;
         Isolation      isolation;
         float          graph_view_unfold_duration; // The virtual duration used to simulate a graph view unfolding, like accelerating time.
-        ConfigFlags    flags;
+        Config_Flags   flags;
         tools::Config* tools_cfg;
 
-        bool has_flags(ConfigFlags _flags)const { return (flags & _flags) == _flags; };
-        void set_flags(ConfigFlags _flags) { flags |= _flags; }
-        void clear_flags(ConfigFlags _flags) { flags &= ~_flags; }
+        bool has_flags(Config_Flags _flags)const { return (flags & _flags) == _flags; };
+        void set_flags(Config_Flags _flags) { flags |= _flags; }
+        void clear_flags(Config_Flags _flags) { flags &= ~_flags; }
 
     };
 

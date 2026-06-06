@@ -1,25 +1,25 @@
 #pragma once
-#include "assertions.h"
+#include "Asserts.h"
 
 namespace tools
 {
     template<typename ElementT>
-    struct ArrayView;
+    struct Array_View;
 
     template<typename ElementT>
-    struct ArrayIterator;
+    struct Array_Iterator;
 
     //
-    // InlineVector
+    // Inline_Vector
     // 
     // minimalist replacement for std::vector, but without allocations.
     // memory is already reserved.
     //
     template<typename ElementT, u16_t CAPACITY>
-    struct InlineVector
+    struct Inline_Vector
     {
-        using Iterator      = ArrayIterator<ElementT>;
-        using IteratorConst = ArrayIterator<const ElementT>;
+        using Iterator       = Array_Iterator<ElementT>;
+        using Iterator_Const = Array_Iterator<const ElementT>;
 
         u16_t    size = {};
         ElementT data[CAPACITY] = {};
@@ -89,31 +89,31 @@ namespace tools
         Iterator end()
         { return Iterator{data + size}; }
 
-        IteratorConst begin() const
-        { return IteratorConst{data}; }
+        Iterator_Const begin() const
+        { return Iterator_Const{data}; }
 
-        IteratorConst end() const
-        { return IteratorConst{data + size}; }
+        Iterator_Const end() const
+        { return Iterator_Const{data + size}; }
     };
 
     // shorthands
 
-    template<typename ElementT> using InlineVector8   = InlineVector<ElementT,   8>;
-    template<typename ElementT> using InlineVector16  = InlineVector<ElementT,  16>;
-    template<typename ElementT> using InlineVector32  = InlineVector<ElementT,  32>;
-    template<typename ElementT> using InlineVector64  = InlineVector<ElementT,  64>;
-    template<typename ElementT> using InlineVector128 = InlineVector<ElementT, 128>;
+    template<typename ElementT> using Inline_Vector8   = Inline_Vector<ElementT,   8>;
+    template<typename ElementT> using Inline_Vector16  = Inline_Vector<ElementT,  16>;
+    template<typename ElementT> using Inline_Vector32  = Inline_Vector<ElementT,  32>;
+    template<typename ElementT> using Inline_Vector64  = Inline_Vector<ElementT,  64>;
+    template<typename ElementT> using Inline_Vector128 = Inline_Vector<ElementT, 128>;
     
     template<typename ElementT>
-    struct ArrayView
+    struct Array_View
     {
-        using Iterator = ArrayIterator<ElementT>;
+        using Iterator = Array_Iterator<ElementT>;
 
         ElementT* data;
         u16_t     size;
 
         template<typename VectorT>
-        ArrayView(const VectorT& vec)
+        Array_View(const VectorT& vec)
         : size(vec.size)
         , data(const_cast<decltype(data)>(vec.data) )
         {}
@@ -129,18 +129,18 @@ namespace tools
     };
 
     template<typename ElementT>
-    struct ArrayIterator
+    struct Array_Iterator
     {
-        ArrayIterator(ElementT* ptr):_m_ptr(ptr){}
+        Array_Iterator(ElementT* ptr):_m_ptr(ptr){}
 
         ElementT&       operator*() const { return *_m_ptr; }
-        ArrayIterator&  operator++() { ++_m_ptr; return *this; }
-        ArrayIterator&  operator++(int) { ++_m_ptr; return *this; }
-        ArrayIterator&  operator+(u16_t offset) { _m_ptr += offset; return *this; }
-        ArrayIterator&  operator-(u16_t offset) { _m_ptr -= offset; return *this; }
-        bool            operator==(const ArrayIterator& other) const { return _m_ptr == other._m_ptr; }
-        bool            operator!=(const ArrayIterator& other) const { return !(*this == other); }
-        ptrdiff_t       operator-(const ArrayIterator& other) const { return _m_ptr - other._m_ptr; }
+        Array_Iterator&  operator++() { ++_m_ptr; return *this; }
+        Array_Iterator&  operator++(int) { ++_m_ptr; return *this; }
+        Array_Iterator&  operator+(u16_t offset) { _m_ptr += offset; return *this; }
+        Array_Iterator&  operator-(u16_t offset) { _m_ptr -= offset; return *this; }
+        bool            operator==(const Array_Iterator& other) const { return _m_ptr == other._m_ptr; }
+        bool            operator!=(const Array_Iterator& other) const { return !(*this == other); }
+        ptrdiff_t       operator-(const Array_Iterator& other) const { return _m_ptr - other._m_ptr; }
 
         // std compatibility
         using value_type        = ElementT;

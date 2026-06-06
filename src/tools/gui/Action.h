@@ -3,7 +3,7 @@
 #include <SDL_keycode.h>
 #include <string>
 
-#include "tools/core/types.h"
+#include "tools/core/Types.h"
 #include "tools/core/Event.h"
 
 namespace tools
@@ -18,14 +18,14 @@ namespace tools
     };
 
     /**
-     * The purpose of any IAction is to trigger a given basic event (identified by an EventID)
+     * The purpose of any IAction is to trigger a given basic event (identified by an Event_ID)
      * when a key shortcut is pressed.
      */
     class IAction
     {
     public:
         explicit IAction(
-            EventID         event_id,
+            Event_ID         event_id,
             const char*     label    = "action",
             Shortcut&&      shortcut = {},
             u64_t           userdata = {}
@@ -36,7 +36,7 @@ namespace tools
         , userdata(userdata)
         {}
         std::string label;
-        EventID     event_id;
+        Event_ID     event_id;
         Shortcut    shortcut;
         u64_t       userdata;
 

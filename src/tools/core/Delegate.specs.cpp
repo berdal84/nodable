@@ -1,21 +1,21 @@
 #include "Delegate.h"
-#include "tools/core/log.h"
+#include "tools/core/Log.h"
 #include <gtest/gtest.h>
 
 using namespace tools;
 
-TEST(SimpleDelegate, default_constructor )
+TEST(Simple_Delegate, default_constructor )
 {
-    SimpleDelegate d;
+    Simple_Delegate d;
 }
 
 void my_static_function_the_answer()
 {
 }
 
-TEST(SimpleDelegate, call_static_function )
+TEST(Simple_Delegate, call_static_function )
 {
-    SimpleDelegate d{&my_static_function_the_answer};
+    Simple_Delegate d{&my_static_function_the_answer};
     d.call();
 }
 
@@ -30,7 +30,7 @@ TEST(Delegate, void_no_args__on_classes )
     };
 
     MyClass obj;
-    auto d = SimpleDelegate::from_method<&MyClass::method>(&obj);
+    auto d = Simple_Delegate::from_method<&MyClass::method>(&obj);
     d.call();
 
     EXPECT_TRUE(success);
@@ -45,7 +45,7 @@ TEST(Delegate, void_no_args__on_structs )
     };
 
     MyStruct obj;
-    auto d = SimpleDelegate::from_method<&MyStruct::set_ok>(&obj);
+    auto d = Simple_Delegate::from_method<&MyStruct::set_ok>(&obj);
     d.call();
     EXPECT_TRUE(obj.ok);
 }
@@ -59,7 +59,7 @@ TEST(Delegate, bind )
     };
 
     MyStruct obj;
-    auto d = SimpleDelegate::from_method<&MyStruct::set_ok>(nullptr);
+    auto d = Simple_Delegate::from_method<&MyStruct::set_ok>(nullptr);
     d.bind(&obj);
     d.call();
     EXPECT_TRUE(obj.ok);

@@ -1,12 +1,12 @@
 #include "System.h"
 #include <cstdlib>    // for ::system
 #include <thread>     // for std::thread
-#include "log.h"
+#include "Log.h"
 
 using namespace tools;
 
 #ifdef NDBL_DESKTOP
-int run_command(const char* command)
+int tools::system_run_command(const char* command)
 {
     int exit_code = ::system(command);
     if ( exit_code != 0 )
@@ -16,14 +16,14 @@ int run_command(const char* command)
     return exit_code;
 };
 
-void System::open_url_async(std::string url)
+void tools::system_open_url_async(std::string url)
 {
     std::string command = "x-www-browser " + url; // TODO: does not work on all distros
-    std::thread thread( run_command, command.c_str() );
+    std::thread thread( system_run_command, command.c_str() );
     thread.detach();
 }
 
-void System::clear_console() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
+void tools::system_clear_console() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
 {
     if( std::system("clear") )
     {
@@ -44,12 +44,12 @@ EM_JS(void, call_open_url, (), {
   throw 'all done';
 });
 
-void System::open_url_async(std::string url)
+void system_open_url_async(std::string url)
 {
     call_open_url();
 }
 
-void System::clear_console() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
+void system_clear_console() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
 {
     call_clear_console();
 }

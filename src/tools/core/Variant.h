@@ -11,12 +11,12 @@
 
 namespace tools
 {
-    // from https://stackoverflow.com/questions/52303316/get-index-by-type-in-stdvariant
+    // from https://stackoverflow.com/questions/52303316/get-index-by-type-in-stdVariantT
     template<typename T, typename Ts, size_t INDEX = 0>
     static constexpr size_t index_of()
     {
         constexpr size_t SIZE = std::tuple_size_v<Ts>;
-        static_assert( INDEX < SIZE, "Type not found in variant");
+        static_assert( INDEX < SIZE, "Type not found in VariantT");
 
         if constexpr ( std::is_same_v< T, std::tuple_element_t<INDEX, Ts >>)
             return INDEX;
@@ -26,30 +26,30 @@ namespace tools
 
     // note: we use std::monostate as first alternative type, when index() == 0, we are in that default state.
     template<typename ...Ts>
-    struct Variant
+    struct VariantT
     {
-        friend struct std::hash<Variant>;
+        friend struct std::hash<VariantT>;
 
         static constexpr size_t index_null = 0; // mono state's
 
-        Variant() = default;
-        Variant(const Variant&) = default;
-        Variant(Variant&&) = default;
+        VariantT() = default;
+        VariantT(const VariantT&) = default;
+        VariantT(VariantT&&) = default;
 
         template<class T>
-        Variant(T data)
+        VariantT(T data)
         : _data( data )
         {}
 
         template<typename T>
-        Variant& operator=(T data)
+        VariantT& operator=(T data)
         {
             this->_data = data;
             return *this;
         }
 
-        Variant& operator=(const Variant& other) = default;
-        Variant& operator=(Variant&& other) = default;
+        VariantT& operator=(const VariantT& other) = default;
+        VariantT& operator=(VariantT&& other) = default;
 
         template<class T>
         T get() const
@@ -65,15 +65,15 @@ namespace tools
 
         template<typename T>
         constexpr bool holds_alternative() const
-        { return Variant::index_of<T>() == index(); }
+        { return VariantT::index_of<T>() == index(); }
 
         size_t index() const
         { return _data.index(); }
 
-        bool operator==(const Variant& other) const
+        bool operator==(const VariantT& other) const
         { return _data == other._data;  }
 
-        bool operator!=(const Variant& other) const
+        bool operator!=(const VariantT& other) const
         { return !(*this == other); }
 
         bool empty() const
@@ -88,11 +88,11 @@ namespace tools
 }
 
 template<typename ...Args>
-struct std::hash<tools::Variant<Args...>>
+struct std::hash<tools::VariantT<Args...>>
 {
-    u64_t operator()(const tools::Variant<Args...>& v) const
+    u64_t operator()(const tools::VariantT<Args...>& v) const
     {
-        // hash the wrapped variant
+        // hash the wrapped VariantT
         return std::hash<decltype(v._data)>{}(v._data);
     }
 };

@@ -1,12 +1,12 @@
 #include "ImGuiEx.h"
 
-#include "tools/core/log.h"
-#include "tools/core/assertions.h"
+#include "tools/core/Log.h"
+#include "tools/core/Asserts.h"
 
-#include "tools/core/EventManager.h"
+#include "tools/core/Event_Manager.h"
 #include "Texture.h"
 #include "Color.h"
-#include "tools/gui/geometry/LineSegment2D.h"
+#include "tools/gui/geometry/Line_Segment_2D.h"
 #include "tools/gui/geometry/Axis.h"
 
 #define DEBUG_BEZIER_ENABLE 0
@@ -72,40 +72,40 @@ void ImGuiEx::DrawRectShadow (const Vec2& _topLeftCorner, const Vec2& _bottomRig
     }
 }
 
-void ImGuiEx::ShadowedText(const Vec2& _offset, const Vec4& _shadowColor, const char* _format, ...)
+void ImGuiEx::ShadowedText(const Vec2& _offset, const Vec4& _shadowColor, const char* _Format, ...)
 {
     va_list args;
-    va_start(args, _format);
+    va_start(args, _Format);
     ImGui::BeginGroup();
     // shadow
     auto p = ImGui::GetCursorScreenPos();
     ImGui::SetCursorScreenPos(Vec2(p.x + _offset.x, p.y + _offset.y));
-    ImGui::TextColored(_shadowColor, _format, args);
+    ImGui::TextColored(_shadowColor, _Format, args);
     // text
     ImGui::SetCursorScreenPos(p);
-    ImGui::Text(_format, args);
+    ImGui::Text(_Format, args);
     ImGui::EndGroup();
     va_end(args);
 }
 
-void ImGuiEx::ColoredShadowedText(const Vec2& _offset, const Vec4& _textColor, const Vec4& _shadowColor, const char* _format, ...)
+void ImGuiEx::ColoredShadowedText(const Vec2& _offset, const Vec4& _textColor, const Vec4& _shadowColor, const char* _Format, ...)
 {
     // draw first the shadow
     auto p = ImGui::GetCursorPos();
     ImGui::SetCursorPos(Vec2(p.x + _offset.x, p.y + _offset.y));
 
     va_list args;
-    va_start(args, _format);
-    ImGui::TextColored(_shadowColor, _format, args);
+    va_start(args, _Format);
+    ImGui::TextColored(_shadowColor, _Format, args);
     ImGui::SetCursorPos(p);
-    ImGui::TextColored(_textColor, _format, args);
+    ImGui::TextColored(_textColor, _Format, args);
     va_end(args);
 }
 
 void ImGuiEx::DrawWire(
         ImGuiID id,
         ImDrawList *draw_list,
-        const BezierCurveSegment2D& curve,
+        const Bezier_Curve_Segment_2D& curve,
         const WireStyle& style
      )
 {
@@ -117,19 +117,19 @@ void ImGuiEx::DrawWire(
     // Line
     // Generate curve
     std::vector<Vec2> fill_path;
-    BezierCurveSegment2D::tesselate(&fill_path, curve);
+    Bezier_Curve_Segment_2D::tesselate(&fill_path, curve);
 
     if ( fill_path.size() == 1) return;
 
     // Shadow
-    BezierCurveSegment2D shadow_curve = curve;
+    Bezier_Curve_Segment_2D shadow_curve = curve;
     shadow_curve.translate({ 1.f, 1.f });
     shadow_curve.p2 = curve.p2 + Vec2(0.f, 10.f);
     shadow_curve.p3 = curve.p3 + Vec2(0.f, 10.f);
 
     // Generate curve
     std::vector<Vec2> shadow_path;
-    BezierCurveSegment2D::tesselate(&shadow_path, shadow_curve);
+    Bezier_Curve_Segment_2D::tesselate(&shadow_path, shadow_curve);
 
     // 2) draw the shadow
 
@@ -139,7 +139,7 @@ void ImGuiEx::DrawWire(
     // 3) draw the curve
 
     // Mouse behavior
-    MultiSegmentLineBehavior(id, &fill_path, BezierCurveSegment2D::bbox(curve), style.thickness );
+    MultiSegmentLineBehavior(id, &fill_path, Bezier_Curve_Segment_2D::bbox(curve), style.thickness );
 
     // Draw the path
     if ( ImGui::GetHoveredID() == id )
@@ -260,7 +260,7 @@ void ImGuiEx::MultiSegmentLineBehavior(
     bool hovered = false;
     while( hovered == false && i < path->size() - 1 )
     {
-        const float mouse_distance = LineSegment2D::point_minimum_distance(LineSegment2D{(*path)[i], (*path)[i + 1]}, mouse_pos );
+        const float mouse_distance = Line_Segment_2D::point_minimum_distance(Line_Segment_2D{(*path)[i], (*path)[i + 1]}, mouse_pos );
         hovered = mouse_distance < hover_min_distance;
         ++i;
     }

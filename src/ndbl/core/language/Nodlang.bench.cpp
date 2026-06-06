@@ -2,7 +2,7 @@
 #include <random>
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/Graph.h"
-#include "ndbl/core/ASTNodeUtils.h"
+#include "ndbl/core/NodeUtils.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/string.h"
 
