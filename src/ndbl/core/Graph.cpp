@@ -31,7 +31,8 @@ void Graph::_init()
     ASSERT( m_node_registry.empty() ); // Root must be first, registry should be empty
 
     // create and _insert root
-    Node* root  = node_create_root_scope();
+    Node* root = new Node();
+    node_init_as_root_scope(root);
     this->_insert(root, nullptr);
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add root node %p (name: %s, class: %s)\n", root, root->name.c_str(), root->get_class()->name());
@@ -195,28 +196,32 @@ void Graph::_clean_node(Node* node)
 
 Node* Graph::create_scope(Scope* scope)
 {
-    auto* node = node_create_scope();
+    Node* node = new Node();
+    node_init_as_scope(node);
     _insert(node, scope);
     return node;
 }
 
 Node* Graph::create_variable(const Type_Descriptor *_type, const std::string& _name, Scope* scope)
 {
-    Node* node = node_create_variable(_type, _name);
+    Node* node = new Node();
+    node_init_as_variable(node, _type, _name.c_str());
     _insert(node, scope);
 	return node;
 }
 
 Node* Graph::create_function(const Function_Descriptor& _type, Scope* scope)
 {
-    Node* node = node_create_function(_type, Node_Type_FUNCTION);
+    Node* node = new Node();
+    node_init_as_invokable(node, _type, Node_Type_FUNCTION);
     _insert(node, scope);
     return node;
 }
 
 Node* Graph::create_operator(const Function_Descriptor& _type, Scope* scope)
 {
-    Node* node = node_create_function(_type, Node_Type_OPERATOR);
+    Node* node = new Node();
+    node_init_as_invokable(node, _type, Node_Type_OPERATOR);
     _insert(node, scope);
     return node;
 }
@@ -527,35 +532,45 @@ void Graph::disconnect(Node_Slot_Link& _edge, Graph_Flags flags)
 
 Node* Graph::create_cond_struct(Scope* scope)
 {
-    Node* node = node_create_cond_struct();
+    Node* node = new Node();
+    node_init_as_cond_struct(node);
     _insert(node, scope);
     return node;
 }
 
 Node* Graph::create_for_loop(Scope* scope)
 {
-    Node* node = node_create_for_loop();
+    Node* node = new Node();
+    node_init_as_for_loop(node);
     _insert(node, scope);
     return node;
 }
 
 Node* Graph::create_while_loop(Scope* scope)
 {
-    Node* ast_node = node_create_while_loop();
-    _insert(ast_node, scope);
-    return ast_node;
+    Node* node = new Node();
+    node_init_as_while_loop(node);
+    _insert(node, scope);
+    return node;
 }
 
 Node* Graph::create_node(Scope* scope)
 {
-    Node* node = node_create_node();
+    Node* node = new Node();
+    
+    node_init(node, Node_Type_NULL, "");
+    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
+    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
+
     _insert(node, scope);
+    
     return node;
 }
 
 Node* Graph::create_literal(const Type_Descriptor* _type, Scope* scope)
 {
-    Node* node = node_create_literal(_type);
+    Node* node = new Node();
+    node_init_as_literal(node,_type);
     _insert(node, scope);
     return node;
 }
@@ -599,7 +614,8 @@ Node* Graph::create_node(Create_Node_Type_ _type, const Function_Descriptor* _si
 
 Node* Graph::create_variable_ref(Scope* scope)
 {
-    Node* node = node_create_variable_ref();
+    Node* node = new Node();
+    node_init_as_variable_ref(node);
     _insert(node, scope);
     return node;
 }
@@ -620,7 +636,8 @@ Node* Graph::create_variable_decl(const Type_Descriptor* type, const char*  name
 
 Node *Graph::create_empty_instruction(Scope* scope)
 {
-    Node* node = node_create_empty_instruction();
+    Node* node = new Node();
+    node_init_as_empty_instruction(node);
     _insert(node, scope);
     return node;
 }

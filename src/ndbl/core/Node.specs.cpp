@@ -19,7 +19,7 @@ TEST(Node, constructor_destructor)
 TEST(Node, init_default_node)
 {
     Node node;
-    node_init(&node, "My Node");
+    node_init(&node, Node_Type_NULL, "My Node");
     EXPECT_STREQ(node.name.c_str(), "My Node");
     EXPECT_TRUE(node.is_initialized);
     node_shutdown(&node);

@@ -132,7 +132,7 @@ void Node_Slot_View::update(float dt)
     else if (slot->type() == Node_Slot_Flag_TYPE_FLOW )
     {
         // A code flow slot has to be hidden when cannot be an instruction or is not
-        bool desired_visibility = node_is_instruction(node() ) || node_can_be_instruction(node() );
+        bool desired_visibility = node_is_instruction(node() ) || node_could_be_instruction(node() );
         _state.set_visible( desired_visibility );
     }
     else

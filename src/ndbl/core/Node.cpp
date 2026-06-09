@@ -12,10 +12,9 @@
 using namespace ndbl;
 using namespace tools;
 
-Node::Node(Node_Type type)
+Node::Node()
 : components(this)
 , adjacent_nodes_cache(this)
-, type(type)
 {
 }
 
@@ -28,11 +27,12 @@ Node::~Node()
 }
 
 
-void ndbl::node_init(Node* node, const std::string& label)
+void ndbl::node_init(Node* node, Node_Type type, const std::string& label)
 {
     ASSERT(node!=nullptr);
     VERIFY(node->is_initialized == false, "You cannot initialize twice");
 
+    node->type  = type;
     node->value = node_add_prop<any>(node, DEFAULT_PROPERTY, Node_Property_Flag_IS_NODE_VALUE );
     node->set_name(label);
     node->is_initialized = true;
@@ -49,7 +49,7 @@ void ndbl::node_init(Node* node, const std::string& label)
 
         case Node_Type_LITERAL:
         {
-            new (&node->_literal_data) decltype(node->_literal_data)();
+            new (&node->_literal_data) decltype(node->_literal_data)();            
             break;
         }
 
@@ -481,10 +481,11 @@ const Node_Property* ndbl::node_find_prop_by_name(const Node* node, const char* 
     return nullptr;
 }
 
-void ndbl::node_init_invokable(Node* node, const tools::Function_Descriptor& _func_type )
+void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& _func_type, Node_Type node_type )
 {
-    VERIFY( node && node->value != nullptr, "Node does not seems to be initialized");
+    ASSERT(node_type == Node_Type_OPERATOR || node_type == Node_Type_FUNCTION );
 
+    node_init(node, node_type, _func_type.get_identifier());
     node->_invokable_data.m_func_type = _func_type;
     node->_invokable_data.m_identifier_token = {
             Token_Type::identifier,
@@ -552,9 +553,9 @@ void ndbl::node_init_invokable(Node* node, const tools::Function_Descriptor& _fu
     }
 }
 
-void ndbl::node_init_variable(Node* node, const tools::Type_Descriptor* _type, const char* _identifier)
+void ndbl::node_init_as_variable(Node* node, const tools::Type_Descriptor* _type, const char* _identifier)
 {
-    VERIFY( node && node->value != nullptr, "Node does not seems to be initialized");
+    node_init(node, Node_Type_VARIABLE, "Var.");
 
     // Init identifier property
     node->value->set_type(_type);
@@ -570,9 +571,9 @@ void ndbl::node_init_variable(Node* node, const tools::Type_Descriptor* _type, c
     node->_variable_data.ref_out  = node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT); // as reference
 }
 
-void ndbl::node_init_variable_ref(Node* node)
+void ndbl::node_init_as_variable_ref(Node* node)
 {
-    VERIFY( node && node->value != nullptr, "Node does not seems to be initialized");
+    node_init(node, Node_Type_VARIABLE_REF, "Ref.");
 
     // Init identifier property
     node->value->set_type(tools::type::any());
@@ -617,15 +618,15 @@ void ndbl::node_variable_ref_handle_name_change(Node* node, const std::string& n
     node->value->token().word_replace( name.c_str() );
 }
 
-void ndbl::node_init_literal(Node* node, const Type_Descriptor* _type)
+void ndbl::node_init_as_literal(Node* node, const Type_Descriptor* type_descriptor)
 {
-    VERIFY( node && node->value != nullptr, "Node does not seems to be initialized");
-
-    node->value->set_type(_type);
+    node_init(node, Node_Type_LITERAL, "Lit.");
+    
+    node->value->set_type(type_descriptor);
 
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT , 1);
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
-    node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT   , 1);
+    node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT   , 1);        
 }
 
 
@@ -654,52 +655,17 @@ void ndbl::node_init_branches(Node* node, size_t branch_count)
     }
 }
 
-Node* ndbl::node_create_variable(const Type_Descriptor* _type, const std::string& _name)
+void ndbl::node_init_as_cond_struct(Node* node)
 {
-    // create
-    auto node = new Node(Node_Type_VARIABLE);
-    node_init(node, "Var.");
-    node_init_variable(node, _type, _name.c_str());
-    return node;
-}
-
-Node* ndbl::node_create_variable_ref()
-{
-    auto node = new Node(Node_Type_VARIABLE_REF);
-    node_init(node, "Ref.");
-    node_init_variable_ref(node);
-    return node;
-}
-
-Node* ndbl::node_create_function(const Function_Descriptor& _func_type, Node_Type _node_type)
-{
-    ASSERT(_node_type == Node_Type_OPERATOR || _node_type == Node_Type_FUNCTION );
-
-    auto* node = new Node(_node_type);
-
-    node_init(node, _func_type.get_identifier());
-    node_init_invokable(node, _func_type);
-    
-    return node;
-}
-
-Node* ndbl::node_create_cond_struct()
-{
-    auto* node = new Node(Node_Type_IF_ELSE);
-
-    node_init(node, "If");
+    node_init(node, Node_Type_IF_ELSE, "If");
     node_init_internal_scope(node);
     node_init_branches(node, 2);
     node->switch_behavior_data().m_branch_prefix = {Token_Type::keyword_if};
-
-    return node;
 }
 
-Node* ndbl::node_create_for_loop()
+void ndbl::node_init_as_for_loop(Node* node)
 {
-    auto* node = new Node(Node_Type_FOR_LOOP);
-
-    node_init(node, "For");
+    node_init(node, Node_Type_FOR_LOOP, "For");
 
     node->switch_behavior_data().m_branch_prefix = {Token_Type::keyword_for};
 
@@ -714,63 +680,37 @@ Node* ndbl::node_create_for_loop()
     // add iteration property and slot
     Node_Property* iter_prop = node_add_prop<any>(node, ITERATION_PROPERTY);
     node->switch_behavior_data().m_iteration_slot = node_add_slot(node, iter_prop, Node_Slot_Flag_INPUT, 1);
-
-    return node;
 }
 
-Node* ndbl::node_create_while_loop()
-{
-    auto* node = new Node(Node_Type_WHILE_LOOP);    
-    node_init(node, "While");
+void ndbl::node_init_as_while_loop(Node* node)
+{  
+    node_init(node, Node_Type_WHILE_LOOP, "While");
     node_init_internal_scope(node);
     node_init_branches(node, 2);
     node->switch_behavior_data().m_branch_prefix = {Token_Type::keyword_while};
-    return node;
 }
 
-Node* ndbl::node_create_scope()
+void ndbl::node_init_as_scope(Node* node)
 {
-    auto* node = new Node(Node_Type_SCOPE);
-    node_init(node, "Scope");
+    node_init(node, Node_Type_SCOPE, "Scope");
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT | Node_Slot_Flag_IS_INTERNAL, 1);
     node_init_internal_scope(node);
-    return node;
 }
 
-Node* ndbl::node_create_root_scope()
+void ndbl::node_init_as_root_scope(Node* node)
 {
-    auto* node = new Node(Node_Type_ROOT);
-    node_init(node, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
+    node_init(node, Node_Type_ROOT, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
     // add_slot(node->value(), Node_Slot_Flag_FLOW_IN, Node_Slot::MAX_CAPACITY); nothing can be before...
     // add_slot(node->value(), Node_Slot_Flag_FLOW_OUT, 1); nothing after either...
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT | Node_Slot_Flag_IS_INTERNAL, 1); // ...but something inside!
     node_init_internal_scope(node);
-    return node;
 }
 
-Node* ndbl::node_create_node()
+void ndbl::node_init_as_empty_instruction(Node* node)
 {
-    auto* node = new Node();
-    node_init(node, "");
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
-    return node;
-}
-
-Node* ndbl::node_create_literal(const Type_Descriptor *_type)
-{
-    auto* node = new Node(Node_Type_LITERAL);
-    node_init(node, "Lit.");
-    node_init_literal(node, _type);
-    return node;
-}
-
-Node* ndbl::node_create_empty_instruction()
-{
-    auto* node = new Node(Node_Type_EMPTY_INSTRUCTION);
-    node_init(node, ";");
+    node_init(node, Node_Type_EMPTY_INSTRUCTION, ";");
 
     // Token will be/or not overriden as a Token_t::end_of_instruction by the parser
     node->value->set_token({Token_Type::ignore});
@@ -778,8 +718,6 @@ Node* ndbl::node_create_empty_instruction()
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
     node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT  , 1);
-
-    return node;
 }
 
 std::vector<Node*> ndbl::node_get_adjacent_nodes(const Node* node, Node_Slot_Flags flags)
@@ -822,7 +760,7 @@ bool ndbl::node_is_connected_to_codeflow(const Node *node)
     return false;
 }
 
-bool ndbl::node_can_be_instruction(const Node* node)
+bool ndbl::node_could_be_instruction(const Node* node)
 {
     // TODO: handle case where a variable has inputs/outputs but not connected to the code flow
     return node_slot_count(node, Node_Slot_Flag_TYPE_FLOW) > 0 && node->inputs().empty() && node->outputs().empty();

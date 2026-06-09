@@ -725,7 +725,7 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
             ImGui::TableNextColumn();
             ImGui::Text("can_be_instruction");
             ImGui::TableNextColumn();
-            ImGui::Text("%i", node_can_be_instruction(node));
+            ImGui::Text("%i", node_could_be_instruction(node));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();

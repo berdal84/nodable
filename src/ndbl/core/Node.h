@@ -155,7 +155,7 @@ namespace ndbl
         };
 
 //===== CONSTRUCTORS/DESTRUCTORS =======================================================================================
-        Node(Node_Type type = Node_Type_NULL);
+        Node();
         ~Node();
         Node(const Node&) = delete;
         Node(Node&&) = delete;
@@ -240,30 +240,20 @@ namespace ndbl
 
 //===== API ====================================================================================================
 
-    void                    node_init(Node*, const std::string& name);
+    void                    node_init(Node*, Node_Type, const std::string& name);
+    void                    node_init_as_invokable(Node*, const tools::Function_Descriptor&, Node_Type = Node_Type_FUNCTION);
+    void                    node_init_as_variable(Node*, const tools::Type_Descriptor* type, const char* identifier);
+    void                    node_init_as_variable_ref(Node*);
+    void                    node_init_as_literal(Node*, const tools::Type_Descriptor* _type);
+    void                    node_init_as_root_scope(Node*);
+    void                    node_init_as_scope(Node*);
+    void                    node_init_as_cond_struct(Node*);
+    void                    node_init_as_for_loop(Node*);
+    void                    node_init_as_while_loop(Node*);
+    void                    node_init_as_empty_instruction(Node*);
     void                    node_init_internal_scope(Node*);
     void                    node_init_branches(Node*, size_t branch_count);
-    void                    node_init_invokable(Node*, const tools::Function_Descriptor& func_type);
-    void                    node_init_variable(Node*, const tools::Type_Descriptor* type, const char* identifier);
-    void                    node_init_variable_ref(Node*);
-    void                    node_init_literal(Node*, const tools::Type_Descriptor* _type);
-    
-    // TODO: these function should take a Node*.
-    //       allocation must be handled by the user.
-    Node*                   node_create_root_scope();
-    Node*                   node_create_scope();
-    Node*                   node_create_variable(const tools::Type_Descriptor*, const std::string& name);
-    Node*                   node_create_variable_ref();
-    Node*                   node_create_literal(const tools::Type_Descriptor*);
-    Node*                   node_create_function(const tools::Function_Descriptor&, Node_Type = Node_Type_FUNCTION);
-    Node*                   node_create_cond_struct();
-    Node*                   node_create_for_loop();
-    Node*                   node_create_while_loop();
-    Node*                   node_create_node();
-    Node*                   node_create_empty_instruction();
-
     void                    node_shutdown(Node*);
-
     bool                    node_update(Node*);
     void                    node_reset_scope(Node*, Scope*);
     void                    node_variable_ref_clear_variable(Node*);
@@ -310,8 +300,8 @@ namespace ndbl
 
     std::vector<Node*>      node_get_adjacent_nodes(const Node*, Node_Slot_Flags);
     Node*                   node_adjacent_node_at(const Node*, Node_Slot_Flags, u8_t pos);
+    bool                    node_could_be_instruction(const Node*);
     bool                    node_is_instruction(const Node*);
-    bool                    node_can_be_instruction(const Node*);
     bool                    node_is_unary_operator(const Node*);
     bool                    node_is_binary_operator(const Node*);
     bool                    node_is_conditional(const Node*);
