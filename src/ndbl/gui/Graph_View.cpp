@@ -106,7 +106,7 @@ void Graph_View::_handle_shutdown()
 void Graph_View::_handle_add_node(Node* node)
 {
     // view
-    auto* nodeview = node->components()->create<Node_View>();
+    auto* nodeview = node->components.create<Node_View>();
     nodeview->set_size({20.f, 35.f});
 
     if (Scope_View* scopeview = nodeview->internal_scopeview() )
@@ -119,12 +119,12 @@ void Graph_View::_handle_add_node(Node* node)
     }
     else
     {
-        Spatial_Node* scopeview_spatial_node = node->scope()->view()->spatial_node();
+        Spatial_Node* scopeview_spatial_node = node->scope->view()->spatial_node();
         scopeview_spatial_node->add_child( nodeview->spatial_node() );
     }
 
     // physics
-    node->components()->create<Physics_Component>();
+    node->components.create<Physics_Component>();
 }
 
 void Graph_View::_handle_remove_node(Node* node)
@@ -132,7 +132,7 @@ void Graph_View::_handle_remove_node(Node* node)
     // clean physics
     auto* physics_component = node->component<Physics_Component>();
     VERIFY(physics_component, "Should have been created from _handle_add_node()");
-    node->components()->destroy( physics_component );
+    node->components.destroy( physics_component );
 
     // clean nodeview
     auto* nodeview = node->component<Node_View>();
@@ -148,7 +148,7 @@ void Graph_View::_handle_remove_node(Node* node)
         _parent->remove_child( nodeview->spatial_node() );
     }
 
-    node->components()->destroy( nodeview );
+    node->components.destroy( nodeview );
 }
 
 void Graph_View::_handle_change_scope(Node* node, Scope* old_scope, Scope* new_scope)
@@ -263,7 +263,7 @@ bool Graph_View::draw(float dt)
             continue;
         }
 
-        std::vector<Node_Slot *> slots = each_node->filter_slots(Node_Slot_Flag_FLOW_OUT);
+        std::vector<Node_Slot *> slots = node_filter_slots(each_node, Node_Slot_Flag_FLOW_OUT);
         for (size_t slot_index = 0; slot_index < slots.size(); ++slot_index)
         {
             Node_Slot *slot = slots[slot_index];
@@ -318,7 +318,7 @@ bool Graph_View::draw(float dt)
     float time = ImGui::GetTime();
     for (Node* node_out: graph()->nodes() )
     {
-        for (const Node_Slot* slot_out: node_out->filter_slots(Node_Slot_Flag_OUTPUT))
+        for (const Node_Slot* slot_out: node_filter_slots(node_out, Node_Slot_Flag_OUTPUT))
         {
             for(const Node_Slot* slot_in : slot_out->adjacent())
             {
@@ -360,9 +360,9 @@ bool Graph_View::draw(float dt)
                 }
 
                 // Draw transparent some "variable--->ref" wires in certain cases
-                if (node_out->type() == Node_Type_VARIABLE ) // from a variable
+                if (node_out->type == Node_Type_VARIABLE ) // from a variable
                 {
-                    if (slot_out == node_out->variable_data().ref_out() ) // from a reference slot (can't be a declaration link)
+                    if (slot_out == node_out->variable_data().ref_out ) // from a reference slot (can't be a declaration link)
                         if (!node_view_out->state()->selected() && !node_view_in->state()->selected() )
                             style.color.w *= 0.25f;
                 }
@@ -499,7 +499,7 @@ void Graph_View::_create_constraints__align_top_recursively(const std::vector<No
         constraint.follower_flags = Node_ViewFlag_WITH_RECURSION;
     }
 
-    if ( leader->has_flow_adjacent() )
+    if ( node_has_flow_adjacent(leader) )
     {
         constraint.follower_pivot = BOTTOM_LEFT;
         constraint.leader_pivot   = TOP_RIGHT;
@@ -542,7 +542,7 @@ void Graph_View::_create_constraints(Scope* scope )
     }
 
     for ( Node* _child_node : scope->children() )
-        if ( Scope* _child_scope = _child_node->internal_scope() )
+        if ( Scope* _child_scope = _child_node->internal_scope )
             _create_constraints(_child_scope);
 };
 

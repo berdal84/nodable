@@ -414,7 +414,7 @@ void ndbl::nodable_update(App_State* app)
                 Node_Slot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
-                Graph* graph = _event->data.first->node->graph();
+                Graph* graph = _event->data.first->node->graph;
                 for(Node_Slot* adjacent_slot : slot->adjacent() )
                 {
                     auto each_cmd = std::make_shared<Cmd_DeleteEdge>(Node_Slot_Link{slot, adjacent_slot}, graph );
@@ -448,13 +448,13 @@ void ndbl::nodable_update(App_State* app)
                     case Create_Node_Type__BLOCK_WHILE_LOOP:
                     case Create_Node_Type__BLOCK_SCOPE:
                     case Create_Node_Type__ROOT:
-                        new_node->set_suffix(Token::s_end_of_line );
+                        new_node->suffix = Token::s_end_of_line;
                         break;
                     case Create_Node_Type__VARIABLE_BOOLEAN:
                     case Create_Node_Type__VARIABLE_DOUBLE:
                     case Create_Node_Type__VARIABLE_INTEGER:
                     case Create_Node_Type__VARIABLE_STRING:
-                        new_node->set_suffix(Token::s_end_of_instruction );
+                        new_node->suffix = Token::s_end_of_instruction;
                         break;
                     case Create_Node_Type__LITERAL_BOOLEAN:
                     case Create_Node_Type__LITERAL_DOUBLE:
@@ -467,9 +467,9 @@ void ndbl::nodable_update(App_State* app)
                 // 2) handle connections
                 if ( Node_Slot_View* slot_view = _event->data.active_slotview )
                 {
-                    Node_Slot_Flags             complementary_flags = switch_order(slot_view->slot->type_and_order());
-                    const Type_Descriptor* type                = slot_view->property()->get_type();
-                    Node_Slot*                 complementary_slot  = new_node->find_slot_by_property_type(complementary_flags, type);
+                    Node_Slot_Flags         complementary_flags = switch_order(slot_view->slot->type_and_order());
+                    const Type_Descriptor*  type                = slot_view->property()->get_type();
+                    Node_Slot*              complementary_slot  = node_find_slot_by_property_type(new_node, complementary_flags, type);
 
                     if ( !complementary_slot )
                     {
@@ -489,10 +489,9 @@ void ndbl::nodable_update(App_State* app)
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
                         if (node_is_instruction(out->node ) && out->type() == Node_Slot_Flag_TYPE_FLOW )
                         {
-                            Token& token = out->node->suffix();
-                            std::string buffer = token.string();
+                            std::string buffer = out->node->suffix.string();
                             if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
-                                token.suffix_push_back("\n");
+                                out->node->suffix.suffix_push_back("\n");
                         }
                     }
                 }

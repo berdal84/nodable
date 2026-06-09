@@ -50,7 +50,7 @@ Node* Scope::find_variable(const std::string& _identifier, Scope_Flags flags )
 {
     // Try first to find in this scope
     for(Node* node : m_variables)
-        if ( node->variable_data().get_identifier() == _identifier )
+        if ( node_get_identifier(node) == _identifier )
             return node;
 
     // not found? => recursive call in parent ...
@@ -64,7 +64,7 @@ void Scope::append(Node *node)
 {
     m_cached_backbone_dirty = true;
 
-    const Scope* previous_scope = node->scope();
+    const Scope* previous_scope = node->scope;
     ASSERT(node);
     VERIFY(previous_scope == nullptr, "Node should have no scope");
     VERIFY(node != this->node(), "Can't add a node into its own internal scope" );
@@ -73,33 +73,32 @@ void Scope::append(Node *node)
     const auto& [_, ok] = m_children.insert(node); ASSERT(ok);
 
     // insert as variable?
-    if (node->type() == Node_Type_VARIABLE )
+    if (node->type == Node_Type_VARIABLE )
     {
-        const Node::Variable_State& variable_data = node->variable_data();
-        if (find_variable(variable_data.get_identifier()) != nullptr )
+        if (find_variable( node_get_identifier(node)) != nullptr )
         {
-            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already exists in the same internal_scopeview.\n", variable_data.get_identifier().c_str());
+            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already exists in the same internal_scopeview.\n", node_get_identifier(node).c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
-        else if (node->scope() )
+        else if ( node->scope )
         {
-            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already declared in another internal_scopeview. Remove it first.\n", variable_data.get_identifier().c_str());
+            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already declared in another internal_scopeview. Remove it first.\n", node_get_identifier(node).c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
         else
         {
-            TOOLS_LOG(tools::Verbosity_Diagnostic, "Scope", "Add '%s' variable to the internal_scopeview\n", variable_data.get_identifier().c_str() );
+            TOOLS_LOG(tools::Verbosity_Diagnostic, "Scope", "Add '%s' variable to the internal_scopeview\n", node_get_identifier(node).c_str() );
             m_variables.insert(node);
         }
     }
 
     // Insert inputs recursively
     for ( Node* input : node->inputs() )
-        if ( input->type() != Node_Type_VARIABLE ) // variables must be manually added
-            if (input->scope() == previous_scope )
+        if ( input->type != Node_Type_VARIABLE ) // variables must be manually added
+            if (input->scope == previous_scope )
                 append(input);
 
-    node->reset_scope(this);
+    node_reset_scope(node, this);
 }
 
 std::vector<Node*> Scope::leaves()
@@ -123,9 +122,9 @@ std::vector<Node*>& Scope::_leaves_ex(std::vector<Node*>& out)
     Node* node = m_head;
     while( node != nullptr )
     {
-        if (node->has_internal_scope() )
+        if (node->internal_scope != nullptr )
         {
-            node->internal_scope()->_leaves_ex(out);
+            node->internal_scope->_leaves_ex(out);
         }
 
         auto outputs = node->flow_outputs();
@@ -147,13 +146,13 @@ std::vector<Node*>& Scope::_leaves_ex(std::vector<Node*>& out)
 void Scope::remove(ndbl::Node *node)
 {
     ASSERT( node );
-    ASSERT( node->scope() == this); // node can't be inside its own Scope
+    ASSERT( node->scope == this); // node can't be inside its own Scope
 
     m_cached_backbone_dirty = true;
 
     // inputs first
     for ( Node* input : node->inputs() )
-        if ( input->scope() == this )
+        if ( input->scope == this )
             if ( !input->is_variable() ) // variables must be manually removed
                 remove(input);
 
@@ -163,14 +162,14 @@ void Scope::remove(ndbl::Node *node)
     {
         reset_head();
     }
-    node->reset_scope(nullptr);
+    node_reset_scope(node, nullptr);
 
     if ( node->is_variable() )
     {
         m_variables.erase(node);
     }
 
-    ASSERT( node->scope() == nullptr);
+    ASSERT( node->scope == nullptr);
 }
 
 bool Scope::empty(Scope_Flags flags) const
@@ -246,10 +245,10 @@ std::set<Scope*>& Scope::get_descendent_ex(std::set<Scope*>& out, Scope* scope, 
     Node* node = scope->m_head;
     while( node != nullptr )
     {
-        if ( Scope* internal_scope = node->internal_scope() )
+        if ( node->internal_scope != nullptr )
         {
-            out.insert( internal_scope );
-            get_descendent_ex(out, internal_scope, level_max - 1, Scope_Flag_INCLUDE_SELF );
+            out.insert( node->internal_scope );
+            get_descendent_ex(out, node->internal_scope, level_max - 1, Scope_Flag_INCLUDE_SELF );
         }
 
         auto& outputs = node->flow_outputs();
@@ -280,7 +279,7 @@ void Scope::_set_depth_cache_dirty() const
 
     // recurse
     for(Node* child : m_children)
-        if (Scope* child_scope = child->internal_scope() )
+        if (Scope* child_scope = child->internal_scope )
             child_scope->_set_depth_cache_dirty();
 }
 
@@ -292,8 +291,8 @@ bool Scope::contains(Node* node) const
 void Scope::reset_head(Node* node)
 {
 #ifdef TOOLS_DEBUG
-    VERIFY( !node || node->scope() == this, "Node must be from this scope");
-    VERIFY(!m_head || m_head->scope() == this, "node as backbone head should never be removed before to reset backbone head")
+    VERIFY( !node || node->scope == this, "Node must be from this scope");
+    VERIFY(!m_head || m_head->scope == this, "node as backbone head should never be removed before to reset backbone head")
 #endif
     m_head = node;
 }
@@ -314,7 +313,7 @@ void Scope::_update_backbone_cache() const
 
     m_cached_backbone.clear();
     Node* curr_node = m_head;
-    while( curr_node != nullptr && curr_node->scope() == this )
+    while( curr_node != nullptr && curr_node->scope == this )
     {
         // add current
         m_cached_backbone.push_back(curr_node );

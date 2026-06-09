@@ -51,13 +51,13 @@ void Node_View::_handle_init()
 
     VERIFY(m_view_by_property.empty(), "Cannot be called twice");
 
-    for (Node_Property* property : node()->props() )
+    for (Node_Property* property : node()->props )
     {
         // Create view
         auto new_view = new Node_Property_View(property);
         _add_child(new_view);
 
-        switch ( node()->type() )
+        switch ( node()->type )
         {
             case Node_Type_ROOT:
             case Node_Type_SCOPE:
@@ -72,13 +72,13 @@ void Node_View::_handle_init()
         }
 
         // Indexing
-        if (property == node()->value() )
+        if (property == node()->value )
         {
             m_value_view = new_view;
         }
 
-        bool has_in  = node()->find_slot_by_property(property, Node_Slot_Flag_INPUT );
-        bool has_out = node()->find_slot_by_property(property, Node_Slot_Flag_OUTPUT );
+        bool has_in  = node_find_slot_by_property(node(), property, Node_Slot_Flag_INPUT );
+        bool has_out = node_find_slot_by_property(node(), property, Node_Slot_Flag_OUTPUT );
 
         if ( has_in)
             m_view_by_property_type[PropType_IN].push_back(new_view);
@@ -143,7 +143,7 @@ void Node_View::_handle_init()
             };
 
     // Create a view per slot
-    for( Node_Slot* slot : node()->slots() )
+    for( Node_Slot* slot : node()->slots )
     {
         const u8_t index = count_per_type.at(slot->type_and_order())++;
         auto* view = new Node_Slot_View(slot, get_pivot(slot), get_shapetype(slot), index, shape() );
@@ -165,11 +165,11 @@ void Node_View::_handle_init()
     }
 
     // Adjust some slot views
-    switch ( node()->type() )
+    switch ( node()->type )
     {
         case Node_Type_VARIABLE:
         {
-            if ( Node_Slot* decl_out = node()->variable_data().decl_out() )
+            if ( Node_Slot* decl_out = node()->variable_data().decl_out )
             {
                 if (Node_Slot_View *view = decl_out->view)
                 {
@@ -198,12 +198,12 @@ void Node_View::_handle_init()
     //---------------------
 
     // note: We pass color by address to be able to change the color dynamically
-    set_color( &cfg->ui_node_fill_color[ node()->type()] );
+    set_color( &cfg->ui_node_fill_color[ node()->type] );
 
     // 4. Create Scope_View
     //--------------------
 
-    if ( Scope* internal_scope = node()->internal_scope() )
+    if ( Scope* internal_scope = node()->internal_scope )
     {
         auto* scopeview = new Scope_View();
         scopeview->init(internal_scope);
@@ -240,56 +240,56 @@ std::string Node_View::get_label()
 
     bool minimalist = cfg->ui_node_detail == View_Detail::MINIMALIST;
 
-    switch (node()->type() )
+    switch (node()->type )
     {
         case Node_Type_VARIABLE_REF:
         {
             if ( minimalist )
                 return "&";
-            return node()->name();
+            return node()->name;
         }
         case Node_Type_VARIABLE:
         {
             if (minimalist)
                 return "";
-            return node()->variable_data().get_type()->name();
+            return node_variable_type(node() )->name();
         }
         case Node_Type_OPERATOR:
         {
-            return node()->name();
+            return node()->name;
         }
         case Node_Type_FUNCTION:
         {
             if ( minimalist )
                 return "f(x)";
-            return node()->name();
+            return node()->name;
         }
         case Node_Type_ROOT:
         case Node_Type_SCOPE:
         {
             if ( minimalist )
             {
-                return node()->name().substr(0, 6); // 4 char for the icon
+                return node()->name.substr(0, 6); // 4 char for the icon
             }
-            return node()->name();
+            return node()->name;
         }
         case Node_Type_IF_ELSE:
         {
             if ( minimalist )
                 return "?";
-            return node()->name();
+            return node()->name;
         }
         case Node_Type_FOR_LOOP:
         {
             if ( minimalist )
                 return "for";
-            return node()->name();
+            return node()->name;
         }
         default:
         {
             if ( minimalist )
-                return node()->name().substr(0, 3) + ".";
-            return node()->name();
+                return node()->name.substr(0, 3) + ".";
+            return node()->name;
         }
     }
 
@@ -304,7 +304,7 @@ void Node_View::arrange_recursively(bool _smoothly)
                 each_input->arrange_recursively();
     }
 
-    if (Scope* internal_scope = node()->internal_scope() )
+    if (Scope* internal_scope = node()->internal_scope )
         for ( Node* _node : internal_scope->backbone() )
             if ( auto* _node_view = _node->component<Node_View>() )
                     _node_view->arrange_recursively();
@@ -410,7 +410,7 @@ bool Node_View::draw()
     std::vector<std::string> operator_label(1); // for binary (and ternary when implemented) operators
     std::string post_label;
 
-    switch ( node()->type() )
+    switch ( node()->type )
     {
         case Node_Type_OPERATOR:
             if ( node_is_unary_operator(node() ) )
@@ -444,7 +444,7 @@ bool Node_View::draw()
 
         // Update slot_view_out to be positioned below the pre_label
 
-        if (node()->type() == Node_Type_FUNCTION )
+        if (node()->type == Node_Type_FUNCTION )
             if (Node_Slot *slot_out = node()->value_out())
                 if (Node_Slot_View *slot_view_out = slot_out->view)
                 {
@@ -456,7 +456,7 @@ bool Node_View::draw()
     }
 
     // Draw the properties depending on node type
-    if (node()->type() != Node_Type_OPERATOR )
+    if (node()->type != Node_Type_OPERATOR )
     {
         changed |= Node_Property_View::draw_all(m_view_by_property_type[PropType_IN_STRICTLY], cfg->ui_node_detail);
         changed |= Node_Property_View::draw_all(m_view_by_property_type[PropType_INOUT_STRICTLY], cfg->ui_node_detail);
@@ -580,7 +580,7 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
         return Node_Property_View::draw_input(_property_view, !_show_advanced, nullptr);
     };
 
-    ImGui::Text("Name:       \"%s\"" , node->name().c_str());
+    ImGui::Text("Name:       \"%s\"" , node->name.c_str());
     ImGui::Text("Class:      %s"     , node->get_class()->name());
 
     // Draw exposed input properties
@@ -621,13 +621,13 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
     ImGui::Separator();
 
     ImGui::Separator();
-    ImGui::Text("Component(s) (%zu)", node->components()->size() );
+    ImGui::Text("Component(s) (%zu)", node->components.size() );
     ImGui::Separator();
-    for (Component<Node>* component : *node->components() )
+    for (Component<Node>* component : node->components )
     {
         if( ImGui::TreeNode(component, "Component %s", component->name().c_str() ) )
         {
-            if ( component != *node->components()->begin() )
+            if ( component != *node->components.begin() )
                 ImGui::Separator();
 
             if ( component->get_class() == type::get<Physics_Component>())
@@ -671,7 +671,7 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
 
             for (const Node* each_node : _nodes )
             {
-                ImGui::BulletText("- %s", each_node->name().c_str());
+                ImGui::BulletText("- %s", each_node->name.c_str());
             }
 
             ImGui::TreePop();
@@ -690,15 +690,15 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
             ImGui::TableNextColumn();
             ImGui::Text("scope");
             ImGui::TableNextColumn();
-            Scope* scope = node->scope();
+            Scope* scope = node->scope;
             if (scope)
             {
                 String_128 label;
                 Node* _node = scope->entity();
-                label.append_fmt("%s %p (%s %p)", scope->name().c_str(), scope, _node->name().c_str(), _node);
+                label.append_fmt("%s %p (%s %p)", scope->name().c_str(), scope, _node->name.c_str(), _node);
                 if ( ImGui::Button(label.c_str()) )
                 {
-                    Graph_View* graph_view = node->graph()->component<Graph_View>();
+                    Graph_View* graph_view = node->graph->component<Graph_View>();
                     ASSERT(graph_view);
                     graph_view->selection().clear();
                     graph_view->selection().append(_node->component<Node_View>() );
@@ -719,7 +719,7 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
             ImGui::TableNextColumn();
             ImGui::Text("suffix token");
             ImGui::TableNextColumn();
-            ImGui::Text("%s", node->suffix().json().c_str());
+            ImGui::Text("%s", node->suffix.json().c_str());
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
@@ -809,7 +809,7 @@ void Node_View::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
 
-    if ( Scope* _internal_scope = node()->internal_scope() )
+    if ( Scope* _internal_scope = node()->internal_scope )
         for( Node* _node : _internal_scope->backbone() )
             if ( auto* view = _node->component<Node_View>() )
                 view->set_expanded_rec(_expanded);
@@ -829,11 +829,11 @@ void Node_View::set_inputs_visible(bool _visible, bool _recursive)
 
 void Node_View::set_children_visible(bool visible, bool recursively)
 {
-    if ( !node()->has_internal_scope() )
+    if ( node()->internal_scope == nullptr )
         return;
 
     std::set<Scope*> scopes;
-    Scope::get_descendent(scopes, node()->internal_scope(), 1 );
+    Scope::get_descendent(scopes, node()->internal_scope, 1 );
 
     for(Scope* _scope : scopes)
         for (Node* _child_node: _scope->backbone())
@@ -872,7 +872,7 @@ Node_View* Node_View::substitute_with_parent_if_not_visible(Node_View* _view, bo
     }
 
     if ( _recursive )
-        if( Scope* scope = _view->node()->scope() )
+        if( Scope* scope = _view->node()->scope )
             if (Node_View* parent_view = scope->entity()->component<Node_View>() )
                 return parent_view->m_view_state.visible() ? parent_view
                                                       : substitute_with_parent_if_not_visible(parent_view, _recursive);

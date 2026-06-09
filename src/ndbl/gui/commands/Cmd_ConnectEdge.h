@@ -10,7 +10,7 @@ namespace ndbl
     public:
         explicit Cmd_ConnectEdge(Node_Slot_Link _edge)
         : m_edge(_edge)
-        , m_graph(_edge.tail->node->graph()) // deduce graph from edge source' owner
+        , m_graph(_edge.tail->node->graph) // deduce graph from edge source' owner
         {
             char str[200];
             snprintf(str
@@ -18,8 +18,8 @@ namespace ndbl
                     , "ConnectEdge\n"
                       " - tail: \"%s\"\n"
                       " - head: \"%s\"\n"
-                    , _edge.tail->node->name().c_str()
-                    , _edge.head->node->name().c_str()
+                    , _edge.tail->node->name.c_str()
+                    , _edge.head->node->name.c_str()
             );
             m_description.append(str);
         }
@@ -36,8 +36,8 @@ namespace ndbl
         { return m_description.c_str(); }
 
     private:
-        std::string   m_description;
+        std::string     m_description;
         Node_Slot_Link  m_edge;
-        Graph*        m_graph;
+        Graph*          m_graph;
     };
 }

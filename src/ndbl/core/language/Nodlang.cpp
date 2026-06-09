@@ -14,6 +14,7 @@
 #include <cctype> // isdigit, isalpha, and isalnum.
 
 #include "core/Constants.h"
+#include "core/reflection/Invokable.h"
 #include "core/reflection/Operator.h"
 #include "tools/core/Format.h"
 #include "tools/core/Log.h"
@@ -227,7 +228,7 @@ Node_Slot* Nodlang::token_to_slot(Scope* parent_scope, const Token& _token)
         std::string identifier = _token.word_to_string();
         if( Node* existing = parent_scope->find_variable(identifier) )
         {
-            return existing->variable_data().ref_out();
+            return existing->variable_data().ref_out;
         }
 
         if ( !m_strict_mode )
@@ -236,7 +237,7 @@ Node_Slot* Nodlang::token_to_slot(Scope* parent_scope, const Token& _token)
             TOOLS_LOG(tools::Verbosity_Warning,  "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() );
             Node* ref = _state.graph()->create_variable_ref( parent_scope );
-            ref->value()->set_token(_token );
+            ref->value->set_token(_token );
             return ref->value_out();
         }
 
@@ -260,8 +261,8 @@ Node_Slot* Nodlang::token_to_slot(Scope* parent_scope, const Token& _token)
     {
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Token %s converted to a Literal %s\n",
                     _token.word_to_string().c_str(),
-                    literal->value()->get_type()->name());
-        literal->value()->set_token( _token );
+                    literal->value->get_type()->name());
+        literal->value->set_token( _token );
         return literal->value_out();
     }
 
@@ -321,7 +322,7 @@ Node_Slot* Nodlang::parse_binary_operator_expression(Scope* parent_scope, u8_t _
         type.arg_at(0).type = _left->property->get_type();
         type.arg_at(1).type = right->property->get_type();
 
-        Node* binary_op_node = _state.graph()->create_operator( type, _left->node->scope() );
+        Node* binary_op_node = _state.graph()->create_operator( type, _left->node->scope );
 
         auto& binary_op = binary_op_node->invokable_data();
 
@@ -481,7 +482,7 @@ Node* Nodlang::parse_expression_block(Scope* parent_scope, Node_Slot* flow_out, 
 
     // When expression value_out is a variable that is already part of the code flow,
     // we must create a variable reference
-    if ( value_out && value_out->node->type() == Node_Type_VARIABLE )
+    if ( value_out && value_out->node->type == Node_Type_VARIABLE )
     {
         Node* variable = value_out->node;
 
@@ -489,7 +490,7 @@ Node* Nodlang::parse_expression_block(Scope* parent_scope, Node_Slot* flow_out, 
         {
             // create a new variable reference
             Node* ref_node = _state.graph()->create_variable_ref( parent_scope );
-            ref_node->variable_ref_data().set_variable( variable );
+            node_variable_ref_set_variable( ref_node, variable );
             // substitute value_out by variable reference's value_out
             value_out = ref_node->value_out();
         }
@@ -545,7 +546,7 @@ Node* Nodlang::parse_expression_block(Scope* parent_scope, Node_Slot* flow_out, 
     // Add an end_of_instruction token as suffix when needed
     if (Token tok = _state.tokens().eat_if(Token_Type::end_of_instruction))
     {
-        value_out->node->set_suffix( tok );
+        value_out->node->suffix = tok;
     }
 
     // Connects expression flow_in with the provided flow_out
@@ -622,13 +623,13 @@ Node* Nodlang::parse_scoped_block(Scope* parent_scope, Node_Slot* flow_out)
         _state.graph()->connect( flow_out, node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
 
-    parse_code_block(node->internal_scope(), node->flow_enter()); // no return check, allows empty scope
+    parse_code_block(node->internal_scope, node->flow_enter()); // no return check, allows empty scope
     Token token_end = _state.tokens().eat_if(Token_Type::scope_end);
 
     if ( token_end )
     {
-        node->internal_scope()->token_begin = token_begin;
-        node->internal_scope()->token_end = token_end;
+        node->internal_scope->token_begin = token_begin;
+        node->internal_scope->token_end = token_end;
 
         _state.commit();
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Scoped block parsed:\n%s\n", _state.tokens().to_string().c_str());
@@ -1127,12 +1128,12 @@ Node* Nodlang::parse_if_block(Scope* parent_scope, Node_Slot* flow_out)
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing conditional structure's condition...\n");
 
         // condition
-        parse_expression_block(if_node->internal_scope(), nullptr, if_node->switch_behavior_data().condition_in());
+        parse_expression_block(if_node->internal_scope, nullptr, if_node->switch_behavior_data().condition_in());
 
         if (_state.tokens().eat_if(Token_Type::parenthesis_close) )
         {
             // scope
-            Node* block = parse_atomic_code_block( if_node->internal_scope(), if_node->switch_behavior_data().branch_out(Branch_TRUE) );
+            Node* block = parse_atomic_code_block( if_node->internal_scope, if_node->switch_behavior_data().branch_out(Branch_TRUE) );
 
             if ( block )
             {
@@ -1141,7 +1142,7 @@ Node* Nodlang::parse_if_block(Scope* parent_scope, Node_Slot* flow_out)
                 {
                     if_node->switch_behavior_data().m_branch_suffix = _state.tokens().get_eaten();
 
-                    if ( Node* else_block = parse_atomic_code_block( if_node->internal_scope(), if_node->switch_behavior_data().branch_out(Branch_FALSE) ) )
+                    if ( Node* else_block = parse_atomic_code_block( if_node->internal_scope, if_node->switch_behavior_data().branch_out(Branch_FALSE) ) )
                     {
                         success = true;
                         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " else block parsed.\n");
@@ -1206,14 +1207,14 @@ Node* Nodlang::parse_for_block(Scope* parent_scope, Node_Slot* flow_out)
             // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
 
             // parse init; condition; iteration or nothing
-            parse_expression_block(for_node->internal_scope(), nullptr, for_node->switch_behavior_data().initialization_slot())
-            && parse_expression_block(for_node->internal_scope(), nullptr, for_node->switch_behavior_data().condition_in())
-            && parse_expression_block(for_node->internal_scope(), nullptr, for_node->switch_behavior_data().iteration_slot());
+            parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_behavior_data().initialization_slot())
+            && parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_behavior_data().condition_in())
+            && parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_behavior_data().iteration_slot());
 
             // parse parenthesis close
             if ( Token parenthesis_close = _state.tokens().eat_if(Token_Type::parenthesis_close) )
             {
-                Node* block = parse_atomic_code_block( for_node->internal_scope(), for_node->switch_behavior_data().branch_out(Branch_TRUE) ) ;
+                Node* block = parse_atomic_code_block( for_node->internal_scope, for_node->switch_behavior_data().branch_out(Branch_TRUE) ) ;
 
                 if ( block )
                 {
@@ -1275,11 +1276,11 @@ Node* Nodlang::parse_while_block(Scope* parent_scope,  Node_Slot* flow_out)
             TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing while condition ... \n");
 
             // Parse an optional condition
-            parse_expression_block(while_node->internal_scope(), nullptr, while_node->switch_behavior_data().condition_in());
+            parse_expression_block(while_node->internal_scope, nullptr, while_node->switch_behavior_data().condition_in());
 
             if (_state.tokens().eat_if(Token_Type::parenthesis_close) )
             {
-                block = parse_atomic_code_block( while_node->internal_scope(), while_node->switch_behavior_data().branch_out(Branch_TRUE) );
+                block = parse_atomic_code_block( while_node->internal_scope, while_node->switch_behavior_data().branch_out(Branch_TRUE) );
                 if ( block )
                 {
                     success = true;
@@ -1336,8 +1337,8 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
         auto& variable_data = variable_node->variable_data();
 
         variable_data.set_flags(VariableFlag_DECLARED);
-        variable_data.set_type_token( type_token );
-        variable_data.set_identifier_token( identifier_token );
+        variable_data.type_token = type_token;
+        node_set_identifier_token(variable_node, identifier_token );
 
         // declaration with assignment ?
         Token operator_token = _state.tokens().eat_if(Token_Type::operator_);
@@ -1349,7 +1350,7 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
                 // expression's out ----> variable's in
                 _state.graph()->connect_to_variable(expression_out, variable_node );
 
-                variable_data.set_operator_token( operator_token );
+                variable_data.operator_token = operator_token;
                 success = true;
             }
             else
@@ -1366,7 +1367,7 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
         if ( success )
         {
             TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Variable declaration: %s %s\n",
-                        variable_node->value()->get_type()->name(),
+                        variable_node->value->get_type()->name(),
                         identifier_token.word_to_string().c_str());
             _state.commit();
             return variable_node->value_out();
@@ -1386,7 +1387,7 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
 
 const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _node) const
 {
-    if (_node->type() == Node_Type_OPERATOR )
+    if (_node->type == Node_Type_OPERATOR )
     {
         tools::Array_View<const Node_Slot*> args = _node->invokable_data().get_arg_slots();
         int precedence = get_precedence(_node->invokable_data().get_func_type());
@@ -1397,7 +1398,7 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
             {
                 // Left part of the expression
                 {
-                    const Function_Descriptor* l_func_type = _node->get_connected_function_type(LEFT_VALUE_PROPERTY);
+                    const Function_Descriptor* l_func_type = node_get_connected_function_type(_node, LEFT_VALUE_PROPERTY);
                     bool needs_braces = l_func_type && get_precedence(l_func_type) < precedence;
                     Serialization_Flags flags = Serialization_Flag_RECURSE
                                          | needs_braces * Serialization_Flag_WRAP_WITH_BRACES ;
@@ -1410,7 +1411,7 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
 
                 // Right part of the expression
                 {
-                    const Function_Descriptor* r_func_type = _node->get_connected_function_type(RIGHT_VALUE_PROPERTY);
+                    const Function_Descriptor* r_func_type = node_get_connected_function_type(_node, RIGHT_VALUE_PROPERTY);
                     bool needs_braces = r_func_type && get_precedence(r_func_type) < precedence;
                     Serialization_Flags flags = Serialization_Flag_RECURSE
                                          | needs_braces * Serialization_Flag_WRAP_WITH_BRACES ;
@@ -1426,7 +1427,7 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
                 ASSERT( _node->invokable_data().get_identifier_token() );
                 serialize_token(_out, _node->invokable_data().get_identifier_token());
 
-                bool needs_braces    = _node->get_connected_function_type(LEFT_VALUE_PROPERTY) != nullptr;
+                bool needs_braces    = node_get_connected_function_type(_node, LEFT_VALUE_PROPERTY) != nullptr;
                 Serialization_Flags flags = Serialization_Flag_RECURSE
                                      | needs_braces * Serialization_Flag_WRAP_WITH_BRACES;
                 serialize_input( _out, args[0], flags );
@@ -1501,7 +1502,7 @@ std::string &Nodlang::serialize_type(std::string &_out, const Type_Descriptor *_
 std::string& Nodlang::serialize_variable_ref(std::string &_out, const Node* _node) const
 {
     ASSERT(_node->is_variable_ref());
-    return serialize_token( _out, _node->variable_ref_data().get_identifier_token() );
+    return serialize_token( _out, node_get_identifier_token(_node) );
 }
 
 std::string& Nodlang::serialize_variable(std::string &_out, const Node *_node) const
@@ -1511,18 +1512,18 @@ std::string& Nodlang::serialize_variable(std::string &_out, const Node *_node) c
     // 1. Serialize variable's type
 
     // If parsed
-    if ( _node->variable_data().get_type_token() )
+    if ( _node->variable_data().type_token )
     {
-        serialize_token(_out, _node->variable_data().get_type_token());
+        serialize_token(_out, _node->variable_data().type_token);
     }
     else // If created in the graph by the user
     {
-        serialize_type(_out, _node->value()->get_type());
+        serialize_type(_out, _node->value->get_type());
         _out.append(" ");
     }
 
     // 2. Serialize variable identifier
-    serialize_token( _out, _node->variable_data().get_identifier_token() );
+    serialize_token( _out, node_get_identifier_token(_node) );
 
     // 3. Initialisation
     //    When a VariableNode has its input connected, we serialize it as its initialisation expression
@@ -1530,8 +1531,8 @@ std::string& Nodlang::serialize_variable(std::string &_out, const Node *_node) c
     const Node_Slot* slot = _node->value_in();
     if ( slot->adjacent_count() != 0 )
     {
-        if ( _node->variable_data().get_operator_token() )
-            _out.append(_node->variable_data().get_operator_token().string());
+        if ( _node->variable_data().operator_token )
+            _out.append(_node->variable_data().operator_token.string());
         else
             _out.append(" = ");
 
@@ -1590,10 +1591,10 @@ std::string &Nodlang::serialize_value_out(std::string& _out, const Node_Slot* sl
     }
 
     // Otherwise, it might be a variable reference, so we serialize the identifier only
-    ASSERT(slot->node->type() == Node_Type_VARIABLE ); // Can't be another type
+    ASSERT(slot->node->type == Node_Type_VARIABLE ); // Can't be another type
     auto& variable = slot->node->variable_data();
-    VERIFY( slot == variable.ref_out(), "Cannot serialize an other slot from a VariableNode");
-    return _out.append( variable.get_identifier() );
+    VERIFY( slot == variable.ref_out, "Cannot serialize an other slot from a VariableNode");
+    return _out.append( node_get_identifier(slot->node) );
 }
 
 std::string& Nodlang::serialize_node(std::string &_out, const Node* node, Serialization_Flags _flags ) const
@@ -1603,7 +1604,7 @@ std::string& Nodlang::serialize_node(std::string &_out, const Node* node, Serial
 
     ASSERT( _flags == Serialization_Flag_RECURSE ); // The only flag configuration handled for now
 
-    switch ( node->type() )
+    switch ( node->type )
     {
         case Node_Type_IF_ELSE:           serialize_cond_struct(_out, node );             break;
         case Node_Type_FOR_LOOP:          serialize_for_loop(_out, node );                break;
@@ -1615,10 +1616,10 @@ std::string& Nodlang::serialize_node(std::string &_out, const Node* node, Serial
         case Node_Type_OPERATOR:          serialize_invokable(_out, node );               break;
         case Node_Type_EMPTY_INSTRUCTION: serialize_empty_instruction(_out, node);        break;
         case Node_Type_ROOT:              [[fallthrough]];
-        case Node_Type_SCOPE:             serialize_scope(_out, node->internal_scope() ); break;
+        case Node_Type_SCOPE:             serialize_scope(_out, node->internal_scope ); break;
         default:                            VERIFY(false, "Unhandled NodeType, can't serialize");
     }
-    serialize_token(_out, node->suffix() );
+    serialize_token(_out, node->suffix );
 
     return _out;
 }
@@ -1671,14 +1672,14 @@ std::string& Nodlang::serialize_double(std::string& _out, double d) const
 
 std::string& Nodlang::serialize_for_loop(std::string &_out, const Node* _for_loop) const
 {
-    ASSERT( _for_loop->type() == Node_Type_FOR_LOOP );
+    ASSERT( _for_loop->type == Node_Type_FOR_LOOP );
 
     serialize_token(_out, _for_loop->switch_behavior_data().m_branch_prefix);
     serialize_default_buffer(_out, Token_Type::parenthesis_open);
     {
-        const Node_Slot* init_slot = _for_loop->find_slot_by_property_name(INITIALIZATION_PROPERTY, Node_Slot_Flag_INPUT );
-        const Node_Slot* cond_slot = _for_loop->find_slot_by_property_name(CONDITION_PROPERTY, Node_Slot_Flag_INPUT );
-        const Node_Slot* iter_slot = _for_loop->find_slot_by_property_name(ITERATION_PROPERTY, Node_Slot_Flag_INPUT );
+        const Node_Slot* init_slot = node_find_slot_by_property_name(_for_loop, INITIALIZATION_PROPERTY, Node_Slot_Flag_INPUT );
+        const Node_Slot* cond_slot = node_find_slot_by_property_name(_for_loop, CONDITION_PROPERTY, Node_Slot_Flag_INPUT );
+        const Node_Slot* iter_slot = node_find_slot_by_property_name(_for_loop, ITERATION_PROPERTY, Node_Slot_Flag_INPUT );
         serialize_input( _out, init_slot, Serialization_Flag_RECURSE );
         serialize_input( _out, cond_slot, Serialization_Flag_RECURSE );
         serialize_input( _out, iter_slot, Serialization_Flag_RECURSE );
@@ -1691,7 +1692,7 @@ std::string& Nodlang::serialize_for_loop(std::string &_out, const Node* _for_loo
 
 std::string& Nodlang::serialize_while_loop(std::string &_out, const Node* _while_loop_node) const
 {
-    ASSERT( _while_loop_node->type() == Node_Type_WHILE_LOOP );
+    ASSERT( _while_loop_node->type == Node_Type_WHILE_LOOP );
 
     // while
     serialize_token(_out, _while_loop_node->switch_behavior_data().m_branch_prefix);
@@ -1712,7 +1713,7 @@ std::string& Nodlang::serialize_while_loop(std::string &_out, const Node* _while
 
 std::string& Nodlang::serialize_cond_struct(std::string &_out, const Node* if_node ) const
 {
-    ASSERT( if_node->type() == Node_Type_IF_ELSE );
+    ASSERT( if_node->type == Node_Type_IF_ELSE );
 
     // if
     serialize_token(_out, if_node->switch_behavior_data().m_branch_prefix );
@@ -1877,7 +1878,7 @@ Node* Nodlang::parse_atomic_code_block(Scope* parent_scope, Node_Slot* flow_out)
     {
         if ( Token tok = _state.tokens().eat_if(Token_Type::end_of_instruction) )
         {
-            block->set_suffix(tok );
+            block->suffix = tok;
         }
 
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Block found (class %s)\n", block->get_class()->name() );
@@ -1890,14 +1891,14 @@ Node* Nodlang::parse_atomic_code_block(Scope* parent_scope, Node_Slot* flow_out)
 
 std::string& Nodlang::serialize_literal(std::string &_out, const Node* node) const
 {
-    ASSERT( node->type() == Node_Type_LITERAL );
-    return serialize_property( _out, node->value() );
+    ASSERT( node->type == Node_Type_LITERAL );
+    return serialize_property( _out, node->value );
 }
 
 std::string& Nodlang::serialize_empty_instruction(std::string &_out, const Node* node) const
 {
-    ASSERT( node->type() == Node_Type_EMPTY_INSTRUCTION );
-    return serialize_token(_out, node->value()->token() );
+    ASSERT( node->type == Node_Type_EMPTY_INSTRUCTION );
+    return serialize_token(_out, node->value->token() );
 }
 
 Node* Nodlang::parse_empty_block(Scope* parent_scope, Node_Slot* flow_out)

@@ -35,7 +35,7 @@ void Scope_View::update(float dt, Scope_View_Flags flags)
     // 1) update recursively
     //    any scope with higher depth in the same hierarchy will be up to date.
     for( Node* child_node : m_scope->children() )
-        if ( Scope* internal_scope = child_node->internal_scope() )
+        if ( Scope* internal_scope = child_node->internal_scope )
             internal_scope->view()->update(dt, flags);
 
     // 2) update content rectangle and wrapped node views
@@ -63,9 +63,9 @@ void Scope_View::update(float dt, Scope_View_Flags flags)
 
     for( Node* child_node : m_scope->children() )
     {
-        if ( child_node->has_internal_scope() )
+        if ( child_node->internal_scope != nullptr )
         {
-            Scope_View* child_node_scope_view = child_node->internal_scope()->view();
+            Scope_View* child_node_scope_view = child_node->internal_scope->view();
             child_node_scope_view->update(dt, flags);
             m_content_rect = Rect::bounding_rect(m_content_rect, child_node_scope_view->m_content_rect);
         }
@@ -110,7 +110,7 @@ bool Scope_View::must_be_draw() const
         case 1:
         {
             Node* single_node = *scope()->children().begin();
-            if ( single_node->has_internal_scope() && this->has_parent() )
+            if ( single_node->internal_scope != nullptr && this->has_parent() )
                 return false;
             return true;
         }
@@ -174,7 +174,7 @@ void ndbl::TreeNode_Scope(const char* title, Scope* scope)
 void ndbl::TreeNode_Node(Node* node)
 {
     bool open = false;
-    switch ( node->type() )
+    switch ( node->type )
     {
         case Node_Type_OPERATOR:
         case Node_Type_FUNCTION:
@@ -182,27 +182,27 @@ void ndbl::TreeNode_Node(Node* node)
             std::string signature;
             get_language()->serialize_func_sig(signature, node->invokable_data().get_func_type());
             char str[255];
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name().c_str(), node->get_class()->name(), signature.c_str());
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name(), signature.c_str());
             break;
         }
         case Node_Type_VARIABLE:
         {
-            std::string value = node->value()->token().word_to_string();
+            std::string value = node->value->token().word_to_string();
             char str[255];
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, value.c_str(), node->name().c_str());
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, value.c_str(), node->name.c_str());
             break;
         }
         default:
         {
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, node->name().c_str(), node->get_class()->name());
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, node->name.c_str(), node->get_class()->name());
         }
     }
 
     if ( open )
     {
-        if ( node->has_internal_scope() )
+        if ( node->internal_scope != nullptr )
         {
-            TreeNode_ScopeContent(node->internal_scope());
+            TreeNode_ScopeContent(node->internal_scope );
         }
 
         ImGui::TreePop();

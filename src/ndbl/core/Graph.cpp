@@ -34,7 +34,7 @@ void Graph::_init()
     Node* root  = node_create_root_scope();
     this->_insert(root, nullptr);
 
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add root node %p (name: %s, class: %s)\n", root, root->name().c_str(), root->get_class()->name());
+    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add root node %p (name: %s, class: %s)\n", root, root->name.c_str(), root->get_class()->name());
     ASSERT( root_node() == root );
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initialized " TOOLS_OK "\n");
 }
@@ -49,7 +49,7 @@ void Graph::_clear()
         Node* node = *it;
         _clean_node(node);
         _remove(node);        
-        node->shutdown();
+        node_shutdown(node);
         delete node;
     }
 
@@ -98,7 +98,7 @@ bool Graph::update()
         }
         else if ( node->has_flags(Node_Flag_IS_DIRTY) )
         {
-            _changed |= node->update();
+            _changed |= node_update(node);
         }
     }
 
@@ -107,7 +107,7 @@ bool Graph::update()
         _changed |= true;
         Node* node = node_to_delete.top();
         _clean_node(node);
-        node->shutdown();
+        node_shutdown(node);
         delete node;
         node_to_delete.pop();
     }
@@ -127,8 +127,8 @@ void Graph::_insert(Node* node, Scope* scope)
     if ( scope != nullptr )
     {
         VERIFY( !m_node_registry.empty(), "can't insert a scoped node first, a root node (with a nullptr scope) should be inserted before." );
-        VERIFY( node->scope() == nullptr, "node must be unscoped, use scope argument instead" );
-        VERIFY( scope->node()->graph() == this, "the provided scope belong to another graph" );
+        VERIFY( node->scope == nullptr, "node must be unscoped, use scope argument instead" );
+        VERIFY( scope->node()->graph == this, "the provided scope belong to another graph" );
         assert(!node->has_flags(Node_Flag_WAS_IN_A_SCOPE_ONCE)); // double-check
         scope->append(node);
     }
@@ -137,27 +137,27 @@ void Graph::_insert(Node* node, Scope* scope)
         VERIFY( m_node_registry.empty(), "you didn't provided a scope argument, which is only valid for the first insert (root node).");
     }
 
-    node->m_graph = this;
+    node->graph = this;
 	m_node_registry.push_back( node );
 
     signal_add_node.emit(node);
     signal_change.broadcast();
 
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name().c_str(), node->get_class()->name());
+    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name.c_str(), node->get_class()->name());
 }
 
 void Graph::_remove(Node* node)
 {
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): erasing ...\n", node, node->name().c_str() );
+    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): erasing ...\n", node, node->name.c_str() );
     signal_remove_node.emit(node);
     signal_change.broadcast();
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): _erased\n", node, node->name().c_str() );
+    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): _erased\n", node, node->name.c_str() );
 }
 
 void Graph::_clean_node(Node* node)
 {
     ASSERT( node );
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name().c_str() );
+    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name.c_str() );
 
     // disconnect and erase any link related to this node
     auto concerns_node = [&](const std::pair<Node_Slot_Flags, Node_Slot_Link>& pair )
@@ -179,18 +179,18 @@ void Graph::_clean_node(Node* node)
     }
 
     // unset scope
-    if ( node->scope() )
+    if ( node->scope )
     {
         _reset_scope(node);
     }
 
     // transfer children to default scope
-    if (Scope* _internal_scope = node->internal_scope() )
+    if (Scope* _internal_scope = node->internal_scope )
     {
         _transfer_children( _internal_scope, root_scope());
     }
 
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name().c_str() );
+    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name.c_str() );
 }
 
 Node* Graph::create_scope(Scope* scope)
@@ -247,7 +247,7 @@ void Graph::find_and_destroy(Node* node)
 
     _remove(node);
     m_node_registry.erase(it);
-    node->shutdown();
+    node_shutdown(node);
 
     delete node;
 }
@@ -278,8 +278,8 @@ Node_Slot_Link Graph::connect_or_merge(Node_Slot* tail, Node_Slot* head )
     }
 
     // case 2: merge literals when not connected to a variable
-    if (tail->node->type() == Node_Type_LITERAL && tail->property->token().word_len() < 16 )
-        if (head->node->type() != Node_Type_VARIABLE )
+    if (tail->node->type == Node_Type_LITERAL && tail->property->token().word_len() < 16 )
+        if (head->node->type != Node_Type_VARIABLE )
         {
             head->property->digest(tail->property );
             find_and_destroy(tail->node);
@@ -343,22 +343,22 @@ void Graph::_handle_connect_value_side_effects(const Node_Slot_Link& edge )
     // must be:
     // - unchanged in case of a node already part of the code flow
     // - or: head node's scope / internal scope if any
-    if ( !edge.tail->node->has_flow_adjacent() )
+    if ( !node_has_flow_adjacent(edge.tail->node) )
     {
         Node*  tail_node    = edge.tail->node;
         Node*  head_node    = edge.head->node;
-        Scope* target_scope = head_node->scope();
+        Scope* target_scope = head_node->scope;
 
-        if ( head_node->has_internal_scope() )
+        if ( head_node->internal_scope != nullptr )
         {
-            target_scope = head_node->internal_scope();
+            target_scope = head_node->internal_scope;
         }
 
         _change_scope(tail_node, target_scope);
     }
 
     // make sure head property type matches with tail, update head when needed.
-    if ( edge.head->node->type() != Node_Type_VARIABLE )
+    if ( edge.head->node->type != Node_Type_VARIABLE )
     {
         const Node_Property* tail_prop = edge.tail->property;
         Node_Property* head_prop = edge.head->property;
@@ -371,7 +371,7 @@ void Graph::_handle_disconnect_value_side_effects(const Node_Slot_Link& edge )
     ASSERT( edge.tail->type_and_order() == Node_Slot_Flag_OUTPUT );
 
     // reset token to a default value to preserve a correct serialization
-    if (edge.head->node->type() != Node_Type_VARIABLE )
+    if (edge.head->node->type != Node_Type_VARIABLE )
     {
         Token& tok = edge.head->property->token();
         std::string buf;
@@ -393,7 +393,7 @@ void Graph::_handle_disconnect_flow_side_effects(const Node_Slot_Link& edge )
             break;
         case 1:
         {
-            target_scope = edge.head->first_adjacent_node()->scope();
+            target_scope = edge.head->first_adjacent_node()->scope;
             break;
         }
         default: // 2+
@@ -401,7 +401,7 @@ void Graph::_handle_disconnect_flow_side_effects(const Node_Slot_Link& edge )
             // Find the lowest common ancestor of adjacent node(s)
             std::set<Scope*> scopes;
             for(Node_Slot* _adjacent_slot : edge.head->adjacent() )
-                scopes.insert(_adjacent_slot->node->scope());
+                scopes.insert(_adjacent_slot->node->scope);
             Scope* ancestor = Scope::lowest_common_ancestor(scopes);
 
             if ( ancestor != nullptr )
@@ -427,15 +427,15 @@ void Graph::_handle_connect_flow_side_effects(const Node_Slot_Link& edge )
     {
         if ( edge.tail->has_flags(Node_Slot_Flag_IS_INTERNAL) )
         {
-            Scope* target_scope = previous_node->internal_scope();
+            Scope* target_scope = previous_node->internal_scope;
             if ( node_is_conditional(previous_node) )
             {
-                if( !next_node->has_internal_scope() && !node_is_connected_to_codeflow(next_node) )
+                if( next_node->internal_scope == nullptr && !node_is_connected_to_codeflow(next_node) )
                 {
                     // insert a scope between target_scope and next_node
                     Node* intermediate_node = create_scope(target_scope);
                     target_scope->reset_head(intermediate_node);
-                    target_scope = intermediate_node->internal_scope();
+                    target_scope = intermediate_node->internal_scope;
                 }
             }
             _change_scope(next_node, target_scope);
@@ -443,7 +443,7 @@ void Graph::_handle_connect_flow_side_effects(const Node_Slot_Link& edge )
         }
         else
         {
-            _change_scope(next_node, previous_node->scope());
+            _change_scope(next_node, previous_node->scope);
         }
     }
     else if ( flow_in_edge_count > 1 )
@@ -451,7 +451,7 @@ void Graph::_handle_connect_flow_side_effects(const Node_Slot_Link& edge )
         // gather adjacent scopes
         std::set<Scope*> scopes;
         for(Node_Slot* adjacent : edge.head->adjacent() )
-            scopes.insert(adjacent->node->scope() );
+            scopes.insert(adjacent->node->scope );
 
         if (scopes.size() == 1 )
         {
@@ -613,7 +613,7 @@ Node* Graph::create_variable_decl(const Type_Descriptor* type, const char*  name
     Token token(Token_Type::keyword_operator, " = ");
     token.word_move_begin(1);
     token.word_move_end(-1);
-    var_node->variable_data().set_operator_token( token );
+    var_node->variable_data().operator_token = token;
 
     return var_node;
 }
@@ -629,9 +629,9 @@ std::set<Scope *> Graph::root_scopes()
 {
     std::set<Scope*> result;
     for ( Node* node : m_node_registry )
-        if ( node->has_internal_scope() )
-            if ( node->internal_scope()->depth() == 0 )
-                result.insert( node->internal_scope() );
+        if ( node->internal_scope != nullptr )
+            if ( node->internal_scope->depth() == 0 )
+                result.insert( node->internal_scope );
     return result;
 }
 
@@ -639,24 +639,24 @@ std::vector<Scope *> Graph::scopes()
 {
     std::vector<Scope *> result;
     for(Node* node : m_node_registry)
-        if ( node->scope() )
-            result.push_back( node->scope() );
+        if ( node->scope )
+            result.push_back( node->scope );
     return result;
 }
 
 void Graph::flag_node_to_delete(Node *node, Graph_Flags flags)
 {
-    ASSERT(node->graph() == this);
+    ASSERT(node->graph == this);
 
     if ( flags & Graph_Flag_ALLOW_SIDE_EFFECTS )
     {
         // delete inputs when they share the same scope
         for ( auto input : node->inputs() )
-            if ( node->scope() == input->scope() )
+            if ( node->scope == input->scope )
                 flag_node_to_delete(input, flags);
 
         // delete children
-        if ( Scope* scope = node->internal_scope() )
+        if ( Scope* scope = node->internal_scope )
             for ( Node* _child : scope->children() )
                 flag_node_to_delete(_child, flags);
     }
@@ -666,7 +666,7 @@ void Graph::flag_node_to_delete(Node *node, Graph_Flags flags)
 
 Scope* Graph::root_scope() const
 {
-    return root_node()->internal_scope();
+    return root_node()->internal_scope;
 }
 
 bool Graph::contains(Node* node) const
@@ -677,7 +677,7 @@ bool Graph::contains(Node* node) const
 
 void Graph::_change_scope(Node* node, Scope* desired_scope)
 {
-    Scope* current_scope = node->scope();
+    Scope* current_scope = node->scope;
 
     VERIFY( current_scope != nullptr, "node must be scoped to be changed for another scope");
     VERIFY( desired_scope != nullptr, "a non null desired scope is expected");
@@ -702,7 +702,7 @@ void Graph::_transfer_children(Scope* source, Scope* target)
     for(Node* _child : child_copy)
     {
         _change_scope(_child, target);
-        ASSERT(_child->scope() == target);
+        ASSERT(_child->scope == target);
     }
 
     ASSERT(source->empty());
@@ -710,6 +710,6 @@ void Graph::_transfer_children(Scope* source, Scope* target)
 
 void Graph::_reset_scope(Node* node)
 {
-    ASSERT(node->scope());
-    node->scope()->remove(node);
+    ASSERT(node->scope);
+    node->scope->remove(node);
 }

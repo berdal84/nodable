@@ -13,7 +13,7 @@ namespace ndbl
         explicit Cmd_DeleteEdge(Event_DeleteEdge* event)
         : Cmd_DeleteEdge(
                 Node_Slot_Link{event->data.first, event->data.second },
-                event->data.first->node->graph()
+                event->data.first->node->graph
         )
         {}
 
@@ -27,8 +27,8 @@ namespace ndbl
                     , "DisconnectEdge\n"
                       " - tail: \"%s\"\n"
                       " - head: \"%s\"\n"
-                    , _edge.tail->node->name().c_str()
-                    , _edge.head->node->name().c_str() );
+                    , _edge.tail->node->name.c_str()
+                    , _edge.head->node->name.c_str() );
             m_description.append(str);
         }
 

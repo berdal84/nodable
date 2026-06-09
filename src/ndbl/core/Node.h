@@ -67,9 +67,8 @@ namespace ndbl
         Node_Flag_DEFAULT             = Node_Flag_NONE,
     };
 
-    class Node
+    struct Node
 	{
-    public:
         DECLARE_REFLECT        
         friend class Scope;
         friend class Graph;
@@ -100,7 +99,6 @@ namespace ndbl
             std::array<Node_Slot*, BRANCH_MAX - 1>  m_condition_in        = {};            
             Node_Slot*                              m_initialization_slot = {nullptr};
             Node_Slot*                              m_iteration_slot      = {nullptr};
-            Node*                                   m_node                = nullptr;
 
             Node_Slot*          branch_out(Branch branch)                       { ASSERT(branch < m_branch_count); return m_branch_slot[branch]; }
             const Node_Slot*    branch_out(Branch branch) const                 { ASSERT(branch < m_branch_count); return m_branch_slot[branch]; }
@@ -123,9 +121,6 @@ namespace ndbl
             tools::Inline_Vector8<Node_Property*>   m_argument_props;
             Node*                                   m_node = nullptr;  // Can't we remove this?!
 
-            Invokable_State(Node* node); // Can't we remove this?!
-
-            void                                    init(const tools::Function_Descriptor& func_type);
             Node_Slot*                              get_arg_slot(size_t i) const { return m_argument_slot[i]; }
             tools::Array_View<const Node_Slot*>     get_arg_slots() const { return m_argument_slot; }
             const tools::Function_Descriptor*       get_func_type()const { return &m_func_type; }
@@ -137,160 +132,95 @@ namespace ndbl
 
         struct Variable_State
         { 
-        private:
-            Token         m_type_token            = {Token_Type::keyword_unknown }; // [int] var  =
-            Token         m_operator_token        = {Token_Type::operator_ };       //  int  var [=]
-            VariableFlags m_vflags                = VariableFlag_NONE;
-            Node_Slot*    m_as_declaration_slot   = nullptr;
-            Node_Slot*    m_as_reference_slot     = nullptr;
-            Node*         m_owner_node            = nullptr; // Can't we remove this?!
+            Token         type_token        = {Token_Type::keyword_unknown }; // [int] var  =
+            Token         operator_token    = {Token_Type::operator_ };       //  int  var [=]
+            VariableFlags m_vflags          = VariableFlag_NONE;
+            Node_Slot*    decl_out          = nullptr;
+            Node_Slot*    ref_out           = nullptr;
 
-        public:
-            Variable_State(Node* node); // Can't we remove this?!
-            void                            init(const tools::Type_Descriptor* type, const char* identifier);
-            bool                            has_flags(VariableFlags flags)const { return (m_vflags & flags) == flags; };
-            void                            set_flags(VariableFlags flags) { m_vflags |= flags; }
-            void                            clear_flags(VariableFlags flags = VariableFlag_ALL) { m_vflags &= ~flags; }
-            const tools::Type_Descriptor*   get_type() const { return m_owner_node->value()->get_type(); }
-            const Token&                    get_type_token() const { return m_type_token; }
-            std::string                     get_identifier() const { return get_identifier_token().word_to_string(); }
-            const Token&                    get_identifier_token() const { return m_owner_node->value()->token(); }
-            Token&                          get_identifier_token() { return m_owner_node->value()->token(); }
-            const Token&                    get_operator_token() const { return m_operator_token; }
-            void                            set_type_token(const Token& tok) { m_type_token = tok; }
-            void                            set_identifier_token(const Token& tok) { m_owner_node->value()->set_token(tok); }
-            void                            set_operator_token(const Token& tok) { m_operator_token = tok; }
-
-            // Aliases
-
-            Node_Slot*                    decl_out() { return m_as_declaration_slot; }
-            const Node_Slot*              decl_out() const { return m_as_declaration_slot; }
-            Node_Slot*                    ref_out() { return m_as_reference_slot; }
-            const Node_Slot*              ref_out() const { return m_as_reference_slot; }
+            bool                has_flags(VariableFlags flags)const { return (m_vflags & flags) == flags; };
+            void                set_flags(VariableFlags flags) { m_vflags |= flags; }
+            void                clear_flags(VariableFlags flags = VariableFlag_ALL) { m_vflags &= ~flags; }
         };
 
         struct Variable_Ref_State
         {
-            Variable_Ref_State(Node* node); // Can't we remove this?!
-            Variable_Ref_State() = default;
-            ~Variable_Ref_State();
-
-            void            init();
-            void            set_variable(Node* variable);
-            void            clear_variable();
-            const Token& get_identifier_token() const;
-
-        private:
-            void            handle_name_change(const std::string& name);
-
-            Node*        m_owner_node    = nullptr; // Can't we remove this?!
-            Node*        m_variable_node = nullptr;
+            Node* variable_node = nullptr;
         };
 
         struct Literal_State
         {
-            Literal_State(Node* node);  // Can't we remove this?!
-            void init(const tools::Type_Descriptor* _type);
-
             Token                           token = {Token_Type::literal_any};
             const tools::Type_Descriptor*   type  = nullptr;
-            Node*                           node  = nullptr;  // Can't we remove this?!
         };
 
 //===== CONSTRUCTORS/DESTRUCTORS =======================================================================================
-    public:
-        Node();
-        Node(Node_Type type);
+        Node(Node_Type type = Node_Type_NULL);
         ~Node();
         Node(const Node&) = delete;
         Node(Node&&) = delete;
 //===== COMMON MEMBERS and internal structures =========================================================================
-    private:
-
         static constexpr size_t                 SELF_PROPERTY_INDEX = 0;
 
-        bool                                    m_is_initialized    = false;
-        std::string                             m_name              = {};
-        Token                                   m_suffix            = Token{};
-        Graph*                                  m_graph             = nullptr;
-        Node_Flags                              m_flags             = Node_Flag_IS_DIRTY;
-        Node_Property*                          m_value             = nullptr; // Short had for prop_at( self_property_index )
-        Scope*                                  m_parent_scope      = nullptr; 
-        Scope*                                  m_internal_scope    = nullptr;       
-        Adjacent_Nodes_Cache                    m_adjacent_nodes_cache;
-        std::vector<Node_Property*>             m_properties; // TODO: size-fixed array?
-        std::map<std::string, Node_Property*>   m_properties_by_name;
-        tools::Component_Bag<Node>              m_component_collection;
-        std::vector<Node_Slot*>                 m_slots; // TODO: size-fixed array?
-        std::unordered_map<const Node_Property*, std::vector<Node_Slot*>>m_slots_by_property;// TODO: use multimap?
+        bool                                    is_initialized    = false;
+        std::string                             name              = "";
+        Token                                   suffix            = Token{};
+        Graph*                                  graph             = nullptr;
+        Node_Flags                              flags             = Node_Flag_IS_DIRTY;
+        Node_Property*                          value             = nullptr; // Short had for prop_at( self_property_index )
+        Scope*                                  scope             = nullptr; 
+        Scope*                                  internal_scope    = nullptr;       
+        std::vector<Node_Property*>             props; // TODO: size-fixed array?
+        std::map<std::string, Node_Property*>   props_by_name;
+        tools::Component_Bag<Node>              components;
+        std::vector<Node_Slot*>                 slots; // TODO: size-fixed array?
+        std::unordered_map<const Node_Property*, std::vector<Node_Slot*>> slots_by_prop;// TODO: if we are sure a property has a fixed index, we could use a vector instead
+        Adjacent_Nodes_Cache                    adjacent_nodes_cache;
+
 //===== SIGNALS ========================================================================================================
-        tools::Simple_Signal                     signal_shutdown; // emit once shutdown() has been called
+
+        tools::Simple_Signal                    signal_shutdown; // emit once shutdown() has been called
         tools::Signal<void(const std::string&)> signal_name_change;                
+
 //===== TAGGED-UNION DATA ==============================================================================================
-    public:
 
-        Node_Type m_type = Node_Type_NULL;
-
-        union // depends on m_type
+        Node_Type type = Node_Type_NULL;
+        union // depends on type
         {            
-            Switch_Behavior_State   m_switch_behavior_data;
-            Invokable_State         m_invokable_data;
-            Variable_State          m_variable_data;
-            Variable_Ref_State      m_variable_ref_data;
-            Literal_State           m_literal_data;
+            Switch_Behavior_State   _switch_behavior_data;
+            Invokable_State         _invokable_data;
+            Variable_State          _variable_data;
+            Variable_Ref_State      _variable_ref_data;
+            Literal_State           _literal_data;
         };
 
-    private:         
-        void construct_union_data();
-        void destroy_union_data();
+        // decl some safe accessors for each tagged-union data
 
-    public: // decl some safe accessors for each tagged-union data
-
-        void                                switch_behavior_create_branches(size_t branch_count);
-        inline Switch_Behavior_State&       switch_behavior_data()       { ASSERT(has_switch_behavior());    return m_switch_behavior_data; }
-        inline const Switch_Behavior_State& switch_behavior_data() const { ASSERT(has_switch_behavior());    return m_switch_behavior_data; }
-        inline Invokable_State&             invokable_data()             { ASSERT(is_invokable());           return m_invokable_data; }
-        inline const Invokable_State&       invokable_data() const       { ASSERT(is_invokable());           return m_invokable_data; }
-        inline Variable_State&              variable_data()              { ASSERT(is_variable());            return m_variable_data; }
-        inline const Variable_State&        variable_data() const        { ASSERT(is_variable());            return m_variable_data; }
-        inline Variable_Ref_State&          variable_ref_data()          { ASSERT(is_variable_ref());        return m_variable_ref_data; }
-        inline const Variable_Ref_State&    variable_ref_data() const    { ASSERT(is_variable_ref());        return m_variable_ref_data; }
-        inline Literal_State&               literal_data()               { ASSERT(is_literal());             return m_literal_data; }
-        inline const Literal_State&         literal_data() const         { ASSERT(is_literal());             return m_literal_data; }
+        inline Switch_Behavior_State&       switch_behavior_data()       { ASSERT(has_switch_behavior());    return _switch_behavior_data; }
+        inline const Switch_Behavior_State& switch_behavior_data() const { ASSERT(has_switch_behavior());    return _switch_behavior_data; }
+        inline Invokable_State&             invokable_data()             { ASSERT(is_invokable());           return _invokable_data; }
+        inline const Invokable_State&       invokable_data() const       { ASSERT(is_invokable());           return _invokable_data; }
+        inline Variable_State&              variable_data()              { ASSERT(is_variable());            return _variable_data; }
+        inline const Variable_State&        variable_data() const        { ASSERT(is_variable());            return _variable_data; }
+        inline Variable_Ref_State&          variable_ref_data()          { ASSERT(is_variable_ref());        return _variable_ref_data; }
+        inline const Variable_Ref_State&    variable_ref_data() const    { ASSERT(is_variable_ref());        return _variable_ref_data; }
+        inline Literal_State&               literal_data()               { ASSERT(is_literal());             return _literal_data; }
+        inline const Literal_State&         literal_data() const         { ASSERT(is_literal());             return _literal_data; }
 
 //===== COMMON METHODS =================================================================================================
-    public:
-        void                        init(const std::string& name);
-        void                        shutdown();
-        const std::string&          name() const { return m_name; }
-        void                        set_name(const std::string& name) { m_name = name; signal_name_change.emit(name); }
-        bool                        update();
-        Node_Type                   type() const { return m_type; }
-        bool                        is_initialized() const { return m_is_initialized; }
+        template<class T> T*        component() const { return components.get<T>(); } // shorthand
+        void                        set_name(const std::string& _name) { name = _name; signal_name_change.emit(name); }
         bool                        is_expression() const;
-        bool                        is_invokable() const { return m_type == Node_Type_OPERATOR || m_type == Node_Type_FUNCTION; }
-        bool                        is_variable() const { return m_type == Node_Type_VARIABLE; }
-        bool                        is_variable_ref() const { return m_type == Node_Type_VARIABLE_REF; }
-        bool                        is_literal() const { return m_type == Node_Type_LITERAL; }
-        bool                        has_flags(Node_Flags flags)const { return (m_flags & flags) == flags; };
-        void                        set_flags(Node_Flags flags) { m_flags |= flags; }
-        void                        clear_flags(Node_Flags flags = Node_Flag_ALL) { m_flags &= ~flags; }
-        Graph*                      graph() { return m_graph; }
-        const Graph*                graph() const { return m_graph; }
-        Token&                      suffix() { return m_suffix; };
-        const Token&                suffix() const { return m_suffix; };
-        void                        set_suffix(const Token& token);
-        bool                        is_orphan() const { return m_parent_scope == nullptr; }
-        Scope*                      scope() const { return m_parent_scope; };
-        bool                        has_scope() const { return m_parent_scope != nullptr; }
-        void                        init_internal_scope();
-        bool                        has_internal_scope() const  { return m_internal_scope != nullptr; }
+        bool                        is_invokable() const { return type == Node_Type_OPERATOR || type == Node_Type_FUNCTION; }
+        bool                        is_variable() const { return type == Node_Type_VARIABLE; }
+        bool                        is_variable_ref() const { return type == Node_Type_VARIABLE_REF; }
+        bool                        is_literal() const { return type == Node_Type_LITERAL; }
+        bool                        has_flags(Node_Flags _flags)const { return (flags & _flags) == _flags; };
+        void                        set_flags(Node_Flags _flags) { flags |= flags; }
+        void                        clear_flags(Node_Flags _flags = Node_Flag_ALL) { flags &= ~_flags; }
+        bool                        is_orphan() const { return scope == nullptr; }
         bool                        has_switch_behavior() const;
-        Scope*                      internal_scope() const      { return m_internal_scope; }
-    protected:
-        void                        reset_scope(Scope*);
 //===== SLOT RELATED METHODS ===========================================================================================
-    public:
         Node_Slot*                value_in();
         const Node_Slot*          value_in() const;
         Node_Slot*                value_out();
@@ -301,71 +231,25 @@ namespace ndbl
         const Node_Slot*          flow_out() const;
         Node_Slot*                flow_enter();
         const Node_Slot*          flow_enter() const;
-        Node_Slot*                add_slot(Node_Property *, Node_Slot_Flags, size_t limit_capacity = 0, size_t _position = 0);
-        size_t                    adjacent_slot_count(Node_Slot_Flags flags)const { return filter_adjacent_slots(flags).size(); }
-        Node_Slot*                slot_at(size_t pos) { return m_slots.at(pos); }
-        const Node_Slot*          slot_at(size_t pos) const { return m_slots.at(pos); }
-        std::vector<Node_Slot*>   filter_slots(Node_Slot_Flags) const;
-        std::vector<Node_Slot*>   filter_slots(const std::function<bool(const Node_Slot*)>& predicate) const;
-        std::vector<Node_Slot*>   filter_adjacent_slots(Node_Slot_Flags) const;
-        Node_Slot*                find_slot(Node_Slot_Flags flags) { return find_slot_by_property(m_value, flags ); }// implicitly DEFAULT_PROPERTY's slot
-        const Node_Slot*          find_slot(Node_Slot_Flags flags) const { return find_slot_by_property(m_value, flags ); }// implicitly DEFAULT_PROPERTY's slot
-        Node_Slot*                find_slot_at(Node_Slot_Flags flags, size_t pos ) { return const_cast<Node_Slot*>( const_cast<const Node*>(this)->find_slot_at(flags, pos)); } // implicitly DEFAULT_PROPERTY's slot
-        const Node_Slot*          find_slot_at(Node_Slot_Flags, size_t _position ) const; // implicitly DEFAULT_PROPERTY's slot
-        Node_Slot*                find_slot_by_property_name(const char* name, Node_Slot_Flags flags) { return const_cast<Node_Slot*>( const_cast<const Node*>(this)->find_slot_by_property_name(name, flags) ); };
-        const Node_Slot*          find_slot_by_property_name(const char* name, Node_Slot_Flags ) const;
-        Node_Slot*                find_slot_by_property_type(Node_Slot_Flags _way, const tools::Type_Descriptor *_type) const;
-        Node_Slot*                find_slot_by_property(const Node_Property* prop, Node_Slot_Flags flags ) { return const_cast<Node_Slot*>( const_cast<const Node*>( this )->find_slot_by_property(prop, flags ) ); }
-        const Node_Slot*          find_slot_by_property(const Node_Property*, Node_Slot_Flags ) const;
-        Node_Slot*                find_adjacent_at(Node_Slot_Flags, size_t _index ) const;
-        size_t                      slot_count(Node_Slot_Flags flags) const { return filter_slots( flags ).size(); }
-        std::vector<Node_Slot*>&  slots() { return m_slots; }
-        const std::vector<Node_Slot*>& slots() const { return m_slots; }
-        bool                        has_flow_adjacent() const;
-        const std::vector<Node*>& inputs() const       { return m_adjacent_nodes_cache.get(Node_Slot_Flag_INPUT); }
-        const std::vector<Node*>& outputs() const      { return m_adjacent_nodes_cache.get(Node_Slot_Flag_OUTPUT); }
-        const std::vector<Node*>& flow_inputs() const  { return m_adjacent_nodes_cache.get(Node_Slot_Flag_FLOW_IN); }
-        const std::vector<Node*>& flow_outputs() const { return m_adjacent_nodes_cache.get(Node_Slot_Flag_FLOW_OUT); }
-    protected:
-        void                        _handle_slot_change(Node_Slot::Event event, Node_Slot *slot);
-//===== PROPERTY RELATED METHODS =======================================================================================
-    public:
-        const Node_Property*    value() const { return m_value; }
-        Node_Property*          value() { return m_value; }
-        std::vector<Node_Property*>& props() { return m_properties; }
-        const std::vector<Node_Property*>& props() const { return m_properties; }
-        Node_Property*          add_prop(const tools::Type_Descriptor*, const char* name, Node_Property_Flags = Node_Property_Flag_NONE);
-        Node_Property*          get_prop(const char* _name) { return find_prop_by_name( _name ); }
-        const Node_Property*    get_prop(const char* _name) const { return find_prop_by_name( _name ); }
-        const tools::Function_Descriptor* get_connected_function_type(const char *property_name) const; //
-        bool                    has_input_connected( const Node_Property*) const;
-        bool                    has_prop(const char*) const;
-        Node_Property*          prop_at(size_t pos) { return m_properties.at(pos); }
-        const Node_Property*    prop_at(size_t pos ) const { return m_properties.at(pos); }
-        Node_Property*          find_prop_by_name(const char* name) { return const_cast<Node_Property*>( const_cast<const Node*>(this)->find_prop_by_name(name) );}
-        const Node_Property*    find_prop_by_name(const char* name) const;
-        Node_Property*          find_first_prop(Node_Property_Flags flags, const tools::Type_Descriptor* type ) { return const_cast<Node_Property*>( const_cast<const Node*>(this)->find_first_prop(flags, type) );}
-        const Node_Property*    find_first_prop(Node_Property_Flags, const tools::Type_Descriptor* ) const;
-        Node_Property*          get_this_property() { return m_properties.at(SELF_PROPERTY_INDEX); }
-        const Node_Property*    get_this_property() const { return m_properties.at(SELF_PROPERTY_INDEX); }
-        template<typename T>    
-        Node_Property*          add_prop(const char* name, Node_Property_Flags flags = Node_Property_Flag_NONE ) { return add_prop(tools::type::get<T>(), name, flags); }
-//===== COMPONENT RELATED METHODS ======================================================================================
-    public:
-        template<class T> T*                component() const  { return m_component_collection.get<T>(); }
-        tools::Component_Bag<Node>*         components()       { return &m_component_collection; }
-        const tools::Component_Bag<Node>*   components() const { return &m_component_collection; }
+        const std::vector<Node*>& inputs() const       { return adjacent_nodes_cache.get(Node_Slot_Flag_INPUT); }
+        const std::vector<Node*>& outputs() const      { return adjacent_nodes_cache.get(Node_Slot_Flag_OUTPUT); }
+        const std::vector<Node*>& flow_inputs() const  { return adjacent_nodes_cache.get(Node_Slot_Flag_FLOW_IN); }
+        const std::vector<Node*>& flow_outputs() const { return adjacent_nodes_cache.get(Node_Slot_Flag_FLOW_OUT); }
+        void                      handle_slot_change(Node_Slot::Event, Node_Slot*);        
     };
 
-//===== UTILITIES ====================================================================================================
+//===== API ====================================================================================================
 
-    // TODO:
-    //  - convert Node to a struct with constr and destr
-    //  - move methods here as node_xxxx(Node*) or node_xxx(const Node*)
-    //
-
-    // Factory
-
+    void                    node_init(Node*, const std::string& name);
+    void                    node_init_internal_scope(Node*);
+    void                    node_init_branches(Node*, size_t branch_count);
+    void                    node_init_invokable(Node*, const tools::Function_Descriptor& func_type);
+    void                    node_init_variable(Node*, const tools::Type_Descriptor* type, const char* identifier);
+    void                    node_init_variable_ref(Node*);
+    void                    node_init_literal(Node*, const tools::Type_Descriptor* _type);
+    
+    // TODO: these function should take a Node*.
+    //       allocation must be handled by the user.
     Node*                   node_create_root_scope();
     Node*                   node_create_scope();
     Node*                   node_create_variable(const tools::Type_Descriptor*, const std::string& name);
@@ -377,6 +261,50 @@ namespace ndbl
     Node*                   node_create_while_loop();
     Node*                   node_create_node();
     Node*                   node_create_empty_instruction();
+
+    void                    node_shutdown(Node*);
+
+    bool                    node_update(Node*);
+    void                    node_reset_scope(Node*, Scope*);
+    void                    node_variable_ref_clear_variable(Node*);
+    void                    node_variable_ref_set_variable(Node*, Node* /* variable_node */);
+    void                    node_variable_ref_handle_name_change(Node*, const std::string& /*name*/);
+    inline const tools::Type_Descriptor* node_variable_type(const Node* node ) { return node->value->get_type(); }
+    inline const Token&     node_get_identifier_token(const Node* node) { return node->value->token(); }
+    inline Token&           node_get_identifier_token(Node* node) { return node->value->token(); }
+    inline void             node_set_identifier_token(Node* node, const Token& tok) { node->value->set_token(tok); }
+    inline std::string      node_get_identifier(const Node* node) { return node_get_identifier_token(node).word_to_string(); }
+    
+    // Slot-related
+    Node_Slot*              node_add_slot(Node*, Node_Property *, Node_Slot_Flags, size_t limit_capacity = 0, size_t _position = 0);
+    bool                    node_has_flow_adjacent(const Node*);
+    std::vector<Node_Slot*> node_filter_slots(const Node*, Node_Slot_Flags);
+    std::vector<Node_Slot*> node_filter_slots(const Node*, const std::function<bool(const Node_Slot*)>& predicate);
+    std::vector<Node_Slot*> node_filter_adjacent_slots(const Node*, Node_Slot_Flags);
+    inline size_t           node_adjacent_slot_count(const Node* node, Node_Slot_Flags flags) { return node_filter_adjacent_slots(node, flags).size(); }
+    inline size_t           node_slot_count(const Node* node, Node_Slot_Flags flags) { return node_filter_slots(node, flags).size(); }
+    const Node_Slot*        node_find_slot_at(const Node*, Node_Slot_Flags, size_t _position ); // implicitly DEFAULT_PROPERTY's slot
+    inline Node_Slot*       node_find_slot_at(Node* node, Node_Slot_Flags flags, size_t pos ) { return const_cast<Node_Slot*>( node_find_slot_at(const_cast<const Node*>(node), flags, pos)); } // implicitly DEFAULT_PROPERTY's slot
+    const Node_Slot*        node_find_slot_by_property_name(const Node*, const char* name, Node_Slot_Flags );
+    inline Node_Slot*       node_find_slot_by_property_name(Node* node, const char* name, Node_Slot_Flags flags) { return const_cast<Node_Slot*>( node_find_slot_by_property_name(const_cast<const Node*>(node), name, flags) ); };
+    Node_Slot*              node_find_slot_by_property_type(const Node*, Node_Slot_Flags _way, const tools::Type_Descriptor *_type);
+    const Node_Slot*        node_find_slot_by_property(const Node*, const Node_Property*, Node_Slot_Flags );
+    inline Node_Slot*       node_find_slot_by_property(Node* node, const Node_Property* prop, Node_Slot_Flags flags ) { return const_cast<Node_Slot*>( node_find_slot_by_property(const_cast<const Node*>(node), prop, flags ) ); }
+    inline const Node_Slot* node_find_slot(const Node* node, Node_Slot_Flags flags) { return node_find_slot_by_property(node, node->value, flags ); }// implicitly DEFAULT_PROPERTY's slot
+    inline Node_Slot*       node_find_slot(Node* node, Node_Slot_Flags flags) { return node_find_slot_by_property(node, node->value, flags ); }// implicitly DEFAULT_PROPERTY's slot
+    inline Node_Slot*       node_find_adjacent_at(const Node*, Node_Slot_Flags, size_t _index );
+
+    // Property-related
+    Node_Property*          node_add_prop(Node*, const tools::Type_Descriptor*, const char* name, Node_Property_Flags = Node_Property_Flag_NONE);
+    template<typename T>    
+    Node_Property*          node_add_prop(Node* node, const char* name, Node_Property_Flags flags = Node_Property_Flag_NONE ) { return node_add_prop(node, tools::type::get<T>(), name, flags); }
+    bool                    node_has_input_connected(const Node*, const Node_Property*);
+    bool                    node_has_prop(const Node*, const char*);
+    const Node_Property*    node_find_prop_by_name(const Node*, const char* name);
+    inline Node_Property*   node_find_prop_by_name(Node* node, const char* name) { return const_cast<Node_Property*>( node_find_prop_by_name(const_cast<const Node*>(node), name) );}
+    const Node_Property*    node_find_first_prop(const Node*, Node_Property_Flags, const tools::Type_Descriptor* );
+    inline Node_Property*   node_find_first_prop(Node* node, Node_Property_Flags flags, const tools::Type_Descriptor* type ) { return const_cast<Node_Property*>( node_find_first_prop(const_cast<const Node*>(node), flags, type) );}
+    const tools::Function_Descriptor* node_get_connected_function_type(const Node*, const char *property_name); //
 
     // Misc.
 

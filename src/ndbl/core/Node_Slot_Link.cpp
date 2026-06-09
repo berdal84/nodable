@@ -21,9 +21,9 @@ Node_Slot_Link::Node_Slot_Link(Node_Slot* _tail, Node_Slot* _head )
 
     ASSERT(tail->flags() & Node_Slot_Flag_ORDER_1ST );
     ASSERT(head->flags() & Node_Slot_Flag_ORDER_2ND );
-    ASSERT(tail->node->graph() != nullptr);
-    ASSERT(head->node->graph() != nullptr);
-    VERIFY(tail->node->graph() == head->node->graph(),"The slots are from Nodes from different graphs" );
+    ASSERT(tail->node->graph != nullptr);
+    ASSERT(head->node->graph != nullptr);
+    VERIFY(tail->node->graph == head->node->graph,"The slots are from Nodes from different graphs" );
 }
 
 std::string ndbl::to_string(const Node_Slot_Link& _edge)

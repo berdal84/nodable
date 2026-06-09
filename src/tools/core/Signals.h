@@ -48,10 +48,16 @@ namespace tools
         // TMethod: the address to a member function
         // object_ptr: the instance to call the member with
         template<auto Method_Type>
-        requires std::is_member_function_pointer_v<decltype(Method_Type)>
         void connect(void* object_ptr)
         {
             auto delegate = Delegate_Type::template from_method<Method_Type>(object_ptr);
+            connect(delegate);
+        }
+      
+        template<typename Struct_Type, auto CStyle_Method_Type>
+        void connect(Struct_Type* object_ptr)
+        {
+            auto delegate = Delegate_Type::template from_cstyle_method<Struct_Type, CStyle_Method_Type>(object_ptr);
             connect(delegate);
         }
 
@@ -75,7 +81,6 @@ namespace tools
 
         void disconnect()
         {
-            ASSERT_DEBUG_ONLY(!_m_delegate.is_null()); // Did you call connect() before?
             _m_delegate = {};
             ASSERT_DEBUG_ONLY(_m_delegate.is_null());
         }

@@ -110,11 +110,23 @@ namespace tools
         requires std::is_member_function_pointer_v<decltype(Method_Type)>
         static Delegate from_method(void* object_ptr)
         {
+            ASSERT(object_ptr != nullptr);
             using Class_Type = typename Function_Trait<decltype(Method_Type)>::Class_Type;
             Delegate delegate;
             delegate._m_type = DELEGATE_TYPE_METHOD;
             delegate._m_method.object_ptr   = object_ptr;
             delegate._m_method.function_ptr = &_method_caller<Class_Type, Method_Type>; // <-- get address of a static function able to call the method
+            return delegate;
+        }
+
+        template<typename Struct_Type, auto CStyle_Method_Type>
+        static Delegate from_cstyle_method(void* data_ptr)
+        {
+            ASSERT(data_ptr != nullptr);
+            Delegate delegate;
+            delegate._m_type = DELEGATE_TYPE_METHOD;
+            delegate._m_method.object_ptr   = data_ptr;
+            delegate._m_method.function_ptr = &_cstyle_method_caller<Struct_Type, CStyle_Method_Type>; // <-- get address of a static function able to call the method
             return delegate;
         }
 
@@ -144,6 +156,13 @@ namespace tools
         {
             TClass* object_ptr = static_cast<TClass*>(ptr);
             return (object_ptr->*Method_Type)(args...); // The trick is here, the method IS A TYPE!
+        }
+
+        template <typename Struct_Type,  Result_Type(*CStyle_Method_Type)(Struct_Type*, Args_Type...)>
+        static Result_Type _cstyle_method_caller(void* ptr, Args_Type... args)
+        {
+            auto* data_ptr = static_cast<Struct_Type*>(ptr);
+            return (*CStyle_Method_Type)(data_ptr, args...);
         }
     };
 

@@ -39,12 +39,12 @@ Node* Node_Property_View::get_node() const
 
 bool Node_Property_View::has_input_connected() const
 {
-    return get_node()->has_input_connected(_property );
+    return node_has_input_connected(get_node(), _property );
 }
 
 Node_Slot* Node_Property_View::get_connected_slot() const
 {
-    const Node_Slot* input_slot = get_node()->find_slot_by_property(_property, Node_Slot_Flag_INPUT );
+    const Node_Slot* input_slot = node_find_slot_by_property(get_node(), _property, Node_Slot_Flag_INPUT );
     if( !input_slot )
         return nullptr;
 
@@ -67,10 +67,10 @@ bool Node_Property_View::draw(View_Detail _detail)
     if ( !_state.visible() )
         return false;
 
-    bool               changed            = false;
-    Node_Property*   property           = get_property();
+    bool            changed            = false;
+    Node_Property*  property           = get_property();
     Node*           node               = get_node();
-    Node_Type        node_type          = node->type();
+    Node_Type       node_type          = node->type;
 
     /*
      * Handle input visibility
@@ -91,7 +91,7 @@ bool Node_Property_View::draw(View_Detail _detail)
 
         // Always show when connected to a variable
         if ( const Node_Slot* connected_slot = get_connected_slot() )
-            switch ( connected_slot->node->type() )
+            switch ( connected_slot->node->type )
             {
                 case Node_Type_VARIABLE:
                 case Node_Type_VARIABLE_REF:
@@ -99,7 +99,7 @@ bool Node_Property_View::draw(View_Detail _detail)
             }
 
         // Always show properties that have an input slot free
-        if (auto* slot = node->find_slot_by_property(property, Node_Slot_Flag_INPUT))
+        if (auto* slot = node_find_slot_by_property(node, property, Node_Slot_Flag_INPUT))
             this->show |= !slot->is_full();
 
         this->show |= this->touched;
@@ -135,7 +135,7 @@ bool Node_Property_View::draw(View_Detail _detail)
         ImGui::Text("%s %s\n", property->get_type()->name(), property->name().c_str());
 
         std::string  source_code;
-        if( property == node->value() || node->find_slot_by_property( property, Node_Slot_Flag_OUTPUT ))
+        if( property == node->value || node_find_slot_by_property( node, property, Node_Slot_Flag_OUTPUT ))
             get_language()->serialize_node(source_code, node, Serialization_Flag_RECURSE);
         else
             get_language()->serialize_property(source_code, property );
@@ -182,9 +182,9 @@ bool Node_Property_View::draw_input(Node_Property_View* _view, bool _compact_mod
     // 2) if property is an identifier, or a literal we allow edition via an InputText, InputDouble/Int or Checkbox
 
     // 1
-    if (property->node()->type() != Node_Type_VARIABLE)
+    if (property->node()->type != Node_Type_VARIABLE)
         if ( connected_slot != nullptr )
-            switch (connected_slot->node->type())
+            switch (connected_slot->node->type)
             {
                 case Node_Type_VARIABLE:
                 case Node_Type_VARIABLE_REF:
