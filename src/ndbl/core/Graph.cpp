@@ -276,17 +276,17 @@ Node_Slot_Link Graph::connect_or_merge(Node_Slot* tail, Node_Slot* head )
     // case 1: merge orphan slot
     if (tail->node == nullptr ) // if dependent is orphan
     {
-        head->property->digest(tail->property );
+        property_digest(head->property, tail->property );
         delete head->property;
         // set_dirty(); // no changes on edges/nodes
         return {};
     }
 
     // case 2: merge literals when not connected to a variable
-    if (tail->node->type == Node_Type_LITERAL && tail->property->token().word_len() < 16 )
+    if (tail->node->type == Node_Type_LITERAL && tail->property->token.word_len() < 16 )
         if (head->node->type != Node_Type_VARIABLE )
         {
-            head->property->digest(tail->property );
+            property_digest(head->property, tail->property );
             find_and_destroy(tail->node);
             return {};
         }
@@ -365,9 +365,7 @@ void Graph::_handle_connect_value_side_effects(const Node_Slot_Link& edge )
     // make sure head property type matches with tail, update head when needed.
     if ( edge.head->node->type != Node_Type_VARIABLE )
     {
-        const Node_Property* tail_prop = edge.tail->property;
-        Node_Property* head_prop = edge.head->property;
-        head_prop->set_type( tail_prop->get_type() );
+        property_set_type(edge.head->property, edge.tail->property->type );
     }
 }
 
@@ -378,10 +376,10 @@ void Graph::_handle_disconnect_value_side_effects(const Node_Slot_Link& edge )
     // reset token to a default value to preserve a correct serialization
     if (edge.head->node->type != Node_Type_VARIABLE )
     {
-        Token& tok = edge.head->property->token();
+        Token& token = edge.head->property->token;
         std::string buf;
-        get_language()->serialize_default_buffer(buf, tok.m_type);
-        tok.word_replace( buf.c_str() );
+        get_language()->serialize_default_buffer(buf, token.m_type);
+        token.word_replace( buf.c_str() );
     }
 }
 

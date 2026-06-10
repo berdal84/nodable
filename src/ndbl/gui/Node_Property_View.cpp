@@ -34,7 +34,7 @@ Node_Property* Node_Property_View::get_property() const
 
 Node* Node_Property_View::get_node() const
 {
-    return _property->node();
+    return _property->node;
 }
 
 bool Node_Property_View::has_input_connected() const
@@ -132,7 +132,7 @@ bool Node_Property_View::draw(View_Detail _detail)
 
     if ( ImGuiEx::BeginTooltip() )
     {
-        ImGui::Text("%s %s\n", property->get_type()->name(), property->name().c_str());
+        ImGui::Text("%s %s\n", property->type->name(), property->name.c_str());
 
         std::string  source_code;
         if( property == node->value || node_find_slot_by_property( node, property, Node_Slot_Flag_OUTPUT ))
@@ -164,9 +164,9 @@ float Node_Property_View::calc_input_width(const char *buf)
 
 bool Node_Property_View::draw_input(Node_Property_View* _view, bool _compact_mode, const char* _override_label)
 {
-    Node_Property*           property       = _view->get_property();
-    Token&              property_token = property->token();
-    const Node_Slot*         connected_slot = _view->get_connected_slot();
+    Node_Property*      property       = _view->get_property();
+    Token&              property_token = property->token;
+    const Node_Slot*    connected_slot = _view->get_connected_slot();
     ImGuiInputTextFlags flags          = ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
     std::string         label;
 
@@ -174,7 +174,7 @@ bool Node_Property_View::draw_input(Node_Property_View* _view, bool _compact_mod
     if ( _override_label != nullptr )
         label.append(_override_label);
     else
-        label.append("##" + property->name());
+        label.append("##" + property->name);
 
     //
     // Strategy:
@@ -182,7 +182,7 @@ bool Node_Property_View::draw_input(Node_Property_View* _view, bool _compact_mod
     // 2) if property is an identifier, or a literal we allow edition via an InputText, InputDouble/Int or Checkbox
 
     // 1
-    if (property->node()->type != Node_Type_VARIABLE)
+    if (property->node->type != Node_Type_VARIABLE)
         if ( connected_slot != nullptr )
             switch (connected_slot->node->type)
             {
@@ -190,7 +190,7 @@ bool Node_Property_View::draw_input(Node_Property_View* _view, bool _compact_mod
                 case Node_Type_VARIABLE_REF:
                 {
                     char buf[256];
-                    const Token &connected_property_token = connected_slot->property->token();
+                    const Token &connected_property_token = connected_slot->property->token;
                     snprintf(buf, std::min(connected_property_token.word_len() + 1, sizeof(buf)), "%s",
                              connected_property_token.word());
                     float w = calc_input_width(buf);

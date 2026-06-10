@@ -45,8 +45,8 @@ String_64 Node_Slot_View::compute_tooltip() const
 
     std::string prop_name;
 
-    if (property() )
-        prop_name = property()->name();
+    if ( property() )
+        prop_name = property()->name;
 
     String_64 result;
     switch (slot->type_and_order())

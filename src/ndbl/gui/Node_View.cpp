@@ -67,7 +67,7 @@ void Node_View::_handle_init()
             case Node_Type_IF_ELSE:
             case Node_Type_WHILE_LOOP:
                 // hide THIS property
-                if ( property->has_flags(Node_Property_Flag_IS_NODE_VALUE) )
+                if ( property->has_flags(Node_Property::Flag_IS_NODE_VALUE) )
                     new_view->state()->set_visible(false);
         }
 
@@ -565,14 +565,14 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
         ImGui::SetNextItemWidth(labelColumnWidth);
         ImGui::Text(
                 "%s (%s): ",
-                property->name().c_str(),
-                property->get_type()->name());
+                property->name.c_str(),
+                property->type->name());
 
         ImGui::SameLine();
         ImGui::Text("(?)");
         if ( ImGuiEx::BeginTooltip() )
         {
-            ImGui::Text("Source token:\n %s\n", property->token().json().c_str());
+            ImGui::Text("Source token:\n %s\n", property->token.json().c_str());
             ImGuiEx::EndTooltip();
         }
         // input

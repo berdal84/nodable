@@ -187,7 +187,7 @@ void ndbl::TreeNode_Node(Node* node)
         }
         case Node_Type_VARIABLE:
         {
-            std::string value = node->value->token().word_to_string();
+            std::string value = node->value->token.word_to_string();
             char str[255];
             open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, value.c_str(), node->name.c_str());
             break;

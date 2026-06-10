@@ -468,7 +468,7 @@ void ndbl::nodable_update(App_State* app)
                 if ( Node_Slot_View* slot_view = _event->data.active_slotview )
                 {
                     Node_Slot_Flags         complementary_flags = switch_order(slot_view->slot->type_and_order());
-                    const Type_Descriptor*  type                = slot_view->property()->get_type();
+                    const Type_Descriptor*  type                = slot_view->property()->type;
                     Node_Slot*              complementary_slot  = node_find_slot_by_property_type(new_node, complementary_flags, type);
 
                     if ( !complementary_slot )

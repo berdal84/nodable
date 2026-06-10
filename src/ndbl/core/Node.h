@@ -259,10 +259,10 @@ namespace ndbl
     void                    node_variable_ref_clear_variable(Node*);
     void                    node_variable_ref_set_variable(Node*, Node* /* variable_node */);
     void                    node_variable_ref_handle_name_change(Node*, const std::string& /*name*/);
-    inline const tools::Type_Descriptor* node_variable_type(const Node* node ) { return node->value->get_type(); }
-    inline const Token&     node_get_identifier_token(const Node* node) { return node->value->token(); }
-    inline Token&           node_get_identifier_token(Node* node) { return node->value->token(); }
-    inline void             node_set_identifier_token(Node* node, const Token& tok) { node->value->set_token(tok); }
+    inline const tools::Type_Descriptor* node_variable_type(const Node* node ) { return node->value->type; }
+    inline const Token&     node_get_identifier_token(const Node* node) { return node->value->token; }
+    inline Token&           node_get_identifier_token(Node* node) { return node->value->token; }
+    inline void             node_set_identifier_token(Node* node, const Token& tok) { node->value->token = tok; }
     inline std::string      node_get_identifier(const Node* node) { return node_get_identifier_token(node).word_to_string(); }
     
     // Slot-related
@@ -285,15 +285,15 @@ namespace ndbl
     inline Node_Slot*       node_find_adjacent_at(const Node*, Node_Slot_Flags, size_t _index );
 
     // Property-related
-    Node_Property*          node_add_prop(Node*, const tools::Type_Descriptor*, const char* name, Node_Property_Flags = Node_Property_Flag_NONE);
+    Node_Property*          node_add_prop(Node*, const tools::Type_Descriptor*, const char* name, Node_Property::Flags = Node_Property::Flag_NONE);
     template<typename T>    
-    Node_Property*          node_add_prop(Node* node, const char* name, Node_Property_Flags flags = Node_Property_Flag_NONE ) { return node_add_prop(node, tools::type::get<T>(), name, flags); }
+    Node_Property*          node_add_prop(Node* node, const char* name, Node_Property::Flags flags = Node_Property::Flag_NONE ) { return node_add_prop(node, tools::type::get<T>(), name, flags); }
     bool                    node_has_input_connected(const Node*, const Node_Property*);
     bool                    node_has_prop(const Node*, const char*);
     const Node_Property*    node_find_prop_by_name(const Node*, const char* name);
     inline Node_Property*   node_find_prop_by_name(Node* node, const char* name) { return const_cast<Node_Property*>( node_find_prop_by_name(const_cast<const Node*>(node), name) );}
-    const Node_Property*    node_find_first_prop(const Node*, Node_Property_Flags, const tools::Type_Descriptor* );
-    inline Node_Property*   node_find_first_prop(Node* node, Node_Property_Flags flags, const tools::Type_Descriptor* type ) { return const_cast<Node_Property*>( node_find_first_prop(const_cast<const Node*>(node), flags, type) );}
+    const Node_Property*    node_find_first_prop(const Node*, Node_Property::Flags, const tools::Type_Descriptor* );
+    inline Node_Property*   node_find_first_prop(Node* node, Node_Property::Flags flags, const tools::Type_Descriptor* type ) { return const_cast<Node_Property*>( node_find_first_prop(const_cast<const Node*>(node), flags, type) );}
     const tools::Function_Descriptor* node_get_connected_function_type(const Node*, const char *property_name); //
 
     // Misc.

@@ -48,7 +48,7 @@ namespace ndbl
         tools::View_State*          state() { return &_state; }
         const tools::View_State*    state() const { return &_state; }
         const Node_Property*          property()const { return slot->property; }
-        const tools::Type_Descriptor* property_type()const { return property() ? property()->get_type() : nullptr; }
+        const tools::Type_Descriptor* property_type()const { return property() ? property()->type : nullptr; }
         void                  update_direction_from_alignment();
 
     private:

@@ -237,7 +237,7 @@ Node_Slot* Nodlang::token_to_slot(Scope* parent_scope, const Token& _token)
             TOOLS_LOG(tools::Verbosity_Warning,  "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() );
             Node* ref = _state.graph()->create_variable_ref( parent_scope );
-            ref->value->set_token(_token );
+            ref->value->token = _token;
             return ref->value_out();
         }
 
@@ -261,8 +261,8 @@ Node_Slot* Nodlang::token_to_slot(Scope* parent_scope, const Token& _token)
     {
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Token %s converted to a Literal %s\n",
                     _token.word_to_string().c_str(),
-                    literal->value->get_type()->name());
-        literal->value->set_token( _token );
+                    literal->value->type->name());
+        literal->value->token = _token;
         return literal->value_out();
     }
 
@@ -319,16 +319,16 @@ Node_Slot* Nodlang::parse_binary_operator_expression(Scope* parent_scope, u8_t _
         // Create a function signature according to ltype, rtype and operator word
         Function_Descriptor type;
         type.init<any(any, any)>(ope->identifier.c_str());
-        type.arg_at(0).type = _left->property->get_type();
-        type.arg_at(1).type = right->property->get_type();
+        type.arg_at(0).type = _left->property->type;
+        type.arg_at(1).type = right->property->type;
 
         Node* binary_op_node = _state.graph()->create_operator( type, _left->node->scope );
 
         auto& binary_op = binary_op_node->invokable_data();
 
         binary_op.set_identifier_token(operator_token);
-        binary_op.lvalue_in()->property->token().m_type = _left->property->token().m_type;
-        binary_op.rvalue_in()->property->token().m_type = right->property->token().m_type;
+        binary_op.lvalue_in()->property->token.m_type = _left->property->token.m_type;
+        binary_op.rvalue_in()->property->token.m_type = right->property->token.m_type;
 
         _state.graph()->connect_or_merge(_left, binary_op.lvalue_in());
         _state.graph()->connect_or_merge(right, binary_op.rvalue_in() );
@@ -382,11 +382,11 @@ Node_Slot* Nodlang::parse_unary_operator_expression(Scope* parent_scope, u8_t _p
     // Create a function signature
     Function_Descriptor type;
     type.init<any(any)>(operator_token.word_to_string().c_str());
-    type.arg_at(0).type = out_atomic->property->get_type();
+    type.arg_at(0).type = out_atomic->property->type;
 
     Node* node = _state.graph()->create_operator( type, parent_scope );
     node->invokable_data().set_identifier_token( operator_token );
-    node->invokable_data().lvalue_in()->property->token().m_type = out_atomic->property->token().m_type;
+    node->invokable_data().lvalue_in()->property->token.m_type = out_atomic->property->token.m_type;
 
     _state.graph()->connect_or_merge(out_atomic, node->invokable_data().lvalue_in() );
 
@@ -1072,7 +1072,7 @@ Node_Slot* Nodlang::parse_function_call(Scope* parent_scope)
         if ( expression_out )
         {
             result_slots.push_back( expression_out );
-            signature.push_arg( expression_out->property->get_type() );
+            signature.push_arg( expression_out->property->type );
             _state.tokens().eat_if(Token_Type::list_separator);
         }
         else
@@ -1367,7 +1367,7 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
         if ( success )
         {
             TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Variable declaration: %s %s\n",
-                        variable_node->value->get_type()->name(),
+                        variable_node->value->type->name(),
                         identifier_token.word_to_string().c_str());
             _state.commit();
             return variable_node->value_out();
@@ -1518,7 +1518,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const Node *_node) c
     }
     else // If created in the graph by the user
     {
-        serialize_type(_out, _node->value->get_type());
+        serialize_type(_out, _node->value->type);
         _out.append(" ");
     }
 
@@ -1561,17 +1561,15 @@ std::string &Nodlang::serialize_input(std::string& _out, const Node_Slot* slot, 
     {
         VERIFY( _flags & Serialization_Flag_RECURSE, "Why would you call serialize_input without RECURSE flag?");
         // Append token prefix?
-        if (const Token& adjacent_token = adjacent_property->token())
-            if ( adjacent_token )
-                _out.append(adjacent_token.prefix(), adjacent_token.prefix_len() );
+        if (adjacent_property->token)
+            _out.append(adjacent_property->token.prefix(), adjacent_property->token.prefix_len() );
 
         // Serialize adjacent slot
         serialize_value_out(_out, adjacent_slot, Serialization_Flag_RECURSE);
 
         // Append token suffix?
-        if (const Token& adjacent_token = adjacent_property->token())
-            if ( adjacent_token )
-                _out.append(adjacent_token.suffix(), adjacent_token.suffix_len() );
+        if (adjacent_property->token )
+                _out.append(adjacent_property->token.suffix(), adjacent_property->token.suffix_len() );
     }
 
     // Append close brace?
@@ -1737,7 +1735,7 @@ std::string& Nodlang::serialize_cond_struct(std::string &_out, const Node* if_no
 
 std::string& Nodlang::serialize_property(std::string& _out, const Node_Property* _property) const
 {
-    return serialize_token(_out, _property->token());
+    return serialize_token(_out, _property->token);
 }
 
 const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_Type operator_type) const
@@ -1898,7 +1896,7 @@ std::string& Nodlang::serialize_literal(std::string &_out, const Node* node) con
 std::string& Nodlang::serialize_empty_instruction(std::string &_out, const Node* node) const
 {
     ASSERT( node->type == Node_Type_EMPTY_INSTRUCTION );
-    return serialize_token(_out, node->value->token() );
+    return serialize_token(_out, node->value->token );
 }
 
 Node* Nodlang::parse_empty_block(Scope* parent_scope, Node_Slot* flow_out)

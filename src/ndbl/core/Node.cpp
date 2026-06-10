@@ -30,12 +30,12 @@ Node::~Node()
 void ndbl::node_init(Node* node, Node_Type type, const std::string& label)
 {
     ASSERT(node!=nullptr);
+    ASSERT(node->type == Node_Type_NULL);
     VERIFY(node->is_initialized == false, "You cannot initialize twice");
 
     node->type  = type;
-    node->value = node_add_prop<any>(node, DEFAULT_PROPERTY, Node_Property_Flag_IS_NODE_VALUE );
+    node->value = node_add_prop<any>(node, DEFAULT_PROPERTY, Node_Property::Flag_IS_NODE_VALUE );
     node->set_name(label);
-    node->is_initialized = true;
 
     switch (node->type)
     {
@@ -83,6 +83,8 @@ void ndbl::node_init(Node* node, Node_Type type, const std::string& label)
             // If it breaks here, that's because a new type has been added but this function does not take it in account.
             TOOLS_UNREACHABLE();
     }
+
+    node->is_initialized = true;
 }
 
 void ndbl::node_shutdown(Node* node)
@@ -91,7 +93,7 @@ void ndbl::node_shutdown(Node* node)
 
     while( !node->props.empty() )
     {
-        size_t erased_count = node->props_by_name.erase( node->props.back()->name() );
+        size_t erased_count = node->props_by_name.erase( node->props.back()->name );
         ASSERT(erased_count==1);
         delete node->props.back();
         node->props.pop_back();
@@ -194,7 +196,7 @@ Node_Slot* ndbl::node_find_slot_by_property_type(const Node* node, Node_Slot_Fla
 {
     for(Node_Slot* slot : node_filter_slots(node, flags) )
     {
-        if( type::is_implicitly_convertible(slot->property->get_type(), type ) )
+        if( type::is_implicitly_convertible(slot->property->type, type ) )
         {
             return slot;
         }
@@ -210,7 +212,7 @@ void ndbl::Node::handle_slot_change(Node_Slot::Event event, Node_Slot* slot)
 Node_Slot* ndbl::node_add_slot(Node* node, Node_Property* property, Node_Slot_Flags flags, size_t capacity, size_t position)
 {
     ASSERT( property != nullptr );
-    ASSERT( property->node() == node );
+    ASSERT( property->node == node );
     if ( (flags & Node_Slot_Flag_FLOW_OUT) == Node_Slot_Flag_FLOW_OUT)
     {
         VERIFY( capacity == 1, "Node_Slot_Flag_FLOW_OUT can only have a capacity of 1" );
@@ -439,28 +441,28 @@ bool ndbl::node_has_prop(const Node* node, const char* _name)
     return node->props_by_name.find(_name) != node->props_by_name.end();
 }
 
-Node_Property* ndbl::node_add_prop(Node* node, const Type_Descriptor* type, const char* name, Node_Property_Flags flags )
+Node_Property* ndbl::node_add_prop(Node* node, const Type_Descriptor* type, const char* name, Node_Property::Flags flags )
 {
     // guards
     VERIFY(!node_has_prop(node, name), "Property name already used");
 
     // create
     auto* new_property = new Node_Property; // TODO: use a static-sized array with a given limit (ex: 10 props)
-    new_property->init(node, type, flags, name);
+    property_init(new_property, node, type, flags, name);
 
     // register / index
     node->props.push_back(new_property);
-    node->props_by_name.insert({new_property->name(), new_property});
+    node->props_by_name.insert({new_property->name, new_property});
 
     return new_property;
 }
 
-const Node_Property* ndbl::node_find_first_prop(const Node* node, Node_Property_Flags _flags, const Type_Descriptor *_type)
+const Node_Property* ndbl::node_find_first_prop(const Node* node, Node_Property::Flags _flags, const Type_Descriptor *_type)
 {
     auto filter = [_flags, _type](const std::pair<const std::string, Node_Property*>& pair) -> bool
     {
         auto* property = pair.second;
-        return type::is_implicitly_convertible(property->get_type(), _type)
+        return type::is_implicitly_convertible(property->type, _type)
                && ( property->has_flags( _flags ) );
     };
 
@@ -483,6 +485,7 @@ const Node_Property* ndbl::node_find_prop_by_name(const Node* node, const char* 
 
 void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& _func_type, Node_Type node_type )
 {
+    ASSERT(node != nullptr);
     ASSERT(node_type == Node_Type_OPERATOR || node_type == Node_Type_FUNCTION );
 
     node_init(node, node_type, _func_type.get_identifier());
@@ -512,7 +515,7 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& 
     }
 
     // Create a result/value
-    node->value->set_type(_func_type.return_type() );
+    property_set_type(node->value, _func_type.return_type() );
 
     node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT );
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT , 1);
@@ -546,7 +549,7 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& 
         Node_Property* property  = node_add_prop(node, arg.type, name );
 
         if ( arg.pass_by_ref )
-            property->set_flags(Node_Property_Flag_IS_REF);
+            property->set_flags(Node_Property::Flag_IS_REF);
 
         node->_invokable_data.m_argument_slot[i]  = node_add_slot(node, property, Node_Slot_Flag_INPUT, 1);
         node->_invokable_data.m_argument_props[i] = property;
@@ -558,9 +561,9 @@ void ndbl::node_init_as_variable(Node* node, const tools::Type_Descriptor* _type
     node_init(node, Node_Type_VARIABLE, "Var.");
 
     // Init identifier property
-    node->value->set_type(_type);
-    node->value->set_token({Token_Type::identifier});
-    node->value->token().word_replace(_identifier); // might come from std::string::c_str()
+    property_set_type(node->value, _type);
+    node->value->token = Token{Token_Type::identifier};
+    node->value->token.word_replace(_identifier); // might come from std::string::c_str()
 
     // Init Node_Slots
     node_add_slot(node, node->value, Node_Slot_Flag_INPUT, 1); // to connect an initialization expression
@@ -576,8 +579,8 @@ void ndbl::node_init_as_variable_ref(Node* node)
     node_init(node, Node_Type_VARIABLE_REF, "Ref.");
 
     // Init identifier property
-    node->value->set_type(tools::type::any());
-    node->value->set_token({Token_Type::identifier});
+    property_set_type(node->value, tools::type::any());
+    node->value->token = Token{Token_Type::identifier};
 
     // Init Node_Slots
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
@@ -593,8 +596,8 @@ void ndbl::node_variable_ref_set_variable(Node* node, Node* variable_node)
 
     node->variable_ref_data().variable_node = variable_node;
 
-    node->value->set_type( node_variable_type(variable_node) );
-    node->value->token().word_replace( node_get_identifier(variable_node).c_str() );
+    property_set_type(node->value, node_variable_type(variable_node) );
+    node->value->token.word_replace( node_get_identifier(variable_node).c_str() );
 
     // bind signals
     node->variable_ref_data().variable_node->signal_name_change.connect<Node, &node_variable_ref_handle_name_change>(node);
@@ -615,14 +618,14 @@ void ndbl::node_variable_ref_clear_variable(Node* node)
 
 void ndbl::node_variable_ref_handle_name_change(Node* node, const std::string& name)
 {
-    node->value->token().word_replace( name.c_str() );
+    node->value->token.word_replace( name.c_str() );
 }
 
 void ndbl::node_init_as_literal(Node* node, const Type_Descriptor* type_descriptor)
 {
     node_init(node, Node_Type_LITERAL, "Lit.");
     
-    node->value->set_type(type_descriptor);
+    property_set_type(node->value, type_descriptor);
 
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT , 1);
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
@@ -713,7 +716,7 @@ void ndbl::node_init_as_empty_instruction(Node* node)
     node_init(node, Node_Type_EMPTY_INSTRUCTION, ";");
 
     // Token will be/or not overriden as a Token_t::end_of_instruction by the parser
-    node->value->set_token({Token_Type::ignore});
+    node->value->token = Token{Token_Type::ignore};
 
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
     node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);

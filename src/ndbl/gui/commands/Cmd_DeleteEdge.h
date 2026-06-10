@@ -12,8 +12,8 @@ namespace ndbl
     public:
         explicit Cmd_DeleteEdge(Event_DeleteEdge* event)
         : Cmd_DeleteEdge(
-                Node_Slot_Link{event->data.first, event->data.second },
-                event->data.first->node->graph
+            Node_Slot_Link{event->data.first, event->data.second },
+            event->data.first->node->graph
         )
         {}
 

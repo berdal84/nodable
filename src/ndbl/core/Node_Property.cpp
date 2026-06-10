@@ -4,39 +4,35 @@
 using namespace ndbl;
 using namespace tools;
 
-void Node_Property::init(
-    Node*                node,
-    const Type_Descriptor*   type,
-    Node_Property_Flags           flags,
+void ndbl::property_init(
+    Node_Property*          property,
+    Node*                   node,
+    const Type_Descriptor*  type,
+    Node_Property::Flags    flags,
     const char*             name
 )
 {
-    VERIFY( node != nullptr     , "node is required!");
-    VERIFY( m_type == nullptr   , "must be initialized once");
-    VERIFY( type != nullptr     , "type can't be nullptr"   );
+    VERIFY( node != nullptr             , "node is required!");
+    VERIFY( property->type == nullptr   , "must be initialized once");
+    VERIFY( type != nullptr             , "type can't be nullptr"   );
 
-    m_node  = node;
-    m_flags = flags;
-    m_name  = name;
+    property->node  = node;
+    property->flags = flags;
+    property->name  = name;
 
-    set_type(type);
+    property_set_type(property, type);
 }
 
-void Node_Property::digest(Node_Property* _property)
+void ndbl::property_digest(Node_Property* property, Node_Property* other)
 {
-    m_token = std::move( _property->m_token );
+    property->token = std::move( other->token );
 }
 
-bool Node_Property::is_type(const Type_Descriptor* other) const
+void ndbl::property_set_type(Node_Property* property, const tools::Type_Descriptor* new_type)
 {
-    return m_type->equals( other );
-}
+    if ( property->type == new_type ) return;
 
-void Node_Property::set_type(const tools::Type_Descriptor* new_type)
-{
-    if ( m_type == new_type ) return;
-
-    m_type = new_type;
+    property->type = new_type;
 
     // Make sure m_token matches with the new type if type changed
     
@@ -49,8 +45,8 @@ void Node_Property::set_type(const tools::Type_Descriptor* new_type)
 
     const Nodlang* language = get_language();
     // Convert m_type to a Token_t
-    Token_Type token_type = language->to_literal_token(m_type);
+    Token_Type token_type = language->to_literal_token(property->type);
     VERIFY(token_type != Token_Type::none, "This token is not handled");
 
-    m_token = { token_type };
+    property->token = { token_type };
 }
