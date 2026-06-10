@@ -10,50 +10,41 @@ namespace ndbl
     class Node_Property;
     class Node_View;
     struct Node_Slot_View;
-
-    // Nature of the connection allowed by a given Node_Slot
-    typedef int Node_Slot_Flags;
-    enum Node_Slot_Flag : int
-    {
-        //
-        // primary  ---->  secondary
-        //-------------------------
-        // OUTPUT   ----> INPUT
-        // FLOW_OUT ----> FLOW_IN
-        //
-
-        Node_Slot_Flag_NONE          = 0,
-
-        Node_Slot_Flag_ORDER_1ST     = 1 << 0,
-        Node_Slot_Flag_ORDER_2ND     = 1 << 1,
-
-        Node_Slot_Flag_TYPE_VALUE    = 1 << 2,
-        Node_Slot_Flag_TYPE_FLOW     = 1 << 3,
-
-        Node_Slot_Flag_IS_INTERNAL   = 1 << 4,
-        Node_Slot_Flag_IS_FULL       = 1 << 5,
-
-        Node_Slot_Flag_OUTPUT        = Node_Slot_Flag_TYPE_VALUE | Node_Slot_Flag_ORDER_1ST,
-        Node_Slot_Flag_INPUT         = Node_Slot_Flag_TYPE_VALUE | Node_Slot_Flag_ORDER_2ND,
-        Node_Slot_Flag_FLOW_OUT      = Node_Slot_Flag_TYPE_FLOW  | Node_Slot_Flag_ORDER_1ST,
-        Node_Slot_Flag_FLOW_IN       = Node_Slot_Flag_TYPE_FLOW  | Node_Slot_Flag_ORDER_2ND,
-        Node_Slot_Flag_FLOW_ENTER    = Node_Slot_Flag_FLOW_OUT | Node_Slot_Flag_IS_INTERNAL, // a FLOW_OUT to the INSIDE of a scope
-        // Node_Slot_Flag_FLOW_LEAVE  = Node_Slot_Flag_FLOW_IN    | Node_Slot_Flag_IS_BRANCH, // a FLOW_IN to the OUTSIDE of a scope
-
-        Node_Slot_Flag_ORDER_MASK    = Node_Slot_Flag_ORDER_1ST  | Node_Slot_Flag_ORDER_2ND,
-        Node_Slot_Flag_TYPE_MASK     = Node_Slot_Flag_TYPE_FLOW  | Node_Slot_Flag_TYPE_VALUE,
-    };
-
-    static Node_Slot_Flags switch_order(Node_Slot_Flags flags)
-    { return (i8_t)(flags ^ Node_Slot_Flag_ORDER_MASK); }
-
+    
     struct Node_Slot
     {
-        Node_Slot(
-            Node_Slot_Flags flags    = {},
-            size_t    capacity = 0, // 0 => max
-            size_t    position = 0
-        );
+        // Nature of the connection allowed by a given Node_Slot
+        typedef int Flags;
+        enum Flag : int
+        {
+            //
+            // primary  ---->  secondary
+            //-------------------------
+            // OUTPUT   ----> INPUT
+            // FLOW_OUT ----> FLOW_IN
+            //
+
+            Flag_NONE          = 0,
+
+            Flag_ORDER_1ST     = 1 << 0,
+            Flag_ORDER_2ND     = 1 << 1,
+
+            Flag_TYPE_VALUE    = 1 << 2,
+            Flag_TYPE_FLOW     = 1 << 3,
+
+            Flag_IS_INTERNAL   = 1 << 4,
+            Flag_IS_FULL       = 1 << 5,
+
+            Flag_OUTPUT        = Flag_TYPE_VALUE | Flag_ORDER_1ST,
+            Flag_INPUT         = Flag_TYPE_VALUE | Flag_ORDER_2ND,
+            Flag_FLOW_OUT      = Flag_TYPE_FLOW  | Flag_ORDER_1ST,
+            Flag_FLOW_IN       = Flag_TYPE_FLOW  | Flag_ORDER_2ND,
+            Flag_FLOW_ENTER    = Flag_FLOW_OUT   | Flag_IS_INTERNAL, // a FLOW_OUT to the INSIDE of a scope
+         // Flag_FLOW_LEAVE    = Flag_FLOW_IN    | Flag_IS_BRANCH, // a FLOW_IN to the OUTSIDE of a scope
+
+            Flag_ORDER_MASK    = Flag_ORDER_1ST  | Flag_ORDER_2ND,
+            Flag_TYPE_MASK     = Flag_TYPE_FLOW  | Flag_TYPE_VALUE,
+        };
 
         enum Event
         {
@@ -61,34 +52,35 @@ namespace ndbl
             Event_Remove
         };
 
-        tools::Array_View<Node_Slot*> adjacent() { return _adjacent;}
-        tools::Array_View<const Node_Slot*> adjacent() const { return _adjacent;}
-        Node_Slot*      adjacent_at(u8_t) const;
-        size_t          adjacent_count() const { return _adjacent.size; }
-        Node*           first_adjacent_node() const { return !_adjacent.empty() ? _adjacent[0]->node : nullptr; }
-        Node_Slot*      first_adjacent() const { return !_adjacent.empty() ? _adjacent[0] : nullptr; }
-        Node_Slot_Flags flags() const { return _flags; }
-        void            set_flags( Node_Slot_Flags flags){_flags |= flags;}
-        bool            has_flags( Node_Slot_Flags flags ) const{return (_flags & flags) == flags;}
-        Node_Slot_Flags type() const{return _flags & Node_Slot_Flag_TYPE_MASK;}
-        Node_Slot_Flags type_and_order() const { return _flags & (Node_Slot_Flag_TYPE_MASK | Node_Slot_Flag_ORDER_MASK); }
-        Node_Slot_Flags order() const{return _flags & Node_Slot_Flag_ORDER_MASK;}
-        bool            empty() const{return _adjacent.empty();}
-        size_t          capacity() const{return _capacity; }
-        bool            is_full() const {return has_flags(Node_Slot_Flag_IS_FULL);}
-        void            add_adjacent(Node_Slot*);
-        bool            remove_adjacent(Node_Slot*);
+        Node_Slot(
+            Flags   _flags    = {},
+            size_t  _capacity = 0, // 0 => max
+            size_t  _position = 0
+        );
 
         tools::Signal<void(Event, Node_Slot*)>  signal_change;
         const size_t                            position        = {}; // In case multiple Node_Slot exists for the same type and order, we distinguish them with their position.
         Node*                                   node            = {}; // parent node
         Node_Property*                          property        = {}; // parent node's property
         Node_Slot_View*                         view            = {};
-        
-        Node_Slot_Flags                         _flags          = {};
-        size_t                                  _capacity       = {};
-        tools::Inline_Vector16<Node_Slot*>      _adjacent;
+        Flags                                   flags           = {};
+        size_t                                  capacity        = {};
+        tools::Inline_Vector16<Node_Slot*>      adjacent;
         
         static const Node_Slot                  null;
+
+        void                set_flags( Node_Slot::Flags _flags){ this->flags |= _flags;}
+        bool                has_flags( Node_Slot::Flags _flags ) const{return (this->flags & _flags) == _flags;}
+        Node_Slot::Flags    type() const { return this->flags & Node_Slot::Flag_TYPE_MASK;}
+        Node_Slot::Flags    type_and_order() const { return this->flags & (Node_Slot::Flag_TYPE_MASK | Node_Slot::Flag_ORDER_MASK); }
+        Node_Slot::Flags    order() const{return this->flags & Node_Slot::Flag_ORDER_MASK;}
+        bool                is_full() const {return this->has_flags(Node_Slot::Flag_IS_FULL);}
+        Node*               first_adjacent_node() const { return !adjacent.empty() ? adjacent[0]->node : nullptr; }
+        Node_Slot*          first_adjacent() const { return !adjacent.empty() ? adjacent[0] : nullptr; }
     };
+
+    Node_Slot*              node_slot_adjacent_at(const Node_Slot*, u8_t /* position */);
+    inline Node_Slot::Flags node_slot_flags_toggle_order(Node_Slot::Flags flags) { return (i8_t)(flags ^ Node_Slot::Flag_ORDER_MASK); }
+    void                    node_slot_add_adjacent(Node_Slot*, Node_Slot* /* other */);
+    bool                    node_slot_remove_adjacent(Node_Slot*, Node_Slot* /* other */);
 }

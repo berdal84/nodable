@@ -6,52 +6,52 @@ using namespace ndbl;
 const Node_Slot Node_Slot::null{};
 
 Node_Slot::Node_Slot(
-    Node_Slot_Flags flags,
-    size_t    capacity,
-    size_t    position
+    Flags   _flags,
+    size_t  _capacity,
+    size_t  _position
 )
-: _capacity(capacity)
-, _flags(flags)
-, position(position)
+: capacity(_capacity)
+, flags(_flags)
+, position(_position)
 {
-    VERIFY(!has_flags(Node_Slot_Flag_IS_FULL), "Node_Slot_Flag_IS_FULL is for readonly use" );
-    if (_capacity == 0)
-        _capacity = _adjacent.capacity();
-    ASSERT( _capacity <= _adjacent.capacity() );
+    VERIFY(!this->has_flags(Node_Slot::Flag_IS_FULL), "Node_Slot::Flag_IS_FULL is for readonly use" );
+    if (this->capacity == 0)
+        this->capacity = this->adjacent.capacity();
+    ASSERT( this->capacity <= this->adjacent.capacity() );
 }
 
-Node_Slot* Node_Slot::adjacent_at(u8_t pos) const
+Node_Slot* ndbl::node_slot_adjacent_at(const Node_Slot* slot, u8_t pos)
 {
-    ASSERT(pos < _capacity);    
-    if ( pos < _adjacent.size)
-        return _adjacent[pos];
+    ASSERT(pos < slot->capacity);    
+    if ( pos < slot->adjacent.size)
+        return slot->adjacent[pos];
     return nullptr;
 }
 
-void Node_Slot::add_adjacent(Node_Slot* other)
+void ndbl::node_slot_add_adjacent(Node_Slot* slot, Node_Slot* other)
 {
     ASSERT(other != nullptr);
-    VERIFY(other != this, "Reflexive edge not handled" );
-    VERIFY(type() == other->type() , "Node_Slot must have common type" );
-    VERIFY(_adjacent.size < _capacity, "Capacity max reached!" );
-    _adjacent.push_back( other );
-    if ( _adjacent.size == _capacity )
+    VERIFY(other != slot, "Reflexive edge not handled" );
+    VERIFY(slot->type() == other->type() , "Node_Slot must have common type" );
+    VERIFY(slot->adjacent.size < slot->capacity, "Capacity max reached!" );
+    slot->adjacent.push_back( other );
+    if ( slot->adjacent.size == slot->capacity )
     {
-        _flags |= Node_Slot_Flag_IS_FULL; // make sure IS_FULL is 1
+        slot->flags |= Node_Slot::Flag_IS_FULL; // make sure IS_FULL is 1
     }
-    signal_change.emit(Event_Add, other);
+    slot->signal_change.emit(Node_Slot::Event_Add, other);
 }
 
-bool Node_Slot::remove_adjacent(Node_Slot* other)
+bool ndbl::node_slot_remove_adjacent(Node_Slot* slot, Node_Slot* other)
 {
-    auto it = std::find(_adjacent.begin(), _adjacent.end(), other);
-    if( it == _adjacent.end())
+    auto it = std::find(slot->adjacent.begin(), slot->adjacent.end(), other);
+    if( it == slot->adjacent.end())
     {
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Node_Slot", "remove_adjacent(Node_Slot*) - slot not found");
         return false;
     }
-    _adjacent.erase(it );
-    _flags &= ~Node_Slot_Flag_IS_FULL; // make sure IS_FULL is 0
-    signal_change.emit(Event_Remove, other);
+    slot->adjacent.erase(it );
+    slot->flags &= ~Node_Slot::Flag_IS_FULL; // make sure IS_FULL is 0
+    slot->signal_change.emit(Node_Slot::Event_Remove, other);
     return true;
 }

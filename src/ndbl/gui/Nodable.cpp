@@ -382,9 +382,9 @@ void ndbl::nodable_update(App_State* app)
                 Node_Slot* tail = _event->data.first;
                 Node_Slot* head = _event->data.second;
                 ASSERT(head != tail);
-                if ( tail->order() == Node_Slot_Flag_ORDER_2ND )
+                if ( tail->order() == Node_Slot::Flag_ORDER_2ND )
                 {
-                    if ( head->order() == Node_Slot_Flag_ORDER_2ND )
+                    if ( head->order() == Node_Slot::Flag_ORDER_2ND )
                     {
                         TOOLS_LOG(tools::Verbosity_Error, "Nodable", "Unable to connect incompatible edges\n");
                         break; // but if it still the case, that's because edges are incompatible
@@ -415,7 +415,7 @@ void ndbl::nodable_update(App_State* app)
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
                 Graph* graph = _event->data.first->node->graph;
-                for(Node_Slot* adjacent_slot : slot->adjacent() )
+                for(Node_Slot* adjacent_slot : slot->adjacent )
                 {
                     auto each_cmd = std::make_shared<Cmd_DeleteEdge>(Node_Slot_Link{slot, adjacent_slot}, graph );
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
@@ -467,7 +467,7 @@ void ndbl::nodable_update(App_State* app)
                 // 2) handle connections
                 if ( Node_Slot_View* slot_view = _event->data.active_slotview )
                 {
-                    Node_Slot_Flags         complementary_flags = switch_order(slot_view->slot->type_and_order());
+                    Node_Slot::Flags         complementary_flags = node_slot_flags_toggle_order(slot_view->slot->type_and_order());
                     const Type_Descriptor*  type                = slot_view->property()->type;
                     Node_Slot*              complementary_slot  = node_find_slot_by_property_type(new_node, complementary_flags, type);
 
@@ -481,13 +481,13 @@ void ndbl::nodable_update(App_State* app)
                         Node_Slot* out = slot_view->slot;
                         Node_Slot* in  = complementary_slot;
 
-                        if ( out->has_flags( Node_Slot_Flag_ORDER_2ND ) )
+                        if ( out->has_flags( Node_Slot::Flag_ORDER_2ND ) )
                             std::swap( out, in );
 
                         graph->connect(out, in, Graph_Flag_ALLOW_SIDE_EFFECTS );
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
-                        if (node_is_instruction(out->node ) && out->type() == Node_Slot_Flag_TYPE_FLOW )
+                        if (node_is_instruction(out->node ) && out->type() == Node_Slot::Flag_TYPE_FLOW )
                         {
                             std::string buffer = out->node->suffix.string();
                             if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )

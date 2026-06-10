@@ -1450,7 +1450,7 @@ std::string &Nodlang::serialize_func_call(std::string &_out, const Function_Desc
 
     for (const Node_Slot* input_slot : inputs)
     {
-        ASSERT( input_slot->has_flags(Node_Slot_Flag_INPUT) );
+        ASSERT( input_slot->has_flags(Node_Slot::Flag_INPUT) );
         if ( input_slot != inputs[0])
         {
             serialize_default_buffer(_out, Token_Type::list_separator);
@@ -1529,7 +1529,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const Node *_node) c
     //    When a VariableNode has its input connected, we serialize it as its initialisation expression
 
     const Node_Slot* slot = _node->value_in();
-    if ( slot->adjacent_count() != 0 )
+    if ( slot->adjacent.size != 0 )
     {
         if ( _node->variable_data().operator_token )
             _out.append(_node->variable_data().operator_token.string());
@@ -1543,7 +1543,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const Node *_node) c
 
 std::string &Nodlang::serialize_input(std::string& _out, const Node_Slot* slot, Serialization_Flags _flags ) const
 {
-    ASSERT( slot->has_flags( Node_Slot_Flag_INPUT ) );
+    ASSERT( slot->has_flags( Node_Slot::Flag_INPUT ) );
 
     const Node_Slot*     adjacent_slot     = slot->first_adjacent();
     const Node_Property* adjacent_property = adjacent_slot != nullptr ? adjacent_slot->property
@@ -1675,9 +1675,9 @@ std::string& Nodlang::serialize_for_loop(std::string &_out, const Node* _for_loo
     serialize_token(_out, _for_loop->switch_behavior_data().m_branch_prefix);
     serialize_default_buffer(_out, Token_Type::parenthesis_open);
     {
-        const Node_Slot* init_slot = node_find_slot_by_property_name(_for_loop, INITIALIZATION_PROPERTY, Node_Slot_Flag_INPUT );
-        const Node_Slot* cond_slot = node_find_slot_by_property_name(_for_loop, CONDITION_PROPERTY, Node_Slot_Flag_INPUT );
-        const Node_Slot* iter_slot = node_find_slot_by_property_name(_for_loop, ITERATION_PROPERTY, Node_Slot_Flag_INPUT );
+        const Node_Slot* init_slot = node_find_slot_by_property_name(_for_loop, INITIALIZATION_PROPERTY, Node_Slot::Flag_INPUT );
+        const Node_Slot* cond_slot = node_find_slot_by_property_name(_for_loop, CONDITION_PROPERTY, Node_Slot::Flag_INPUT );
+        const Node_Slot* iter_slot = node_find_slot_by_property_name(_for_loop, ITERATION_PROPERTY, Node_Slot::Flag_INPUT );
         serialize_input( _out, init_slot, Serialization_Flag_RECURSE );
         serialize_input( _out, cond_slot, Serialization_Flag_RECURSE );
         serialize_input( _out, iter_slot, Serialization_Flag_RECURSE );

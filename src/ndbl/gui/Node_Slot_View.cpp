@@ -39,8 +39,8 @@ String_64 Node_Slot_View::compute_tooltip() const
 {
     switch (slot->type_and_order())
     {
-        case Node_Slot_Flag_FLOW_OUT: return "flow_out";
-        case Node_Slot_Flag_FLOW_IN:  return "flow_in";
+        case Node_Slot::Flag_FLOW_OUT: return "flow_out";
+        case Node_Slot::Flag_FLOW_IN:  return "flow_in";
     }
 
     std::string prop_name;
@@ -51,8 +51,8 @@ String_64 Node_Slot_View::compute_tooltip() const
     String_64 result;
     switch (slot->type_and_order())
     {
-        case Node_Slot_Flag_INPUT:  result.append_fmt("%s (in)",  prop_name.c_str());  break;
-        case Node_Slot_Flag_OUTPUT: result.append_fmt("%s (out)", prop_name.c_str());
+        case Node_Slot::Flag_INPUT:  result.append_fmt("%s (in)",  prop_name.c_str());  break;
+        case Node_Slot::Flag_OUTPUT: result.append_fmt("%s (out)", prop_name.c_str());
     }
 
     return std::move(result);
@@ -68,7 +68,7 @@ bool Node_Slot_View::draw()
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     Config* cfg          = get_config();
-    Vec4  color          = cfg->ui_slot_color(slot->flags() );
+    Vec4  color          = cfg->ui_slot_color(slot->flags );
     Vec4  border_color   = cfg->ui_slot_border_color;
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
@@ -99,7 +99,7 @@ bool Node_Slot_View::draw()
         case Shape_Type_RECTANGLE:
         {
             // draw the rectangle
-            bool bottom = slot->has_flags(Node_Slot_Flag_ORDER_1ST);
+            bool bottom = slot->has_flags(Node_Slot::Flag_ORDER_1ST);
             ImDrawFlags corner_flags = bottom ? ImDrawFlags_RoundCornersBottom
                                               : ImDrawFlags_RoundCornersTop;
             draw_list->AddRectFilled(rect.min, rect.max, ImColor(fill_color), border_radius, corner_flags );
@@ -125,11 +125,11 @@ void Node_Slot_View::update(float dt)
     // 1) Update visibility
     //---------------------
 
-    if (slot->capacity() == 0)
+    if (slot->capacity == 0)
     {
         _state.set_visible(false);
     }
-    else if (slot->type() == Node_Slot_Flag_TYPE_FLOW )
+    else if (slot->type() == Node_Slot::Flag_TYPE_FLOW )
     {
         // A code flow slot has to be hidden when cannot be an instruction or is not
         bool desired_visibility = node_is_instruction(node() ) || node_could_be_instruction(node() );
@@ -144,7 +144,7 @@ void Node_Slot_View::update(float dt)
     //-------------------
 
     const Config* cfg = get_config();
-    if (slot->type() == Node_Slot_Flag_TYPE_FLOW )
+    if (slot->type() == Node_Slot::Flag_TYPE_FLOW )
     {
         // Align the code flow slots like that (example at top-left corner)
         //

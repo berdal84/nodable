@@ -80,11 +80,11 @@ namespace ndbl
             // Struct to get a list of nodes from given flags, caches the result
 
             explicit Adjacent_Nodes_Cache(const Node* node): _node(node) {}
-            const std::vector<Node*>& get(Node_Slot_Flags) const;
+            const std::vector<Node*>& get(Node_Slot::Flags) const;
             void set_dirty() { _cache.clear(); }
         private:
             const Node* _node;
-            std::unordered_map<Node_Slot_Flags, std::vector<Node*>> _cache;
+            std::unordered_map<Node_Slot::Flags, std::vector<Node*>> _cache;
         };
 
         struct Switch_Behavior_State
@@ -231,10 +231,10 @@ namespace ndbl
         const Node_Slot*          flow_out() const;
         Node_Slot*                flow_enter();
         const Node_Slot*          flow_enter() const;
-        const std::vector<Node*>& inputs() const       { return adjacent_nodes_cache.get(Node_Slot_Flag_INPUT); }
-        const std::vector<Node*>& outputs() const      { return adjacent_nodes_cache.get(Node_Slot_Flag_OUTPUT); }
-        const std::vector<Node*>& flow_inputs() const  { return adjacent_nodes_cache.get(Node_Slot_Flag_FLOW_IN); }
-        const std::vector<Node*>& flow_outputs() const { return adjacent_nodes_cache.get(Node_Slot_Flag_FLOW_OUT); }
+        const std::vector<Node*>& inputs() const       { return adjacent_nodes_cache.get(Node_Slot::Flag_INPUT); }
+        const std::vector<Node*>& outputs() const      { return adjacent_nodes_cache.get(Node_Slot::Flag_OUTPUT); }
+        const std::vector<Node*>& flow_inputs() const  { return adjacent_nodes_cache.get(Node_Slot::Flag_FLOW_IN); }
+        const std::vector<Node*>& flow_outputs() const { return adjacent_nodes_cache.get(Node_Slot::Flag_FLOW_OUT); }
         void                      handle_slot_change(Node_Slot::Event, Node_Slot*);        
     };
 
@@ -266,23 +266,23 @@ namespace ndbl
     inline std::string      node_get_identifier(const Node* node) { return node_get_identifier_token(node).word_to_string(); }
     
     // Slot-related
-    Node_Slot*              node_add_slot(Node*, Node_Property *, Node_Slot_Flags, size_t limit_capacity = 0, size_t _position = 0);
+    Node_Slot*              node_add_slot(Node*, Node_Property *, Node_Slot::Flags, size_t limit_capacity = 0, size_t _position = 0);
     bool                    node_has_flow_adjacent(const Node*);
-    std::vector<Node_Slot*> node_filter_slots(const Node*, Node_Slot_Flags);
+    std::vector<Node_Slot*> node_filter_slots(const Node*, Node_Slot::Flags);
     std::vector<Node_Slot*> node_filter_slots(const Node*, const std::function<bool(const Node_Slot*)>& predicate);
-    std::vector<Node_Slot*> node_filter_adjacent_slots(const Node*, Node_Slot_Flags);
-    inline size_t           node_adjacent_slot_count(const Node* node, Node_Slot_Flags flags) { return node_filter_adjacent_slots(node, flags).size(); }
-    inline size_t           node_slot_count(const Node* node, Node_Slot_Flags flags) { return node_filter_slots(node, flags).size(); }
-    const Node_Slot*        node_find_slot_at(const Node*, Node_Slot_Flags, size_t _position ); // implicitly DEFAULT_PROPERTY's slot
-    inline Node_Slot*       node_find_slot_at(Node* node, Node_Slot_Flags flags, size_t pos ) { return const_cast<Node_Slot*>( node_find_slot_at(const_cast<const Node*>(node), flags, pos)); } // implicitly DEFAULT_PROPERTY's slot
-    const Node_Slot*        node_find_slot_by_property_name(const Node*, const char* name, Node_Slot_Flags );
-    inline Node_Slot*       node_find_slot_by_property_name(Node* node, const char* name, Node_Slot_Flags flags) { return const_cast<Node_Slot*>( node_find_slot_by_property_name(const_cast<const Node*>(node), name, flags) ); };
-    Node_Slot*              node_find_slot_by_property_type(const Node*, Node_Slot_Flags _way, const tools::Type_Descriptor *_type);
-    const Node_Slot*        node_find_slot_by_property(const Node*, const Node_Property*, Node_Slot_Flags );
-    inline Node_Slot*       node_find_slot_by_property(Node* node, const Node_Property* prop, Node_Slot_Flags flags ) { return const_cast<Node_Slot*>( node_find_slot_by_property(const_cast<const Node*>(node), prop, flags ) ); }
-    inline const Node_Slot* node_find_slot(const Node* node, Node_Slot_Flags flags) { return node_find_slot_by_property(node, node->value, flags ); }// implicitly DEFAULT_PROPERTY's slot
-    inline Node_Slot*       node_find_slot(Node* node, Node_Slot_Flags flags) { return node_find_slot_by_property(node, node->value, flags ); }// implicitly DEFAULT_PROPERTY's slot
-    inline Node_Slot*       node_find_adjacent_at(const Node*, Node_Slot_Flags, size_t _index );
+    std::vector<Node_Slot*> node_filter_adjacent_slots(const Node*, Node_Slot::Flags);
+    inline size_t           node_adjacent_slot_count(const Node* node, Node_Slot::Flags flags) { return node_filter_adjacent_slots(node, flags).size(); }
+    inline size_t           node_slot_count(const Node* node, Node_Slot::Flags flags) { return node_filter_slots(node, flags).size(); }
+    const Node_Slot*        node_find_slot_at(const Node*, Node_Slot::Flags, size_t _position ); // implicitly DEFAULT_PROPERTY's slot
+    inline Node_Slot*       node_find_slot_at(Node* node, Node_Slot::Flags flags, size_t pos ) { return const_cast<Node_Slot*>( node_find_slot_at(const_cast<const Node*>(node), flags, pos)); } // implicitly DEFAULT_PROPERTY's slot
+    const Node_Slot*        node_find_slot_by_property_name(const Node*, const char* name, Node_Slot::Flags );
+    inline Node_Slot*       node_find_slot_by_property_name(Node* node, const char* name, Node_Slot::Flags flags) { return const_cast<Node_Slot*>( node_find_slot_by_property_name(const_cast<const Node*>(node), name, flags) ); };
+    Node_Slot*              node_find_slot_by_property_type(const Node*, Node_Slot::Flags _way, const tools::Type_Descriptor *_type);
+    const Node_Slot*        node_find_slot_by_property(const Node*, const Node_Property*, Node_Slot::Flags );
+    inline Node_Slot*       node_find_slot_by_property(Node* node, const Node_Property* prop, Node_Slot::Flags flags ) { return const_cast<Node_Slot*>( node_find_slot_by_property(const_cast<const Node*>(node), prop, flags ) ); }
+    inline const Node_Slot* node_find_slot(const Node* node, Node_Slot::Flags flags) { return node_find_slot_by_property(node, node->value, flags ); }// implicitly DEFAULT_PROPERTY's slot
+    inline Node_Slot*       node_find_slot(Node* node, Node_Slot::Flags flags) { return node_find_slot_by_property(node, node->value, flags ); }// implicitly DEFAULT_PROPERTY's slot
+    inline Node_Slot*       node_find_adjacent_at(const Node*, Node_Slot::Flags, size_t _index );
 
     // Property-related
     Node_Property*          node_add_prop(Node*, const tools::Type_Descriptor*, const char* name, Node_Property::Flags = Node_Property::Flag_NONE);
@@ -298,8 +298,8 @@ namespace ndbl
 
     // Misc.
 
-    std::vector<Node*>      node_get_adjacent_nodes(const Node*, Node_Slot_Flags);
-    Node*                   node_adjacent_node_at(const Node*, Node_Slot_Flags, u8_t pos);
+    std::vector<Node*>      node_get_adjacent_nodes(const Node*, Node_Slot::Flags);
+    Node*                   node_adjacent_node_at(const Node*, Node_Slot::Flags, u8_t pos);
     bool                    node_could_be_instruction(const Node*);
     bool                    node_is_instruction(const Node*);
     bool                    node_is_unary_operator(const Node*);

@@ -319,7 +319,7 @@ void Scope::_update_backbone_cache() const
         m_cached_backbone.push_back(curr_node );
 
         // get next
-        ASSERT( curr_node->flow_out()->capacity() == 1 );
+        ASSERT( curr_node->flow_out()->capacity == 1 );
         Node_Slot* out = curr_node->flow_out();
         curr_node = out->first_adjacent_node();
     }

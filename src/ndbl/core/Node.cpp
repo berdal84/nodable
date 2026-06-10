@@ -159,7 +159,7 @@ void ndbl::node_shutdown(Node* node)
 
 const Function_Descriptor* ndbl::node_get_connected_function_type(const Node* node, const char* property_name)
 {
-    const Node_Slot* slot = node_find_slot_by_property_name(node, property_name, Node_Slot_Flag_INPUT );
+    const Node_Slot* slot = node_find_slot_by_property_name(node, property_name, Node_Slot::Flag_INPUT );
     VERIFY(slot!= nullptr, "Unable to find input slot for this property name");
     const Node_Slot* adjacent_slot = slot->first_adjacent();
 
@@ -170,7 +170,7 @@ const Function_Descriptor* ndbl::node_get_connected_function_type(const Node* no
     return nullptr;
 }
 
-const Node_Slot* ndbl::node_find_slot_by_property_name(const Node* node, const char* property_name, Node_Slot_Flags desired_way)
+const Node_Slot* ndbl::node_find_slot_by_property_name(const Node* node, const char* property_name, Node_Slot::Flags desired_way)
 {
     const Node_Property* property = node_find_prop_by_name(node, property_name);
     if( property )
@@ -180,7 +180,7 @@ const Node_Slot* ndbl::node_find_slot_by_property_name(const Node* node, const c
     return nullptr;
 }
 
-const Node_Slot* ndbl::node_find_slot_at(const Node* node, Node_Slot_Flags flags, size_t position)
+const Node_Slot* ndbl::node_find_slot_at(const Node* node, Node_Slot::Flags flags, size_t position)
 {
     for( const Node_Slot* slot : node->slots )
     {
@@ -192,7 +192,7 @@ const Node_Slot* ndbl::node_find_slot_at(const Node* node, Node_Slot_Flags flags
     return nullptr;
 }
 
-Node_Slot* ndbl::node_find_slot_by_property_type(const Node* node, Node_Slot_Flags flags, const Type_Descriptor* type)
+Node_Slot* ndbl::node_find_slot_by_property_type(const Node* node, Node_Slot::Flags flags, const Type_Descriptor* type)
 {
     for(Node_Slot* slot : node_filter_slots(node, flags) )
     {
@@ -209,13 +209,13 @@ void ndbl::Node::handle_slot_change(Node_Slot::Event event, Node_Slot* slot)
     this->adjacent_nodes_cache.set_dirty();
 }
 
-Node_Slot* ndbl::node_add_slot(Node* node, Node_Property* property, Node_Slot_Flags flags, size_t capacity, size_t position)
+Node_Slot* ndbl::node_add_slot(Node* node, Node_Property* property, Node_Slot::Flags flags, size_t capacity, size_t position)
 {
     ASSERT( property != nullptr );
     ASSERT( property->node == node );
-    if ( (flags & Node_Slot_Flag_FLOW_OUT) == Node_Slot_Flag_FLOW_OUT)
+    if ( (flags & Node_Slot::Flag_FLOW_OUT) == Node_Slot::Flag_FLOW_OUT)
     {
-        VERIFY( capacity == 1, "Node_Slot_Flag_FLOW_OUT can only have a capacity of 1" );
+        VERIFY( capacity == 1, "Node_Slot::Flag_FLOW_OUT can only have a capacity of 1" );
     }
 
     Node_Slot* slot = new Node_Slot(flags, capacity, position);
@@ -234,12 +234,12 @@ Node_Slot* ndbl::node_add_slot(Node* node, Node_Property* property, Node_Slot_Fl
     return slot;
 }
 
-std::vector<Node_Slot*> ndbl::node_filter_adjacent_slots(const Node* node, Node_Slot_Flags flags )
+std::vector<Node_Slot*> ndbl::node_filter_adjacent_slots(const Node* node, Node_Slot::Flags flags )
 {
     std::vector<Node_Slot*> result;
 
     for(Node_Slot* slot : node_filter_slots(node, flags))
-        for( Node_Slot* each : slot->adjacent() )
+        for( Node_Slot* each : slot->adjacent )
             result.push_back( each );
 
     return result;
@@ -247,11 +247,11 @@ std::vector<Node_Slot*> ndbl::node_filter_adjacent_slots(const Node* node, Node_
 
 bool ndbl::node_has_input_connected(const Node* node, const Node_Property* property )
 {
-    const Node_Slot* slot = node_find_slot_by_property(node, property, Node_Slot_Flag_INPUT );
-    return slot && slot->adjacent_count() > 0;
+    const Node_Slot* slot = node_find_slot_by_property(node, property, Node_Slot::Flag_INPUT );
+    return slot && slot->adjacent.size > 0;
 }
 
-const Node_Slot* ndbl::node_find_slot_by_property(const Node* node, const Node_Property* prop, Node_Slot_Flags flags)
+const Node_Slot* ndbl::node_find_slot_by_property(const Node* node, const Node_Property* prop, Node_Slot::Flags flags)
 {
     auto it = node->slots_by_prop.find(prop);
     if ( it != node->slots_by_prop.end() )
@@ -261,7 +261,7 @@ const Node_Slot* ndbl::node_find_slot_by_property(const Node* node, const Node_P
     return nullptr;
 }
 
-Node_Slot* ndbl::node_find_adjacent_at(const Node* node, Node_Slot_Flags _flags, size_t _index )
+Node_Slot* ndbl::node_find_adjacent_at(const Node* node, Node_Slot::Flags _flags, size_t _index )
 {
     size_t cursor_pos{0};
     for (Node_Slot* slot : node->slots)
@@ -274,17 +274,17 @@ Node_Slot* ndbl::node_find_adjacent_at(const Node* node, Node_Slot_Flags _flags,
 
         // if the position is in the range of this slot, we return the item
         size_t local_pos = (size_t)_index - cursor_pos;
-        if ( local_pos < slot->adjacent_count() )
+        if ( local_pos < slot->adjacent.size )
         {
-            return slot->adjacent_at(local_pos);
+            return node_slot_adjacent_at(slot, local_pos);
         }
         // increase counter
-        cursor_pos += slot->adjacent_count();
+        cursor_pos += slot->adjacent.size;
     }
     return nullptr;
 }
 
-std::vector<Node_Slot*> ndbl::node_filter_slots(const Node* node, Node_Slot_Flags flags)
+std::vector<Node_Slot*> ndbl::node_filter_slots(const Node* node, Node_Slot::Flags flags)
 {
     const auto if_has_flags = [flags](const Node_Slot* _slot)
     {
@@ -303,22 +303,22 @@ std::vector<Node_Slot*> ndbl::node_filter_slots(const Node* node, const std::fun
 
 Node_Slot* Node::value_out()
 {
-    return const_cast<Node_Slot*>( node_find_slot_by_property(this, value, Node_Slot_Flag_OUTPUT ) );
+    return const_cast<Node_Slot*>( node_find_slot_by_property(this, value, Node_Slot::Flag_OUTPUT ) );
 }
 
 const Node_Slot* Node::value_out() const
 {
-    return node_find_slot_by_property(this, value, Node_Slot_Flag_OUTPUT );
+    return node_find_slot_by_property(this, value, Node_Slot::Flag_OUTPUT );
 }
 
 Node_Slot* Node::value_in()
 {
-    return const_cast<Node_Slot*>( node_find_slot_by_property(this, value, Node_Slot_Flag_INPUT ) );
+    return const_cast<Node_Slot*>( node_find_slot_by_property(this, value, Node_Slot::Flag_INPUT ) );
 }
 
 const Node_Slot* Node::value_in() const
 {
-    return node_find_slot_by_property(this, value, Node_Slot_Flag_INPUT );
+    return node_find_slot_by_property(this, value, Node_Slot::Flag_INPUT );
 }
 
 Node_Slot* Node::flow_enter()
@@ -334,7 +334,7 @@ const Node_Slot* Node::flow_enter() const
     {
         const auto& [_, slots] = *it;
         for( Node_Slot* slot : slots )
-            if( slot->has_flags(Node_Slot_Flag_FLOW_ENTER) )
+            if( slot->has_flags(Node_Slot::Flag_FLOW_ENTER) )
                 return slot;
     }
     return nullptr;
@@ -353,7 +353,7 @@ const Node_Slot* Node::flow_out() const
     {
         const auto& [_, slots] = *it;
         for( Node_Slot* slot : slots )
-            if( slot->has_flags(Node_Slot_Flag_FLOW_OUT) && !slot->has_flags(Node_Slot_Flag_IS_INTERNAL) ) // branches are specific flow_out, we don't want to grab them here
+            if( slot->has_flags(Node_Slot::Flag_FLOW_OUT) && !slot->has_flags(Node_Slot::Flag_IS_INTERNAL) ) // branches are specific flow_out, we don't want to grab them here
                 return slot;
     }
     return nullptr;
@@ -361,12 +361,12 @@ const Node_Slot* Node::flow_out() const
 
 Node_Slot* Node::flow_in()
 {
-    return const_cast<Node_Slot*>( node_find_slot_by_property(this, value, Node_Slot_Flag_FLOW_IN ) );
+    return const_cast<Node_Slot*>( node_find_slot_by_property(this, value, Node_Slot::Flag_FLOW_IN ) );
 }
 
 const Node_Slot* Node::flow_in() const
 {
-    return node_find_slot_by_property(this, value, Node_Slot_Flag_FLOW_IN );
+    return node_find_slot_by_property(this, value, Node_Slot::Flag_FLOW_IN );
 }
 
 bool ndbl::node_update(Node* node)
@@ -375,7 +375,7 @@ bool ndbl::node_update(Node* node)
     return true;
 }
 
-const std::vector<Node*>& Node::Adjacent_Nodes_Cache::get(Node_Slot_Flags flags ) const
+const std::vector<Node*>& Node::Adjacent_Nodes_Cache::get(Node_Slot::Flags flags ) const
 {
     if ( _cache.find(flags) == _cache.end() )
     {
@@ -517,9 +517,9 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& 
     // Create a result/value
     property_set_type(node->value, _func_type.return_type() );
 
-    node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT );
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT , 1);
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN );
+    node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT );
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN );
 
     // Create arguments
     if (node->type == Node_Type_OPERATOR )
@@ -551,7 +551,7 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& 
         if ( arg.pass_by_ref )
             property->set_flags(Node_Property::Flag_IS_REF);
 
-        node->_invokable_data.m_argument_slot[i]  = node_add_slot(node, property, Node_Slot_Flag_INPUT, 1);
+        node->_invokable_data.m_argument_slot[i]  = node_add_slot(node, property, Node_Slot::Flag_INPUT, 1);
         node->_invokable_data.m_argument_props[i] = property;
     }
 }
@@ -566,12 +566,12 @@ void ndbl::node_init_as_variable(Node* node, const tools::Type_Descriptor* _type
     node->value->token.word_replace(_identifier); // might come from std::string::c_str()
 
     // Init Node_Slots
-    node_add_slot(node, node->value, Node_Slot_Flag_INPUT, 1); // to connect an initialization expression
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
+    node_add_slot(node, node->value, Node_Slot::Flag_INPUT, 1); // to connect an initialization expression
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
 
-    node->_variable_data.decl_out = node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT, 1); // as declaration
-    node->_variable_data.ref_out  = node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT); // as reference
+    node->_variable_data.decl_out = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT, 1); // as declaration
+    node->_variable_data.ref_out  = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT); // as reference
 }
 
 void ndbl::node_init_as_variable_ref(Node* node)
@@ -583,10 +583,10 @@ void ndbl::node_init_as_variable_ref(Node* node)
     node->value->token = Token{Token_Type::identifier};
 
     // Init Node_Slots
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
-    node_add_slot(node, node->value, Node_Slot_Flag_INPUT   , 1);
-    node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT  , 1); // ref can be connected once
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+    node_add_slot(node, node->value, Node_Slot::Flag_INPUT   , 1);
+    node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT  , 1); // ref can be connected once
 }
 
 void ndbl::node_variable_ref_set_variable(Node* node, Node* variable_node)
@@ -627,9 +627,9 @@ void ndbl::node_init_as_literal(Node* node, const Type_Descriptor* type_descript
     
     property_set_type(node->value, type_descriptor);
 
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT , 1);
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
-    node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT   , 1);        
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+    node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT   , 1);        
 }
 
 
@@ -641,20 +641,20 @@ void ndbl::node_init_branches(Node* node, size_t branch_count)
 
     node->_switch_behavior_data.m_branch_count = branch_count;
 
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);      // accepts N inputs
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT , 1); // accepts 0 or 1 output
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);      // accepts N inputs
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1); // accepts 0 or 1 output
 
     // add 1 slot per branch
     for(size_t branch = 0; branch < branch_count; ++branch )
     {
-        node->_switch_behavior_data.m_branch_slot[branch] = node_add_slot(node, node->value, Node_Slot_Flag_FLOW_ENTER, 1, branch);
+        node->_switch_behavior_data.m_branch_slot[branch] = node_add_slot(node, node->value, Node_Slot::Flag_FLOW_ENTER, 1, branch);
     }
 
     // add 1 condition per branch except for the default branch
     for(size_t branch = 1; branch < branch_count; ++branch )
     {
         auto condition_property = node_add_prop<tools::any>(node, CONDITION_PROPERTY);
-        node->_switch_behavior_data.m_condition_in[branch-1]  = node_add_slot(node, condition_property, Node_Slot_Flag_INPUT, 1, branch);
+        node->_switch_behavior_data.m_condition_in[branch-1]  = node_add_slot(node, condition_property, Node_Slot::Flag_INPUT, 1, branch);
     }
 }
 
@@ -674,7 +674,7 @@ void ndbl::node_init_as_for_loop(Node* node)
 
     // add initialization property and slot
     Node_Property* init_prop = node_add_prop<any>(node, INITIALIZATION_PROPERTY);
-    node->switch_behavior_data().m_initialization_slot = node_add_slot(node, init_prop, Node_Slot_Flag_INPUT, 1);
+    node->switch_behavior_data().m_initialization_slot = node_add_slot(node, init_prop, Node_Slot::Flag_INPUT, 1);
 
     // add conditional-related properties and slots
     node_init_internal_scope(node);
@@ -682,7 +682,7 @@ void ndbl::node_init_as_for_loop(Node* node)
 
     // add iteration property and slot
     Node_Property* iter_prop = node_add_prop<any>(node, ITERATION_PROPERTY);
-    node->switch_behavior_data().m_iteration_slot = node_add_slot(node, iter_prop, Node_Slot_Flag_INPUT, 1);
+    node->switch_behavior_data().m_iteration_slot = node_add_slot(node, iter_prop, Node_Slot::Flag_INPUT, 1);
 }
 
 void ndbl::node_init_as_while_loop(Node* node)
@@ -696,18 +696,18 @@ void ndbl::node_init_as_while_loop(Node* node)
 void ndbl::node_init_as_scope(Node* node)
 {
     node_init(node, Node_Type_SCOPE, "Scope");
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT | Node_Slot_Flag_IS_INTERNAL, 1);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT | Node_Slot::Flag_IS_INTERNAL, 1);
     node_init_internal_scope(node);
 }
 
 void ndbl::node_init_as_root_scope(Node* node)
 {
     node_init(node, Node_Type_ROOT, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
-    // add_slot(node->value(), Node_Slot_Flag_FLOW_IN, Node_Slot::MAX_CAPACITY); nothing can be before...
-    // add_slot(node->value(), Node_Slot_Flag_FLOW_OUT, 1); nothing after either...
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT | Node_Slot_Flag_IS_INTERNAL, 1); // ...but something inside!
+    // add_slot(node->value(), Node_Slot::Flag_FLOW_IN, Node_Slot::MAX_CAPACITY); nothing can be before...
+    // add_slot(node->value(), Node_Slot::Flag_FLOW_OUT, 1); nothing after either...
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT | Node_Slot::Flag_IS_INTERNAL, 1); // ...but something inside!
     node_init_internal_scope(node);
 }
 
@@ -718,17 +718,17 @@ void ndbl::node_init_as_empty_instruction(Node* node)
     // Token will be/or not overriden as a Token_t::end_of_instruction by the parser
     node->value->token = Token{Token_Type::ignore};
 
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
-    node_add_slot(node, node->value, Node_Slot_Flag_OUTPUT  , 1);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+    node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT  , 1);
 }
 
-std::vector<Node*> ndbl::node_get_adjacent_nodes(const Node* node, Node_Slot_Flags flags)
+std::vector<Node*> ndbl::node_get_adjacent_nodes(const Node* node, Node_Slot::Flags flags)
 {
     std::vector<Node*> result;
     for ( Node_Slot* slot : node_filter_slots(node, flags ) )
     {
-        for( const Node_Slot* adjacent : slot->adjacent() )
+        for( const Node_Slot* adjacent : slot->adjacent )
         {
             result.emplace_back(adjacent->node );
         }
@@ -736,7 +736,7 @@ std::vector<Node*> ndbl::node_get_adjacent_nodes(const Node* node, Node_Slot_Fla
     return result;
 }
 
-Node* ndbl::node_adjacent_node_at(const Node* node, Node_Slot_Flags flags, u8_t pos)
+Node* ndbl::node_adjacent_node_at(const Node* node, Node_Slot::Flags flags, u8_t pos)
 {
     if ( Node_Slot* adjacent_slot = node_find_adjacent_at(node, flags, pos ) )
     {
@@ -766,7 +766,7 @@ bool ndbl::node_is_connected_to_codeflow(const Node *node)
 bool ndbl::node_could_be_instruction(const Node* node)
 {
     // TODO: handle case where a variable has inputs/outputs but not connected to the code flow
-    return node_slot_count(node, Node_Slot_Flag_TYPE_FLOW) > 0 && node->inputs().empty() && node->outputs().empty();
+    return node_slot_count(node, Node_Slot::Flag_TYPE_FLOW) > 0 && node->inputs().empty() && node->outputs().empty();
 }
 
 bool ndbl::node_is_unary_operator(const Node* node)

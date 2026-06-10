@@ -77,8 +77,8 @@ void Node_View::_handle_init()
             m_value_view = new_view;
         }
 
-        bool has_in  = node_find_slot_by_property(node(), property, Node_Slot_Flag_INPUT );
-        bool has_out = node_find_slot_by_property(node(), property, Node_Slot_Flag_OUTPUT );
+        bool has_in  = node_find_slot_by_property(node(), property, Node_Slot::Flag_INPUT );
+        bool has_out = node_find_slot_by_property(node(), property, Node_Slot::Flag_OUTPUT );
 
         if ( has_in)
             m_view_by_property_type[PropType_IN].push_back(new_view);
@@ -104,11 +104,11 @@ void Node_View::_handle_init()
 
     auto get_shapetype = [](const Node_Slot* slot)
     {
-        switch ( slot->flags() & Node_Slot_Flag_TYPE_MASK )
+        switch ( slot->flags & Node_Slot::Flag_TYPE_MASK )
         {
-            case Node_Slot_Flag_TYPE_FLOW:
+            case Node_Slot::Flag_TYPE_FLOW:
                 return Shape_Type_RECTANGLE;
-            case Node_Slot_Flag_TYPE_VALUE:
+            case Node_Slot::Flag_TYPE_VALUE:
                 return Shape_Type_CIRCLE;
             default:
                 ASSERT(false); // no implemented yet
@@ -118,15 +118,15 @@ void Node_View::_handle_init()
 
     auto get_pivot = [](const Node_Slot* slot)
     {
-        switch( slot->flags() & ( Node_Slot_Flag_TYPE_MASK | Node_Slot_Flag_ORDER_MASK ) )
+        switch( slot->flags & ( Node_Slot::Flag_TYPE_MASK | Node_Slot::Flag_ORDER_MASK ) )
         {
-            case Node_Slot_Flag_INPUT:
+            case Node_Slot::Flag_INPUT:
                 return TOP;
-            case Node_Slot_Flag_OUTPUT:
+            case Node_Slot::Flag_OUTPUT:
                 return BOTTOM;
-            case Node_Slot_Flag_FLOW_IN:
+            case Node_Slot::Flag_FLOW_IN:
                 return TOP_LEFT;
-            case Node_Slot_Flag_FLOW_OUT:
+            case Node_Slot::Flag_FLOW_OUT:
                 return BOTTOM_LEFT;
             default:
                 ASSERT(false); // not implemented yet
@@ -134,12 +134,12 @@ void Node_View::_handle_init()
         }
     };
 
-    std::unordered_map<Node_Slot_Flags, u8_t> count_per_type
+    std::unordered_map<Node_Slot::Flags, u8_t> count_per_type
             {
-                    {Node_Slot_Flag_FLOW_OUT, 0 },
-                    {Node_Slot_Flag_FLOW_IN , 0 },
-                    {Node_Slot_Flag_INPUT   , 0 },
-                    {Node_Slot_Flag_OUTPUT  , 0 }
+                    {Node_Slot::Flag_FLOW_OUT, 0 },
+                    {Node_Slot::Flag_FLOW_IN , 0 },
+                    {Node_Slot::Flag_INPUT   , 0 },
+                    {Node_Slot::Flag_OUTPUT  , 0 }
             };
 
     // Create a view per slot
@@ -155,7 +155,7 @@ void Node_View::_handle_init()
     {
         switch ( view->slot->type() )
         {
-            case Node_Slot_Flag_TYPE_VALUE:
+            case Node_Slot::Flag_TYPE_VALUE:
             {
                 const Node_Property_View* property_view = _find_property_view(view->property());
                 if ( property_view != nullptr && property_view->state()->visible() )
@@ -297,7 +297,7 @@ std::string Node_View::get_label()
 
 void Node_View::arrange_recursively(bool _smoothly)
 {
-    for (auto each_input: get_adjacent(Node_Slot_Flag_INPUT) )
+    for (auto each_input: get_adjacent(Node_Slot::Flag_INPUT) )
     {
         if ( !each_input->m_view_state.pinned() )
             if (node_is_output_node_in_expression(each_input->node(), node() ) )
@@ -824,7 +824,7 @@ void Node_View::set_expanded(bool _expanded)
 
 void Node_View::set_inputs_visible(bool _visible, bool _recursive)
 {
-    _set_adjacent_visible(Node_Slot_Flag_INPUT, _visible, Node_ViewFlag_WITH_RECURSION * _recursive);
+    _set_adjacent_visible(Node_Slot::Flag_INPUT, _visible, Node_ViewFlag_WITH_RECURSION * _recursive);
 }
 
 void Node_View::set_children_visible(bool visible, bool recursively)
@@ -841,7 +841,7 @@ void Node_View::set_children_visible(bool visible, bool recursively)
                 view->state()->set_visible(visible );
 }
 
-void Node_View::_set_adjacent_visible(Node_Slot_Flags slot_flags, bool _visible, Node_ViewFlags node_flags)
+void Node_View::_set_adjacent_visible(Node_Slot::Flags slot_flags, bool _visible, Node_ViewFlags node_flags)
 {
     bool has_not_output = node()->outputs().empty();
     for( auto each_child_view : get_adjacent(slot_flags) )
@@ -880,7 +880,7 @@ Node_View* Node_View::substitute_with_parent_if_not_visible(Node_View* _view, bo
     return nullptr;
 }
 
-std::vector<Node_View*> Node_View::get_adjacent(Node_Slot_Flags flags) const
+std::vector<Node_View*> Node_View::get_adjacent(Node_Slot::Flags flags) const
 {
     std::vector<Node_View*> result;
         for(auto _adjacent_node : node_get_adjacent_nodes( node(), flags ) )

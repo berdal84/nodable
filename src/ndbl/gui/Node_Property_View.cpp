@@ -44,7 +44,7 @@ bool Node_Property_View::has_input_connected() const
 
 Node_Slot* Node_Property_View::get_connected_slot() const
 {
-    const Node_Slot* input_slot = node_find_slot_by_property(get_node(), _property, Node_Slot_Flag_INPUT );
+    const Node_Slot* input_slot = node_find_slot_by_property(get_node(), _property, Node_Slot::Flag_INPUT );
     if( !input_slot )
         return nullptr;
 
@@ -99,7 +99,7 @@ bool Node_Property_View::draw(View_Detail _detail)
             }
 
         // Always show properties that have an input slot free
-        if (auto* slot = node_find_slot_by_property(node, property, Node_Slot_Flag_INPUT))
+        if (auto* slot = node_find_slot_by_property(node, property, Node_Slot::Flag_INPUT))
             this->show |= !slot->is_full();
 
         this->show |= this->touched;
@@ -135,7 +135,7 @@ bool Node_Property_View::draw(View_Detail _detail)
         ImGui::Text("%s %s\n", property->type->name(), property->name.c_str());
 
         std::string  source_code;
-        if( property == node->value || node_find_slot_by_property( node, property, Node_Slot_Flag_OUTPUT ))
+        if( property == node->value || node_find_slot_by_property( node, property, Node_Slot::Flag_OUTPUT ))
             get_language()->serialize_node(source_code, node, Serialization_Flag_RECURSE);
         else
             get_language()->serialize_property(source_code, property );

@@ -77,7 +77,7 @@ namespace ndbl
 		~Node_View() override;
 
         Node*                   node() const { return entity(); } // entity() alias
-        std::vector<Node_View*> get_adjacent(Node_Slot_Flags) const;
+        std::vector<Node_View*> get_adjacent(Node_Slot::Flags) const;
         bool                    draw();
         void                    update(float);
         void                    arrange_recursively(bool smoothly = true);
@@ -114,7 +114,7 @@ namespace ndbl
         Node_Property_View*     _find_property_view(const Node_Property*);
         void                    _add_child(CView auto* view);
         void                    _draw_slot(Node_Slot_View*);
-        void                    _set_adjacent_visible(Node_Slot_Flags, bool _visible, Node_ViewFlags = Node_ViewFlag_NONE);
+        void                    _set_adjacent_visible(Node_Slot::Flags, bool _visible, Node_ViewFlags = Node_ViewFlag_NONE);
 
         static void DrawNodeRect(
                 tools::Rect rect,

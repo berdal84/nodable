@@ -41,7 +41,7 @@ namespace ndbl
     };
 
     typedef std::vector<Node*> Node_Registry;
-    typedef std::multimap<Node_Slot_Flags , Node_Slot_Link> Edge_Registry;
+    typedef std::multimap<Node_Slot::Flags , Node_Slot_Link> Edge_Registry;
 
     /**
      * @brief To manage a graph (primary_child and edges)

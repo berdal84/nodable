@@ -161,7 +161,7 @@ void Graph::_clean_node(Node* node)
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name.c_str() );
 
     // disconnect and erase any link related to this node
-    auto concerns_node = [&](const std::pair<Node_Slot_Flags, Node_Slot_Link>& pair )
+    auto concerns_node = [&](const std::pair<Node_Slot::Flags, Node_Slot_Link>& pair )
     {
         const Node_Slot_Link& edge = pair.second;
         return edge.tail->node == node
@@ -237,8 +237,8 @@ void Graph::find_and_destroy(Node* node)
     // backup slots
     const Node_Slot* flow_in  = node->flow_in();
     const Node_Slot* flow_out = node->flow_out();
-    const bool flow_can_be_maintained = flow_in->adjacent_count() == 1
-                                     && flow_out->adjacent_count() == 1;
+    const bool flow_can_be_maintained = flow_in->adjacent.size == 1
+                                     && flow_out->adjacent.size == 1;
     Node_Slot* prev_adjacent_slot = flow_in->first_adjacent();
     Node_Slot* next_adjacent_slot = flow_out->first_adjacent();
 
@@ -260,9 +260,9 @@ void Graph::find_and_destroy(Node* node)
 Node_Slot_Link Graph::connect_or_merge(Node_Slot* tail, Node_Slot* head )
 {
     // Guards
-    ASSERT(head->has_flags(Node_Slot_Flag_INPUT ) );
+    ASSERT(head->has_flags(Node_Slot::Flag_INPUT ) );
     ASSERT(!head->is_full());
-    ASSERT(tail->has_flags(Node_Slot_Flag_OUTPUT ) );
+    ASSERT(tail->has_flags(Node_Slot::Flag_OUTPUT ) );
     ASSERT(!tail->is_full());
     VERIFY(head->property, "tail property must be defined" );
     VERIFY(tail->property, "head property must be defined" );
@@ -298,7 +298,7 @@ Node_Slot_Link Graph::connect_or_merge(Node_Slot* tail, Node_Slot* head )
 Node_Slot_Link Graph::connect_to_variable(Node_Slot* output_slot, Node* _variable )
 {
     // Guards
-    ASSERT( output_slot->has_flags(Node_Slot_Flag_OUTPUT) );
+    ASSERT( output_slot->has_flags(Node_Slot::Flag_OUTPUT) );
     ASSERT( !output_slot->is_full() );
     return connect_or_merge( output_slot, _variable->value_in() );
 }
@@ -318,17 +318,17 @@ Node_Slot_Link Graph::connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _fla
 
 
     // DirectedEdge is just data, we must add manually cross-references to each end of the edge
-    edge.tail->add_adjacent( edge.head );
-    edge.head->add_adjacent( edge.tail );
+    node_slot_add_adjacent( edge.tail, edge.head );
+    node_slot_add_adjacent( edge.head, edge.tail );
 
     // Handle side effects
     if (_flags & Graph_Flag_ALLOW_SIDE_EFFECTS )
     {
         switch ( edge.type() )
         {
-            case Node_Slot_Flag_TYPE_FLOW:
+            case Node_Slot::Flag_TYPE_FLOW:
                 _handle_connect_flow_side_effects(edge);  break;
-            case Node_Slot_Flag_TYPE_VALUE:
+            case Node_Slot::Flag_TYPE_VALUE:
                 _handle_connect_value_side_effects(edge); break;
             default:
                 ASSERT(false);// This connection type is not yet implemented
@@ -371,7 +371,7 @@ void Graph::_handle_connect_value_side_effects(const Node_Slot_Link& edge )
 
 void Graph::_handle_disconnect_value_side_effects(const Node_Slot_Link& edge )
 {
-    ASSERT( edge.tail->type_and_order() == Node_Slot_Flag_OUTPUT );
+    ASSERT( edge.tail->type_and_order() == Node_Slot::Flag_OUTPUT );
 
     // reset token to a default value to preserve a correct serialization
     if (edge.head->node->type != Node_Type_VARIABLE )
@@ -385,12 +385,12 @@ void Graph::_handle_disconnect_value_side_effects(const Node_Slot_Link& edge )
 
 void Graph::_handle_disconnect_flow_side_effects(const Node_Slot_Link& edge )
 {
-    ASSERT( edge.tail->type_and_order() == Node_Slot_Flag_FLOW_OUT );
+    ASSERT( edge.tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
 
     // Ensure disconnected node gets in the right scope
     //
     Scope* target_scope = root_scope();
-    switch ( edge.head->adjacent_count())
+    switch ( edge.head->adjacent.size)
     {
         case 0:
             break;
@@ -403,7 +403,7 @@ void Graph::_handle_disconnect_flow_side_effects(const Node_Slot_Link& edge )
         {
             // Find the lowest common ancestor of adjacent node(s)
             std::set<Scope*> scopes;
-            for(Node_Slot* _adjacent_slot : edge.head->adjacent() )
+            for(Node_Slot* _adjacent_slot : edge.head->adjacent )
                 scopes.insert(_adjacent_slot->node->scope);
             Scope* ancestor = Scope::lowest_common_ancestor(scopes);
 
@@ -420,15 +420,15 @@ void Graph::_handle_disconnect_flow_side_effects(const Node_Slot_Link& edge )
 
 void Graph::_handle_connect_flow_side_effects(const Node_Slot_Link& edge )
 {
-    ASSERT( edge.tail->type_and_order() == Node_Slot_Flag_FLOW_OUT );
+    ASSERT( edge.tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
 
     Node*  previous_node      = edge.tail->node;
     Node*  next_node          = edge.head->node;
-    size_t    flow_in_edge_count = edge.head->adjacent_count();
+    size_t flow_in_edge_count = edge.head->adjacent.size;
 
     if ( flow_in_edge_count == 1)
     {
-        if ( edge.tail->has_flags(Node_Slot_Flag_IS_INTERNAL) )
+        if ( edge.tail->has_flags(Node_Slot::Flag_IS_INTERNAL) )
         {
             Scope* target_scope = previous_node->internal_scope;
             if ( node_is_conditional(previous_node) )
@@ -453,7 +453,7 @@ void Graph::_handle_connect_flow_side_effects(const Node_Slot_Link& edge )
     {
         // gather adjacent scopes
         std::set<Scope*> scopes;
-        for(Node_Slot* adjacent : edge.head->adjacent() )
+        for(Node_Slot* adjacent : edge.head->adjacent )
             scopes.insert(adjacent->node->scope );
 
         if (scopes.size() == 1 )
@@ -480,7 +480,7 @@ void Graph::_handle_connect_flow_side_effects(const Node_Slot_Link& edge )
 
 Edge_Registry::iterator Graph::find(const Node_Slot_Link& edge, Graph_Flags flags)
 {
-    auto [range_begin, range_end] = m_edge_registry.equal_range( edge.type() & ~Node_Slot_Flag_TYPE_MASK);
+    auto [range_begin, range_end] = m_edge_registry.equal_range( edge.type() & ~Node_Slot::Flag_TYPE_MASK);
     return std::find_if(
             range_begin,
             range_end,
@@ -498,20 +498,20 @@ Edge_Registry::iterator Graph::remove(Edge_Registry::iterator it)
 void Graph::disconnect(Node_Slot_Link& _edge, Graph_Flags flags)
 {
     // disconnect the slots
-    _edge.tail->remove_adjacent(_edge.head);
-    _edge.head->remove_adjacent(_edge.tail);
+    node_slot_remove_adjacent(_edge.tail, _edge.head);
+    node_slot_remove_adjacent(_edge.head, _edge.tail);
 
     // handle side effects
     if ( flags & Graph_Flag_ALLOW_SIDE_EFFECTS )
     {
         switch ( _edge.type() )
         {
-            case Node_Slot_Flag_TYPE_FLOW:
+            case Node_Slot::Flag_TYPE_FLOW:
             {
                 _handle_disconnect_flow_side_effects(_edge);
                 break;
             }
-            case Node_Slot_Flag_TYPE_VALUE:
+            case Node_Slot::Flag_TYPE_VALUE:
             {
                 _handle_disconnect_value_side_effects(_edge);
                 break;
@@ -557,8 +557,8 @@ Node* Graph::create_node(Scope* scope)
     Node* node = new Node();
     
     node_init(node, Node_Type_NULL, "");
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_OUT, 1);
-    node_add_slot(node, node->value, Node_Slot_Flag_FLOW_IN);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
 
     _insert(node, scope);
     

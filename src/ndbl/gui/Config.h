@@ -43,7 +43,7 @@ namespace ndbl
         Vec4           ui_slot_border_color;
         Vec4           ui_slot_color_light;
         Vec4           ui_slot_color_dark;
-        Vec4&          ui_slot_color(Node_Slot_Flags slot_flags);
+        Vec4&          ui_slot_color(Node_Slot::Flags slot_flags);
         Vec4           ui_slot_hovered_color;
         Vec2           ui_slot_rectangle_size;
         float          ui_slot_gap;

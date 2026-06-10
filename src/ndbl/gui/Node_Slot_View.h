@@ -40,7 +40,7 @@ namespace ndbl
         bool                    draw();
         tools::String_64        compute_tooltip() const;
         Node*                   node()const { return slot->node; }
-        bool                    allows(Node_Slot_Flag flags) const { return slot->has_flags(flags); }
+        bool                    allows(Node_Slot::Flag flags) const { return slot->has_flags(flags); }
         tools::Spatial_Node*        spatial_node() { return _shape.spatial_node(); }
         const tools::Spatial_Node*  spatial_node() const { return _shape.spatial_node(); }
         tools::Box_2D*              shape() { return &_shape; }

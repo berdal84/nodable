@@ -184,7 +184,7 @@ void Graph_View::draw_wire_from_slot_to_pos(Node_Slot_View *from, const Vec2 &en
     style.shadow_color = cfg->ui_codeflow_shadowColor,
     style.roundness    = 0.f;
 
-    if (from->slot->type() == Node_Slot_Flag_TYPE_FLOW) {
+    if (from->slot->type() == Node_Slot::Flag_TYPE_FLOW) {
         style.color = cfg->ui_codeflow_color,
                 style.thickness = cfg->ui_slot_rectangle_size.x * cfg->ui_codeflow_thickness_ratio;
     } else {
@@ -263,17 +263,17 @@ bool Graph_View::draw(float dt)
             continue;
         }
 
-        std::vector<Node_Slot *> slots = node_filter_slots(each_node, Node_Slot_Flag_FLOW_OUT);
+        std::vector<Node_Slot *> slots = node_filter_slots(each_node, Node_Slot::Flag_FLOW_OUT);
         for (size_t slot_index = 0; slot_index < slots.size(); ++slot_index)
         {
             Node_Slot *slot = slots[slot_index];
 
-            if (slot->empty())
+            if (slot->adjacent.empty() )
             {
                 continue;
             }
 
-            for (const auto &adjacent_slot: slot->adjacent())
+            for (const auto &adjacent_slot: slot->adjacent)
             {
                 Node*     each_successor_node  = adjacent_slot->node;
                 Node_View* possibly_hidden_view = each_successor_node->component<Node_View>();
@@ -318,9 +318,9 @@ bool Graph_View::draw(float dt)
     float time = ImGui::GetTime();
     for (Node* node_out: graph()->nodes() )
     {
-        for (const Node_Slot* slot_out: node_filter_slots(node_out, Node_Slot_Flag_OUTPUT))
+        for (const Node_Slot* slot_out: node_filter_slots(node_out, Node_Slot::Flag_OUTPUT))
         {
-            for(const Node_Slot* slot_in : slot_out->adjacent())
+            for(const Node_Slot* slot_in : slot_out->adjacent)
             {
                 if (slot_in == nullptr)
                     continue;

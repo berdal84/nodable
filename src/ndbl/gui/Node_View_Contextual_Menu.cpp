@@ -32,17 +32,17 @@ void Node_View_Contextual_Menu::update_cache_based_on_signature(Node_Slot_View* 
             case Create_Node_Type__BLOCK_SCOPE:
             case Create_Node_Type__ROOT:
                 // Blocks are only for code flow slots
-                if ( !dragged_slot->allows(Node_Slot_Flag_TYPE_FLOW) )
+                if ( !dragged_slot->allows(Node_Slot::Flag_TYPE_FLOW) )
                     continue;
                 break;
 
             default:
 
-                if ( dragged_slot->allows(Node_Slot_Flag_TYPE_FLOW))
+                if ( dragged_slot->allows(Node_Slot::Flag_TYPE_FLOW))
                 {
                     // we can connect anything to a code flow slot
                 }
-                else if ( dragged_slot->allows(Node_Slot_Flag_INPUT) && dragged_slot->property_type()->is<Node*>() )
+                else if ( dragged_slot->allows(Node_Slot::Flag_INPUT) && dragged_slot->property_type()->is<Node*>() )
                 {
                     // we can connect anything to a Node ref input
                 }
@@ -50,7 +50,7 @@ void Node_View_Contextual_Menu::update_cache_based_on_signature(Node_Slot_View* 
                 {
                     // discard incompatible signatures
 
-                    if ( dragged_slot->allows(Node_Slot_Flag_ORDER_1ST ) &&
+                    if ( dragged_slot->allows(Node_Slot::Flag_ORDER_1ST ) &&
                         !action->event_data.node_signature->has_arg_with_type(dragged_property_type)
                             )
                         continue;

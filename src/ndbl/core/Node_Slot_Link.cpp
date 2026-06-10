@@ -16,11 +16,11 @@ Node_Slot_Link::Node_Slot_Link(Node_Slot* _tail, Node_Slot* _head )
     VERIFY(tail->type() == head->type(), "Node_Slot types are incompatible"  );
     VERIFY(tail->node != head->node    , "Can't connect two slots from the same node");
 
-    if ( tail->order() == Node_Slot_Flag_ORDER_2ND ) // Make sure tail is always FIRST ORDER
+    if ( tail->order() == Node_Slot::Flag_ORDER_2ND ) // Make sure tail is always FIRST ORDER
         std::swap(tail, head);
 
-    ASSERT(tail->flags() & Node_Slot_Flag_ORDER_1ST );
-    ASSERT(head->flags() & Node_Slot_Flag_ORDER_2ND );
+    ASSERT(tail->flags & Node_Slot::Flag_ORDER_1ST );
+    ASSERT(head->flags & Node_Slot::Flag_ORDER_2ND );
     ASSERT(tail->node->graph != nullptr);
     ASSERT(head->node->graph != nullptr);
     VERIFY(tail->node->graph == head->node->graph,"The slots are from Nodes from different graphs" );
@@ -38,10 +38,10 @@ std::string ndbl::to_string(const Node_Slot_Link& _edge)
         result.append(" (slot: ");
         result.append( std::to_string((u64_t)_slot));
 
-        switch (_slot->flags() )
+        switch (_slot->flags)
         {
-            case Node_Slot_Flag_INPUT:   result.append(", INPUT");  break;
-            case Node_Slot_Flag_OUTPUT:  result.append(", OUTPUT"); break;
+            case Node_Slot::Flag_INPUT:   result.append(", INPUT");  break;
+            case Node_Slot::Flag_OUTPUT:  result.append(", OUTPUT"); break;
         }
 
         result.append(")]");
@@ -52,10 +52,10 @@ std::string ndbl::to_string(const Node_Slot_Link& _edge)
     // TODO: enable reflection on SLotFlag_XXX
     switch ( _edge.tail->type() )
     {
-        case Node_Slot_Flag_TYPE_VALUE:
+        case Node_Slot::Flag_TYPE_VALUE:
             result.append(" >==(VALUE)==> ");
             break;
-        case Node_Slot_Flag_TYPE_FLOW:
+        case Node_Slot::Flag_TYPE_FLOW:
             result.append(" >==(CODEFLOW)==> ");
             break;
         default:

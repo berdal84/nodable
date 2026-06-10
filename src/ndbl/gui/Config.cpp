@@ -204,9 +204,9 @@ float ndbl::Config::ui_slot_circle_radius(tools::Size size) const
     return ui_slot_circle_radius_base * tools_cfg->size_factor[size];
 }
 
-Vec4& ndbl::Config::ui_slot_color(ndbl::Node_Slot_Flags slot_flags)
+Vec4& ndbl::Config::ui_slot_color(ndbl::Node_Slot::Flags slot_flags)
 {
-    if ( (slot_flags & Node_Slot_Flag_INPUT) == Node_Slot_Flag_INPUT )
+    if ( (slot_flags & Node_Slot::Flag_INPUT) == Node_Slot::Flag_INPUT )
         return ui_slot_color_light;
 
     return ui_slot_color_dark;

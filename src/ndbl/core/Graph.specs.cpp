@@ -31,11 +31,11 @@ TEST_F(Graph_, connect)
     Graph* graph = app.graph();
     auto* node_1 = graph->create_node();
     auto* prop_1 = node_add_prop<bool>(node_1, "prop_1");
-    auto* slot_1 = node_add_slot(node_1, prop_1, Node_Slot_Flag_OUTPUT, 1);
+    auto* slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
     auto* node_2 = graph->create_node();
     auto* prop_2 = node_add_prop<bool>(node_2, "prop_2");
-    auto* slot_2 = node_add_slot(node_2, prop_2, Node_Slot_Flag_INPUT, 1);
+    auto* slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
     // Act
     Node_Slot_Link edge = graph->connect_or_merge(slot_1, slot_2 );
@@ -52,11 +52,11 @@ TEST_F(Graph_, disconnect)
     Graph* graph = app.graph();
     auto node_1 = graph->create_node();
     auto prop_1 = node_add_prop<bool>(node_1, "prop_1");
-    auto slot_1 = node_add_slot(node_1, prop_1, Node_Slot_Flag_OUTPUT, 1);
+    auto slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
     auto node_2 = graph->create_node();
     auto prop_2 = node_add_prop<bool>(node_2, "prop_2");
-    auto slot_2 = node_add_slot(node_2, prop_2, Node_Slot_Flag_INPUT, 1);
+    auto slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
     EXPECT_EQ(graph->edges().size(), 0);
     Node_Slot_Link edge = graph->connect_or_merge(slot_1, slot_2 );
@@ -67,8 +67,8 @@ TEST_F(Graph_, disconnect)
 
     // Check
     EXPECT_EQ(graph->edges().size() , 0);
-    EXPECT_EQ( node_adjacent_slot_count( node_2, Node_Slot_Flag_OUTPUT ), 0);
-    EXPECT_EQ( node_adjacent_slot_count( node_2, Node_Slot_Flag_INPUT ) , 0);
+    EXPECT_EQ( node_adjacent_slot_count( node_2, Node_Slot::Flag_OUTPUT ), 0);
+    EXPECT_EQ( node_adjacent_slot_count( node_2, Node_Slot::Flag_INPUT ) , 0);
 }
 
 TEST_F(Graph_, clear)
@@ -117,12 +117,12 @@ TEST_F(Graph_, create_and_delete_relations)
 
     // INPUT (and by reciprocity OUTPUT)
     EXPECT_EQ(edges.size(), 0);
-    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot_Flag_TYPE_VALUE ).size(), 0);
+    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 0);
     Node_Slot_Link edge_1 = graph->connect(node_1->value_out(), node_2->value_in());
-    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot_Flag_TYPE_VALUE ).size(), 1);
+    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
     graph->disconnect(edge_1);
-    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot_Flag_TYPE_VALUE ).size(), 0);
+    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 0);
 }
 
 TEST_F(Graph_, erase_node_from_non_root_scope)
