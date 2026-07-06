@@ -7,7 +7,6 @@
 
 #include "tools/core/Component.h" // for Component_Bag<T>
 #include "Node.h"
-#include "Node_Slot_Link.h"
 #include "Scope.h"
 
 namespace ndbl
@@ -41,7 +40,6 @@ namespace ndbl
     };
 
     typedef std::vector<Node*> Node_Registry;
-    typedef std::multimap<Node_Slot::Flags , Node_Slot_Link> Edge_Registry;
 
     /**
      * @brief To manage a graph (primary_child and edges)
@@ -62,7 +60,6 @@ namespace ndbl
         tools::Simple_Signal            signal_is_complete; // user defined, usually when parser or user is done
     private:
         Node_Registry                   m_node_registry;
-        Edge_Registry                   m_edge_registry;
         tools::Component_Bag<Graph>     m_components;
 //====== Common Methods ================================================================================================
     public:
@@ -126,18 +123,10 @@ namespace ndbl
         void                    _change_scope(Node *node, Scope* desired_scope);
 //====== Edge(s) Related ===============================================================================================
     public:
-        Node_Slot_Link          connect(Node_Slot* tail, Node_Slot* head, Graph_Flags = Graph_Flag_NONE );
+        void                    connect(Node_Slot* tail, Node_Slot* head, Graph_Flags = Graph_Flag_NONE );
         void                    connect(const std::set<Node_Slot*>& tails, Node_Slot* head, Graph_Flags _flags);
-        Node_Slot_Link          connect_to_variable(Node_Slot* output_slot, Node* variable );
-        Node_Slot_Link          connect_or_merge(Node_Slot* tail, Node_Slot* head);
-        void                    disconnect(Node_Slot_Link&, Graph_Flags = Graph_Flag_NONE );
-        Edge_Registry::iterator remove(Edge_Registry::iterator);
-        Edge_Registry::iterator find(const Node_Slot_Link&, Graph_Flags = Graph_Flag_NONE);
-        const Edge_Registry&    edges() const { return m_edge_registry; }
-    private:
-        void                    _handle_disconnect_value_side_effects(const Node_Slot_Link&);
-        void                    _handle_disconnect_flow_side_effects(const Node_Slot_Link&);
-        void                    _handle_connect_value_side_effects(const Node_Slot_Link&);
-        void                    _handle_connect_flow_side_effects(const Node_Slot_Link&);
+        void                    connect_to_variable(Node_Slot* output_slot, Node* variable );
+        void                    connect_or_merge(Node_Slot* tail, Node_Slot* head);
+        void                    disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags = Graph_Flag_NONE );
     };
 }

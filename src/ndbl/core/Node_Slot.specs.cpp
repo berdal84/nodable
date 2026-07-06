@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include "Node_Slot_Link.h"
 #include "Node_Slot.h"
 
 using namespace ndbl;

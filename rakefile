@@ -213,7 +213,6 @@ common.sources = FileList[
     "src/ndbl/core/Node.cpp",
     "src/ndbl/core/Node_Property.cpp",
     "src/ndbl/core/Node_Slot.cpp",
-    "src/ndbl/core/Node_Slot_Link.cpp",
     "src/ndbl/core/Scope.cpp",
     "src/ndbl/core/Token.cpp",
     "src/ndbl/core/Token_Ribbon.cpp",

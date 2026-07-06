@@ -28,8 +28,8 @@ using namespace tools;
 #include "ndbl/core/Node_Slot.h"
 #include "ndbl/core/language/Nodlang.h"
 
-#include "commands/Cmd_ConnectEdge.h"
-#include "commands/Cmd_DeleteEdge.h"
+#include "commands/Cmd_Connect.h"
+#include "commands/Cmd_Disconnect.h"
 #include "commands/Cmd_Group.h"
 
 #include "Node_Slot_View.h"
@@ -392,8 +392,7 @@ void ndbl::nodable_update(App_State* app)
                     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Nodable", "Swapping edges to try to connect them\n");
                     std::swap(tail, head);
                 }
-                Node_Slot_Link edge(tail, head);
-                auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
+                auto cmd = std::make_shared<Cmd_Connect>(tail, head);
                 curr_file_history->push_command(cmd);
 
                 break;
@@ -402,7 +401,10 @@ void ndbl::nodable_update(App_State* app)
             case Event_DeleteEdge::id:
             {
                 ASSERT(curr_file_history != nullptr);
-                auto command = std::make_shared<Cmd_DeleteEdge>( static_cast<Event_DeleteEdge*>(event) );
+                auto _event = reinterpret_cast<Event_DeleteEdge*>(event);
+                Node_Slot* tail = _event->data.first;
+                Node_Slot* head = _event->data.second;
+                auto command = std::make_shared<Cmd_DeleteEdge>(tail, head);
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(command));
                 break;
             }
@@ -414,10 +416,9 @@ void ndbl::nodable_update(App_State* app)
                 Node_Slot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
-                Graph* graph = _event->data.first->node->graph;
                 for(Node_Slot* adjacent_slot : slot->adjacent )
                 {
-                    auto each_cmd = std::make_shared<Cmd_DeleteEdge>(Node_Slot_Link{slot, adjacent_slot}, graph );
+                    auto each_cmd = std::make_shared<Cmd_DeleteEdge>(slot, adjacent_slot );
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));

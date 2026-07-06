@@ -5,7 +5,6 @@
 #include "Graph.h"
 #include "Node.h"
 #include "Scope.h"
-#include "Node_Slot_Link.h"
 
 #include "fixtures/core.h"
 
@@ -38,12 +37,11 @@ TEST_F(Graph_, connect)
     auto* slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
     // Act
-    Node_Slot_Link edge = graph->connect_or_merge(slot_1, slot_2 );
+    graph->connect_or_merge(slot_1, slot_2 );
 
     // Verify
-    EXPECT_EQ(edge.tail->property, prop_1 );
-    EXPECT_EQ(edge.head->property, prop_2 );
-    EXPECT_EQ(graph->edges().size(), 1);
+    EXPECT_EQ(slot_1->property, prop_1 );
+    EXPECT_EQ(slot_2->property, prop_2 );
  }
 
 TEST_F(Graph_, disconnect)
@@ -58,15 +56,12 @@ TEST_F(Graph_, disconnect)
     auto prop_2 = node_add_prop<bool>(node_2, "prop_2");
     auto slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
-    EXPECT_EQ(graph->edges().size(), 0);
-    Node_Slot_Link edge = graph->connect_or_merge(slot_1, slot_2 );
-    EXPECT_EQ(graph->edges().size(), 1);
+    graph->connect_or_merge(slot_1, slot_2 );
 
     // Act
-    graph->disconnect(edge, Graph_Flag_ALLOW_SIDE_EFFECTS );
+    graph->disconnect(slot_1, slot_2, Graph_Flag_ALLOW_SIDE_EFFECTS );
 
     // Check
-    EXPECT_EQ(graph->edges().size() , 0);
     EXPECT_EQ( node_adjacent_slot_count( node_2, Node_Slot::Flag_OUTPUT ), 0);
     EXPECT_EQ( node_adjacent_slot_count( node_2, Node_Slot::Flag_INPUT ) , 0);
 }
@@ -75,7 +70,6 @@ TEST_F(Graph_, clear)
 {
     Graph* graph = app.graph();
     EXPECT_TRUE( graph->is_empty() );
-    EXPECT_TRUE(graph->edges().empty() );
 
     Function_Descriptor  f;
     f.init<int(int, int)>("+");
@@ -83,15 +77,13 @@ TEST_F(Graph_, clear)
     Node* variable  = graph->create_variable(type::get<int>(), "var");
     auto operator_node = graph->create_operator(f);
 
-    EXPECT_TRUE(graph->edges().empty() );
 
     graph->connect(
             operator_node->value_out(),
             variable->value_in(),
             Graph_Flag_ALLOW_SIDE_EFFECTS);
 
-    EXPECT_FALSE( graph->is_empty() );
-    EXPECT_FALSE(graph->edges().empty() );
+    EXPECT_FALSE(graph->is_empty());
 
     // act
     graph->reset();
@@ -99,7 +91,6 @@ TEST_F(Graph_, clear)
     // test
     EXPECT_TRUE( graph->is_empty() );
     EXPECT_TRUE( graph->nodes().size() == 1 && *graph->nodes().cbegin() == graph->root_node() );
-    EXPECT_TRUE(graph->edges().empty() );
 }
 
 
@@ -107,21 +98,16 @@ TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
     Graph* graph = app.graph();
-    auto& edges = graph->edges();
-    EXPECT_EQ(edges.size(), 0);
     auto node_1 = graph->create_literal<int>();
-    EXPECT_EQ(edges.size(), 0);
     auto node_2 = graph->create_variable( type::get<int>(), "a" );
 
     // Act and test
 
     // INPUT (and by reciprocity OUTPUT)
-    EXPECT_EQ(edges.size(), 0);
     EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 0);
-    Node_Slot_Link edge_1 = graph->connect(node_1->value_out(), node_2->value_in());
+    graph->connect(node_1->value_out(), node_2->value_in());
     EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 1);
-    EXPECT_EQ(edges.size(), 1);
-    graph->disconnect(edge_1);
+    graph->disconnect(node_1->value_out(), node_2->value_in());
     EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 0);
 }
 

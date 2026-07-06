@@ -1,12 +1,15 @@
 #include "Graph.h"
 
 #include <algorithm>    // std::find_if
+#include <cstddef>
 #include <imgui/imgui_internal.h>
 
+#include "core/Asserts.h"
+#include "core/Node_Slot.h"
+#include "core/Types.h"
 #include "language/Nodlang.h"
 #include "Node.h"
 #include "Scope.h"
-#include "Node_Slot_Link.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -22,7 +25,6 @@ Graph::~Graph()
     _clear();
     m_components.shutdown();
     assert(m_node_registry.empty());
-    assert(m_edge_registry.empty());
 }
 
 void Graph::_init()
@@ -56,21 +58,6 @@ void Graph::_clear()
 
     m_node_registry.clear();
 
-#ifdef NDBL_DEBUG
-    if ( !m_edge_registry.empty() )
-    {
-        TOOLS_LOG(tools::Verbosity_Error, "Graph", "m_edge_registry should be empty.\n" );
-        TOOLS_LOG(tools::Verbosity_Message, "Graph", "Dumping %zu edge(s) for debugging purpose ...\n", m_edge_registry.size() );
-        for ( auto& edge : m_edge_registry)
-        {
-            TOOLS_LOG(tools::Verbosity_Message, "Graph", "   %s\n", to_string(edge.second).c_str() );
-        }
-        m_edge_registry.clear();
-    }
-#endif
-
-    assert(m_node_registry.empty());
-    assert(m_edge_registry.empty());
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Clear " TOOLS_OK "\n");
 }
 
@@ -161,23 +148,9 @@ void Graph::_clean_node(Node* node)
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name.c_str() );
 
     // disconnect and erase any link related to this node
-    auto concerns_node = [&](const std::pair<Node_Slot::Flags, Node_Slot_Link>& pair )
-    {
-        const Node_Slot_Link& edge = pair.second;
-        return edge.tail->node == node
-               || edge.head->node == node;
-    };    
-    auto it = m_edge_registry.begin();
-    while( it != m_edge_registry.end() )
-    {
-        it = std::find_if(it, m_edge_registry.end(), concerns_node);
-        if ( it != m_edge_registry.end() )
-        {
-            Node_Slot_Link& edge = it->second;
-            disconnect(edge);
-            it = remove(it); // TODO: reconsider this: is it performant? should we erase all at once? probably...
-        }
-    }
+    for(Node_Slot* each_slot : node->slots)
+        while(each_slot->adjacent.size > 0)
+            disconnect(each_slot, each_slot->adjacent[0] );
 
     // unset scope
     if ( node->scope )
@@ -257,7 +230,7 @@ void Graph::find_and_destroy(Node* node)
     delete node;
 }
 
-Node_Slot_Link Graph::connect_or_merge(Node_Slot* tail, Node_Slot* head )
+void Graph::connect_or_merge(Node_Slot* tail, Node_Slot* head )
 {
     // Guards
     ASSERT(head->has_flags(Node_Slot::Flag_INPUT ) );
@@ -279,7 +252,7 @@ Node_Slot_Link Graph::connect_or_merge(Node_Slot* tail, Node_Slot* head )
         property_digest(head->property, tail->property );
         delete head->property;
         // set_dirty(); // no changes on edges/nodes
-        return {};
+        return;
     }
 
     // case 2: merge literals when not connected to a variable
@@ -288,14 +261,14 @@ Node_Slot_Link Graph::connect_or_merge(Node_Slot* tail, Node_Slot* head )
         {
             property_digest(head->property, tail->property );
             find_and_destroy(tail->node);
-            return {};
+            return;
         }
 
     // Connect (case 4)
     return connect(tail, head, Graph_Flag_ALLOW_SIDE_EFFECTS );
 }
 
-Node_Slot_Link Graph::connect_to_variable(Node_Slot* output_slot, Node* _variable )
+void Graph::connect_to_variable(Node_Slot* output_slot, Node* _variable )
 {
     // Guards
     ASSERT( output_slot->has_flags(Node_Slot::Flag_OUTPUT) );
@@ -310,219 +283,172 @@ void Graph::connect(const std::set<Node_Slot*>& tails, Node_Slot* head, Graph_Fl
             connect(_tail, head, Graph_Flag_ALLOW_SIDE_EFFECTS );
 }
 
-Node_Slot_Link Graph::connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
+void Graph::connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
 {
-    // Create and _insert edge
-    auto it = m_edge_registry.emplace(tail->type(), Node_Slot_Link{tail, head});
-    Node_Slot_Link& edge = it->second;
-
-
     // DirectedEdge is just data, we must add manually cross-references to each end of the edge
-    node_slot_add_adjacent( edge.tail, edge.head );
-    node_slot_add_adjacent( edge.head, edge.tail );
+    node_slot_add_adjacent( tail, head );
+    node_slot_add_adjacent( head, tail );
 
     // Handle side effects
     if (_flags & Graph_Flag_ALLOW_SIDE_EFFECTS )
     {
-        switch ( edge.type() )
+        switch ( tail->type() )
         {
             case Node_Slot::Flag_TYPE_FLOW:
-                _handle_connect_flow_side_effects(edge);  break;
+            {
+                ASSERT( tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
+
+                Node*  previous_node      = tail->node;
+                Node*  next_node          = head->node;
+                size_t flow_in_edge_count = head->adjacent.size;
+
+                if ( flow_in_edge_count == 1)
+                {
+                    if ( tail->has_flags(Node_Slot::Flag_IS_INTERNAL) )
+                    {
+                        Scope* target_scope = previous_node->internal_scope;
+                        if ( node_is_conditional(previous_node) )
+                        {
+                            if( next_node->internal_scope == nullptr && !node_is_connected_to_codeflow(next_node) )
+                            {
+                                // insert a scope between target_scope and next_node
+                                Node* intermediate_node = create_scope(target_scope);
+                                target_scope->reset_head(intermediate_node);
+                                target_scope = intermediate_node->internal_scope;
+                            }
+                        }
+                        _change_scope(next_node, target_scope);
+                        target_scope->reset_head(next_node); // since slot has IS_BRANCH, this node must become the head
+                    }
+                    else
+                    {
+                        _change_scope(next_node, previous_node->scope);
+                    }
+                }
+                else if ( flow_in_edge_count > 1 )
+                {
+                    // gather adjacent scopes
+                    std::set<Scope*> scopes;
+                    for(Node_Slot* adjacent : head->adjacent )
+                        scopes.insert(adjacent->node->scope );
+
+                    if (scopes.size() == 1 )
+                    {
+                        _change_scope(next_node, *scopes.begin());
+                    }
+                    else
+                    {
+                        Scope* target_scope = Scope::lowest_common_ancestor(scopes );
+                        if( node_is_conditional(target_scope->node()) )
+                        {
+                            // We don't want to add a node in a conditional scope, we must pick the parent
+                            target_scope = target_scope->parent();
+                        }
+                        _change_scope(next_node, target_scope);
+                        // node: no need to branch_scope->reset_head(next_node) here, since when we have 2 flow in or more, we can't be the head
+                    }
+                }
+                else
+                {
+                    VERIFY(false, "Unexpected edge count");
+                }
+                break;
+            }
+
             case Node_Slot::Flag_TYPE_VALUE:
-                _handle_connect_value_side_effects(edge); break;
+            {
+                // ensure the tail node has the right scope
+                // must be:
+                // - unchanged in case of a node already part of the code flow
+                // - or: head node's scope / internal scope if any
+                if ( !node_has_flow_adjacent(tail->node) )
+                {
+                    Scope* target_scope = head->node->scope;
+
+                    if ( head->node->internal_scope != nullptr )
+                    {
+                        target_scope = head->node->internal_scope;
+                    }
+
+                    _change_scope(tail->node, target_scope);
+                }
+
+                // make sure head property type matches with tail, update head when needed.
+                if ( head->node->type != Node_Type_VARIABLE )
+                {
+                    property_set_type(head->property, tail->property->type );
+                }
+                break;
+            }
             default:
-                ASSERT(false);// This connection type is not yet implemented
+                TOOLS_UNREACHABLE();// This connection type is not yet implemented
         }
     }
 
     signal_change.broadcast();
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "New edge added\n");
-
-    return edge;
 }
 
-void Graph::_handle_connect_value_side_effects(const Node_Slot_Link& edge )
+void Graph::disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
 {
-    // ensure the tail node has the right scope
-    // must be:
-    // - unchanged in case of a node already part of the code flow
-    // - or: head node's scope / internal scope if any
-    if ( !node_has_flow_adjacent(edge.tail->node) )
-    {
-        Node*  tail_node    = edge.tail->node;
-        Node*  head_node    = edge.head->node;
-        Scope* target_scope = head_node->scope;
+    ASSERT_DEBUG_ONLY(tail->type() == head->type());
 
-        if ( head_node->internal_scope != nullptr )
-        {
-            target_scope = head_node->internal_scope;
-        }
-
-        _change_scope(tail_node, target_scope);
-    }
-
-    // make sure head property type matches with tail, update head when needed.
-    if ( edge.head->node->type != Node_Type_VARIABLE )
-    {
-        property_set_type(edge.head->property, edge.tail->property->type );
-    }
-}
-
-void Graph::_handle_disconnect_value_side_effects(const Node_Slot_Link& edge )
-{
-    ASSERT( edge.tail->type_and_order() == Node_Slot::Flag_OUTPUT );
-
-    // reset token to a default value to preserve a correct serialization
-    if (edge.head->node->type != Node_Type_VARIABLE )
-    {
-        Token& token = edge.head->property->token;
-        std::string buf;
-        get_language()->serialize_default_buffer(buf, token.m_type);
-        token.word_replace( buf.c_str() );
-    }
-}
-
-void Graph::_handle_disconnect_flow_side_effects(const Node_Slot_Link& edge )
-{
-    ASSERT( edge.tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
-
-    // Ensure disconnected node gets in the right scope
-    //
-    Scope* target_scope = root_scope();
-    switch ( edge.head->adjacent.size)
-    {
-        case 0:
-            break;
-        case 1:
-        {
-            target_scope = edge.head->first_adjacent_node()->scope;
-            break;
-        }
-        default: // 2+
-        {
-            // Find the lowest common ancestor of adjacent node(s)
-            std::set<Scope*> scopes;
-            for(Node_Slot* _adjacent_slot : edge.head->adjacent )
-                scopes.insert(_adjacent_slot->node->scope);
-            Scope* ancestor = Scope::lowest_common_ancestor(scopes);
-
-            if ( ancestor != nullptr )
-            {
-                ASSERT( ancestor->parent() != nullptr );
-                target_scope = ancestor->parent();
-                ASSERT(false); // TODO: here we must create a flow edge from the ancestor's node to edge.head->node
-            }
-        }
-    }
-    _change_scope(edge.head->node, target_scope);
-}
-
-void Graph::_handle_connect_flow_side_effects(const Node_Slot_Link& edge )
-{
-    ASSERT( edge.tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
-
-    Node*  previous_node      = edge.tail->node;
-    Node*  next_node          = edge.head->node;
-    size_t flow_in_edge_count = edge.head->adjacent.size;
-
-    if ( flow_in_edge_count == 1)
-    {
-        if ( edge.tail->has_flags(Node_Slot::Flag_IS_INTERNAL) )
-        {
-            Scope* target_scope = previous_node->internal_scope;
-            if ( node_is_conditional(previous_node) )
-            {
-                if( next_node->internal_scope == nullptr && !node_is_connected_to_codeflow(next_node) )
-                {
-                    // insert a scope between target_scope and next_node
-                    Node* intermediate_node = create_scope(target_scope);
-                    target_scope->reset_head(intermediate_node);
-                    target_scope = intermediate_node->internal_scope;
-                }
-            }
-            _change_scope(next_node, target_scope);
-            target_scope->reset_head(next_node); // since slot has IS_BRANCH, this node must become the head
-        }
-        else
-        {
-            _change_scope(next_node, previous_node->scope);
-        }
-    }
-    else if ( flow_in_edge_count > 1 )
-    {
-        // gather adjacent scopes
-        std::set<Scope*> scopes;
-        for(Node_Slot* adjacent : edge.head->adjacent )
-            scopes.insert(adjacent->node->scope );
-
-        if (scopes.size() == 1 )
-        {
-            _change_scope(next_node, *scopes.begin());
-        }
-        else
-        {
-            Scope* target_scope = Scope::lowest_common_ancestor(scopes );
-            if( node_is_conditional(target_scope->node()) )
-            {
-                // We don't want to add a node in a conditional scope, we must pick the parent
-                target_scope = target_scope->parent();
-            }
-            _change_scope(next_node, target_scope);
-            // node: no need to branch_scope->reset_head(next_node) here, since when we have 2 flow in or more, we can't be the head
-        }
-    }
-    else
-    {
-        VERIFY(false, "Unexpected edge count");
-    }
-}
-
-Edge_Registry::iterator Graph::find(const Node_Slot_Link& edge, Graph_Flags flags)
-{
-    auto [range_begin, range_end] = m_edge_registry.equal_range( edge.type() & ~Node_Slot::Flag_TYPE_MASK);
-    return std::find_if(
-            range_begin,
-            range_end,
-            [&](const auto& _pair) -> bool
-            {
-                return edge == _pair.second;
-            });
-}
-
-Edge_Registry::iterator Graph::remove(Edge_Registry::iterator it)
-{
-    return m_edge_registry.erase(it);
-}
-
-void Graph::disconnect(Node_Slot_Link& _edge, Graph_Flags flags)
-{
     // disconnect the slots
-    node_slot_remove_adjacent(_edge.tail, _edge.head);
-    node_slot_remove_adjacent(_edge.head, _edge.tail);
+    node_slot_remove_adjacent(tail, head);
+    node_slot_remove_adjacent(head, tail);
 
     // handle side effects
     if ( flags & Graph_Flag_ALLOW_SIDE_EFFECTS )
     {
-        switch ( _edge.type() )
+        switch ( tail->type() )
         {
             case Node_Slot::Flag_TYPE_FLOW:
             {
-                _handle_disconnect_flow_side_effects(_edge);
+                ASSERT( tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
+                // Ensure disconnected node gets in the right scope
+                //
+                Scope* target_scope = root_scope();
+                if( head->adjacent.size == 1)
+                {
+                    target_scope = head->first_adjacent_node()->scope;
+                }
+                else if (head->adjacent.size >= 2)
+                {
+                    // Find the lowest common ancestor of adjacent node(s)
+                    std::set<Scope*> scopes;
+                    for(Node_Slot* _adjacent_slot : head->adjacent )
+                        scopes.insert(_adjacent_slot->node->scope);
+                    Scope* ancestor = Scope::lowest_common_ancestor(scopes);
+
+                    if ( ancestor != nullptr )
+                    {
+                        ASSERT( ancestor->parent() != nullptr );
+                        target_scope = ancestor->parent();
+                        ASSERT(false); // TODO: here we must create a flow edge from the ancestor's node to edge.head->node
+                    }
+                }
+                _change_scope(head->node, target_scope);
                 break;
             }
+
             case Node_Slot::Flag_TYPE_VALUE:
             {
-                _handle_disconnect_value_side_effects(_edge);
+                ASSERT(tail->type_and_order() == Node_Slot::Flag_OUTPUT );
+
+                // reset token to a default value to preserve a correct serialization
+                if (head->node->type != Node_Type_VARIABLE )
+                {
+                    Token& token = head->property->token;
+                    std::string buf;
+                    get_language()->serialize_default_buffer(buf, token.m_type);
+                    token.word_replace( buf.c_str() );
+                }
                 break;
             }
             default:
                 VERIFY(false, "Unexpected _edge.type()");
         }
-
-        auto it = find(_edge, flags);
-        VERIFY(it !=  m_edge_registry.end(), "You're trying to disconnect an edge that is not registered! Did you run this twice?");
-        m_edge_registry.erase(it);
     }
 
     signal_change.broadcast();
