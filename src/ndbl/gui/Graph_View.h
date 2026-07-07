@@ -74,7 +74,7 @@ namespace ndbl
         void                   _handle_shutdown();
         void                   _handle_add_node(Node* node);
         void                   _handle_remove_node(Node* node);
-        void                   _handle_change_scope(Node* node, Scope* old_scope, Scope* new_scope);
+        void                   _handle_change_scope(Graph::Scope_Change);
         void                   _handle_hover(Scope_View *scope_view);
         void                   _update_until_unfold();
         void                   _update_once(float dt);

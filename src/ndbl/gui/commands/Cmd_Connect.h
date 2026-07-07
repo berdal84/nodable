@@ -11,7 +11,6 @@ namespace ndbl
         explicit Cmd_Connect(Node_Slot* _tail, Node_Slot* _head)
         : m_tail(_tail)
         , m_head(_head)
-        , m_graph(_tail->node->graph) // deduce graph from edge source' owner
         {
             char str[200];
             snprintf(str
@@ -28,10 +27,10 @@ namespace ndbl
         ~Cmd_Connect() override = default;
 
         void execute() override
-        { m_graph->connect( m_tail, m_head, Graph_Flag_ALLOW_SIDE_EFFECTS ); }
+        { graph_connect( m_tail, m_head, Graph_Flag_ALLOW_SIDE_EFFECTS ); }
 
         void undo() override
-        { m_graph->disconnect(m_tail, m_head, Graph_Flag_ALLOW_SIDE_EFFECTS ); }
+        { graph_disconnect(m_tail, m_head, Graph_Flag_ALLOW_SIDE_EFFECTS ); }
 
         const char* get_description() const override
         { return m_description.c_str(); }
@@ -40,6 +39,5 @@ namespace ndbl
         std::string     m_description;
         Node_Slot*      m_tail;
         Node_Slot*      m_head;
-        Graph*          m_graph;
     };
 }

@@ -318,9 +318,9 @@ void ndbl::nodable_update(App_State* app)
                     for(const Selectable& elem : graph_view->selection() )
                     {
                         if ( auto nodeview = elem.get_if<Node_View*>() )
-                            graph_view->graph()->flag_node_to_delete(nodeview->node(), Graph_Flag_NONE);
+                            graph_flag_node_to_delete(nodeview->node(), Graph_Flag_NONE);
                         else if ( auto scopeview = elem.get_if<Scope_View*>() )
-                            graph_view->graph()->flag_node_to_delete(scopeview->node(), Graph_Flag_ALLOW_SIDE_EFFECTS);
+                            graph_flag_node_to_delete(scopeview->node(), Graph_Flag_ALLOW_SIDE_EFFECTS);
                     }
                 }
 
@@ -437,9 +437,10 @@ void ndbl::nodable_update(App_State* app)
                     continue;
                 }
 
-                Node* new_node  = graph->create_node( _event->data.node_type,
-                                                         _event->data.node_signature,
-                                                         graph->root_scope() );
+                Node* new_node  = graph_create_node(graph,
+                                                    _event->data.node_type,
+                                                    _event->data.node_signature,
+                                                    graph->root_scope() );
 
                 // Insert an end of line and end of instruction
                 switch ( _event->data.node_type )
@@ -485,7 +486,7 @@ void ndbl::nodable_update(App_State* app)
                         if ( out->has_flags( Node_Slot::Flag_ORDER_2ND ) )
                             std::swap( out, in );
 
-                        graph->connect(out, in, Graph_Flag_ALLOW_SIDE_EFFECTS );
+                        graph_connect(out, in, Graph_Flag_ALLOW_SIDE_EFFECTS );
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
                         if (node_is_instruction(out->node ) && out->type() == Node_Slot::Flag_TYPE_FLOW )

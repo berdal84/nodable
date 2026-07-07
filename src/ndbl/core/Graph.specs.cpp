@@ -20,7 +20,7 @@ TEST_F(Graph_, constructor)
 
 TEST_F(Graph_, create_node)
 {
-    Node* node = app.graph()->create_node();
+    Node* node = graph_create_node(app.graph(), app.graph()->root_scope()) ;
     EXPECT_EQ(node->scope, app.graph()->root_scope());
 }
 
@@ -28,16 +28,16 @@ TEST_F(Graph_, connect)
 {
     // Prepare
     Graph* graph = app.graph();
-    auto* node_1 = graph->create_node();
+    auto* node_1 = graph_create_node(app.graph(), app.graph()->root_scope());
     auto* prop_1 = node_add_prop<bool>(node_1, "prop_1");
     auto* slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
-    auto* node_2 = graph->create_node();
+    auto* node_2 = graph_create_node(app.graph(), app.graph()->root_scope());
     auto* prop_2 = node_add_prop<bool>(node_2, "prop_2");
     auto* slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
     // Act
-    graph->connect_or_merge(slot_1, slot_2 );
+    graph_connect_or_merge(slot_1, slot_2 );
 
     // Verify
     EXPECT_EQ(slot_1->property, prop_1 );
@@ -48,18 +48,18 @@ TEST_F(Graph_, disconnect)
 {
     // Prepare
     Graph* graph = app.graph();
-    auto node_1 = graph->create_node();
+    auto node_1 = graph_create_node(app.graph());
     auto prop_1 = node_add_prop<bool>(node_1, "prop_1");
     auto slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
-    auto node_2 = graph->create_node();
+    auto node_2 = graph_create_node(app.graph());
     auto prop_2 = node_add_prop<bool>(node_2, "prop_2");
     auto slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
-    graph->connect_or_merge(slot_1, slot_2 );
+    graph_connect_or_merge(slot_1, slot_2 );
 
     // Act
-    graph->disconnect(slot_1, slot_2, Graph_Flag_ALLOW_SIDE_EFFECTS );
+    graph_disconnect(slot_1, slot_2, Graph_Flag_ALLOW_SIDE_EFFECTS );
 
     // Check
     EXPECT_EQ( node_adjacent_slot_count( node_2, Node_Slot::Flag_OUTPUT ), 0);
@@ -74,11 +74,11 @@ TEST_F(Graph_, clear)
     Function_Descriptor  f;
     f.init<int(int, int)>("+");
 
-    Node* variable  = graph->create_variable(type::get<int>(), "var");
-    auto operator_node = graph->create_operator(f);
+    Node* variable      = graph_create_variable(graph, type::get<int>(), "var");
+    Node* operator_node = graph_create_operator(graph, f);
 
 
-    graph->connect(
+    graph_connect(
             operator_node->value_out(),
             variable->value_in(),
             Graph_Flag_ALLOW_SIDE_EFFECTS);
@@ -86,11 +86,11 @@ TEST_F(Graph_, clear)
     EXPECT_FALSE(graph->is_empty());
 
     // act
-    graph->reset();
+    graph_reset(graph);
 
     // test
     EXPECT_TRUE( graph->is_empty() );
-    EXPECT_TRUE( graph->nodes().size() == 1 && *graph->nodes().cbegin() == graph->root_node() );
+    EXPECT_TRUE( graph->nodes.size() == 1 && *graph->nodes.cbegin() == graph->root_node() );
 }
 
 
@@ -98,16 +98,16 @@ TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
     Graph* graph = app.graph();
-    auto node_1 = graph->create_literal<int>();
-    auto node_2 = graph->create_variable( type::get<int>(), "a" );
+    auto node_1 = graph_create_literal<int>(graph);
+    auto node_2 = graph_create_variable<int>( graph, "a" );
 
     // Act and test
 
     // INPUT (and by reciprocity OUTPUT)
     EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 0);
-    graph->connect(node_1->value_out(), node_2->value_in());
+    graph_connect(node_1->value_out(), node_2->value_in());
     EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 1);
-    graph->disconnect(node_1->value_out(), node_2->value_in());
+    graph_disconnect(node_1->value_out(), node_2->value_in());
     EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 0);
 }
 
@@ -115,15 +115,15 @@ TEST_F(Graph_, erase_node_from_non_root_scope)
 {
     // prepare
     Graph* graph = app.graph();
-    Node* scope_node = graph->create_scope(graph->root_scope() );
-    graph->connect(graph->root_node()->flow_enter(), scope_node->flow_in());
-    Node* child = graph->create_node(scope_node->internal_scope);
+    Node* scope_node = graph_create_scope(graph);
+    graph_connect(graph->root_node()->flow_enter(), scope_node->flow_in());
+    Node* child = graph_create_node(graph, scope_node->internal_scope);
 
     EXPECT_EQ(child->scope, scope_node->internal_scope );
 
-    graph->find_and_destroy( child );
+    graph_find_and_destroy(graph, child );
 
-    EXPECT_FALSE( graph->contains( child ) );
+    EXPECT_FALSE( graph_contains( graph, child ) );
     EXPECT_TRUE(scope_node->internal_scope->empty() );
 }
 
@@ -133,20 +133,20 @@ TEST_F(Graph_, erase_first_node_of_a_scope_with_another_child_after)
     // prepare
     Graph* graph = app.graph();
 
-    Node* scope_node = graph->create_scope( graph->root_scope() );
-    Node* child1 = graph->create_node();
-    Node* child2 = graph->create_node();
+    Node* scope_node = graph_create_scope( graph );
+    Node* child1     = graph_create_node( graph );
+    Node* child2     = graph_create_node( graph );
 
-    graph->connect( scope_node->flow_enter(), child1->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
-    graph->connect( child1->flow_out(), child2->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+    graph_connect( scope_node->flow_enter(), child1->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+    graph_connect( child1->flow_out(), child2->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
     EXPECT_EQ(child1->scope, scope_node->internal_scope );
     EXPECT_EQ(child1->scope, child2->scope);
 
-    graph->find_and_destroy( child1 );
+    graph_find_and_destroy( graph, child1 );
 
-    EXPECT_FALSE(graph->contains( child1 ));
-    EXPECT_TRUE(graph->contains( child2 ));
+    EXPECT_FALSE(graph_contains( graph, child1 ));
+    EXPECT_TRUE(graph_contains( graph, child2 ));
     EXPECT_FALSE(scope_node->internal_scope->contains(child1) );
     EXPECT_TRUE(scope_node->internal_scope->contains(child2 ) );
 }

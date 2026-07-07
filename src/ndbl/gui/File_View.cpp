@@ -332,7 +332,7 @@ void File_View::draw_info_panel() const
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %zu", m_file->graph()->nodes().size());
+    ImGui::Text("Node count: %zu", m_file->graph()->nodes.size());
     ImGui::Unindent();
     ImGui::NewLine();
 

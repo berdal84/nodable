@@ -69,7 +69,7 @@ Graph_View::~Graph_View()
 void Graph_View::_handle_init()
 {
     // add nodes present before connecting signals
-    for( auto* node : graph()->nodes() )
+    for( auto* node : graph()->nodes )
     {
         _handle_add_node(node);
     }
@@ -97,7 +97,7 @@ void Graph_View::_handle_shutdown()
     ASSERT_DEBUG_ONLY( graph()->signal_change.disconnect<&Graph_View::_on_graph_change>(this) );
 
     // add nodes still present after connecting signals
-    for( auto* node : graph()->nodes() )
+    for( auto* node : graph()->nodes )
     {
         _handle_remove_node(node);
     }
@@ -151,9 +151,9 @@ void Graph_View::_handle_remove_node(Node* node)
     node->components.destroy( nodeview );
 }
 
-void Graph_View::_handle_change_scope(Node* node, Scope* old_scope, Scope* new_scope)
+void Graph_View::_handle_change_scope(Graph::Scope_Change change)
 {
-    auto* nodeview = node->component<Node_View>();
+    auto* nodeview = change.node->component<Node_View>();
     VERIFY(nodeview, "a nodeview must be present since we are in a Graph_View");
 
     // Un-parent from old scope's spatial node
@@ -161,7 +161,7 @@ void Graph_View::_handle_change_scope(Node* node, Scope* old_scope, Scope* new_s
         _parent->remove_child( nodeview->spatial_node() );
 
     // Parent to new scope or default to graph's spatial node
-    if( Scope_View* _scopeview = new_scope->view() )
+    if( Scope_View* _scopeview = change.new_scope->view() )
         _scopeview->spatial_node()->add_child( nodeview->spatial_node() );
 }
 
@@ -222,7 +222,7 @@ bool Graph_View::draw(float dt)
     ImDrawList*     draw_list = ImGui::GetWindowDrawList();
 
     // Draw Scopes
-    std::vector<Scope*> scopes_to_draw = graph()->scopes();
+    std::vector<Scope*> scopes_to_draw = graph_collect_scopes(graph());
     // TODO: we should sort them only when a new parent/child connection is created/deleted
     auto low_to_high_depth = [](Scope* s1, Scope* s2) { return s1->depth() < s2->depth(); };
     std::sort(scopes_to_draw.begin(), scopes_to_draw.end(), low_to_high_depth);
@@ -255,7 +255,7 @@ bool Graph_View::draw(float dt)
             cfg->ui_codeflow_thickness(),
             0.0f
     };
-    for (Node* each_node: graph()->nodes() )
+    for (Node* each_node: graph()->nodes )
     {
         Node_View *each_view = Node_View::substitute_with_parent_if_not_visible(each_node->component<Node_View>() );
 
@@ -316,7 +316,7 @@ bool Graph_View::draw(float dt)
             cfg->ui_wire_bezier_roundness.x // roundness min
     };
     float time = ImGui::GetTime();
-    for (Node* node_out: graph()->nodes() )
+    for (Node* node_out: graph()->nodes )
     {
         for (const Node_Slot* slot_out: node_filter_slots(node_out, Node_Slot::Flag_OUTPUT))
         {
@@ -391,7 +391,7 @@ bool Graph_View::draw(float dt)
     }
 
     // Draw Node_Views
-    for (Node* node : graph()->nodes()  )
+    for (Node* node : graph()->nodes  )
     {
         Node_View* nodeview = node->component<Node_View>();
 
@@ -583,14 +583,14 @@ void Graph_View::_update_once(float dt)
             constraint.rule(&constraint, dt);
 
     // Apply forces (forces => positons)
-    for ( Node* node : graph()->nodes() )
+    for ( Node* node : graph()->nodes )
         if ( auto* _physics = node->component<Physics_Component>() )
             _physics->apply_forces(dt);
 
     // TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph_View", "Constraints updated.\n");
 
     // Node_Views
-    for (Node* node : graph()->nodes() )
+    for (Node* node : graph()->nodes )
         if ( auto* view = node->component<Node_View>() )
             view->update(dt);
 
@@ -657,7 +657,7 @@ void Graph_View::frame_content(Frame_Mode mode )
     const Vec2 delta =  target - source;
 
     // apply the delta to all node views
-    for (Node* node : graph()->nodes() )
+    for (Node* node : graph()->nodes )
         if ( Node_View* view = node->component<Node_View>() )
             view->spatial_node()->translate( delta );
 }
@@ -704,7 +704,7 @@ void Graph_View::reset()
     // make sure views are outside viewable rectangle (to avoid flickering)
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
 
-    for( Node* node : graph()->nodes() )
+    for( Node* node : graph()->nodes )
         if ( auto* view = node->component<Node_View>() )
             view->spatial_node()->translate( far_outside );
 
@@ -723,7 +723,7 @@ bool Graph_View::has_an_active_tool() const
 
 void Graph_View::reset_all_properties()
 {
-    for( Node* node : graph()->nodes() )
+    for( Node* node : graph()->nodes )
         if ( Node_View* v = node->component<Node_View>() )
             v->reset_all_properties();
 }
@@ -794,7 +794,7 @@ void Graph_View::view_pan_state_tick()
     ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
 
     Vec2 delta = ImGui::GetMouseDragDelta();
-    for( Node* node : graph()->nodes() )
+    for( Node* node : graph()->nodes )
         if ( auto v = node->component<Node_View>() )
             v->spatial_node()->translate(delta);
 
@@ -1115,7 +1115,7 @@ void Graph_View::roi_state_tick()
     {
         // Get the views included in the ROI
         std::set<Node_View*> nodeviews_inside_roi;
-        for ( Node* node : graph()->nodes() )
+        for ( Node* node : graph()->nodes )
             if ( auto view = node->component<Node_View>() )
                 if ( Rect::contains(roi, view->get_rect()) )
                     nodeviews_inside_roi.insert( view );

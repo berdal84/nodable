@@ -169,7 +169,7 @@ bool Nodlang::parse(Graph* graph_out, const std::string& code)
 
     if (_state.tokens().can_eat() )
     {
-        _state.graph()->reset();
+        graph_reset(_state.graph());
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_KO " End of token ribbon expected\n");
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon").c_str());
         for (const Token& each_token : _state.tokens() )
@@ -236,7 +236,7 @@ Node_Slot* Nodlang::token_to_slot(Scope* parent_scope, const Token& _token)
             // Insert a VariableNodeRef with "any" type
             TOOLS_LOG(tools::Verbosity_Warning,  "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() );
-            Node* ref = _state.graph()->create_variable_ref( parent_scope );
+            Node* ref = graph_create_variable_ref(_state.graph(), parent_scope );
             ref->value->token = _token;
             return ref->value_out();
         }
@@ -249,10 +249,10 @@ Node_Slot* Nodlang::token_to_slot(Scope* parent_scope, const Token& _token)
 
     switch (_token.m_type)
     {
-        case Token_Type::literal_bool:   literal = _state.graph()->create_literal<bool>( parent_scope );        break;
-        case Token_Type::literal_int:    literal = _state.graph()->create_literal<i32_t>( parent_scope );       break;
-        case Token_Type::literal_double: literal = _state.graph()->create_literal<double>( parent_scope );      break;
-        case Token_Type::literal_string: literal = _state.graph()->create_literal<std::string>( parent_scope ); break;
+        case Token_Type::literal_bool:   literal = graph_create_literal<bool>(_state.graph(), parent_scope );        break;
+        case Token_Type::literal_int:    literal = graph_create_literal<i32_t>( _state.graph(), parent_scope );       break;
+        case Token_Type::literal_double: literal = graph_create_literal<double>( _state.graph(), parent_scope );      break;
+        case Token_Type::literal_string: literal = graph_create_literal<std::string>( _state.graph(), parent_scope ); break;
         default:
             break; // we don't want to throw
     }
@@ -322,7 +322,7 @@ Node_Slot* Nodlang::parse_binary_operator_expression(Scope* parent_scope, u8_t _
         type.arg_at(0).type = _left->property->type;
         type.arg_at(1).type = right->property->type;
 
-        Node* binary_op_node = _state.graph()->create_operator( type, _left->node->scope );
+        Node* binary_op_node = graph_create_operator( _state.graph(), type, _left->node->scope );
 
         auto& binary_op = binary_op_node->invokable_data();
 
@@ -330,8 +330,8 @@ Node_Slot* Nodlang::parse_binary_operator_expression(Scope* parent_scope, u8_t _
         binary_op.lvalue_in()->property->token.m_type = _left->property->token.m_type;
         binary_op.rvalue_in()->property->token.m_type = right->property->token.m_type;
 
-        _state.graph()->connect_or_merge(_left, binary_op.lvalue_in());
-        _state.graph()->connect_or_merge(right, binary_op.rvalue_in() );
+        graph_connect_or_merge(_left, binary_op.lvalue_in());
+        graph_connect_or_merge(right, binary_op.rvalue_in() );
 
         _state.commit();
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Binary expression parsed:\n%s\n", _state.tokens().to_string().c_str());
@@ -384,11 +384,11 @@ Node_Slot* Nodlang::parse_unary_operator_expression(Scope* parent_scope, u8_t _p
     type.init<any(any)>(operator_token.word_to_string().c_str());
     type.arg_at(0).type = out_atomic->property->type;
 
-    Node* node = _state.graph()->create_operator( type, parent_scope );
+    Node* node = graph_create_operator(_state.graph(), type, parent_scope );
     node->invokable_data().set_identifier_token( operator_token );
     node->invokable_data().lvalue_in()->property->token.m_type = out_atomic->property->token.m_type;
 
-    _state.graph()->connect_or_merge(out_atomic, node->invokable_data().lvalue_in() );
+    graph_connect_or_merge(out_atomic, node->invokable_data().lvalue_in() );
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Unary expression parsed:\n%s\n", _state.tokens().to_string().c_str());
     _state.commit();
@@ -489,7 +489,7 @@ Node* Nodlang::parse_expression_block(Scope* parent_scope, Node_Slot* flow_out, 
         if ( node_is_connected_to_codeflow(variable) ) // in such case, we have to reference the variable, since a given variable can't be twice (be declared twice) in the codeflow
         {
             // create a new variable reference
-            Node* ref_node = _state.graph()->create_variable_ref( parent_scope );
+            Node* ref_node = graph_create_variable_ref( _state.graph(), parent_scope );
             node_variable_ref_set_variable( ref_node, variable );
             // substitute value_out by variable reference's value_out
             value_out = ref_node->value_out();
@@ -524,7 +524,7 @@ Node* Nodlang::parse_expression_block(Scope* parent_scope, Node_Slot* flow_out, 
         {
             TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Empty expression found\n");
 
-            Node* empty_instr = _state.graph()->create_empty_instruction( parent_scope );
+            Node* empty_instr = graph_create_empty_instruction( _state.graph(), parent_scope );
             value_out = empty_instr->value_out();
         }
     }
@@ -540,7 +540,7 @@ Node* Nodlang::parse_expression_block(Scope* parent_scope, Node_Slot* flow_out, 
     // Connects value_out to the provided input
     if ( value_in )
     {
-        _state.graph()->connect( value_out, value_in, Graph_Flag_ALLOW_SIDE_EFFECTS);
+        graph_connect( value_out, value_in, Graph_Flag_ALLOW_SIDE_EFFECTS);
     }
 
     // Add an end_of_instruction token as suffix when needed
@@ -552,7 +552,7 @@ Node* Nodlang::parse_expression_block(Scope* parent_scope, Node_Slot* flow_out, 
     // Connects expression flow_in with the provided flow_out
     if ( flow_out != nullptr )
     {
-        _state.graph()->connect( flow_out, value_out->node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+        graph_connect( flow_out, value_out->node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
     }
 
     // Validate transaction
@@ -584,7 +584,7 @@ Scope* Nodlang::parse_program()
     if ( _state.tokens().can_eat( ) )
     {
         _state.rollback();
-        _state.graph()->reset();
+        graph_reset(_state.graph());
         _state.graph()->signal_is_complete.emit();
         TOOLS_LOG(tools::Verbosity_Warning, "Parser", "Some token remains after getting an empty code block\n");
         TOOLS_LOG(tools::Verbosity_Message, "Parser", "Parse program [OK]\n");
@@ -617,10 +617,10 @@ Node* Nodlang::parse_scoped_block(Scope* parent_scope, Node_Slot* flow_out)
 
     _state.start_transaction();
 
-    Node* node = _state.graph()->create_scope(parent_scope);
+    Node* node = graph_create_scope(_state.graph(), parent_scope);
 
     if ( flow_out != nullptr )
-        _state.graph()->connect( flow_out, node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+        graph_connect( flow_out, node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
 
     parse_code_block(node->internal_scope, node->flow_enter()); // no return check, allows empty scope
@@ -640,7 +640,7 @@ Node* Nodlang::parse_scoped_block(Scope* parent_scope, Node_Slot* flow_out)
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_KO " Expecting close root_scope token\n");
     }
 
-    _state.graph()->find_and_destroy(node);
+    graph_find_and_destroy(_state.graph(), node);
     _state.rollback();
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_KO " Scoped block parsed\n");
     return nullptr;
@@ -1091,12 +1091,12 @@ Node_Slot* Nodlang::parse_function_call(Scope* parent_scope)
 
 
     // Find the prototype in the language library
-    Node* fct_node = _state.graph()->create_function( signature, parent_scope );
+    Node* fct_node = graph_create_function( _state.graph(), signature, parent_scope );
 
     for ( int i = 0; i < fct_node->invokable_data().get_arg_slots().size; i++ )
     {
         // Connects each results to the corresponding input
-        _state.graph()->connect_or_merge(result_slots.at(i), fct_node->invokable_data().get_arg_slot(i) );
+        graph_connect_or_merge(result_slots.at(i), fct_node->invokable_data().get_arg_slot(i) );
     }
 
     _state.commit();
@@ -1117,11 +1117,11 @@ Node* Nodlang::parse_if_block(Scope* parent_scope, Node_Slot* flow_out)
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing conditional structure...\n");
 
-    bool     success  = false;
-    Node* if_node  = _state.graph()->create_cond_struct( parent_scope );
+    bool    success  = false;
+    Node*   if_node  = graph_create_cond_struct( _state.graph(), parent_scope );
     if_node->switch_behavior_data().m_branch_prefix = _state.tokens().get_eaten();
 
-    _state.graph()->connect(flow_out, if_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+    graph_connect(flow_out, if_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
     if (_state.tokens().eat_if(Token_Type::parenthesis_open) )
     {
@@ -1176,7 +1176,7 @@ Node* Nodlang::parse_if_block(Scope* parent_scope, Node_Slot* flow_out)
         return if_node;
     }
 
-    _state.graph()->find_and_destroy(if_node);
+    graph_find_and_destroy(_state.graph(), if_node);
     _state.rollback();
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_KO " Parse conditional structure \n");
 
@@ -1194,10 +1194,10 @@ Node* Nodlang::parse_for_block(Scope* parent_scope, Node_Slot* flow_out)
     {
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing for loop ...\n");
 
-        for_node = _state.graph()->create_for_loop( parent_scope );
+        for_node = graph_create_for_loop( _state.graph(), parent_scope );
         for_node->switch_behavior_data().m_branch_prefix = token_for;
 
-        _state.graph()->connect( flow_out, for_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+        graph_connect( flow_out, for_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
         Token open_bracket = _state.tokens().eat_if(Token_Type::parenthesis_open);
         if ( open_bracket)
@@ -1247,7 +1247,7 @@ Node* Nodlang::parse_for_block(Scope* parent_scope, Node_Slot* flow_out)
 
     if ( for_node )
     {
-        _state.graph()->find_and_destroy(for_node);
+        graph_find_and_destroy(_state.graph(), for_node);
     }
     _state.rollback();
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_KO " Could not parse for block\n");
@@ -1266,10 +1266,10 @@ Node* Nodlang::parse_while_block(Scope* parent_scope,  Node_Slot* flow_out)
     {
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing while ...\n");
 
-        while_node = _state.graph()->create_while_loop( parent_scope );
+        while_node = graph_create_while_loop( _state.graph(), parent_scope );
         while_node->switch_behavior_data().m_branch_prefix = token_while;
 
-        _state.graph()->connect( flow_out, while_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+        graph_connect( flow_out, while_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
         if ( Token open_bracket = _state.tokens().eat_if(Token_Type::parenthesis_open) )
         {
@@ -1310,8 +1310,8 @@ Node* Nodlang::parse_while_block(Scope* parent_scope,  Node_Slot* flow_out)
     }
 
     _state.rollback();
-    _state.graph()->find_and_destroy(while_node);
-    _state.graph()->find_and_destroy(block);
+    graph_find_and_destroy(_state.graph(), while_node);
+    graph_find_and_destroy(_state.graph(), block);
 
     return {};
 }
@@ -1332,7 +1332,7 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
     if (type_token.is_keyword_type() && identifier_token.m_type == Token_Type::identifier)
     {
         const Type_Descriptor* type = get_type(type_token.m_type);
-        Node* variable_node = _state.graph()->create_variable( type, identifier_token.word_to_string(), parent_scope );
+        Node* variable_node = graph_create_variable( _state.graph(), type, identifier_token.word_to_string(), parent_scope );
 
         auto& variable_data = variable_node->variable_data();
 
@@ -1348,7 +1348,7 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
             if ( Node_Slot* expression_out = parse_expression(parent_scope) )
             {
                 // expression's out ----> variable's in
-                _state.graph()->connect_to_variable(expression_out, variable_node );
+                graph_connect_to_variable(expression_out, variable_node );
 
                 variable_data.operator_token = operator_token;
                 success = true;
@@ -1374,7 +1374,7 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
         }
 
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_KO "  Initialization expression expected for %s\n", identifier_token.word_to_string().c_str());
-        _state.graph()->find_and_destroy(variable_node);
+        graph_find_and_destroy(_state.graph(), variable_node);
     }
 
     _state.rollback();
@@ -1903,8 +1903,8 @@ Node* Nodlang::parse_empty_block(Scope* parent_scope, Node_Slot* flow_out)
 {
     if ( _state.tokens().peek(Token_Type::end_of_instruction) )
     {
-        Node* node = _state.graph()->create_empty_instruction( parent_scope );
-        _state.graph()->connect( flow_out, node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS);
+        Node* node = graph_create_empty_instruction( _state.graph(), parent_scope );
+        graph_connect( flow_out, node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS);
         return node;
     }
     return nullptr;
@@ -1912,7 +1912,7 @@ Node* Nodlang::parse_empty_block(Scope* parent_scope, Node_Slot* flow_out)
 
 void Nodlang::ParserState::reset_graph(Graph* new_graph)
 {
-    new_graph->reset();
+    graph_reset(new_graph);
     _graph = new_graph; // memory not owned
 }
 

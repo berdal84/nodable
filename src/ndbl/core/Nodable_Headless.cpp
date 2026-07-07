@@ -1,4 +1,5 @@
 #include "Nodable_Headless.h"
+#include "core/Graph.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "tools/core/Task_Manager.h"
 
@@ -12,6 +13,7 @@ void Nodable_Headless::init()
 
     // configure
     m_graph = new Graph();
+    graph_init(m_graph);
     m_language->_state.reset( m_graph ); // in some cases (like during tests), we call parse_xxx methods that implicitly requires the state to be reset
 }
 
@@ -19,6 +21,7 @@ void Nodable_Headless::shutdown()
 {
     ASSERT(m_graph);
     clear();
+    graph_shutdown(m_graph);
     delete m_graph;
     tools::shutdown_task_manager(m_task_manager);
     shutdown_language(m_language);
@@ -51,7 +54,7 @@ void Nodable_Headless::update()
 
 void Nodable_Headless::clear()
 {
-    m_graph->reset();
+    graph_reset(m_graph);
     m_source_code.clear();
 }
 

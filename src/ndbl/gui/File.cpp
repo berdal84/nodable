@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+#include "core/Graph.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/language/Nodlang.h"
 
@@ -23,7 +24,8 @@ File::File()
 
     // Graph
     _graph = new Graph();
-    auto* graph_view = _graph->components()->create<Graph_View>();
+    graph_init(_graph);
+    auto* graph_view = _graph->components.create<Graph_View>();
 
     _graph->signal_change.connect<&File::set_text_dirty>(this);
     graph_view->signal_change.connect<&File::set_text_dirty>(this);
@@ -54,6 +56,7 @@ File::~File()
     view.signal_text_view_changed.disconnect();
     view.signal_graph_view_changed.disconnect();
 
+    graph_shutdown(_graph);
     delete _graph;
 }
 
@@ -93,18 +96,18 @@ void File::update()
     if ( _flags & Flags_GRAPH_IS_DIRTY )
     {
         _update_graph_from_text();
-        _graph->update();
+        graph_update(_graph);
         _flags = _flags & ~Flags_IS_DIRTY_MASK;  // clear dirty flags
     }
     else if ( _flags & Flags_TEXT_IS_DIRTY )
     {
-        _graph->update();
+        graph_update(_graph);
         _update_text_from_graph();
         _flags = _flags & ~Flags_IS_DIRTY_MASK;  // clear dirty flags
     }
     else
     {
-        _graph->update();
+        graph_update(_graph);
     }
 }
 

@@ -1,12 +1,12 @@
 #include "Graph.h"
 
 #include <algorithm>    // std::find_if
+#include <cassert>
 #include <cstddef>
 #include <imgui/imgui_internal.h>
 
 #include "core/Asserts.h"
 #include "core/Node_Slot.h"
-#include "core/Types.h"
 #include "language/Nodlang.h"
 #include "Node.h"
 #include "Scope.h"
@@ -15,70 +15,73 @@ using namespace ndbl;
 using namespace tools;
 
 Graph::Graph()
-: m_components(this)
-{
-    _init();
-}
+: components(this)
+{}
 
 Graph::~Graph()
 {
-    _clear();
-    m_components.shutdown();
-    assert(m_node_registry.empty());
+    assert(nodes.empty()); // "Did you call graph_shutdown() ?\n");
 }
 
-void Graph::_init()
+void ndbl::graph_init(Graph* graph)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initializing ...\n");
-    ASSERT( m_node_registry.empty() ); // Root must be first, registry should be empty
+    ASSERT( graph->nodes.empty() ); // Root must be first, registry should be empty
 
     // create and _insert root
     Node* root = new Node();
     node_init_as_root_scope(root);
-    this->_insert(root, nullptr);
+    graph_insert(graph, root, nullptr);
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add root node %p (name: %s, class: %s)\n", root, root->name.c_str(), root->get_class()->name());
-    ASSERT( root_node() == root );
+    ASSERT( graph->root_node() == root );
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initialized " TOOLS_OK "\n");
 }
 
-void Graph::_clear()
+void ndbl::graph_shutdown(Graph* graph)
+{
+    graph_clear(graph);
+    graph->components.shutdown();
+}
+
+void ndbl::graph_clear(Graph* graph)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Clearing ...\n");
 
     // delete from last to first (which is the root)
-    for(auto it = m_node_registry.rbegin(); it != m_node_registry.rend(); ++it)
+    for(auto it = graph->nodes.rbegin(); it != graph->nodes.rend(); ++it)
     {
         Node* node = *it;
-        _clean_node(node);
-        _remove(node);        
+        graph_clean_node(node);
+        graph->signal_remove_node.emit(node);        
         node_shutdown(node);
         delete node;
     }
 
-    m_node_registry.clear();
+    graph->nodes.clear();
+    graph->signal_change.broadcast();
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Clear " TOOLS_OK "\n");
 }
 
-void Graph::reset()
+void ndbl::graph_reset(Graph* graph)
 {
 	TOOLS_LOG(tools::Verbosity_Diagnostic,  "Graph", "Resetting ...\n");
 
-    this->_clear();
-    this->_init();
-    signal_reset.emit();
+    graph_clear(graph);
+    graph_init(graph);
+    graph->signal_reset.emit();
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Reset " TOOLS_OK "\n");
 }
 
-bool Graph::update()
+bool ndbl::graph_update(Graph* graph)
 {
     bool _changed = false;
 
     std::stack<Node*> node_to_delete;
 
-    for(Node* node : m_node_registry)
+    for(Node* node : graph->nodes)
     {
         if ( node->has_flags(Node_Flag_MUST_BE_DELETED))
         {
@@ -94,7 +97,7 @@ bool Graph::update()
     {
         _changed |= true;
         Node* node = node_to_delete.top();
-        _clean_node(node);
+        graph_clean_node(node);
         node_shutdown(node);
         delete node;
         node_to_delete.pop();
@@ -102,47 +105,44 @@ bool Graph::update()
 
     if ( _changed )
     {
-        signal_change.broadcast(); // TODO: rather be signal_update, signal_change is already emitted within function calls from this method
+        graph->signal_change.broadcast(); // TODO: rather be signal_update, signal_change is already emitted within function calls from this method
     }
 
     return _changed;
 }
 
-void Graph::_insert(Node* node, Scope* scope)
+void ndbl::graph_insert(Graph* graph, Node* node, Scope* scope)
 {
     // do the inverse of Graph::_erase(Node* node)
 
+    if ( node->scope == nullptr && scope == nullptr && graph->nodes.size() != 0 )
+    {
+        scope = graph->root_scope();
+    }
+
     if ( scope != nullptr )
     {
-        VERIFY( !m_node_registry.empty(), "can't insert a scoped node first, a root node (with a nullptr scope) should be inserted before." );
+        VERIFY( !graph->nodes.empty(), "can't insert a scoped node first, a root node (with a nullptr scope) should be inserted before." );
         VERIFY( node->scope == nullptr, "node must be unscoped, use scope argument instead" );
-        VERIFY( scope->node()->graph == this, "the provided scope belong to another graph" );
+        VERIFY( scope->node()->graph == graph, "the provided scope belong to another graph" );
         assert(!node->has_flags(Node_Flag_WAS_IN_A_SCOPE_ONCE)); // double-check
         scope->append(node);
     }
     else
     {
-        VERIFY( m_node_registry.empty(), "you didn't provided a scope argument, which is only valid for the first insert (root node).");
+        VERIFY( graph->nodes.empty(), "you didn't provided a scope argument, which is only valid for the first insert (root node).");
     }
 
-    node->graph = this;
-	m_node_registry.push_back( node );
+    node->graph = graph;
+	graph->nodes.push_back( node );
 
-    signal_add_node.emit(node);
-    signal_change.broadcast();
+    graph->signal_add_node.emit(node);
+    graph->signal_change.broadcast();
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name.c_str(), node->get_class()->name());
 }
 
-void Graph::_remove(Node* node)
-{
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): erasing ...\n", node, node->name.c_str() );
-    signal_remove_node.emit(node);
-    signal_change.broadcast();
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): _erased\n", node, node->name.c_str() );
-}
-
-void Graph::_clean_node(Node* node)
+void ndbl::graph_clean_node(Node* node)
 {
     ASSERT( node );
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name.c_str() );
@@ -150,62 +150,62 @@ void Graph::_clean_node(Node* node)
     // disconnect and erase any link related to this node
     for(Node_Slot* each_slot : node->slots)
         while(each_slot->adjacent.size > 0)
-            disconnect(each_slot, each_slot->adjacent[0] );
+            graph_disconnect(each_slot, each_slot->adjacent[0] );
 
     // unset scope
     if ( node->scope )
     {
-        _reset_scope(node);
+        node->scope->remove(node);
     }
 
     // transfer children to default scope
     if (Scope* _internal_scope = node->internal_scope )
     {
-        _transfer_children( _internal_scope, root_scope());
+        graph_transfer_children( _internal_scope, node->graph->root_scope());
     }
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name.c_str() );
 }
 
-Node* Graph::create_scope(Scope* scope)
+Node* ndbl::graph_create_scope(Graph* graph, Scope* parent_scope)
 {
     Node* node = new Node();
     node_init_as_scope(node);
-    _insert(node, scope);
+    graph_insert(graph, node, parent_scope);
     return node;
 }
 
-Node* Graph::create_variable(const Type_Descriptor *_type, const std::string& _name, Scope* scope)
+Node* ndbl::graph_create_variable(Graph* graph, const Type_Descriptor *_type, const std::string& _name, Scope* parent_scope)
 {
     Node* node = new Node();
     node_init_as_variable(node, _type, _name.c_str());
-    _insert(node, scope);
+    graph_insert(graph, node, parent_scope);
 	return node;
 }
 
-Node* Graph::create_function(const Function_Descriptor& _type, Scope* scope)
+Node* ndbl::graph_create_function(Graph* graph, const Function_Descriptor& _type, Scope* scope)
 {
     Node* node = new Node();
     node_init_as_invokable(node, _type, Node_Type_FUNCTION);
-    _insert(node, scope);
+    graph_insert(graph, node, scope);
     return node;
 }
 
-Node* Graph::create_operator(const Function_Descriptor& _type, Scope* scope)
+Node* ndbl::graph_create_operator(Graph* graph, const Function_Descriptor& _type, Scope* parent_scope)
 {
     Node* node = new Node();
     node_init_as_invokable(node, _type, Node_Type_OPERATOR);
-    _insert(node, scope);
+    graph_insert(graph, node, parent_scope);
     return node;
 }
 
-void Graph::find_and_destroy(Node* node)
+void ndbl::graph_find_and_destroy(Graph* graph, Node* node)
 {
     if (!node)
         return;
 
-    auto it = std::find(m_node_registry.begin(), m_node_registry.end(), node);
-    ASSERT( it != m_node_registry.end() );
+    auto it = std::find(graph->nodes.begin(), graph->nodes.end(), node);
+    ASSERT( it != graph->nodes.end() );
 
     // backup slots
     const Node_Slot* flow_in  = node->flow_in();
@@ -215,22 +215,23 @@ void Graph::find_and_destroy(Node* node)
     Node_Slot* prev_adjacent_slot = flow_in->first_adjacent();
     Node_Slot* next_adjacent_slot = flow_out->first_adjacent();
 
-    _clean_node(node); // flow_in/out will be cleared
+    graph_clean_node(node); // flow_in/out will be cleared
 
     // try to maintain flow
     if ( flow_can_be_maintained )
     {
-        connect(prev_adjacent_slot, next_adjacent_slot, Graph_Flag_ALLOW_SIDE_EFFECTS );
+        graph_connect(prev_adjacent_slot, next_adjacent_slot, Graph_Flag_ALLOW_SIDE_EFFECTS );
     }
 
-    _remove(node);
-    m_node_registry.erase(it);
-    node_shutdown(node);
+    graph->nodes.erase(it);
+    graph->signal_remove_node.emit(node);
+    graph->signal_change.broadcast();
 
+    node_shutdown(node);
     delete node;
 }
 
-void Graph::connect_or_merge(Node_Slot* tail, Node_Slot* head )
+void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
 {
     // Guards
     ASSERT(head->has_flags(Node_Slot::Flag_INPUT ) );
@@ -260,30 +261,30 @@ void Graph::connect_or_merge(Node_Slot* tail, Node_Slot* head )
         if (head->node->type != Node_Type_VARIABLE )
         {
             property_digest(head->property, tail->property );
-            find_and_destroy(tail->node);
+            graph_find_and_destroy(tail->node->graph, tail->node);
             return;
         }
 
     // Connect (case 4)
-    return connect(tail, head, Graph_Flag_ALLOW_SIDE_EFFECTS );
+    return graph_connect(tail, head, Graph_Flag_ALLOW_SIDE_EFFECTS );
 }
 
-void Graph::connect_to_variable(Node_Slot* output_slot, Node* _variable )
+void ndbl::graph_connect_to_variable(Node_Slot* output_slot, Node* _variable )
 {
     // Guards
     ASSERT( output_slot->has_flags(Node_Slot::Flag_OUTPUT) );
     ASSERT( !output_slot->is_full() );
-    return connect_or_merge( output_slot, _variable->value_in() );
+    return graph_connect_or_merge( output_slot, _variable->value_in() );
 }
 
-void Graph::connect(const std::set<Node_Slot*>& tails, Node_Slot* head, Graph_Flags _flags)
+void ndbl::graph_connect(const std::set<Node_Slot*>& tails, Node_Slot* head, Graph_Flags _flags)
 {
     if ( !tails.empty() )
         for (Node_Slot* _tail : tails )
-            connect(_tail, head, Graph_Flag_ALLOW_SIDE_EFFECTS );
+            graph_connect(_tail, head, Graph_Flag_ALLOW_SIDE_EFFECTS );
 }
 
-void Graph::connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
+void ndbl::graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
 {
     // DirectedEdge is just data, we must add manually cross-references to each end of the edge
     node_slot_add_adjacent( tail, head );
@@ -312,17 +313,17 @@ void Graph::connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                             if( next_node->internal_scope == nullptr && !node_is_connected_to_codeflow(next_node) )
                             {
                                 // insert a scope between target_scope and next_node
-                                Node* intermediate_node = create_scope(target_scope);
+                                Node* intermediate_node = graph_create_scope(tail->node->graph, target_scope);
                                 target_scope->reset_head(intermediate_node);
                                 target_scope = intermediate_node->internal_scope;
                             }
                         }
-                        _change_scope(next_node, target_scope);
+                        graph_change_scope(next_node, target_scope);
                         target_scope->reset_head(next_node); // since slot has IS_BRANCH, this node must become the head
                     }
                     else
                     {
-                        _change_scope(next_node, previous_node->scope);
+                        graph_change_scope(next_node, previous_node->scope);
                     }
                 }
                 else if ( flow_in_edge_count > 1 )
@@ -334,7 +335,7 @@ void Graph::connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
 
                     if (scopes.size() == 1 )
                     {
-                        _change_scope(next_node, *scopes.begin());
+                        graph_change_scope(next_node, *scopes.begin());
                     }
                     else
                     {
@@ -344,7 +345,7 @@ void Graph::connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                             // We don't want to add a node in a conditional scope, we must pick the parent
                             target_scope = target_scope->parent();
                         }
-                        _change_scope(next_node, target_scope);
+                        graph_change_scope(next_node, target_scope);
                         // node: no need to branch_scope->reset_head(next_node) here, since when we have 2 flow in or more, we can't be the head
                     }
                 }
@@ -370,7 +371,7 @@ void Graph::connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                         target_scope = head->node->internal_scope;
                     }
 
-                    _change_scope(tail->node, target_scope);
+                    graph_change_scope(tail->node, target_scope);
                 }
 
                 // make sure head property type matches with tail, update head when needed.
@@ -385,12 +386,12 @@ void Graph::connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
         }
     }
 
-    signal_change.broadcast();
+    tail->node->graph->signal_change.broadcast();
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "New edge added\n");
 }
 
-void Graph::disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
+void ndbl::graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
 {
     ASSERT_DEBUG_ONLY(tail->type() == head->type());
 
@@ -408,7 +409,7 @@ void Graph::disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                 ASSERT( tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
                 // Ensure disconnected node gets in the right scope
                 //
-                Scope* target_scope = root_scope();
+                Scope* target_scope = tail->node->graph->root_scope();
                 if( head->adjacent.size == 1)
                 {
                     target_scope = head->first_adjacent_node()->scope;
@@ -428,7 +429,7 @@ void Graph::disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                         ASSERT(false); // TODO: here we must create a flow edge from the ancestor's node to edge.head->node
                     }
                 }
-                _change_scope(head->node, target_scope);
+                graph_change_scope(head->node, target_scope);
                 break;
             }
 
@@ -451,34 +452,34 @@ void Graph::disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
         }
     }
 
-    signal_change.broadcast();
+    tail->node->graph->signal_change.broadcast();
 }
 
-Node* Graph::create_cond_struct(Scope* scope)
+Node* ndbl::graph_create_cond_struct(Graph* graph, Scope* parent_scope)
 {
     Node* node = new Node();
     node_init_as_cond_struct(node);
-    _insert(node, scope);
+    graph_insert(graph, node, parent_scope);
     return node;
 }
 
-Node* Graph::create_for_loop(Scope* scope)
+Node* ndbl::graph_create_for_loop(Graph* graph, Scope* parent_scope)
 {
     Node* node = new Node();
     node_init_as_for_loop(node);
-    _insert(node, scope);
+    graph_insert(graph, node, parent_scope);
     return node;
 }
 
-Node* Graph::create_while_loop(Scope* scope)
+Node* ndbl::graph_create_while_loop(Graph* graph, Scope* parent_scope)
 {
     Node* node = new Node();
     node_init_as_while_loop(node);
-    _insert(node, scope);
+    graph_insert(graph, node, parent_scope);
     return node;
 }
 
-Node* Graph::create_node(Scope* scope)
+Node* ndbl::graph_create_node(Graph* graph, Scope* scope)
 {
     Node* node = new Node();
     
@@ -486,68 +487,68 @@ Node* Graph::create_node(Scope* scope)
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
 
-    _insert(node, scope);
+    graph_insert(graph, node, scope);
     
     return node;
 }
 
-Node* Graph::create_literal(const Type_Descriptor* _type, Scope* scope)
+Node* ndbl::graph_create_literal(Graph* graph, const Type_Descriptor* _type, Scope* scope)
 {
     Node* node = new Node();
     node_init_as_literal(node,_type);
-    _insert(node, scope);
+    graph_insert(graph, node, scope);
     return node;
 }
 
-Node* Graph::create_node(Create_Node_Type_ _type, const Function_Descriptor* _signature, Scope* scope)
+Node* ndbl::graph_create_node(Graph* graph, Create_Node_Type_ type, const Function_Descriptor* func_desc, Scope* scope)
 {
-    switch ( _type )
+    switch ( type )
     {
         /*
          * TODO: We could consider narowing the enum to few cases (BLOCK, VARIABLE, LITERAL, OPERATOR, FUNCTION)
          *       and rely more on _signature (ex: a bool variable could be simply "bool" or "bool bool(bool)")
          */
-        case Create_Node_Type__BLOCK_CONDITION:  return create_cond_struct(scope);
-        case Create_Node_Type__BLOCK_FOR_LOOP:   return create_for_loop(scope);
-        case Create_Node_Type__BLOCK_WHILE_LOOP: return create_while_loop(scope);
-        case Create_Node_Type__ROOT:
-            reset(); return root_node();
+        case Create_Node_Type__BLOCK_CONDITION:  return graph_create_cond_struct(graph, scope);
+        case Create_Node_Type__BLOCK_FOR_LOOP:   return graph_create_for_loop(graph, scope);
+        case Create_Node_Type__BLOCK_WHILE_LOOP: return graph_create_while_loop(graph, scope);
+        case Create_Node_Type__ROOT:             graph_reset(graph);
+                                                 return graph->root_node();
 
-        case Create_Node_Type__VARIABLE_BOOLEAN: return create_variable_decl<bool>("b", scope);
-        case Create_Node_Type__VARIABLE_DOUBLE:  return create_variable_decl<double>("d", scope);
-        case Create_Node_Type__VARIABLE_INTEGER: return create_variable_decl<int>("i", scope);
-        case Create_Node_Type__VARIABLE_STRING:  return create_variable_decl<std::string>("str", scope);
+        case Create_Node_Type__VARIABLE_BOOLEAN: return graph_create_variable_decl<bool>(graph, "b", scope);
+        case Create_Node_Type__VARIABLE_DOUBLE:  return graph_create_variable_decl<double>(graph, "d", scope);
+        case Create_Node_Type__VARIABLE_INTEGER: return graph_create_variable_decl<int>(graph, "i", scope);
+        case Create_Node_Type__VARIABLE_STRING:  return graph_create_variable_decl<std::string>(graph, "str", scope);
 
-        case Create_Node_Type__LITERAL_BOOLEAN:  return create_literal<bool>(scope);
-        case Create_Node_Type__LITERAL_DOUBLE:   return create_literal<double>(scope);
-        case Create_Node_Type__LITERAL_INTEGER:  return create_literal<int>(scope);
-        case Create_Node_Type__LITERAL_STRING:   return create_literal<std::string>(scope);
+        case Create_Node_Type__LITERAL_BOOLEAN:  return graph_create_literal<bool>(graph, scope);
+        case Create_Node_Type__LITERAL_DOUBLE:   return graph_create_literal<double>(graph, scope);
+        case Create_Node_Type__LITERAL_INTEGER:  return graph_create_literal<int>(graph, scope);
+        case Create_Node_Type__LITERAL_STRING:   return graph_create_literal<std::string>(graph, scope);
 
         case Create_Node_Type__FUNCTION:
         {
-            VERIFY(_signature != nullptr, "_signature is expected when dealing with functions or operators");
-            if ( get_language()->is_operator( _signature ) )
-                return create_operator( *_signature, scope );
-            return create_function( *_signature, scope );
+            VERIFY(func_desc != nullptr, "_signature is expected when dealing with functions or operators");
+            if ( get_language()->is_operator( func_desc ) )
+                return graph_create_operator( graph, *func_desc, scope );
+            return graph_create_function( graph, *func_desc, scope );
         }
         default:
-            VERIFY(false, "Unhandled Create_Node_Type_.");
+            TOOLS_UNREACHABLE();
             return nullptr;
     }
 }
 
-Node* Graph::create_variable_ref(Scope* scope)
+Node* ndbl::graph_create_variable_ref(Graph* graph, Scope* scope)
 {
     Node* node = new Node();
     node_init_as_variable_ref(node);
-    _insert(node, scope);
+    graph_insert(graph, node, scope);
     return node;
 }
 
-Node* Graph::create_variable_decl(const Type_Descriptor* type, const char*  name, Scope* scope)
+Node* ndbl::graph_create_variable_decl(Graph* graph, const Type_Descriptor* type, const char*  name, Scope* scope)
 {
     // Create variable
-    Node* var_node = create_variable(type, name, scope);
+    Node* var_node = graph_create_variable(graph, type, name, scope);
     var_node->variable_data().set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
 
     Token token(Token_Type::keyword_operator, " = ");
@@ -558,65 +559,57 @@ Node* Graph::create_variable_decl(const Type_Descriptor* type, const char*  name
     return var_node;
 }
 
-Node *Graph::create_empty_instruction(Scope* scope)
+Node* ndbl::graph_create_empty_instruction(Graph* graph, Scope* scope)
 {
     Node* node = new Node();
     node_init_as_empty_instruction(node);
-    _insert(node, scope);
+    graph_insert(graph, node, scope);
     return node;
 }
 
-std::set<Scope *> Graph::root_scopes()
+std::set<Scope *> ndbl::graph_collect_root_scopes(const Graph* graph)
 {
     std::set<Scope*> result;
-    for ( Node* node : m_node_registry )
+    for (const Node* node : graph->nodes )
         if ( node->internal_scope != nullptr )
             if ( node->internal_scope->depth() == 0 )
                 result.insert( node->internal_scope );
     return result;
 }
 
-std::vector<Scope *> Graph::scopes()
+std::vector<Scope *> ndbl::graph_collect_scopes(const Graph* graph)
 {
     std::vector<Scope *> result;
-    for(Node* node : m_node_registry)
+    for(const Node* node : graph->nodes)
         if ( node->scope )
             result.push_back( node->scope );
     return result;
 }
 
-void Graph::flag_node_to_delete(Node *node, Graph_Flags flags)
+void ndbl::graph_flag_node_to_delete(Node *node, Graph_Flags flags)
 {
-    ASSERT(node->graph == this);
-
     if ( flags & Graph_Flag_ALLOW_SIDE_EFFECTS )
     {
         // delete inputs when they share the same scope
         for ( auto input : node->inputs() )
             if ( node->scope == input->scope )
-                flag_node_to_delete(input, flags);
+                graph_flag_node_to_delete(input, flags);
 
         // delete children
         if ( Scope* scope = node->internal_scope )
             for ( Node* _child : scope->children() )
-                flag_node_to_delete(_child, flags);
+                graph_flag_node_to_delete(_child, flags);
     }
 
     node->set_flags(Node_Flag_MUST_BE_DELETED);
 }
 
-Scope* Graph::root_scope() const
+bool ndbl::graph_contains(const Graph* graph, Node* node)
 {
-    return root_node()->internal_scope;
+    return std::find( graph->nodes.begin(), graph->nodes.end(), node ) != graph->nodes.end();
 }
 
-bool Graph::contains(Node* node) const
-{
-    return std::find( m_node_registry.begin(), m_node_registry.end(), node ) != m_node_registry.end();
-}
-
-
-void Graph::_change_scope(Node* node, Scope* desired_scope)
+void ndbl::graph_change_scope(Node* node, Scope* desired_scope)
 {
     Scope* current_scope = node->scope;
 
@@ -631,10 +624,15 @@ void Graph::_change_scope(Node* node, Scope* desired_scope)
     current_scope->remove(node);
     desired_scope->append(node);
 
-    signal_change_scope.emit(node, current_scope, desired_scope);
+    ASSERT_DEBUG_ONLY(node->graph != nullptr);
+    node->graph->signal_change_scope.emit({
+        node, 
+        current_scope,
+        desired_scope
+    });
 }
 
-void Graph::_transfer_children(Scope* source, Scope* target)
+void ndbl::graph_transfer_children(Scope* source, Scope* target)
 {
     ASSERT(source);
     ASSERT(target);
@@ -642,15 +640,10 @@ void Graph::_transfer_children(Scope* source, Scope* target)
     std::set<Node*> child_copy{source->children()};
     for(Node* _child : child_copy)
     {
-        _change_scope(_child, target);
+        graph_change_scope(_child, target);
         ASSERT(_child->scope == target);
     }
 
     ASSERT(source->empty());
 }
 
-void Graph::_reset_scope(Node* node)
-{
-    ASSERT(node->scope);
-    node->scope->remove(node);
-}
