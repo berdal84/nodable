@@ -17,11 +17,11 @@ namespace testing
 class Core : public Test
 {
 public:
-    Nodable_Headless app;
+    App_Headless_State state;
 
     void SetUp() override
     {
-        app.init();
+        nodable_init(&state);
 
         set_log_verbosity( Verbosity_Message );
         set_log_verbosity( "Parser", Verbosity_Diagnostic );
@@ -29,7 +29,7 @@ public:
 
     void TearDown() override
     {
-        app.shutdown();
+        nodable_shutdown(&state);
     }
 
     std::string parse_and_serialize(const std::string &_source_code)
@@ -37,11 +37,11 @@ public:
         TOOLS_DEBUG_LOG(tools::Verbosity_Message, "core.h", "parse_and_serialize parsing \"%s\"\n", _source_code.c_str());
 
         // parse
-        app.parse(_source_code);
+        nodable_parse(&state, _source_code);
 
         // serialize
         std::string result;
-        app.serialize( result );
+        nodable_serialize(&state, result );
         TOOLS_DEBUG_LOG(tools::Verbosity_Message, "core.h", "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
 
         return result;

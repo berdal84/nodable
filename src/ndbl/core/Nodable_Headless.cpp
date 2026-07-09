@@ -5,60 +5,48 @@
 
 using namespace ndbl;
 
-void Nodable_Headless::init()
+void ndbl::nodable_init(App_Headless_State* state)
 {
     // init managers
-    m_task_manager    = tools::init_task_manager();
-    m_language        = init_language();
+    state->task_manager = tools::init_task_manager();
+    state->language     = init_language();
 
     // configure
-    m_graph = new Graph();
-    graph_init(m_graph);
-    m_language->_state.reset( m_graph ); // in some cases (like during tests), we call parse_xxx methods that implicitly requires the state to be reset
+    state->graph = new Graph();
+    graph_init(state->graph);
+    state->language->_state.reset( state->graph ); // in some cases (like during tests), we call parse_xxx methods that implicitly requires the state to be reset
 }
 
-void Nodable_Headless::shutdown()
+void ndbl::nodable_shutdown(App_Headless_State* state)
 {
-    ASSERT(m_graph);
-    clear();
-    graph_shutdown(m_graph);
-    delete m_graph;
-    tools::shutdown_task_manager(m_task_manager);
-    shutdown_language(m_language);
+    ASSERT(state->graph);
+    nodable_clear(state);
+    graph_shutdown(state->graph);
+    delete state->graph;
+    tools::shutdown_task_manager(state->task_manager);
+    shutdown_language(state->language);
 }
 
-std::string& Nodable_Headless::serialize( std::string& out ) const
+std::string& ndbl::nodable_serialize(const App_Headless_State* state, std::string& out )
 {
-    return m_language->serialize_graph(out, m_graph);
+    return state->language->serialize_graph(out, state->graph);
 }
 
-Graph* Nodable_Headless::parse( const std::string& code )
+Graph* ndbl::nodable_parse(const App_Headless_State* state,  const std::string& code )
 {
-    m_language->parse( m_graph, code );
-    return m_graph;
+    state->language->parse( state->graph, code );
+    return state->graph;
 }
 
-Nodlang* Nodable_Headless::get_language() const
+void ndbl::nodable_update(App_Headless_State* state)
 {
-    return m_language;
+    //
+    // nothing is required there for now.
+    //
 }
 
-Graph* Nodable_Headless::graph() const
+void ndbl::nodable_clear(App_Headless_State* state)
 {
-    return m_graph;
-}
-
-void Nodable_Headless::update()
-{
-}
-
-void Nodable_Headless::clear()
-{
-    graph_reset(m_graph);
-    m_source_code.clear();
-}
-
-bool Nodable_Headless::should_stop() const
-{
-    return m_should_stop;
+    graph_reset(state->graph);
+    state->source_code.clear();
 }

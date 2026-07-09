@@ -14,25 +14,25 @@ typedef ::testing::Core Graph_;
 
 TEST_F(Graph_, constructor)
 {
-    EXPECT_TRUE(app.graph()->is_empty());
-    EXPECT_NE(app.graph()->root_node(), nullptr );
+    EXPECT_TRUE(state.graph->is_empty());
+    EXPECT_NE(state.graph->root_node(), nullptr );
 }
 
 TEST_F(Graph_, create_node)
 {
-    Node* node = graph_create_node(app.graph(), app.graph()->root_scope()) ;
-    EXPECT_EQ(node->scope, app.graph()->root_scope());
+    Node* node = graph_create_node(state.graph, state.graph->root_scope()) ;
+    EXPECT_EQ(node->scope, state.graph->root_scope());
 }
 
 TEST_F(Graph_, connect)
 {
     // Prepare
-    Graph* graph = app.graph();
-    auto* node_1 = graph_create_node(app.graph(), app.graph()->root_scope());
+    Graph* graph = state.graph;
+    auto* node_1 = graph_create_node(state.graph, state.graph->root_scope());
     auto* prop_1 = node_add_prop<bool>(node_1, "prop_1");
     auto* slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
-    auto* node_2 = graph_create_node(app.graph(), app.graph()->root_scope());
+    auto* node_2 = graph_create_node(state.graph, state.graph->root_scope());
     auto* prop_2 = node_add_prop<bool>(node_2, "prop_2");
     auto* slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
@@ -47,12 +47,12 @@ TEST_F(Graph_, connect)
 TEST_F(Graph_, disconnect)
 {
     // Prepare
-    Graph* graph = app.graph();
-    auto node_1 = graph_create_node(app.graph());
+    Graph* graph = state.graph;
+    auto node_1 = graph_create_node(state.graph);
     auto prop_1 = node_add_prop<bool>(node_1, "prop_1");
     auto slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
-    auto node_2 = graph_create_node(app.graph());
+    auto node_2 = graph_create_node(state.graph);
     auto prop_2 = node_add_prop<bool>(node_2, "prop_2");
     auto slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
@@ -68,7 +68,7 @@ TEST_F(Graph_, disconnect)
 
 TEST_F(Graph_, clear)
 {
-    Graph* graph = app.graph();
+    Graph* graph = state.graph;
     EXPECT_TRUE( graph->is_empty() );
 
     Function_Descriptor  f;
@@ -97,7 +97,7 @@ TEST_F(Graph_, clear)
 TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
-    Graph* graph = app.graph();
+    Graph* graph = state.graph;
     auto node_1 = graph_create_literal<int>(graph);
     auto node_2 = graph_create_variable<int>( graph, "a" );
 
@@ -114,7 +114,7 @@ TEST_F(Graph_, create_and_delete_relations)
 TEST_F(Graph_, erase_node_from_non_root_scope)
 {
     // prepare
-    Graph* graph = app.graph();
+    Graph* graph = state.graph;
     Node* scope_node = graph_create_scope(graph);
     graph_connect(graph->root_node()->flow_enter(), scope_node->flow_in());
     Node* child = graph_create_node(graph, scope_node->internal_scope);
@@ -131,7 +131,7 @@ TEST_F(Graph_, erase_node_from_non_root_scope)
 TEST_F(Graph_, erase_first_node_of_a_scope_with_another_child_after)
 {
     // prepare
-    Graph* graph = app.graph();
+    Graph* graph = state.graph;
 
     Node* scope_node = graph_create_scope( graph );
     Node* child1     = graph_create_node( graph );

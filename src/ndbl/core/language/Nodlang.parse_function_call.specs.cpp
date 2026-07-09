@@ -1,6 +1,6 @@
+#include "core/language/Nodlang.h"
 #include "../fixtures/core.h"
 #include <gtest/gtest.h>
-#include "tools/core/Log.h"
 
 using namespace ndbl;
 
@@ -8,7 +8,7 @@ typedef ::testing::Core Language_parse_function_call;
 
 TEST_F(Language_parse_function_call, dna_to_protein)
 {
-    auto* language = app.get_language();
+    Nodlang* language = state.language;
 
     // tokenize
     language->tokenize("dna_to_protein(\"GATACA\")");
@@ -22,7 +22,7 @@ TEST_F(Language_parse_function_call, dna_to_protein)
     EXPECT_EQ(ribbon.at(3).m_type, Token_Type::parenthesis_close);
 
     // parse
-    Node_Slot* function_out = language->parse_function_call( app.graph()->root_scope() );
+    Node_Slot* function_out = language->parse_function_call( state.graph->root_scope() );
 
     // check
     EXPECT_TRUE(function_out!= nullptr);
@@ -31,7 +31,7 @@ TEST_F(Language_parse_function_call, dna_to_protein)
 
 TEST_F(Language_parse_function_call, operator_add)
 {
-    auto* language = app.get_language();
+    Nodlang* language = state.language;
 
     // tokenize
     language->tokenize("42+42");
@@ -44,7 +44,7 @@ TEST_F(Language_parse_function_call, operator_add)
     EXPECT_EQ(ribbon.at(2).m_type, Token_Type::literal_int);
 
     // parse
-    Node_Slot* result = language->parse_expression( app.graph()->root_scope() );
+    Node_Slot* result = language->parse_expression( state.graph->root_scope() );
 
     // check
     EXPECT_TRUE(result != nullptr );

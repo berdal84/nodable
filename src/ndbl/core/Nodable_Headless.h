@@ -10,30 +10,24 @@ namespace tools
 namespace ndbl
 {
     // forward declarations
-    class Graph;
+    struct Graph;
     class Nodlang;
 
-    class Nodable_Headless
+    struct App_Headless_State
     {
-    public:
-        Nodable_Headless() = default;
-        virtual ~Nodable_Headless() = default;
-        virtual void        init();
-        virtual void        update();
-        virtual void        shutdown();
-        virtual void        clear();
-        bool                should_stop() const;
-        virtual std::string& serialize( std::string& out ) const;
-        virtual Graph*      parse( const std::string& in );
-        Nodlang*            get_language() const;
-        Graph*              graph() const;
-    protected:
-        tools::Task_Manager* m_task_manager{};
-        Nodlang*            m_language{};
-        bool                m_should_stop{false};
-        Graph*              m_graph{};
-        std::string         m_source_code;
-        bool                m_auto_completion{false};
+        bool                    auto_completion = false;
+        bool                    should_stop     = false;
+        tools::Task_Manager*    task_manager    = nullptr; // ref
+        Graph*                  graph           = nullptr; // ref
+        Nodlang*                language        = nullptr; // ref
+        std::string             source_code     = "";
     };
+
+    void            nodable_init(App_Headless_State*);
+    void            nodable_update(App_Headless_State*);
+    void            nodable_shutdown(App_Headless_State*);
+    void            nodable_clear(App_Headless_State*);
+    std::string&    nodable_serialize(const App_Headless_State*, std::string& out);
+    Graph*          nodable_parse(const App_Headless_State*, const std::string& in );
 }
 

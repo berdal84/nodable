@@ -25,7 +25,7 @@ TEST_F(Language_tokenize, identifiers_should_not_have_prefix_or_suffix)
     std::string code{"int my_var ;"};
     get_language()->tokenize(code);
     log_ribbon();
-    Token token = app.get_language()->_state.tokens().at(1);
+    Token token = state.language->_state.tokens().at(1);
     EXPECT_EQ(token.word_to_string(), "my_var");
     EXPECT_EQ(token.prefix_to_string(), "");
     EXPECT_EQ(token.suffix_to_string(), "");
