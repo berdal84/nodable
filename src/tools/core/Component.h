@@ -117,7 +117,7 @@ namespace tools
             for(ComponentT* component : _m_component)
                 component_shutdown(component);
             for(ComponentT* component : _m_component)
-                _deallocate(component);
+                delete component;
             _m_component.clear();
             _m_component_indexed_by_typeid.clear();
         }
@@ -138,31 +138,31 @@ namespace tools
             return _m_component;
         }
 
-        template<Component_For<Entity_Type> T>
-        T* create()
+        template<Component_For<Entity_Type> Component_Type>
+        Component_Type* create()
         {
-            auto* c = _allocate<T>();
+            auto* c = new Component_Type();
             _append( c );
             return c;
         }
 
-        template<Component_For<Entity_Type> T, typename ...Args>
-        T* create(Args...args)
+        template<Component_For<Entity_Type> Component_Type, typename ...Component_Args>
+        Component_Type* create(Component_Args...args)
         {
-            auto* c = _allocate<T>(args...);
+            auto* c = new Component_Type(args...);
             _append( c );
             return c;
         }
 
-        template<Component_For<Entity_Type> T>
-        void destroy(T* component)
+        template<Component_For<Entity_Type> Component_Type>
+        void destroy(Component_Type* component)
         {
             auto it = std::find_if(_m_component_indexed_by_typeid.begin(), _m_component_indexed_by_typeid.end(), [&](const auto& pair) { return pair.second == component; });
             ASSERT(it != _m_component_indexed_by_typeid.end());
             _m_component_indexed_by_typeid.erase(it);
             _m_component.erase(std::find(_m_component.begin(), _m_component.end(), component ) );
             component_shutdown(component);
-            _deallocate(component);
+            delete component;
         }
 
         template<Component_For<Entity_Type> T>
@@ -228,10 +228,5 @@ namespace tools
             ASSERT(it != _m_component_indexed_by_typeid.end() );
             component_init(component, entity, type );
         }
-
-        // for later conversion to an allocator
-
-        template<typename T, typename ...Args> T*   _allocate(Args...args)   { return new T(args...); }
-        template<class T>                      void _deallocate(T* ptr){ delete ptr; }
     };
 }
