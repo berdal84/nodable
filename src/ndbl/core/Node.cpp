@@ -392,7 +392,7 @@ void ndbl::node_init_internal_scope(Node* node)
     VERIFY( node->scope == nullptr, "Must be initialized prior to reset_parent()");
 
     auto* scope = node->components.create<Scope>();
-    scope->set_name("Internal Scope");
+    scope->name = "Internal Scope";
 
     node->internal_scope = scope;
 }

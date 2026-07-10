@@ -58,7 +58,7 @@ namespace ndbl
         Selection&             selection() { return _m_selection; }
         const Selection&       selection() const { return _m_selection; }
         void                   reset_all_properties();
-        Graph*                 graph() const { return entity(); } // alias for entity
+        Graph*                 graph() const { return entity; } // alias for entity
         static void            draw_wire_from_slot_to_pos(Node_Slot_View *from, const Vec2 &end_pos);
     private:
         tools::Spatial_Node*    spatial_node() { return _m_shape.spatial_node(); }

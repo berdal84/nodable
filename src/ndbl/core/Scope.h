@@ -61,7 +61,7 @@ namespace ndbl
         void                        reset_parent(Scope* new_parent = nullptr);
         bool                        is_orphan() const { return m_parent == nullptr; }
         size_t                      depth() const { _update_depth_cache(); return m_cached_depth; };
-        Node*                       node() const { return entity(); }; // alias for entity
+        Node*                       node() const { return entity; }; // alias for entity
         static Scope*               lowest_common_ancestor(const std::set<Scope*>& scopes);
         static Scope*               lowest_common_ancestor(Scope* s1, Scope* s2);
         static std::set<Scope*>&    get_descendent(std::set<Scope*>& out, Scope* scope, Scope_Flags flags = Scope_Flag_INCLUDE_SELF) { return get_descendent_ex(out, scope, -1, flags); }

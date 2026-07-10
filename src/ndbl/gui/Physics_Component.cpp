@@ -27,7 +27,7 @@ Physics_Component::Physics_Component()
 
 void Physics_Component::_on_init()
 {
-    _view      = entity()->component<Node_View>();
+    _view      = entity->component<Node_View>();
     ASSERT(_view);
     _is_active = true;
 }

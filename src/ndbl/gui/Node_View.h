@@ -76,7 +76,7 @@ namespace ndbl
         Node_View();
 		~Node_View() override;
 
-        Node*                   node() const { return entity(); } // entity() alias
+        Node*                   node() const { return entity; } // entity() alias
         std::vector<Node_View*> get_adjacent(Node_Slot::Flags) const;
         bool                    draw();
         void                    update(float);

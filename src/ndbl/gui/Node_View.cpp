@@ -625,12 +625,12 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
     ImGui::Separator();
     for (Component<Node>* component : node->components )
     {
-        if( ImGui::TreeNode(component, "Component %s", component->name().c_str() ) )
+        if( ImGui::TreeNode(component, "Component %s", component->name ) )
         {
             if ( component != *node->components.begin() )
                 ImGui::Separator();
 
-            if ( component->get_class() == type::get<Physics_Component>())
+            if ( component->type_desc == type::get<Physics_Component>())
             {
                 auto* physics_component = reinterpret_cast<Physics_Component*>( component );
 
@@ -645,7 +645,7 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
                 //     }
                 // }
             }
-            else if (component->get_class() == type::get<Scope>())
+            else if (component->type_desc == type::get<Scope>())
             {
                 TreeNode_Scope("Scope", static_cast<Scope *>( component ));
             }
@@ -694,14 +694,13 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
             if (scope)
             {
                 String_128 label;
-                Node* _node = scope->entity();
-                label.append_fmt("%s %p (%s %p)", scope->name().c_str(), scope, _node->name.c_str(), _node);
+                label.append_fmt("%s %p (%s %p)", scope->name, scope, scope->entity->name.c_str(), scope->entity);
                 if ( ImGui::Button(label.c_str()) )
                 {
                     Graph_View* graph_view = node->graph->component<Graph_View>();
                     ASSERT(graph_view);
                     graph_view->selection().clear();
-                    graph_view->selection().append(_node->component<Node_View>() );
+                    graph_view->selection().append(scope->entity->component<Node_View>() );
                 }
             }
             else
@@ -873,7 +872,7 @@ Node_View* Node_View::substitute_with_parent_if_not_visible(Node_View* _view, bo
 
     if ( _recursive )
         if( Scope* scope = _view->node()->scope )
-            if (Node_View* parent_view = scope->entity()->component<Node_View>() )
+            if (Node_View* parent_view = scope->entity->component<Node_View>() )
                 return parent_view->m_view_state.visible() ? parent_view
                                                       : substitute_with_parent_if_not_visible(parent_view, _recursive);
 

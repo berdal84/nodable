@@ -14,80 +14,63 @@ namespace tools
     struct Component_Bag;
 
     //
-    // Base class to implement a new Component for class/struct EntityT
+    // Base struct to implement a new Component for a given Entity_Type
     //
-    template<typename EntityT>
-    requires std::is_object_v<EntityT>
-    class Component
+    template<typename Entity_Type>
+    requires std::is_object_v<Entity_Type>
+    struct Component
     {
-        friend class Component_Bag<EntityT>;
-//====== Data ==========================================================================================================
-    protected:
-        tools::Simple_Signal signal_init; // called after component knows its entity
-        tools::Simple_Signal signal_shutdown; // called before to be deleted, when component still knows its entity
-    private:
-        EntityT*              _m_entity{};
-        const Type_Descriptor* _m_type_desc{};
-        std::string           _m_name{};
-//====== Methods =======================================================================================================
-    public:
-        Component() = delete;
-        Component(const char* name)
-        : _m_name(name)
-        , _m_type_desc(type::get<Component>())
+        tools::Simple_Signal            signal_init;            // called after component knows its entity
+        tools::Simple_Signal            signal_shutdown;        // called before to be deleted, when component still knows its entity
+        Entity_Type*                    entity      = nullptr;
+        const tools::Type_Descriptor*   type_desc   = nullptr;
+        const char*                     name        = "";
+
+        Component(const char* _name)
+        : name(_name)
         {}
-        virtual ~Component() = default;
-        // TODO: if Component_Bag could delete from the real type (not this base), we could remove virtual destructor no?
-
-        EntityT* entity() const
-        {
-            return _m_entity;
-        }
-
-        const std::string&  name() const
-        {
-            return _m_name;
-        }
-
-        void set_name(const std::string& name)
-        {
-            // TODO: Can't we have a constexpr name?
-            _m_name = name;
-        }
-
-        const Type_Descriptor* get_class() const
-        {
-            return _m_type_desc;
-        }
-
-//====== Internal================================== ====================================================================
-    private:
-        void _init(EntityT* entity, const Type_Descriptor* type_desc )
-        {
-            auto level = tools::Verbosity_Diagnostic;
-            TOOLS_DEBUG_LOG(level, "Component", "_init \"%s\" (type: %s ) ...\n", _m_name.c_str(), type_desc->name() );
-            _m_entity    = entity;
-            _m_type_desc = type_desc;
-            signal_init.emit();
-        }
-
-        void _shutdown() // do the mirror of _init()
-        {
-            TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Component", "_shutdown \"%s\" ...\n", _m_name.c_str());
-            signal_shutdown.emit();
-            _m_entity    = nullptr;
-            _m_type_desc = nullptr;
-        }
+        
+        virtual ~Component() = default; // TODO: Do I really need this virtual destructor? Yes, until we call delete on Component<Entity_Type> pointers.
     };
 
-    template<typename T, typename EntityT>
+    
+    template<typename Entity_Type>
+    void component_init(Component<Entity_Type>* component, Entity_Type* entity, const Type_Descriptor* type_desc = nullptr)
+    {
+        VERIFY(entity != nullptr, "Entity is required");
+
+        if( type_desc == nullptr )
+        {
+            component->type_desc = type::get<Component<Entity_Type>>();
+            ASSERT(component->type_desc != nullptr);
+        }
+        else
+        {
+            component->type_desc = type_desc;
+        }
+
+        component->entity = entity;
+        component->signal_init.emit();
+        TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Component", "_init \"%s\" (type: %s ) ...\n", component->name, component->type_desc->name() );
+    }
+
+    template<typename Entity_Type>
+    void component_shutdown(Component<Entity_Type>* component) // do the mirror of component_init()
+    {
+        TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Component", "_shutdown \"%s\" ...\n", component->name);
+        component->signal_shutdown.emit();
+        component->entity    = nullptr;
+        component->type_desc = nullptr;
+    }
+
+    template<typename T, typename Entity_Type>
     concept Component_For = requires (T t) {
-        std::is_base_of_v<Component<EntityT>, T>;
+        std::is_base_of_v<Component<Entity_Type>, T>;
     };
 
     //
     // Component_Bag:
-    //      Handle a set of components for an entity class EntityT
+    //      Handle a set of components for an entity class Entity_Type
     //
     // Minimalist example with components having a default constructor:
     //    struct MyEntity
@@ -98,10 +81,10 @@ namespace tools
     //         Component_Bag<MyEntity> _m_components;
     //    }
     //
-    template<typename EntityT>
+    template<typename Entity_Type>
     struct Component_Bag
 	{
-        using ComponentT     = Component<EntityT>;
+        using ComponentT     = Component<Entity_Type>;
         using iterator       = typename std::vector<ComponentT*>::iterator;
         using const_iterator = typename std::vector<ComponentT*>::const_iterator;
         using ComponentByTypeIndex = std::unordered_multimap<std::type_index, ComponentT*>;
@@ -109,12 +92,12 @@ namespace tools
     private:
         ComponentByTypeIndex     _m_component_indexed_by_typeid;
         std::vector<ComponentT*> _m_component;
-        EntityT*                 _m_entity;
+        Entity_Type*                 entity;
 //====== Methods =======================================================================================================
     public:
         Component_Bag() = delete;
-        explicit Component_Bag(EntityT* entity)
-        : _m_entity(entity)
+        explicit Component_Bag(Entity_Type* entity)
+        : entity(entity)
         {
             ASSERT(entity);
         };
@@ -132,7 +115,7 @@ namespace tools
             // TODO: we could optimize these two loops by iterating once.
             //       but for some reasons components have unordered dependencies that needs to be fixed.
             for(ComponentT* component : _m_component)
-                component->_shutdown();
+                component_shutdown(component);
             for(ComponentT* component : _m_component)
                 _deallocate(component);
             _m_component.clear();
@@ -144,7 +127,7 @@ namespace tools
             return _m_component.size();
         }
 
-        template<Component_For<EntityT> T>
+        template<Component_For<Entity_Type> T>
         bool has() const
         {
             return get<T>() != nullptr;
@@ -155,7 +138,7 @@ namespace tools
             return _m_component;
         }
 
-        template<Component_For<EntityT> T>
+        template<Component_For<Entity_Type> T>
         T* create()
         {
             auto* c = _allocate<T>();
@@ -163,7 +146,7 @@ namespace tools
             return c;
         }
 
-        template<Component_For<EntityT> T, typename ...Args>
+        template<Component_For<Entity_Type> T, typename ...Args>
         T* create(Args...args)
         {
             auto* c = _allocate<T>(args...);
@@ -171,18 +154,18 @@ namespace tools
             return c;
         }
 
-        template<Component_For<EntityT> T>
+        template<Component_For<Entity_Type> T>
         void destroy(T* component)
         {
             auto it = std::find_if(_m_component_indexed_by_typeid.begin(), _m_component_indexed_by_typeid.end(), [&](const auto& pair) { return pair.second == component; });
             ASSERT(it != _m_component_indexed_by_typeid.end());
             _m_component_indexed_by_typeid.erase(it);
             _m_component.erase(std::find(_m_component.begin(), _m_component.end(), component ) );
-            component->_shutdown();
+            component_shutdown(component);
             _deallocate(component);
         }
 
-        template<Component_For<EntityT> T>
+        template<Component_For<Entity_Type> T>
         T* get() const
         {
             const T* c = _get_by_type<T>();
@@ -191,7 +174,7 @@ namespace tools
             return nullptr;
         }
 
-        template<Component_For<EntityT> T>
+        template<Component_For<Entity_Type> T>
         static std::vector<T*> get_every(const std::vector<Component_Bag*>& entities)
         {
             std::vector<T*> result;
@@ -205,7 +188,7 @@ namespace tools
             return result;
         }
 
-        template<Component_For<EntityT> T>
+        template<Component_For<Entity_Type> T>
         T* require(const char* reason) const
         {
             T* component = get<T>();
@@ -219,7 +202,7 @@ namespace tools
         const_iterator cend() const   { return _m_component.cend(); }
     private:
 
-        template<Component_For<EntityT> T>
+        template<Component_For<Entity_Type> T>
         const T* _get_by_type() const
         {
             auto it = _m_component_indexed_by_typeid.find(std::type_index(typeid(T)));
@@ -230,20 +213,20 @@ namespace tools
             return nullptr;
         }
 
-        template<Component_For<EntityT> T>
+        template<Component_For<Entity_Type> T>
         const_iterator _find(T* ptr) const
         {
             return std::find(_m_component.begin(), _m_component.end(), ptr);
         }
 
-        template<Component_For<EntityT> T>
-        void _append(T* c)
+        template<Component_For<Entity_Type> T>
+        void _append(T* component)
         {
-            _m_component.push_back(c );
+            _m_component.push_back(component );
             const auto* type = type::get<T>();
-            auto it = _m_component_indexed_by_typeid.emplace( type->id() , c );
+            auto it = _m_component_indexed_by_typeid.emplace( type->id() , component );
             ASSERT(it != _m_component_indexed_by_typeid.end() );
-            c->_init( _m_entity, type );
+            component_init(component, entity, type );
         }
 
         // for later conversion to an allocator

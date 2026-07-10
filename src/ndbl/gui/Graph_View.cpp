@@ -518,7 +518,7 @@ void Graph_View::_create_constraints(Scope* scope )
         auto& constraint = _m_contraints.emplace_back();
         constraint.name          = "Align Scope_View partitions";
         constraint.rule          = &ViewConstraintRule_distribute_sub_scope_views;
-        constraint.leader        = {scope->entity()->component<Node_View>()};
+        constraint.leader        = {scope->node()->component<Node_View>()};
         constraint.leader_pivot  = BOTTOM;
         for(Branch i = 0; i < scope->node()->switch_behavior_data().branch_count(); ++i )
         {
@@ -847,7 +847,7 @@ void Graph_View::cursor_state_tick()
                     for(Scope* child : children)
                     {
                         // Include scope owner's view too
-                        if ( auto* view = child->entity()->component<Node_View>())
+                        if ( auto* view = child->node()->component<Node_View>())
                             views.push_back( view );
 
                         // and every other child's
