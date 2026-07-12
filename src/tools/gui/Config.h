@@ -14,6 +14,8 @@ namespace tools
     // Framework configuration
     struct Config
     {
+        constexpr static tools::Vec4 COLOR_ERROR {1.f, 0.f, 0.f};
+
         Config() = default;
 
         const char*           app_default_title        = "Default App Title";

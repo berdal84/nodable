@@ -7,37 +7,36 @@ using namespace ndbl;
 using namespace tools;
 
 Node_Slot_View::Node_Slot_View(
-        Node_Slot*       slot,
-        const Vec2& align,
-        Shape_Type   shape_type,
-        size_t      index,
-        const Box_2D* alignment_ref
-    )
+    Node_Slot*      slot,
+    const Vec2&     align,
+    Shape_Type      shape_type,
+    size_t          index,
+    const Box_2D*   alignment_ref
+)
 : slot(slot)
 , alignment(align)
 , shape_type(shape_type)
 , index(index)
 , alignment_ref(alignment_ref)
 , direction()
-, _shape(Vec2{1.f, 1.f})
-, _state()
+, shape(Vec2{1.f, 1.f})
 {
     ASSERT(slot != nullptr);
 
     slot->view = this;
-    update_direction_from_alignment();
+    nodeslotview_update_direction_from_alignment(this);
 
     // Update size from shape
     Config* config = get_config();
     Vec2 size = shape_type == Shape_Type_CIRCLE
             ? Vec2{ config->ui_slot_circle_radius() }
             : config->ui_slot_rectangle_size;
-    _shape.set_size( size );
+    shape.set_size( size );
 }
 
-String_64 Node_Slot_View::compute_tooltip() const
+String_64 ndbl::nodeslotview_compute_tooltip(const Node_Slot_View* view)
 {
-    switch (slot->type_and_order())
+    switch (view->slot->type_and_order())
     {
         case Node_Slot::Flag_FLOW_OUT: return "flow_out";
         case Node_Slot::Flag_FLOW_IN:  return "flow_in";
@@ -45,11 +44,11 @@ String_64 Node_Slot_View::compute_tooltip() const
 
     std::string prop_name;
 
-    if ( property() )
-        prop_name = property()->name;
+    if ( view->property() )
+        prop_name = view->property()->name;
 
     String_64 result;
-    switch (slot->type_and_order())
+    switch (view->slot->type_and_order())
     {
         case Node_Slot::Flag_INPUT:  result.append_fmt("%s (in)",  prop_name.c_str());  break;
         case Node_Slot::Flag_OUTPUT: result.append_fmt("%s (out)", prop_name.c_str());
@@ -58,40 +57,40 @@ String_64 Node_Slot_View::compute_tooltip() const
     return std::move(result);
 }
 
-bool Node_Slot_View::draw()
+bool ndbl::nodeslotview_draw(Node_Slot_View* view)
 {
-    _shape.draw_debug_info();
+    view->shape.draw_debug_info();
 
-    if ( !_state.visible() )
+    if ( !view->state.visible() )
         return false;
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     Config* cfg          = get_config();
-    Vec4  color          = cfg->ui_slot_color(slot->flags );
+    Vec4  color          = cfg->ui_slot_color(view->slot->flags );
     Vec4  border_color   = cfg->ui_slot_border_color;
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
-    Rect rect            = _shape.rect(WORLD_SPACE);
+    Rect rect            = view->shape.rect(WORLD_SPACE);
 
     if ( !rect.has_area() )
         return false;
 
     // draw an invisible button (for easy mouse interaction)
     ImGui::SetCursorScreenPos(rect.top_left());
-    ImGui::PushID(slot);
+    ImGui::PushID(view->slot);
     ImGui::InvisibleButton("###", rect.size() + cfg->ui_slot_invisible_btn_expand_size);
     ImGui::PopID();
     bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
-    _state.set_hovered( hovered );
+    view->state.set_hovered( hovered );
     const Vec4 fill_color = hovered ? hover_color : color;
 
     // draw shape
-    switch ( shape_type )
+    switch ( view->shape_type )
     {
         case Shape_Type_CIRCLE:
         {
-            float r = _shape.size().x;
+            float r = view->shape.size().x;
             draw_list->AddCircleFilled( rect.center(), r, ImColor(fill_color));
             draw_list->AddCircle( rect.center(), r, ImColor(border_color) );
             break;
@@ -99,7 +98,7 @@ bool Node_Slot_View::draw()
         case Shape_Type_RECTANGLE:
         {
             // draw the rectangle
-            bool bottom = slot->has_flags(Node_Slot::Flag_ORDER_1ST);
+            bool bottom = view->slot->has_flags(Node_Slot::Flag_ORDER_1ST);
             ImDrawFlags corner_flags = bottom ? ImDrawFlags_RoundCornersBottom
                                               : ImDrawFlags_RoundCornersTop;
             draw_list->AddRectFilled(rect.min, rect.max, ImColor(fill_color), border_radius, corner_flags );
@@ -112,7 +111,7 @@ bool Node_Slot_View::draw()
 
     if ( ImGuiEx::BeginTooltip() )
     {
-        String_64 tooltip = compute_tooltip();
+        String_64 tooltip = nodeslotview_compute_tooltip(view);
         ImGui::Text("%s", tooltip.c_str() );
         ImGuiEx::EndTooltip();
     }
@@ -120,31 +119,31 @@ bool Node_Slot_View::draw()
     return ImGui::IsItemClicked();
 }
 
-void Node_Slot_View::update(float dt)
+void ndbl::nodeslotview_update(Node_Slot_View* view, float dt)
 {
     // 1) Update visibility
     //---------------------
 
-    if (slot->capacity == 0)
+    if (view->slot->capacity == 0)
     {
-        _state.set_visible(false);
+        view->state.set_visible(false);
     }
-    else if (slot->type() == Node_Slot::Flag_TYPE_FLOW )
+    else if (view->slot->type() == Node_Slot::Flag_TYPE_FLOW )
     {
         // A code flow slot has to be hidden when cannot be an instruction or is not
-        bool desired_visibility = node_is_instruction(node() ) || node_could_be_instruction(node() );
-        _state.set_visible( desired_visibility );
+        bool desired_visibility = node_is_instruction(view->node() ) || node_could_be_instruction(view->node() );
+        view->state.set_visible( desired_visibility );
     }
     else
     {
-        _state.set_visible(true);
+        view->state.set_visible(true);
     }
 
     // 2) Update position
     //-------------------
 
     const Config* cfg = get_config();
-    if (slot->type() == Node_Slot::Flag_TYPE_FLOW )
+    if (view->slot->type() == Node_Slot::Flag_TYPE_FLOW )
     {
         // Align the code flow slots like that (example at top-left corner)
         //
@@ -153,21 +152,21 @@ void Node_Slot_View::update(float dt)
         // |  Box              |
         // ---------------------
         //
-        const Vec2  size  = _shape.size();
+        const Vec2  size  = view->shape.size();
         const float gap   = cfg->ui_slot_gap;
-        const float dir_x = -alignment.x;
+        const float dir_x = -view->alignment.x;
 
-        const Vec2 pos = alignment_ref->pivot(alignment, WORLD_SPACE ) // Starts from the right corner
-                       + Vec2( dir_x * gap * float(index + 2), 0.f) // horizontal gaps (2 initial, then 1 per slot)
-                       + Vec2( dir_x * size.x * float(index), 0.f) // jump to index
-                       + Vec2(0.f, alignment.y * size.y * 0.5f); // align edge vertically
+        const Vec2 pos = view->alignment_ref->pivot(view->alignment, WORLD_SPACE ) // Starts from the right corner
+                       + Vec2( dir_x * gap * float(view->index + 2), 0.f) // horizontal gaps (2 initial, then 1 per slot)
+                       + Vec2( dir_x * size.x * float(view->index), 0.f) // jump to index
+                       + Vec2(0.f, view->alignment.y * size.y * 0.5f); // align edge vertically
 
-        spatial_node()->set_position(pos, WORLD_SPACE); // relative to Node_View's
+        view->spatial_node()->set_position(pos, WORLD_SPACE); // relative to Node_View's
     }
-    else if (alignment_ref != nullptr )
+    else if (view->alignment_ref != nullptr )
     {
-        const Vec2 pos  = alignment_ref->pivot( alignment, WORLD_SPACE);
-        spatial_node()->set_position(pos, WORLD_SPACE);
+        const Vec2 pos  = view->alignment_ref->pivot( view->alignment, WORLD_SPACE);
+        view->spatial_node()->set_position(pos, WORLD_SPACE);
     }
     else
     {
@@ -175,7 +174,7 @@ void Node_Slot_View::update(float dt)
     }
 }
 
-void Node_Slot_View::update_direction_from_alignment()
+void ndbl::nodeslotview_update_direction_from_alignment(Node_Slot_View* view)
 {
-    direction = Vec2::normalize( alignment );
+    view->direction = Vec2::normalize( view->alignment );
 }

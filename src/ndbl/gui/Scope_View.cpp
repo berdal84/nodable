@@ -46,10 +46,10 @@ void ndbl::scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags f
     auto wrap_nodeview = [&](Node_View* nodeview )
     {
         ASSERT( nodeview );
-        if ( !nodeview->state()->visible() )
+        if ( !nodeview->state.visible() )
             return;
 
-        const Rect r = nodeview->get_rect(WORLD_SPACE);
+        const Rect r = nodeview_get_rect(nodeview, WORLD_SPACE);
         scope_view->content_rect = Rect::bounding_rect(scope_view->content_rect, r);
         scope_view->wrapped_node_view.push_back(nodeview);
     };
@@ -145,7 +145,7 @@ void ndbl::scopeview_arrange_content(Scope_View* scope_view)
 {
     for( Node_View* view : scope_view->wrapped_node_view )
     {
-        view->arrange_recursively();
+        nodeview_arrange_recursively(view);
     }
 }
 

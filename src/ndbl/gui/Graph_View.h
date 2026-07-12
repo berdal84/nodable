@@ -120,17 +120,17 @@ namespace ndbl
 
         // Data
 
-        const char*   name           = "untitled Node_ViewConstraint";
-        Node_ViewFlags leader_flags   = Node_ViewFlag_WITH_PINNED;
-        Node_ViewFlags follower_flags = Node_ViewFlag_WITH_PINNED;
-        tools::Vec2   leader_pivot   = tools::RIGHT;
-        tools::Vec2   follower_pivot = tools::LEFT;
-        tools::Vec2   row_direction  = tools::RIGHT;
-        tools::Vec2   gap_direction  = tools::CENTER;
-        tools::Size   gap_size       = tools::Size_DEFAULT;
-        Views         leader;
-        Views         follower;
-        Rule          rule;
+        const char*     name            = "untitled ViewConstraint";
+        Node_View_Flags leader_flags    = Node_View_Flag_WITH_PINNED;
+        Node_View_Flags follower_flags  = Node_View_Flag_WITH_PINNED;
+        tools::Vec2     leader_pivot    = tools::RIGHT;
+        tools::Vec2     follower_pivot  = tools::LEFT;
+        tools::Vec2     row_direction   = tools::RIGHT;
+        tools::Vec2     gap_direction   = tools::CENTER;
+        tools::Size     gap_size        = tools::Size_DEFAULT;
+        Views           leader          = {};
+        Views           follower        = {};
+        Rule            rule            = {};
     };
 
     // Functions (rules to assign to ViewConstraint.rule)

@@ -29,37 +29,37 @@ using namespace tools;
 Node_View::Node_View()
 : Component<Node>("View")
 {
-    Component::signal_init.connect<&Node_View::_handle_init>(this);
-    Component::signal_shutdown.connect<&Node_View::_handle_shutdown>(this);
+    Component::signal_init.connect<Node_View, &nodeview_handle_init>(this);
+    Component::signal_shutdown.connect<Node_View, &nodeview_handle_shutdown>(this);
 }
 
 Node_View::~Node_View()
 {
     Component::signal_init.disconnect();
     Component::signal_shutdown.disconnect();
-    assert(m_slot_views.empty());
-    assert(m_view_by_property.empty());
-    for(auto vector : m_view_by_property_type )
+    assert(slot_views.empty());
+    assert(view_by_property.empty());
+    for(auto vector : view_by_property_type )
         assert(vector.empty());
 }
 
-void Node_View::_handle_init()
+void ndbl::nodeview_handle_init(Node_View* node_view)
 {
     Config* cfg = get_config();
 
     // 1. Create Property views
     //-------------------------
 
-    VERIFY(m_view_by_property.empty(), "Cannot be called twice");
+    VERIFY(node_view->view_by_property.empty(), "Cannot be called twice");
 
-    for (Node_Property* property : node()->props )
+    for (Node_Property* property : node_view->entity->props )
     {
         // Create view
         auto new_view = new Node_Property_View(property);
-        spatial_node()->add_child( new_view->spatial_node() );
+        node_view->shape.spatial_node()->add_child( new_view->spatial_node() );
         new_view->spatial_node()->set_position({}, tools::PARENT_SPACE);
 
-        switch ( node()->type )
+        switch ( node_view->entity->type )
         {
             case Node_Type_ROOT:
             case Node_Type_SCOPE:
@@ -74,35 +74,35 @@ void Node_View::_handle_init()
         }
 
         // Indexing
-        if (property == node()->value )
+        if (property == node_view->entity->value )
         {
-            m_value_view = new_view;
+            node_view->value_view = new_view;
         }
 
-        bool has_in  = node_find_slot_by_property(node(), property, Node_Slot::Flag_INPUT );
-        bool has_out = node_find_slot_by_property(node(), property, Node_Slot::Flag_OUTPUT );
+        bool has_in  = node_find_slot_by_property(node_view->node(), property, Node_Slot::Flag_INPUT );
+        bool has_out = node_find_slot_by_property(node_view->node(), property, Node_Slot::Flag_OUTPUT );
 
         if ( has_in)
-            m_view_by_property_type[PropType_IN].push_back(new_view);
+            node_view->view_by_property_type[Property_Category_IN].push_back(new_view);
         if ( has_out)
-            m_view_by_property_type[PropType_OUT].push_back(new_view);
+            node_view->view_by_property_type[Property_Category_OUT].push_back(new_view);
 
         if ( has_in && has_out )
-            m_view_by_property_type[PropType_INOUT_STRICTLY].push_back(new_view);
+            node_view->view_by_property_type[Property_Category_INOUT_STRICTLY].push_back(new_view);
         else if ( has_in )
-            m_view_by_property_type[PropType_IN_STRICTLY].push_back(new_view);
+            node_view->view_by_property_type[Property_Category_IN_STRICTLY].push_back(new_view);
         else if ( has_out )
-            m_view_by_property_type[PropType_OUT_STRICTLY].push_back(new_view);
+            node_view->view_by_property_type[Property_Category_OUT_STRICTLY].push_back(new_view);
 
-        m_view_by_property.emplace(property, new_view);
+        node_view->view_by_property.emplace(property, new_view);
     }
 
     // 2. Create a Node_Slot_View per slot
     //------------------------------
 
-    for(auto* each : m_slot_views )
+    for(Node_Slot_View* each : node_view->slot_views )
         delete each;
-    m_slot_views.clear();
+    node_view->slot_views.clear();
 
     auto get_shapetype = [](const Node_Slot* slot)
     {
@@ -145,50 +145,50 @@ void Node_View::_handle_init()
             };
 
     // Create a view per slot
-    for( Node_Slot* slot : node()->slots )
+    for( Node_Slot* slot : node_view->node()->slots )
     {
         const u8_t index = count_per_type.at(slot->type_and_order())++;
-        auto* view = new Node_Slot_View(slot, get_pivot(slot), get_shapetype(slot), index, shape() );
+        auto* view = new Node_Slot_View(slot, get_pivot(slot), get_shapetype(slot), index, &node_view->shape );
 
-        spatial_node()->add_child( view->spatial_node() );
+        node_view->shape.spatial_node()->add_child( view->spatial_node() );
         view->spatial_node()->set_position({}, tools::PARENT_SPACE);
         
-        m_slot_views.push_back(view);
+        node_view->slot_views.push_back(view);
     }
 
     // Make sure inputs/outputs are aligned with the property views (if present) and not the node's view.
-    for(auto view : m_slot_views)
+    for(Node_Slot_View* slot_view : node_view->slot_views)
     {
-        switch ( view->slot->type() )
+        switch ( slot_view->slot->type() )
         {
             case Node_Slot::Flag_TYPE_VALUE:
             {
-                const Node_Property_View* property_view = _find_property_view(view->property());
+                const Node_Property_View* property_view = nodeview_find_property_view(node_view, slot_view->property());
                 if ( property_view != nullptr && property_view->state()->visible() )
-                    view->alignment_ref = property_view->shape();
+                    slot_view->alignment_ref = property_view->shape();
             }
         }
     }
 
     // Adjust some slot views
-    switch ( node()->type )
+    switch ( node_view->node()->type )
     {
         case Node_Type_VARIABLE:
         {
-            if ( Node_Slot* decl_out = node()->variable_data.decl_out )
+            if ( Node_Slot* decl_out =  node_view->node()->variable_data.decl_out )
             {
                 if (Node_Slot_View *view = decl_out->view)
                 {
                     view->alignment = LEFT;
-                    view->update_direction_from_alignment();
-                    view->alignment_ref = this->shape();
+                    nodeslotview_update_direction_from_alignment(view);
+                    view->alignment_ref = &node_view->shape;
                 }
             }
             break;
         }
         case Node_Type_FUNCTION:
         {
-            if ( Node_Slot* value_out = node()->value_out() )
+            if ( Node_Slot* value_out = node_view->node()->value_out() )
             {
                 if (Node_Slot_View *view = value_out->view)
                 {
@@ -204,165 +204,165 @@ void Node_View::_handle_init()
     //---------------------
 
     // note: We pass color by address to be able to change the color dynamically
-    set_color( &cfg->ui_node_fill_color[ node()->type] );
+    node_view->colors[Color_FILL] = &cfg->ui_node_fill_color[ node_view->node()->type];
 
     // 4. Create Scope_View
     //--------------------
 
-    if ( Scope* internal_scope = node()->internal_scope )
+    if ( Scope* internal_scope = node_view->node()->internal_scope )
     {
         auto* scopeview = new Scope_View();
         scopeview_init(scopeview, internal_scope);
 
-        spatial_node()->add_child( &scopeview->spatial_node );
+        node_view->shape.spatial_node()->add_child( &scopeview->spatial_node );
         scopeview->spatial_node.set_position({0.f, 0.f}, tools::PARENT_SPACE);
 
-        m_internal_scopeview = scopeview;
+        node_view->internal_scopeview = scopeview;
     }
 }
 
-void Node_View::_handle_shutdown()
+void ndbl::nodeview_handle_shutdown(Node_View* node_view)
 {
-    spatial_node()->clear();
+    node_view->spatial_node()->clear();
 
-    for(auto& [_, each] : m_view_by_property )
+    for(auto& [_, each] : node_view->view_by_property )
         delete each;
-    m_view_by_property.clear();
+    node_view->view_by_property.clear();
 
-    for(auto& vector : m_view_by_property_type )
+    for(auto& vector : node_view->view_by_property_type )
         vector.clear();
     // no m_view_by_property_type.clear(), it is an array ;)
 
-    for(auto* each : m_slot_views )
+    for(auto* each : node_view->slot_views )
         delete each;
-    m_slot_views.clear();
+    node_view->slot_views.clear();
 
-    if( m_internal_scopeview != nullptr )
-        scopeview_shutdown(m_internal_scopeview);
+    if( node_view->internal_scopeview != nullptr )
+        scopeview_shutdown(node_view->internal_scopeview);
 
-    m_hovered_slotview = nullptr;
+    node_view->hovered_slotview = nullptr;
 }
 
-std::string Node_View::get_label()
+std::string ndbl::nodeview_get_label(const Node_View* node_view)
 {
     Config* cfg = get_config();
 
     bool minimalist = cfg->ui_node_detail == View_Detail::MINIMALIST;
 
-    switch (node()->type )
+    switch (node_view->node()->type )
     {
         case Node_Type_VARIABLE_REF:
         {
             if ( minimalist )
                 return "&";
-            return node()->name;
+            return node_view->node()->name;
         }
         case Node_Type_VARIABLE:
         {
             if (minimalist)
                 return "";
-            return node_variable_type(node() )->name();
+            return node_variable_type(node_view->node() )->name();
         }
         case Node_Type_OPERATOR:
         {
-            return node()->name;
+            return node_view->node()->name;
         }
         case Node_Type_FUNCTION:
         {
             if ( minimalist )
                 return "f(x)";
-            return node()->name;
+            return node_view->node()->name;
         }
         case Node_Type_ROOT:
         case Node_Type_SCOPE:
         {
             if ( minimalist )
             {
-                return node()->name.substr(0, 6); // 4 char for the icon
+                return node_view->node()->name.substr(0, 6); // 4 char for the icon
             }
-            return node()->name;
+            return node_view->node()->name;
         }
         case Node_Type_IF_ELSE:
         {
             if ( minimalist )
                 return "?";
-            return node()->name;
+            return node_view->node()->name;
         }
         case Node_Type_FOR_LOOP:
         {
             if ( minimalist )
                 return "for";
-            return node()->name;
+            return node_view->node()->name;
         }
         default:
         {
             if ( minimalist )
-                return node()->name.substr(0, 3) + ".";
-            return node()->name;
+                return node_view->node()->name.substr(0, 3) + ".";
+            return node_view->node()->name;
         }
     }
 
 }
 
-void Node_View::arrange_recursively(bool _smoothly)
+void ndbl::nodeview_arrange_recursively(Node_View* node_view, bool _smoothly)
 {
-    for (auto each_input: get_adjacent(Node_Slot::Flag_INPUT) )
+    for (auto each_input: nodeview_get_adjacent(node_view, Node_Slot::Flag_INPUT) )
     {
-        if ( !each_input->m_view_state.pinned() )
-            if (node_is_output_node_in_expression(each_input->node(), node() ) )
-                each_input->arrange_recursively();
+        if ( !each_input->state.pinned() )
+            if (node_is_output_node_in_expression(each_input->node(), node_view->node() ) )
+                nodeview_arrange_recursively(each_input);
     }
 
-    if (Scope* internal_scope = node()->internal_scope )
+    if (Scope* internal_scope = node_view->node()->internal_scope )
         for ( Node* _node : scope_get_backbone(internal_scope) )
             if ( auto* _node_view = componentbag_get<Node_View>(&_node->component_bag))
-                    _node_view->arrange_recursively();
+                    nodeview_arrange_recursively(_node_view);
 
     // Force an update of input nodes with a delta time extra high
     // to ensure all nodes will be well-placed in a single call (no smooth moves)
     if ( !_smoothly )
     {
-        update(float(1000));
+        nodeview_update(node_view, float(1000));
     }
 
-    m_view_state.set_pinned(false);
+    node_view->state.set_pinned(false);
 }
 
-void Node_View::update(float dt)
+void ndbl::nodeview_update(Node_View* node_view, float dt)
 {
-    if(m_opacity != 1.0f)
-        tools::clamped_lerp(m_opacity, 1.0f, 10.0f * dt);
+    if( node_view->opacity != 1.0f)
+        tools::clamped_lerp(node_view->opacity, 1.0f, 10.0f * dt);
 
-    for(Node_Slot_View* _slotview  : m_slot_views )
-        _slotview->update( dt );
+    for(Node_Slot_View* each_slot_view  : node_view->slot_views )
+        nodeslotview_update( each_slot_view, dt );
 
-    if ( m_internal_scopeview != nullptr )
-        scopeview_update( m_internal_scopeview, dt );
+    if ( node_view->internal_scopeview != nullptr )
+        scopeview_update( node_view->internal_scopeview, dt );
 }
 
-bool Node_View::draw()
+bool ndbl::nodeview_draw(Node_View* node_view)
 {
-    m_shape.draw_debug_info();
+    node_view->shape.draw_debug_info();
 
-    if ( !m_view_state.visible() )
+    if ( !node_view->state.visible() )
         return false;
 
-    ASSERT( node() );
+    ASSERT( node_view->node() );
 
     Config*     cfg       = get_config();
 	bool        changed   = false;
 
-    m_hovered_slotview    = nullptr; // reset every frame
+    node_view->hovered_slotview = nullptr; // reset every frame
 
     // Draw background slots (rectangles)
-    for( Node_Slot_View* slot_view: m_slot_views )
+    for( Node_Slot_View* slot_view : node_view->slot_views )
         if ( slot_view->shape_type == Shape_Type_RECTANGLE)
-            _draw_slot(slot_view);
+            nodeview_draw_slot(node_view, slot_view);
 
 	// Begin the window
 	//-----------------
-	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
-    Rect screen_rect = get_rect(WORLD_SPACE);
+	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, node_view->opacity);
+    Rect screen_rect = node_view->shape.rect(WORLD_SPACE);
 
 #if PIXEL_PERFECT
         screen_rect.min.round();
@@ -370,33 +370,33 @@ bool Node_View::draw()
 #endif
 
     ImGui::SetCursorScreenPos( screen_rect.top_left() ); // start from th top left corner
-	ImGui::PushID(this);
+	ImGui::PushID(node_view);
 
 
 	// Draw the background of the Group
     Vec4 border_color = cfg->ui_node_borderColor;
-    if ( m_view_state.selected() )
+    if ( node_view->state.selected() )
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
-    else if ( node_is_instruction(node() ) )
+    else if ( node_is_instruction( node_view->node() ) )
     {
         border_color = cfg->ui_node_fill_color[Node_Type_NULL];
     }
 
     float border_width = cfg->ui_node_borderWidth;
-    if( node_is_instruction(node() ) )
+    if( node_is_instruction( node_view->node() ) )
     {
         border_width *= cfg->ui_node_instructionBorderRatio;
     }
 
-    DrawNodeRect(
+    nodeview_draw_node_rect(
             screen_rect,
-            get_color( Color_FILL ),
+            *node_view->colors[Color_FILL],
             cfg->ui_node_borderColor,
             cfg->ui_node_shadowColor,
             border_color,
-            m_view_state.selected(),
+            node_view->state.selected(),
             5.0f,
             border_width );
 
@@ -419,20 +419,20 @@ bool Node_View::draw()
     std::vector<std::string> operator_label(1); // for binary (and ternary when implemented) operators
     std::string post_label;
 
-    switch ( node()->type )
+    switch ( node_view->node()->type )
     {
         case Node_Type_OPERATOR:
-            if ( node_is_unary_operator(node() ) )
-                pre_label = get_label();
-            else if ( node_is_binary_operator(node() ) )
-                operator_label[0] = get_label();
+            if ( node_is_unary_operator(node_view->node() ) )
+                pre_label = nodeview_get_label(node_view);
+            else if ( node_is_binary_operator(node_view->node() ) )
+                operator_label[0] = nodeview_get_label(node_view);
             // else if (node->is_ternary_operator()
             break;
         default:
-            pre_label = get_label();
+            pre_label = nodeview_get_label(node_view);
             break;
         case Node_Type_FUNCTION:
-            pre_label = get_label();
+            pre_label = nodeview_get_label(node_view);
             post_label = "";
 
             if ( cfg->ui_node_detail != View_Detail::MINIMALIST)
@@ -443,7 +443,7 @@ bool Node_View::draw()
             break;
     }
 
-    if ( !m_expanded )
+    if ( !node_view->is_expanded )
         pre_label.append(" " ICON_FA_OBJECT_GROUP);
 
     // Draw the pre_label when necessary
@@ -453,28 +453,28 @@ bool Node_View::draw()
 
         // Update slot_view_out to be positioned below the pre_label
 
-        if (node()->type == Node_Type_FUNCTION )
-            if (Node_Slot *slot_out = node()->value_out())
+        if (node_view->node()->type == Node_Type_FUNCTION )
+            if (Node_Slot *slot_out = node_view->node()->value_out())
                 if (Node_Slot_View *slot_view_out = slot_out->view)
                 {
                     const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
-                    const float y = shape()->pivot(BOTTOM, WORLD_SPACE).y;
+                    const float y = node_view->shape.pivot(BOTTOM, WORLD_SPACE).y;
                     slot_view_out->spatial_node()->set_position({x, y}, WORLD_SPACE);
                     slot_view_out->direction = BOTTOM;
                 }
     }
 
     // Draw the properties depending on node type
-    if (node()->type != Node_Type_OPERATOR )
+    if (node_view->node()->type != Node_Type_OPERATOR )
     {
-        changed |= Node_Property_View::draw_all(m_view_by_property_type[PropType_IN_STRICTLY], cfg->ui_node_detail);
-        changed |= Node_Property_View::draw_all(m_view_by_property_type[PropType_INOUT_STRICTLY], cfg->ui_node_detail);
-        changed |= Node_Property_View::draw_all(m_view_by_property_type[PropType_OUT_STRICTLY], cfg->ui_node_detail);
+        changed |= Node_Property_View::draw_all(node_view->view_by_property_type[Property_Category_IN_STRICTLY], cfg->ui_node_detail);
+        changed |= Node_Property_View::draw_all(node_view->view_by_property_type[Property_Category_INOUT_STRICTLY], cfg->ui_node_detail);
+        changed |= Node_Property_View::draw_all(node_view->view_by_property_type[Property_Category_OUT_STRICTLY], cfg->ui_node_detail);
     }
     else
     {
         size_t i = 0;
-        for( Node_Property_View* property_view : m_view_by_property_type[PropType_IN] )
+        for( Node_Property_View* property_view : node_view->view_by_property_type[Property_Category_IN] )
         {
             ImGui::SameLine();
             changed |= property_view->draw( cfg->ui_node_detail );
@@ -506,26 +506,26 @@ bool Node_View::draw()
     new_size.x = std::max( 1.0f, new_size.x );
     new_size.y = std::max( 1.0f, new_size.y );
 
-    shape()->set_size(Vec2::round(new_size));
+    node_view->shape.set_size(Vec2::round(new_size));
 
     // Draw foreground slots (circles)
-    for( Node_Slot_View* slot_view: m_slot_views )
+    for( Node_Slot_View* slot_view: node_view->slot_views )
         if ( slot_view->shape_type == Shape_Type_CIRCLE)
-            _draw_slot(slot_view);
+            nodeview_draw_slot(node_view, slot_view);
 
 	ImGui::PopStyleVar();
 	ImGui::PopID();
 
     if ( changed )
-        node()->set_flags(Node_Flag_IS_DIRTY );
+        node_view->node()->set_flags(Node_Flag_IS_DIRTY );
 
-    const bool _hovered = is_rect_hovered || m_hovered_slotview != nullptr;
-    m_view_state.set_hovered(_hovered );
+    const bool _hovered = is_rect_hovered || node_view->hovered_slotview != nullptr;
+    node_view->state.set_hovered(_hovered );
 
 	return changed;
 }
 
-void Node_View::DrawNodeRect(
+void ndbl::nodeview_draw_node_rect(
     Rect rect,
     Vec4 color,
     Vec4 border_highlight_col,
@@ -561,10 +561,10 @@ void Node_View::DrawNodeRect(
     }
 }
 
-bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
+bool ndbl::nodeview_draw_as_properties_panel(Node_View* node_view, bool* _show_advanced)
 {
     bool changed = false;
-    Node* node = _view->node();
+    Node* node = node_view->node();
     const float labelColumnWidth = ImGui::GetContentRegionAvail().x / 2.0f;
 
     auto draw_labeled_property_view = [&](Node_Property_View* _property_view) -> bool
@@ -618,15 +618,15 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
     };
 
     ImGui::Separator();
-    changed |= draw_properties("Inputs(s)", _view->m_view_by_property_type[PropType_IN_STRICTLY]);
-    changed |= draw_properties("In/Out(s)", _view->m_view_by_property_type[PropType_INOUT_STRICTLY]);
+    changed |= draw_properties("Inputs(s)", node_view->view_by_property_type[Property_Category_IN_STRICTLY]);
+    changed |= draw_properties("In/Out(s)", node_view->view_by_property_type[Property_Category_INOUT_STRICTLY]);
     ImGui::Separator();
-    changed |= draw_properties("Output(s)", _view->m_view_by_property_type[PropType_OUT_STRICTLY]);
+    changed |= draw_properties("Output(s)", node_view->view_by_property_type[Property_Category_OUT_STRICTLY]);
 
 #ifdef NDBL_DEBUG
 
     ImGui::Separator();
-    changed |= draw_labeled_property_view( _view->m_value_view );
+    changed |= draw_labeled_property_view( node_view->value_view );
     ImGui::Separator();
 
     ImGui::Separator();
@@ -749,16 +749,16 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
     return changed;
 }
 
-Rect Node_View::get_rect_ex(tools::Space space, Node_ViewFlags flags) const
+Rect ndbl::nodeview_get_rect_ex(const Node_View* node_view, tools::Space space, Node_View_Flags flags)
 {
-    if( (flags & Node_ViewFlag_WITH_RECURSION) == 0 )
-        return this->get_rect(space);
+    if( (flags & Node_View_Flag_WITH_RECURSION) == 0 )
+        return node_view->shape.rect(space);
 
     Rect result;
 
-    if ( m_view_state.visible() )
+    if ( node_view->state.visible() )
     {
-        result = this->get_rect(space);
+        result = node_view->shape.rect(space);
     }
 
     // TEMPORARILY DISABLED: we need a flag here to disable this type of "INNER_RECURSION"
@@ -767,20 +767,20 @@ Rect Node_View::get_rect_ex(tools::Space space, Node_ViewFlags flags) const
     //      result = result.bounding_rect(result, _internal_scope->view()->content_rect() );
     // }
 
-    for (Node* input_node : node()->inputs() )
+    for (Node* input_node : node_view->node()->inputs() )
     {
         auto* view = componentbag_get<Node_View>(&input_node->component_bag);
         if( !view )
             continue;
-        if( !view->m_view_state.visible() )
+        if( !view->state.visible() )
             continue;
-        if( view->m_view_state.selected() && (flags & Node_ViewFlag_EXCLUDE_UNSELECTED) )
+        if( view->state.selected() && (flags & Node_View_Flag_EXCLUDE_UNSELECTED) )
             continue;
-        if( view->m_view_state.pinned() && (flags & Node_ViewFlag_WITH_PINNED ) == 0 )
+        if( view->state.pinned() && (flags & Node_View_Flag_WITH_PINNED ) == 0 )
             continue;
-        if( node_is_output_node_in_expression( input_node, node() ) )
+        if( node_is_output_node_in_expression( input_node, node_view->node() ) )
         {
-            result = result.bounding_rect(result,  view->get_rect_ex(space, flags) );
+            result = result.bounding_rect(result,  nodeview_get_rect_ex( view, space, flags) );
         }
     }
 
@@ -793,11 +793,10 @@ Rect Node_View::get_rect_ex(tools::Space space, Node_ViewFlags flags) const
     return result;
 }
 
-Rect
-Node_View::bounding_rect(
+Rect ndbl::nodeview_bounding_rect(
     const std::vector<Node_View *>& view,
     Space space,
-    Node_ViewFlags flags
+    Node_View_Flags flags
 )
 {
     // collect rectangles
@@ -807,74 +806,74 @@ Node_View::bounding_rect(
     rect.reserve(view.size());
     for (size_t i = 0; i < view.size(); ++i)
     {
-        rect.emplace_back( view[i]->get_rect_ex(space, flags) ) ;
+        rect.emplace_back( nodeview_get_rect_ex(view[i], space, flags) ) ;
     }
     // compute bbox
     return Rect::bounding_rect(rect);
 }
 
-void Node_View::set_expanded_rec(bool _expanded)
+void ndbl::nodeview_set_expanded_rec(Node_View* node_view, bool _expanded)
 {
-    set_expanded(_expanded);
+    nodeview_set_expanded(node_view, _expanded);
 
-    if ( Scope* _internal_scope = node()->internal_scope )
+    if ( Scope* _internal_scope = node_view->node()->internal_scope )
         for( Node* _node : scope_get_backbone(_internal_scope) )
             if ( auto* view = componentbag_get<Node_View>(&_node->component_bag) )
-                view->set_expanded_rec(_expanded);
+                nodeview_set_expanded_rec(view, _expanded);
 }
 
-void Node_View::set_expanded(bool _expanded)
+void ndbl::nodeview_set_expanded(Node_View* node_view, bool expand)
 {
-    m_expanded = _expanded;
-    set_inputs_visible(_expanded, true);
-    set_children_visible(_expanded, true);
+    node_view->is_expanded = expand;
+    nodeview_set_inputs_visible(node_view, expand, true);
+    nodeview_set_children_visible(node_view, expand, true);
 }
 
-void Node_View::set_inputs_visible(bool _visible, bool _recursive)
+void ndbl::nodeview_set_inputs_visible(Node_View* node_view, bool _visible, bool _recursive)
 {
-    _set_adjacent_visible(Node_Slot::Flag_INPUT, _visible, Node_ViewFlag_WITH_RECURSION * _recursive);
+    nodeview_set_adjacent_visible(node_view, Node_Slot::Flag_INPUT, _visible, Node_View_Flag_WITH_RECURSION * _recursive);
 }
 
-void Node_View::set_children_visible(bool visible, bool recursively)
+void ndbl::nodeview_set_children_visible(Node_View* node_view, bool visible, bool recursively)
 {
-    if ( node()->internal_scope == nullptr )
+    if ( node_view->node()->internal_scope == nullptr )
         return;
 
     std::set<Scope*> scopes;
-    scope_get_descendent(scopes, node()->internal_scope, 1 );
+    scope_get_descendent(scopes, node_view->node()->internal_scope, 1 );
 
     for(Scope* each_scope : scopes)
         for (Node* each_child_node: scope_get_backbone(each_scope))
             if ( auto* view = componentbag_get<Node_View>(&each_child_node->component_bag) )
-                view->state()->set_visible(visible );
+                view->state.set_visible(visible );
 }
 
-void Node_View::_set_adjacent_visible(Node_Slot::Flags slot_flags, bool _visible, Node_ViewFlags node_flags)
+void ndbl::nodeview_set_adjacent_visible(Node_View* node_view, Node_Slot::Flags slot_flags, bool _visible, Node_View_Flags node_flags)
 {
-    bool has_not_output = node()->outputs().empty();
-    for( auto each_child_view : get_adjacent(slot_flags) )
+    bool has_not_output = node_view->node()->outputs().empty();
+    for( Node_View* each_child_view : nodeview_get_adjacent(node_view, slot_flags) )
     {
         if(_visible || has_not_output || node_is_output_node_in_expression(each_child_view->node(),
-                                                                                this->node()) )
+                                                                                node_view->node()) )
         {
-            if ( (node_flags & Node_ViewFlag_WITH_RECURSION) && each_child_view->m_expanded ) // propagate only if expanded
+            if ( (node_flags & Node_View_Flag_WITH_RECURSION) && each_child_view->is_expanded ) // propagate only if expanded
             {
-                each_child_view->set_children_visible(_visible, true);
-                each_child_view->set_inputs_visible(_visible, true);
+                nodeview_set_children_visible(each_child_view,_visible, true);
+                nodeview_set_inputs_visible(each_child_view, _visible, true);
             }
-            each_child_view->m_view_state.set_visible(_visible );
+            each_child_view->state.set_visible(_visible );
         }
     }
 }
 
-Node_View* Node_View::substitute_with_parent_if_not_visible(Node_View* _view, bool _recursive)
+Node_View* ndbl::nodeview_substitute_with_parent_if_not_visible(Node_View* _view, bool _recursive)
 {
     if( _view == nullptr )
     {
         return _view;
     }
 
-    if( _view->m_view_state.visible() )
+    if( _view->state.visible() )
     {
         return _view;
     }
@@ -882,55 +881,42 @@ Node_View* Node_View::substitute_with_parent_if_not_visible(Node_View* _view, bo
     if ( _recursive )
         if( Scope* scope = _view->node()->scope )
             if (Node_View* parent_view = componentbag_get<Node_View>(&scope->entity->component_bag) )
-                return parent_view->m_view_state.visible() ? parent_view
-                                                      : substitute_with_parent_if_not_visible(parent_view, _recursive);
+                return parent_view->state.visible() ? parent_view
+                                                      : nodeview_substitute_with_parent_if_not_visible(parent_view, _recursive);
 
     return nullptr;
 }
 
-std::vector<Node_View*> Node_View::get_adjacent(Node_Slot::Flags flags) const
+std::vector<Node_View*> ndbl::nodeview_get_adjacent(const Node_View* node_view, Node_Slot::Flags flags)
 {
     std::vector<Node_View*> result;
-        for(auto _adjacent_node : node_get_adjacent_nodes( node(), flags ) )
+        for(auto _adjacent_node : node_get_adjacent_nodes( node_view->node(), flags ) )
             if( auto* component = componentbag_get<Node_View>(&_adjacent_node->component_bag) )
                 result.push_back( component );
     return result;
 }
 
-void Node_View::set_color(const Vec4* _color, ColorType _type )
+void ndbl::nodeview_draw_slot(Node_View* node_view, Node_Slot_View* slot_view)
 {
-    ASSERT(_color != nullptr);
-    m_colors[_type] = _color;
-}
+    nodeslotview_draw(slot_view);
 
-Vec4 Node_View::get_color(ColorType _type ) const
-{
-     auto* color = m_colors[_type];
-     VERIFY(color != nullptr, "Did you called set_color(...) ?");
-     return *color;
-}
-
-void Node_View::_draw_slot(Node_Slot_View* slot_view)
-{
-    slot_view->draw();
-
-    if( slot_view->state()->hovered() )
+    if( slot_view->state.hovered() )
     {
-        m_hovered_slotview = slot_view; // last wins
+        node_view->hovered_slotview = slot_view; // last wins
     }
 }
 
-Node_Property_View *Node_View::_find_property_view(const Node_Property* property)
+Node_Property_View* ndbl::nodeview_find_property_view(Node_View* node_view, const Node_Property* property)
 {
-    auto found = m_view_by_property.find(property );
-    if (found != m_view_by_property.end() )
+    auto found = node_view->view_by_property.find(property );
+    if (found != node_view->view_by_property.end() )
         return found->second;
     return nullptr;
 }
 
-void Node_View::reset_all_properties()
+void ndbl::nodeview_reset_all_properties(Node_View* node_view)
 {
-    for( auto& [_, property_view] : m_view_by_property )
+    for( auto& [_, property_view] : node_view->view_by_property )
         property_view->reset();
 }
 

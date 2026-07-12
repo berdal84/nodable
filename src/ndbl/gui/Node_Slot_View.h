@@ -23,36 +23,33 @@ namespace ndbl
     {
         Node_Slot_View(
                 Node_Slot*,
-                const tools::Vec2& /* alignment */,
+                const tools::Vec2&   /* alignment */,
                 Shape_Type,
-                size_t /* index */,
+                size_t               /* index */,
                 const tools::Box_2D* /* alignment_ref */
             );
 
-        const size_t            index;
-        const Shape_Type        shape_type;
-        tools::Vec2             direction; // cached
-        Node_Slot* const        slot;
-        tools::Vec2             alignment;
-        const tools::Box_2D*    alignment_ref;
+        const size_t                    index;
+        const Shape_Type                shape_type;
+        tools::Vec2                     direction; // cached
+        Node_Slot* const                slot;
+        tools::Vec2                     alignment;
+        const tools::Box_2D*            alignment_ref;
+        tools::View_State               state;
+        tools::Box_2D                   shape;
 
-        void                    update(float dt);
-        bool                    draw();
-        tools::String_64        compute_tooltip() const;
-        Node*                   node()const { return slot->node; }
-        bool                    allows(Node_Slot::Flag flags) const { return slot->has_flags(flags); }
-        tools::Spatial_Node*        spatial_node() { return _shape.spatial_node(); }
-        const tools::Spatial_Node*  spatial_node() const { return _shape.spatial_node(); }
-        tools::Box_2D*              shape() { return &_shape; }
-        const tools::Box_2D*        shape() const { return &_shape; }
-        tools::View_State*          state() { return &_state; }
-        const tools::View_State*    state() const { return &_state; }
-        const Node_Property*          property()const { return slot->property; }
-        const tools::Type_Descriptor* property_type()const { return property() ? property()->type : nullptr; }
-        void                  update_direction_from_alignment();
-
-    private:
-        tools::View_State   _state;
-        tools::Box_2D       _shape;
+        // shorthands
+        
+        Node*                           node()const { return slot->node; }
+        bool                            allows(Node_Slot::Flag flags) const { return slot->has_flags(flags); }
+        tools::Spatial_Node*            spatial_node() { return shape.spatial_node(); }
+        const tools::Spatial_Node*      spatial_node() const { return shape.spatial_node(); }
+        const Node_Property*            property()const { return slot->property; }
+        const tools::Type_Descriptor*   property_type()const { return property() ? property()->type : nullptr; }
     };
+
+    void                            nodeslotview_update(Node_Slot_View*, float dt);
+    bool                            nodeslotview_draw(Node_Slot_View*);
+    tools::String_64                nodeslotview_compute_tooltip(const Node_Slot_View*);
+    void                            nodeslotview_update_direction_from_alignment(Node_Slot_View*);
 }

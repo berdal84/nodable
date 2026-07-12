@@ -110,11 +110,11 @@ void Graph_View::_handle_add_node(Node* node)
     // view
     auto* nodeview = new Node_View();
     component_init(nodeview, node);
-    nodeview->set_size({20.f, 35.f});
+    nodeview->shape.set_size({20.f, 35.f});
 
     componentbag_add(& node->component_bag, nodeview);
 
-    if (Scope_View* scopeview = nodeview->internal_scopeview() )
+    if (Scope_View* scopeview = nodeview->internal_scopeview )
         scopeview->signal_hover.connect<&Graph_View::_handle_hover>(this); // I'm not sure if this is a good approach...
 
     if( graph_root(graph()) == node )
@@ -146,7 +146,7 @@ void Graph_View::_handle_remove_node(Node* node)
     auto* nodeview = componentbag_get<Node_View>(&node->component_bag);
     VERIFY(nodeview, "Should have been created from _handle_add_node()");
 
-    if ( Scope_View* scopeview = nodeview->internal_scopeview() )
+    if ( Scope_View* scopeview = nodeview->internal_scopeview )
     {
         scopeview->signal_hover.disconnect(); // I'm not sure if this is a good approach...
     }
@@ -263,7 +263,7 @@ bool Graph_View::draw(float dt)
     };
     for (Node* each_node: graph()->nodes )
     {
-        Node_View *each_view = Node_View::substitute_with_parent_if_not_visible( componentbag_get<Node_View>(&each_node->component_bag) );
+        Node_View *each_view = nodeview_substitute_with_parent_if_not_visible( componentbag_get<Node_View>(&each_node->component_bag) );
 
         if (!each_view) {
             continue;
@@ -283,13 +283,13 @@ bool Graph_View::draw(float dt)
             {
                 Node*       each_successor_node     = adjacent_slot->node;
                 Node_View*  possibly_hidden_view    = componentbag_get<Node_View>(&each_successor_node->component_bag);
-                Node_View*  each_successor_view     = Node_View::substitute_with_parent_if_not_visible(possibly_hidden_view);
+                Node_View*  each_successor_view     = nodeview_substitute_with_parent_if_not_visible(possibly_hidden_view);
 
                 if ( each_successor_view == nullptr )
                     continue;
-                if ( !each_view->state()->visible() )
+                if ( !each_view->state.visible() )
                     continue;
-                if ( !each_successor_view->state()->visible() )
+                if ( !each_successor_view->state.visible() )
                     continue;
 
                 Node_Slot_View* tail = slot->view;
@@ -334,9 +334,9 @@ bool Graph_View::draw(float dt)
                 auto *node_view_out = componentbag_get<Node_View>(&slot_out->node->component_bag);
                 auto *node_view_in  = componentbag_get<Node_View>(&slot_in->node->component_bag);
 
-                if ( !node_view_out->state()->visible() )
+                if ( !node_view_out->state.visible() )
                     continue;
-                if ( !node_view_in->state()->visible() )
+                if ( !node_view_in->state.visible() )
                     continue;
 
                 Vec2 p1, cp1, cp2, p2; // BezierCurveSegment's points
@@ -369,7 +369,7 @@ bool Graph_View::draw(float dt)
                 if (node_out->type == Node_Type_VARIABLE ) // from a variable
                 {
                     if (slot_out == node_out->variable_data.ref_out ) // from a reference slot (can't be a declaration link)
-                        if (!node_view_out->state()->selected() && !node_view_in->state()->selected() )
+                        if (!node_view_out->state.selected() && !node_view_in->state.selected() )
                             style.color.w *= 0.25f;
                 }
 
@@ -403,16 +403,16 @@ bool Graph_View::draw(float dt)
 
         if ( !nodeview)
             continue;
-        if ( !nodeview->state()->visible() )
+        if ( !nodeview->state.visible() )
             continue;
 
-        changed |= nodeview->draw();
+        changed |= nodeview_draw(nodeview);
 
-        if ( nodeview->state()->hovered() ) // no check if something else is hovered, last node always win against an edge
+        if ( nodeview->state.hovered() ) // no check if something else is hovered, last node always win against an edge
         {
-            if ( nodeview->m_hovered_slotview != nullptr)
+            if ( nodeview->hovered_slotview != nullptr)
             {
-                _m_hovered = nodeview->m_hovered_slotview;
+                _m_hovered = nodeview->hovered_slotview;
             }
             else
                 _m_hovered = {nodeview};
@@ -464,7 +464,7 @@ void Graph_View::_create_constraints__align_down(Node* follower, const  std::vec
     constraint.rule           = &ViewConstraintRule_1_to_N_as_row;
     constraint.leader         = leader_view;
     constraint.follower       = {follower_view};
-    constraint.follower_flags = Node_ViewFlag_WITH_RECURSION;
+    constraint.follower_flags = Node_View_Flag_WITH_RECURSION;
     const Vec2 halignment     = constraint.leader.size() == 1 ? LEFT : CENTER;
     constraint.leader_pivot   = halignment + BOTTOM;
     constraint.follower_pivot = halignment + TOP;
@@ -505,7 +505,7 @@ void Graph_View::_create_constraints__align_top_recursively(const std::vector<No
 
     if (follower.size() > 1 )
     {
-        constraint.follower_flags = Node_ViewFlag_WITH_RECURSION;
+        constraint.follower_flags = Node_View_Flag_WITH_RECURSION;
     }
 
     if ( node_has_flow_adjacent(leader) )
@@ -601,7 +601,7 @@ void Graph_View::_update_once(float dt)
     // Node_Views
     for (Node* node : graph()->nodes )
         if ( auto* view = componentbag_get<Node_View>(&node->component_bag) )
-            view->update(dt);
+            nodeview_update(view, dt);
 
     // Scope_Views
     if( Scope* root = graph_root_scope(graph()) )
@@ -643,11 +643,11 @@ void Graph_View::frame_content(Frame_Mode mode )
         // compute the delta to apply
         const Vec2 margin(40.f);
         const Vec2 target = margin + _m_shape.pivot( tools::TOP_LEFT, WORLD_SPACE);
-        const Vec2 origin = root_node_view->shape()->pivot( tools::TOP_LEFT, WORLD_SPACE);
+        const Vec2 origin = root_node_view->shape.pivot( tools::TOP_LEFT, WORLD_SPACE);
         const Vec2 delta = target - origin;
 
         // apply the delta
-        root_node_view->translate( delta );
+        root_node_view->spatial_node()->translate( delta );
     };
 
     if ( mode ==  Frame_Mode::Root_Node_View )
@@ -658,7 +658,7 @@ void Graph_View::frame_content(Frame_Mode mode )
     if ( selected_nodeviews.empty() )
         return frame_root_node_view(); // by default, we frame the root node
 
-    const Rect rect = Node_View::bounding_rect( selected_nodeviews, tools::WORLD_SPACE);
+    const Rect rect = nodeview_bounding_rect( selected_nodeviews, tools::WORLD_SPACE);
 
     // compute the delta to apply
     const Vec2 target = _m_shape.pivot( tools::CENTER, tools::WORLD_SPACE);
@@ -689,7 +689,7 @@ void Graph_View::_on_selection_change(Selection::Event_Type type, Selection::Ele
         }
         case Selectable::index_of<Node_View*>():
         {
-            elem.get<Node_View*>()->state()->set_selected(selected );
+            elem.get<Node_View*>()->state.set_selected(selected );
             break;
         }
         case Selectable::index_of<Node_Slot_Link_View>():
@@ -733,8 +733,8 @@ bool Graph_View::has_an_active_tool() const
 void Graph_View::reset_all_properties()
 {
     for( Node* node : graph()->nodes )
-        if ( Node_View* v = componentbag_get<Node_View>(&node->component_bag) )
-            v->reset_all_properties();
+        if ( Node_View* each_node_view = componentbag_get<Node_View>(&node->component_bag) )
+            nodeview_reset_all_properties(each_node_view);
 }
 
 //-----------------------------------------------------------------------------
@@ -760,7 +760,7 @@ void Graph_View::drag_state_enter()
     for( const Selectable& elem : _m_selection )
     {
         if ( auto* nodeview = elem.get_if<Node_View*>() )
-            nodeview->state()->set_pinned();
+            nodeview->state.set_pinned();
         else if ( auto* scopeview = elem.get_if<Scope_View*>() )
             scopeview->state.set_pinned();
     }
@@ -777,14 +777,14 @@ void Graph_View::drag_state_tick()
 
         if ( nodeview )
         {
-            nodeview->translate(delta);
-            nodeview->state()->set_pinned();
+            nodeview->spatial_node()->translate(delta);
+            nodeview->state.set_pinned();
         }
         else if ( auto* scopeview = elem.get_if<Scope_View*>() )
         {
             nodeview = componentbag_get<Node_View>(&scopeview->scope->entity->component_bag);
-            nodeview->translate(delta);
-            nodeview->state()->set_pinned();
+            nodeview->spatial_node()->translate(delta);
+            nodeview->state.set_pinned();
         }
     }
 
@@ -834,9 +834,9 @@ void Graph_View::cursor_state_tick()
             {
                 auto* scopeview = _m_focused.get<Scope_View*>();
                 auto* nodeview = componentbag_get<Node_View>(&scopeview->scope->node()->component_bag);
-                if ( ImGui::MenuItem( nodeview->expanded() ? "Collapse Scope" : "Expand Scope" ) )
+                if ( ImGui::MenuItem( nodeview->is_expanded ? "Collapse Scope" : "Expand Scope" ) )
                 {
-                    nodeview->expand_toggle_rec();
+                    nodeview_expand_toggle_rec(nodeview);
                 }
 
                 if ( ImGui::MenuItem("Delete Scope") )
@@ -914,13 +914,13 @@ void Graph_View::cursor_state_tick()
 
                 if ( ImGui::MenuItem(ICON_FA_MAP_PIN " Pin/Unpin Node") )
                 {
-                    const bool pinned = nodeview->state()->pinned();
-                    nodeview->state()->set_pinned( !pinned );
+                    const bool pinned = nodeview->state.pinned();
+                    nodeview->state.set_pinned( !pinned );
                 }
 
                 if ( ImGui::MenuItem(ICON_FA_WINDOW_RESTORE " Arrange Node") )
                 {
-                    nodeview->arrange_recursively();
+                    nodeview_arrange_recursively(nodeview);
                 }
 
                 break;
@@ -1126,7 +1126,7 @@ void Graph_View::roi_state_tick()
         std::set<Node_View*> nodeviews_inside_roi;
         for ( Node* node : graph()->nodes )
             if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
-                if ( Rect::contains(roi, nodeview->get_rect()) )
+                if ( Rect::contains(roi, nodeview_get_rect(nodeview)) )
                     nodeviews_inside_roi.insert( nodeview );
 
         // Select them
@@ -1153,8 +1153,8 @@ std::vector<Node_View*> get_clean_views(std::vector<Node_View*>& possibly_hidden
 {
     std::vector<Node_View*> result;
     for(Node_View* view : possibly_hidden_views)
-        if (view->state()->visible())
-            if (!view->state()->pinned())
+        if (view->state.visible())
+            if (!view->state.pinned())
                 result.push_back(view);
     return std::move(result);
 }
@@ -1172,8 +1172,8 @@ void ndbl::ViewConstraintRule_1_to_N_as_row(ViewConstraint* constraint, float dt
 
     Config* cfg = get_config();
     const Node_View* _follower      = clean_follower[0];
-    const Box_2D leaders_box{Node_View::bounding_rect(constraint->leader, WORLD_SPACE, constraint->leader_flags) };
-    const Box_2D follower_box{ _follower->get_rect_ex(WORLD_SPACE, constraint->follower_flags) };
+    const Box_2D leaders_box{nodeview_bounding_rect(constraint->leader, WORLD_SPACE, constraint->leader_flags) };
+    const Box_2D follower_box{ nodeview_get_rect_ex(_follower, WORLD_SPACE, constraint->follower_flags) };
 
     // Compute how much the follower box needs to be moved to snap the leader's box at a given pivots.
     Vec2 delta = Box_2D::diff(leaders_box, constraint->leader_pivot , follower_box, constraint->follower_pivot );
@@ -1204,13 +1204,13 @@ void ndbl::ViewConstraintRule_N_to_1_as_a_row(ViewConstraint* constraint, float 
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        box[i] = Box_2D{ clean_follower[i]->get_rect_ex(WORLD_SPACE, constraint->follower_flags) };
+        box[i] = Box_2D{ nodeview_get_rect_ex(clean_follower[i], WORLD_SPACE, constraint->follower_flags) };
 
         // Determine the delta required to snap the current follower with either the leaders or the previous follower.
         if ( i == 0 )
         {
             // First box is aligned with the leader
-            const Box_2D leader_box{ constraint->leader[0]->get_rect_ex(WORLD_SPACE, constraint->leader_flags) };
+            const Box_2D leader_box{ nodeview_get_rect_ex(constraint->leader[0], WORLD_SPACE, constraint->leader_flags) };
             delta[i] = Box_2D::diff(leader_box, constraint->leader_pivot, box[i], constraint->follower_pivot);
             delta[i] += gap * constraint->gap_direction;
         }
@@ -1247,7 +1247,7 @@ void ndbl::ViewConstraintRule_distribute_sub_scope_views(ViewConstraint* constra
     std::vector<Scope_View*> sub_scope_view;
     for( Node_View* _follower : constraint->follower )
     {
-        Scope_View* _follower_scopeview = _follower->internal_scopeview();
+        Scope_View* _follower_scopeview = _follower->internal_scopeview;
         ASSERT(_follower_scopeview);
         if ( !_follower_scopeview->state.pinned() )
             if ( scopeview_must_be_draw(_follower_scopeview) )
@@ -1264,7 +1264,7 @@ void ndbl::ViewConstraintRule_distribute_sub_scope_views(ViewConstraint* constra
     Rect::make_row(new_content_rect, gap );
 
     // v align
-    const Vec2 align_pos = constraint->leader[0]->shape()->pivot(constraint->leader_pivot, WORLD_SPACE )
+    const Vec2 align_pos = constraint->leader[0]->shape.pivot(constraint->leader_pivot, WORLD_SPACE )
                          + Vec2{0.f, gap} * constraint->gap_direction;
     Rect::align_top(new_content_rect, align_pos.y );
 

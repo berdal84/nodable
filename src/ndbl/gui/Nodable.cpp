@@ -343,7 +343,7 @@ void ndbl::nodable_update(App_State* app)
                         switch ( elem.index() )
                         {
                             case Selectable::index_of<Node_View*>():
-                                elem.get<Node_View*>()->arrange_recursively();
+                                nodeview_arrange_recursively(elem.get<Node_View*>());
                                 break;
                             case Selectable::index_of<Scope_View*>():
                                 scopeview_arrange_content(elem.get<Scope_View*>());
@@ -373,11 +373,11 @@ void ndbl::nodable_update(App_State* app)
                 if ( graph_view )
                     break;
 
-                for( Node_View* view : graph_view->selection().collect<Node_View*>() )
+                for( Node_View* each_node_view : graph_view->selection().collect<Node_View*>() )
                 {
                     auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
-                    _event->data.mode == RECURSIVELY ? view->expand_toggle_rec()
-                                                     : view->expand_toggle();
+                    _event->data.mode == RECURSIVELY ? nodeview_expand_toggle_rec(each_node_view)
+                                                     : nodeview_expand_toggle(each_node_view);
                 }
                 break;
             }
@@ -1070,7 +1070,7 @@ bool ndbl::nodable_draw_node_properties_window(App_State* app)
                 {
                     ImGui::Indent(10.0f);
                     auto* first_nodeview = graph_view->selection().first_of<Node_View*>();
-                    changed |= Node_View::draw_as_properties_panel(first_nodeview, &app->view->show_advanced_node_properties);
+                    changed |= nodeview_draw_as_properties_panel(first_nodeview, &app->view->show_advanced_node_properties);
                     break;
                 }
                 default:
