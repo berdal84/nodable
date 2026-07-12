@@ -24,18 +24,18 @@ namespace ndbl
     {
         // enum is used to index arrays, must start at 0 with no gaps
 
-        Node_Type_NULL = 0,
-        Node_Type_SCOPE,
-        Node_Type_ROOT,
-        Node_Type_IF_ELSE,
-        Node_Type_FOR_LOOP,
-        Node_Type_WHILE_LOOP,
-        Node_Type_VARIABLE,
-        Node_Type_VARIABLE_REF,
-        Node_Type_LITERAL,
-        Node_Type_FUNCTION,
-        Node_Type_OPERATOR,
-        Node_Type_EMPTY_INSTRUCTION,
+        Node_Type_NULL                  =  0,
+        Node_Type_SCOPE                 =  1,
+        Node_Type_ROOT                  =  2,
+        Node_Type_IF_ELSE               =  3,
+        Node_Type_FOR_LOOP              =  4,
+        Node_Type_WHILE_LOOP            =  5,
+        Node_Type_VARIABLE              =  6,
+        Node_Type_VARIABLE_REF          =  7,
+        Node_Type_LITERAL               =  8,
+        Node_Type_FUNCTION              =  9,
+        Node_Type_OPERATOR              = 10,
+        Node_Type_EMPTY_INSTRUCTION     = 11,
 
         Node_Type_COUNT,
     };
@@ -63,6 +63,7 @@ namespace ndbl
         Node_Flag_IS_DIRTY            = 1 << 0,
         Node_Flag_WAS_IN_A_SCOPE_ONCE = 1 << 1,
         Node_Flag_MUST_BE_DELETED     = 1 << 2,
+        Node_Flag_IS_INITIALIZED      = 1 << 3,
         Node_Flag_ALL                 = ~Node_Flag_NONE,
         Node_Flag_DEFAULT             = Node_Flag_NONE,
     };
@@ -85,7 +86,10 @@ namespace ndbl
         friend class Scope;
         friend class Graph;
 
-//===== INTERNAL STRUCTS ===============================================================================================
+        Node();
+        ~Node();
+        Node(const Node&) = delete;
+        Node(Node&&)      = delete;
 
         struct Switch_Behavior_State
         {
@@ -154,90 +158,56 @@ namespace ndbl
             const tools::Type_Descriptor*   type  = nullptr;
         };
 
-//===== CONSTRUCTORS/DESTRUCTORS =======================================================================================
-        Node();
-        ~Node();
-        Node(const Node&) = delete;
-        Node(Node&&) = delete;
-//===== COMMON MEMBERS and internal structures =========================================================================
-        static constexpr size_t                 SELF_PROPERTY_INDEX = 0;
-
-        bool                                    is_initialized    = false;
-        std::string                             name              = "";
-        Token                                   suffix            = Token{};
-        Graph*                                  graph             = nullptr;
-        Node_Flags                              flags             = Node_Flag_IS_DIRTY;
-        Node_Property*                          value             = nullptr; // Short had for prop_at( self_property_index )
-        Scope*                                  scope             = nullptr; 
-        Scope*                                  internal_scope    = nullptr;       
-        std::vector<Node_Property*>             props; // TODO: size-fixed array?
-        std::map<std::string, Node_Property*>   props_by_name;
-        tools::Component_Bag<Node>              component_bag;
-        std::vector<Node_Slot*>                 slots; // TODO: size-fixed array?
-        std::unordered_map<const Node_Property*, std::vector<Node_Slot*>> slots_by_prop;// TODO: if we are sure a property has a fixed index, we could use a vector instead
-        Adjacent_Nodes                    adjacent_nodes;
-
-//===== SIGNALS ========================================================================================================
-
-        tools::Simple_Signal                    signal_shutdown; // emit once shutdown() has been called
-        tools::Signal<void(const std::string&)> signal_name_change;                
-
-//===== TAGGED-UNION DATA ==============================================================================================
-
-        Node_Type type = Node_Type_NULL;
-        union // depends on type
+        // members are sorted from large to small
+            
+        union // depends on this->type
         {            
-            Switch_Behavior_State   _switch_behavior_data;
-            Invokable_State         _invokable_data;
-            Variable_State          _variable_data;
-            Variable_Ref_State      _variable_ref_data;
-            Literal_State           _literal_data;
+            Switch_Behavior_State               switch_data;                // check type before use!
+            Invokable_State                     invokable_data;             // check type before use!
+            Variable_State                      variable_data;              // check type before use!
+            Variable_Ref_State                  variableref_data;           // check type before use!
+            Literal_State                       literal_data;               // check type before use!
         };
 
-        // decl some safe accessors for each tagged-union data
-
-        inline Switch_Behavior_State&       switch_behavior_data()       { ASSERT(has_switch_behavior());    return _switch_behavior_data; }
-        inline const Switch_Behavior_State& switch_behavior_data() const { ASSERT(has_switch_behavior());    return _switch_behavior_data; }
-        inline Invokable_State&             invokable_data()             { ASSERT(is_invokable());           return _invokable_data; }
-        inline const Invokable_State&       invokable_data() const       { ASSERT(is_invokable());           return _invokable_data; }
-        inline Variable_State&              variable_data()              { ASSERT(is_variable());            return _variable_data; }
-        inline const Variable_State&        variable_data() const        { ASSERT(is_variable());            return _variable_data; }
-        inline Variable_Ref_State&          variable_ref_data()          { ASSERT(is_variable_ref());        return _variable_ref_data; }
-        inline const Variable_Ref_State&    variable_ref_data() const    { ASSERT(is_variable_ref());        return _variable_ref_data; }
-        inline Literal_State&               literal_data()               { ASSERT(is_literal());             return _literal_data; }
-        inline const Literal_State&         literal_data() const         { ASSERT(is_literal());             return _literal_data; }
-
-//===== COMMON METHODS =================================================================================================
-        void                        set_name(const std::string& _name) { name = _name; signal_name_change.emit(name); }
-        bool                        is_expression() const;
-        bool                        is_invokable() const { return type == Node_Type_OPERATOR || type == Node_Type_FUNCTION; }
-        bool                        is_variable() const { return type == Node_Type_VARIABLE; }
-        bool                        is_variable_ref() const { return type == Node_Type_VARIABLE_REF; }
-        bool                        is_literal() const { return type == Node_Type_LITERAL; }
-        bool                        has_flags(Node_Flags _flags)const { return (flags & _flags) == _flags; };
-        void                        set_flags(Node_Flags _flags) { flags |= flags; }
-        void                        clear_flags(Node_Flags _flags = Node_Flag_ALL) { flags &= ~_flags; }
-        bool                        is_orphan() const { return scope == nullptr; }
-        bool                        has_switch_behavior() const;
-//===== SLOT RELATED METHODS ===========================================================================================
-        Node_Slot*                value_in();
-        const Node_Slot*          value_in() const;
-        Node_Slot*                value_out();
-        const Node_Slot*          value_out() const;
-        Node_Slot*                flow_in();
-        const Node_Slot*          flow_in() const;
-        Node_Slot*                flow_out();
-        const Node_Slot*          flow_out() const;
-        Node_Slot*                flow_enter();
-        const Node_Slot*          flow_enter() const;
-        const std::vector<Node*>& inputs() const       { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_INPUT); }
-        const std::vector<Node*>& outputs() const      { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_OUTPUT); }
-        const std::vector<Node*>& flow_inputs() const  { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_FLOW_IN); }
-        const std::vector<Node*>& flow_outputs() const { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_FLOW_OUT); }
-        void                      handle_slot_change(Node_Slot::Event, Node_Slot*);        
+        tools::Simple_Signal                    signal_shutdown     = {}; // emit once shutdown() has been called
+        tools::Signal<void(const std::string&)> signal_name_change  = {};   
+        std::vector<Node_Property*>             props               = {}; // TODO: size-fixed array?
+        std::map<std::string, Node_Property*>   props_by_name       = {};
+        std::vector<Node_Slot*>                 slots               = {}; // TODO: size-fixed array?
+        std::unordered_map<
+        const Node_Property*,
+        std::vector<Node_Slot*>>                slots_by_prop       = {}; // TODO: if we are sure a property has a fixed index, we could use a vector instead
+        Adjacent_Nodes                          adjacent_nodes;
+        tools::Component_Bag<Node>              component_bag;
+        std::string                             name                = {};
+        Token                                   suffix              = Token{};
+        Graph*                                  graph               = nullptr;
+        Node_Property*                          value               = nullptr; // this Node_Property
+        Scope*                                  scope               = nullptr; 
+        Scope*                                  internal_scope      = nullptr;
+        Node_Type                               type                = Node_Type_NULL;
+        Node_Flags                              flags               = Node_Flag_IS_DIRTY;
+            
+        bool                                    has_flags(Node_Flags _flags)const { return (flags & _flags) == _flags; };
+        void                                    set_flags(Node_Flags _flags) { flags |= flags; }
+        void                                    clear_flags(Node_Flags _flags = Node_Flag_ALL) { flags &= ~_flags; }
+        
+        Node_Slot*                              value_in();
+        const Node_Slot*                        value_in() const;
+        Node_Slot*                              value_out();
+        const Node_Slot*                        value_out() const;
+        Node_Slot*                              flow_in();
+        const Node_Slot*                        flow_in() const;
+        Node_Slot*                              flow_out();
+        const Node_Slot*                        flow_out() const;
+        Node_Slot*                              flow_enter();
+        const Node_Slot*                        flow_enter() const;
+        const std::vector<Node*>&               inputs() const       { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_INPUT); }
+        const std::vector<Node*>&               outputs() const      { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_OUTPUT); }
+        const std::vector<Node*>&               flow_inputs() const  { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_FLOW_IN); }
+        const std::vector<Node*>&               flow_outputs() const { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_FLOW_OUT); }
+        void                                    handle_slot_change(Node_Slot::Event, Node_Slot*);        
     };
-
-//===== API ====================================================================================================
 
     void                    node_init(Node*, Node_Type, const std::string& name);
     void                    node_init_as_invokable(Node*, const tools::Function_Descriptor&, Node_Type = Node_Type_FUNCTION);
@@ -263,6 +233,7 @@ namespace ndbl
     inline Token&           node_get_identifier_token(Node* node) { return node->value->token; }
     inline void             node_set_identifier_token(Node* node, const Token& tok) { node->value->token = tok; }
     inline std::string      node_get_identifier(const Node* node) { return node_get_identifier_token(node).word_to_string(); }
+    inline void             node_set_name(Node* node, const std::string& _name) { node->name = _name; node->signal_name_change.emit(node->name); }
     
     // Slot-related
     Node_Slot*              node_add_slot(Node*, Node_Property *, Node_Slot::Flags, size_t limit_capacity = 0, size_t _position = 0);
@@ -297,9 +268,10 @@ namespace ndbl
 
     // Misc.
 
-    std::vector<Node*>      node_get_adjacent_nodes(const Node*, Node_Slot::Flags);
     Node*                   node_adjacent_node_at(const Node*, Node_Slot::Flags, u8_t pos);
     bool                    node_could_be_instruction(const Node*);
+    bool                    node_has_switch_behavior(const Node*);
+    std::vector<Node*>      node_get_adjacent_nodes(const Node*, Node_Slot::Flags);
     bool                    node_is_instruction(const Node*);
     bool                    node_is_unary_operator(const Node*);
     bool                    node_is_binary_operator(const Node*);
@@ -307,4 +279,7 @@ namespace ndbl
     bool                    node_is_connected_to_codeflow(const Node *node);
     bool                    node_is_output_node_in_expression(const Node* input_node, const Node* output_node);
     bool                    node_is_initialized(const Node* node);
+    bool                    node_is_expression(const Node*);
+    inline bool             node_is_invokable(const Node* node)     { return node->type == Node_Type_OPERATOR || node->type == Node_Type_FUNCTION; }
+    inline bool             node_is_orphan(const Node* node)        { return node->scope == nullptr; }
 }

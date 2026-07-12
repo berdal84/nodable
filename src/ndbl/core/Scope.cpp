@@ -151,10 +151,10 @@ void Scope::remove(ndbl::Node *node)
     m_cached_backbone_dirty = true;
 
     // inputs first
-    for ( Node* input : node->inputs() )
-        if ( input->scope == this )
-            if ( !input->is_variable() ) // variables must be manually removed
-                remove(input);
+    for ( Node* inputnode : node->inputs() )
+        if ( inputnode->scope == this )
+            if ( inputnode->type != Node_Type_VARIABLE ) // variables must be manually removed
+                remove(inputnode);
 
     // erase node + side effects
     m_children.erase( node );
@@ -164,7 +164,7 @@ void Scope::remove(ndbl::Node *node)
     }
     node_reset_scope(node, nullptr);
 
-    if ( node->is_variable() )
+    if ( node->type == Node_Type_VARIABLE )
     {
         m_variables.erase(node);
     }

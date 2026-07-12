@@ -226,9 +226,9 @@ Node_Slot* Nodlang::token_to_slot(Scope* parent_scope, const Token& _token)
     if (_token.m_type == Token_Type::identifier)
     {
         std::string identifier = _token.word_to_string();
-        if( Node* existing = parent_scope->find_variable(identifier) )
+        if( Node* existing_node = parent_scope->find_variable(identifier) )
         {
-            return existing->variable_data().ref_out;
+            return existing_node->variable_data.ref_out;
         }
 
         if ( !m_strict_mode )
@@ -324,7 +324,7 @@ Node_Slot* Nodlang::parse_binary_operator_expression(Scope* parent_scope, u8_t _
 
         Node* binary_op_node = graph_create_operator( _state.graph(), type, _left->node->scope );
 
-        auto& binary_op = binary_op_node->invokable_data();
+        Node::Invokable_State& binary_op = binary_op_node->invokable_data;
 
         binary_op.set_identifier_token(operator_token);
         binary_op.lvalue_in()->property->token.m_type = _left->property->token.m_type;
@@ -385,10 +385,10 @@ Node_Slot* Nodlang::parse_unary_operator_expression(Scope* parent_scope, u8_t _p
     type.arg_at(0).type = out_atomic->property->type;
 
     Node* node = graph_create_operator(_state.graph(), type, parent_scope );
-    node->invokable_data().set_identifier_token( operator_token );
-    node->invokable_data().lvalue_in()->property->token.m_type = out_atomic->property->token.m_type;
+    node->invokable_data.set_identifier_token( operator_token );
+    node->invokable_data.lvalue_in()->property->token.m_type = out_atomic->property->token.m_type;
 
-    graph_connect_or_merge(out_atomic, node->invokable_data().lvalue_in() );
+    graph_connect_or_merge(out_atomic, node->invokable_data.lvalue_in() );
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Unary expression parsed:\n%s\n", _state.tokens().to_string().c_str());
     _state.commit();
@@ -1093,10 +1093,10 @@ Node_Slot* Nodlang::parse_function_call(Scope* parent_scope)
     // Find the prototype in the language library
     Node* fct_node = graph_create_function( _state.graph(), signature, parent_scope );
 
-    for ( int i = 0; i < fct_node->invokable_data().get_arg_slots().size; i++ )
+    for ( int i = 0; i < fct_node->invokable_data.get_arg_slots().size; i++ )
     {
         // Connects each results to the corresponding input
-        graph_connect_or_merge(result_slots.at(i), fct_node->invokable_data().get_arg_slot(i) );
+        graph_connect_or_merge(result_slots.at(i), fct_node->invokable_data.get_arg_slot(i) );
     }
 
     _state.commit();
@@ -1119,7 +1119,7 @@ Node* Nodlang::parse_if_block(Scope* parent_scope, Node_Slot* flow_out)
 
     bool    success  = false;
     Node*   if_node  = graph_create_cond_struct( _state.graph(), parent_scope );
-    if_node->switch_behavior_data().m_branch_prefix = _state.tokens().get_eaten();
+    if_node->switch_data.m_branch_prefix = _state.tokens().get_eaten();
 
     graph_connect(flow_out, if_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
@@ -1128,21 +1128,21 @@ Node* Nodlang::parse_if_block(Scope* parent_scope, Node_Slot* flow_out)
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing conditional structure's condition...\n");
 
         // condition
-        parse_expression_block(if_node->internal_scope, nullptr, if_node->switch_behavior_data().condition_in());
+        parse_expression_block(if_node->internal_scope, nullptr, if_node->switch_data.condition_in());
 
         if (_state.tokens().eat_if(Token_Type::parenthesis_close) )
         {
             // scope
-            Node* block = parse_atomic_code_block( if_node->internal_scope, if_node->switch_behavior_data().branch_out(Branch_TRUE) );
+            Node* block = parse_atomic_code_block( if_node->internal_scope, if_node->switch_data.branch_out(Branch_TRUE) );
 
             if ( block )
             {
                 // else
                 if ( _state.tokens().eat_if(Token_Type::keyword_else) )
                 {
-                    if_node->switch_behavior_data().m_branch_suffix = _state.tokens().get_eaten();
+                    if_node->switch_data.m_branch_suffix = _state.tokens().get_eaten();
 
-                    if ( Node* else_block = parse_atomic_code_block( if_node->internal_scope, if_node->switch_behavior_data().branch_out(Branch_FALSE) ) )
+                    if ( Node* else_block = parse_atomic_code_block( if_node->internal_scope, if_node->switch_data.branch_out(Branch_FALSE) ) )
                     {
                         success = true;
                         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " else block parsed.\n");
@@ -1195,7 +1195,7 @@ Node* Nodlang::parse_for_block(Scope* parent_scope, Node_Slot* flow_out)
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing for loop ...\n");
 
         for_node = graph_create_for_loop( _state.graph(), parent_scope );
-        for_node->switch_behavior_data().m_branch_prefix = token_for;
+        for_node->switch_data.m_branch_prefix = token_for;
 
         graph_connect( flow_out, for_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
@@ -1207,14 +1207,14 @@ Node* Nodlang::parse_for_block(Scope* parent_scope, Node_Slot* flow_out)
             // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
 
             // parse init; condition; iteration or nothing
-            parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_behavior_data().initialization_slot())
-            && parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_behavior_data().condition_in())
-            && parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_behavior_data().iteration_slot());
+            parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_data.initialization_slot())
+            && parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_data.condition_in())
+            && parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_data.iteration_slot());
 
             // parse parenthesis close
             if ( Token parenthesis_close = _state.tokens().eat_if(Token_Type::parenthesis_close) )
             {
-                Node* block = parse_atomic_code_block( for_node->internal_scope, for_node->switch_behavior_data().branch_out(Branch_TRUE) ) ;
+                Node* block = parse_atomic_code_block( for_node->internal_scope, for_node->switch_data.branch_out(Branch_TRUE) ) ;
 
                 if ( block )
                 {
@@ -1267,7 +1267,7 @@ Node* Nodlang::parse_while_block(Scope* parent_scope,  Node_Slot* flow_out)
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing while ...\n");
 
         while_node = graph_create_while_loop( _state.graph(), parent_scope );
-        while_node->switch_behavior_data().m_branch_prefix = token_while;
+        while_node->switch_data.m_branch_prefix = token_while;
 
         graph_connect( flow_out, while_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
@@ -1276,11 +1276,11 @@ Node* Nodlang::parse_while_block(Scope* parent_scope,  Node_Slot* flow_out)
             TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing while condition ... \n");
 
             // Parse an optional condition
-            parse_expression_block(while_node->internal_scope, nullptr, while_node->switch_behavior_data().condition_in());
+            parse_expression_block(while_node->internal_scope, nullptr, while_node->switch_data.condition_in());
 
             if (_state.tokens().eat_if(Token_Type::parenthesis_close) )
             {
-                block = parse_atomic_code_block( while_node->internal_scope, while_node->switch_behavior_data().branch_out(Branch_TRUE) );
+                block = parse_atomic_code_block( while_node->internal_scope, while_node->switch_data.branch_out(Branch_TRUE) );
                 if ( block )
                 {
                     success = true;
@@ -1334,10 +1334,8 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
         const Type_Descriptor* type = get_type(type_token.m_type);
         Node* variable_node = graph_create_variable( _state.graph(), type, identifier_token.word_to_string(), parent_scope );
 
-        auto& variable_data = variable_node->variable_data();
-
-        variable_data.set_flags(VariableFlag_DECLARED);
-        variable_data.type_token = type_token;
+        variable_node->variable_data.set_flags(VariableFlag_DECLARED);
+        variable_node->variable_data.type_token = type_token;
         node_set_identifier_token(variable_node, identifier_token );
 
         // declaration with assignment ?
@@ -1350,7 +1348,7 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
                 // expression's out ----> variable's in
                 graph_connect_to_variable(expression_out, variable_node );
 
-                variable_data.operator_token = operator_token;
+                variable_node->variable_data.operator_token = operator_token;
                 success = true;
             }
             else
@@ -1389,10 +1387,10 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
 {
     if (_node->type == Node_Type_OPERATOR )
     {
-        tools::Array_View<const Node_Slot*> args = _node->invokable_data().get_arg_slots();
-        int precedence = get_precedence(_node->invokable_data().get_func_type());
+        tools::Array_View<const Node_Slot*> args = _node->invokable_data.get_arg_slots();
+        int precedence = get_precedence(_node->invokable_data.get_func_type());
 
-        switch ( _node->invokable_data().get_func_type()->arg_count() )
+        switch ( _node->invokable_data.get_func_type()->arg_count() )
         {
             case 2:
             {
@@ -1406,8 +1404,8 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
                 }
 
                 // Operator
-                VERIFY( _node->invokable_data().get_identifier_token(), "identifier token should have been assigned in parse_function_call");
-                serialize_token( _out, _node->invokable_data().get_identifier_token() );
+                VERIFY( _node->invokable_data.get_identifier_token(), "identifier token should have been assigned in parse_function_call");
+                serialize_token( _out, _node->invokable_data.get_identifier_token() );
 
                 // Right part of the expression
                 {
@@ -1424,8 +1422,8 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
             {
                 // operator ( ... innerOperator ... )   ex:   -(a+b)
 
-                ASSERT( _node->invokable_data().get_identifier_token() );
-                serialize_token(_out, _node->invokable_data().get_identifier_token());
+                ASSERT( _node->invokable_data.get_identifier_token() );
+                serialize_token(_out, _node->invokable_data.get_identifier_token());
 
                 bool needs_braces    = node_get_connected_function_type(_node, LEFT_VALUE_PROPERTY) != nullptr;
                 Serialization_Flags flags = Serialization_Flag_RECURSE
@@ -1437,7 +1435,7 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
     }
     else
     {
-        serialize_func_call(_out, _node->invokable_data().get_func_type(), _node->invokable_data().get_arg_slots() );
+        serialize_func_call(_out, _node->invokable_data.get_func_type(), _node->invokable_data.get_arg_slots() );
     }
 
     return _node->value_out();
@@ -1501,20 +1499,20 @@ std::string &Nodlang::serialize_type(std::string &_out, const Type_Descriptor *_
 
 std::string& Nodlang::serialize_variable_ref(std::string &_out, const Node* _node) const
 {
-    ASSERT(_node->is_variable_ref());
+    ASSERT(_node->type == Node_Type_VARIABLE_REF);
     return serialize_token( _out, node_get_identifier_token(_node) );
 }
 
 std::string& Nodlang::serialize_variable(std::string &_out, const Node *_node) const
 {
-    ASSERT(_node->is_variable());
+    ASSERT(_node->type == Node_Type_VARIABLE);
 
     // 1. Serialize variable's type
 
     // If parsed
-    if ( _node->variable_data().type_token )
+    if ( _node->variable_data.type_token )
     {
-        serialize_token(_out, _node->variable_data().type_token);
+        serialize_token(_out, _node->variable_data.type_token);
     }
     else // If created in the graph by the user
     {
@@ -1531,8 +1529,8 @@ std::string& Nodlang::serialize_variable(std::string &_out, const Node *_node) c
     const Node_Slot* slot = _node->value_in();
     if ( slot->adjacent.size != 0 )
     {
-        if ( _node->variable_data().operator_token )
-            _out.append(_node->variable_data().operator_token.string());
+        if ( _node->variable_data.operator_token )
+            _out.append(_node->variable_data.operator_token.string());
         else
             _out.append(" = ");
 
@@ -1590,8 +1588,7 @@ std::string &Nodlang::serialize_value_out(std::string& _out, const Node_Slot* sl
 
     // Otherwise, it might be a variable reference, so we serialize the identifier only
     ASSERT(slot->node->type == Node_Type_VARIABLE ); // Can't be another type
-    auto& variable = slot->node->variable_data();
-    VERIFY( slot == variable.ref_out, "Cannot serialize an other slot from a VariableNode");
+    VERIFY( slot == slot->node->variable_data.ref_out, "Cannot serialize an other slot from a VariableNode");
     return _out.append( node_get_identifier(slot->node) );
 }
 
@@ -1672,7 +1669,7 @@ std::string& Nodlang::serialize_for_loop(std::string &_out, const Node* _for_loo
 {
     ASSERT( _for_loop->type == Node_Type_FOR_LOOP );
 
-    serialize_token(_out, _for_loop->switch_behavior_data().m_branch_prefix);
+    serialize_token(_out, _for_loop->switch_data.m_branch_prefix);
     serialize_default_buffer(_out, Token_Type::parenthesis_open);
     {
         const Node_Slot* init_slot = node_find_slot_by_property_name(_for_loop, INITIALIZATION_PROPERTY, Node_Slot::Flag_INPUT );
@@ -1683,7 +1680,7 @@ std::string& Nodlang::serialize_for_loop(std::string &_out, const Node* _for_loo
         serialize_input( _out, iter_slot, Serialization_Flag_RECURSE );
     }
     serialize_default_buffer(_out, Token_Type::parenthesis_close);
-    serialize_node(_out, _for_loop->switch_behavior_data().branch_out(Branch_TRUE)->first_adjacent_node(), Serialization_Flag_RECURSE );
+    serialize_node(_out, _for_loop->switch_data.branch_out(Branch_TRUE)->first_adjacent_node(), Serialization_Flag_RECURSE );
 
     return _out;
 }
@@ -1693,14 +1690,14 @@ std::string& Nodlang::serialize_while_loop(std::string &_out, const Node* _while
     ASSERT( _while_loop_node->type == Node_Type_WHILE_LOOP );
 
     // while
-    serialize_token(_out, _while_loop_node->switch_behavior_data().m_branch_prefix);
+    serialize_token(_out, _while_loop_node->switch_data.m_branch_prefix);
 
     // condition
     Serialization_Flags flags = Serialization_Flag_RECURSE
                          | Serialization_Flag_WRAP_WITH_BRACES;
-    serialize_input(_out, _while_loop_node->switch_behavior_data().condition_in(), flags );
+    serialize_input(_out, _while_loop_node->switch_data.condition_in(), flags );
 
-    if ( const Node* _node = _while_loop_node->switch_behavior_data().branch_out(Branch_TRUE)->first_adjacent_node() )
+    if ( const Node* _node = _while_loop_node->switch_data.branch_out(Branch_TRUE)->first_adjacent_node() )
     {
         serialize_node(_out, _node, Serialization_Flag_RECURSE);
     }
@@ -1714,19 +1711,19 @@ std::string& Nodlang::serialize_cond_struct(std::string &_out, const Node* if_no
     ASSERT( if_node->type == Node_Type_IF_ELSE );
 
     // if
-    serialize_token(_out, if_node->switch_behavior_data().m_branch_prefix );
+    serialize_token(_out, if_node->switch_data.m_branch_prefix );
 
     // condition
     Serialization_Flags flags = Serialization_Flag_RECURSE
                          | Serialization_Flag_WRAP_WITH_BRACES;
-    serialize_input(_out, if_node->switch_behavior_data().condition_in(), flags );
+    serialize_input(_out, if_node->switch_data.condition_in(), flags );
 
     // when condition is true
-    serialize_node(_out, if_node->switch_behavior_data().branch_out(Branch_TRUE)->first_adjacent_node(), Serialization_Flag_RECURSE );
+    serialize_node(_out, if_node->switch_data.branch_out(Branch_TRUE)->first_adjacent_node(), Serialization_Flag_RECURSE );
 
     // when condition is false
-    serialize_token(_out, if_node->switch_behavior_data().m_branch_suffix);
-    serialize_node(_out, if_node->switch_behavior_data().branch_out(Branch_FALSE)->first_adjacent_node(), Serialization_Flag_RECURSE );
+    serialize_token(_out, if_node->switch_data.m_branch_suffix);
+    serialize_node(_out, if_node->switch_data.branch_out(Branch_FALSE)->first_adjacent_node(), Serialization_Flag_RECURSE );
 
     return _out;
 }

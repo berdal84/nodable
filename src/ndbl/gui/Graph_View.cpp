@@ -367,7 +367,7 @@ bool Graph_View::draw(float dt)
                 // Draw transparent some "variable--->ref" wires in certain cases
                 if (node_out->type == Node_Type_VARIABLE ) // from a variable
                 {
-                    if (slot_out == node_out->variable_data().ref_out ) // from a reference slot (can't be a declaration link)
+                    if (slot_out == node_out->variable_data.ref_out ) // from a reference slot (can't be a declaration link)
                         if (!node_view_out->state()->selected() && !node_view_in->state()->selected() )
                             style.color.w *= 0.25f;
                 }
@@ -528,9 +528,9 @@ void Graph_View::_create_constraints(Scope* scope )
         constraint.rule          = &ViewConstraintRule_distribute_sub_scope_views;
         constraint.leader        = {componentbag_get<Node_View>(&scope->node()->component_bag)};
         constraint.leader_pivot  = BOTTOM;
-        for(Branch i = 0; i < scope->node()->switch_behavior_data().branch_count(); ++i )
+        for(Branch i = 0; i < scope->node()->switch_data.branch_count(); ++i )
         {
-            auto branch = scope->node()->switch_behavior_data().branch_out(i);
+            auto branch = scope->node()->switch_data.branch_out(i);
             Node_View* nodeview = componentbag_get<Node_View>(&branch->node->component_bag);
             constraint.follower.push_back( nodeview );
         }

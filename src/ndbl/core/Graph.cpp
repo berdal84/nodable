@@ -558,12 +558,12 @@ Node* ndbl::graph_create_variable_decl(Graph* graph, const Type_Descriptor* type
 {
     // Create variable
     Node* var_node = graph_create_variable(graph, type, name, scope);
-    var_node->variable_data().set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
+    var_node->variable_data.set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
 
     Token token(Token_Type::keyword_operator, " = ");
     token.word_move_begin(1);
     token.word_move_end(-1);
-    var_node->variable_data().operator_token = token;
+    var_node->variable_data.operator_token = token;
 
     return var_node;
 }

@@ -169,7 +169,7 @@ void Node_View::_handle_init()
     {
         case Node_Type_VARIABLE:
         {
-            if ( Node_Slot* decl_out = node()->variable_data().decl_out )
+            if ( Node_Slot* decl_out = node()->variable_data.decl_out )
             {
                 if (Node_Slot_View *view = decl_out->view)
                 {
