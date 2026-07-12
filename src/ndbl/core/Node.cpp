@@ -4,6 +4,7 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include "core/Asserts.h"
+#include "core/Component.h"
 #include "core/Constants.h"
 #include "Scope.h"
 #include "Graph.h"
@@ -13,8 +14,7 @@ using namespace ndbl;
 using namespace tools;
 
 Node::Node()
-: component_bag(this)
-, adjacent_nodes(this)
+: adjacent_nodes(this)
 {
 }
 
@@ -85,6 +85,7 @@ void ndbl::node_init(Node* node, Node_Type type, const std::string& label)
             TOOLS_UNREACHABLE();
     }
 
+    componentbag_init(&node->component_bag, node);
     node->flags |= Node_Flag_IS_INITIALIZED;
 }
 
@@ -162,7 +163,7 @@ void ndbl::node_shutdown(Node* node)
         component_shutdown(component);
     for(auto* component : node->component_bag)
         delete component;
-    componentbag_clear(&node->component_bag);
+    componentbag_shutdown(&node->component_bag);
 
     node->signal_shutdown.emit();
 }
@@ -401,7 +402,9 @@ void ndbl::node_init_internal_scope(Node* node)
     VERIFY( node->scope == nullptr, "Must be initialized prior to reset_parent()");
 
     auto* scope = new Scope();
-    componentbag_add_and_init(&node->component_bag, scope);
+    component_init(scope, node );
+    componentbag_add(&node->component_bag, scope); // TODO: is it necessary to add a Scope as Component?!
+
     scope->name = "Internal Scope";
 
     node->internal_scope = scope;

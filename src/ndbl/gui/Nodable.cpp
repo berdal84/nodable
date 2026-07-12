@@ -438,7 +438,7 @@ void ndbl::nodable_update(App_State* app)
                 Graph* graph = _event->data.graph;
 
                 // 1) create the node
-                if ( !graph->root_node() )
+                if ( !graph_root(graph) )
                 {
                     TOOLS_LOG(tools::Verbosity_Error, "Nodable", "Unable to create_new primary_child, no root found on this graph.\n");
                     continue;
@@ -447,7 +447,7 @@ void ndbl::nodable_update(App_State* app)
                 Node* new_node  = graph_create_node(graph,
                                                     _event->data.node_type,
                                                     _event->data.node_signature,
-                                                    graph->root_scope() );
+                                                    graph_root_scope(graph) );
 
                 // Insert an end of line and end of instruction
                 switch ( _event->data.node_type )

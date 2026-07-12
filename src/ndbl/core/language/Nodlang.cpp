@@ -568,7 +568,7 @@ Scope* Nodlang::parse_program()
 
     _state.start_transaction();
 
-    Scope* scope = _state.graph()->root_scope();
+    Scope* scope = graph_root_scope(_state.graph());
 
     // Parse main code block
     Node* block_last_node = parse_code_block( scope, scope->node()->flow_enter() );
@@ -1642,12 +1642,13 @@ std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) co
 
 std::string& Nodlang::serialize_graph(std::string &_out, const Graph* graph ) const
 {
-    if ( !graph->root_node() )
+    Node* root_node = graph_root(graph);
+    if ( root_node == nullptr )
     {
         TOOLS_LOG(tools::Verbosity_Error, "Serializer", "a root primary_child is expected to serialize the graph\n");
         return _out;
     }
-    return serialize_node(_out, graph->root_node(), Serialization_Flag_RECURSE);
+    return serialize_node(_out, root_node, Serialization_Flag_RECURSE);
 }
 
 std::string& Nodlang::serialize_bool(std::string& _out, bool b) const

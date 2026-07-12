@@ -337,7 +337,7 @@ void File_View::draw_info_panel() const
     ImGui::NewLine();
 
     // Hierarchy
-    Scope* scope = m_file->graph()->root_scope();
+    Scope* scope = graph_root_scope(m_file->graph());
     VERIFY(scope, "An Scope root is required to draw the AST as an ImGui tree");
     TreeNode_Scope("Graph's Root Scope", scope);
 }

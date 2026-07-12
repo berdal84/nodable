@@ -14,25 +14,25 @@ typedef ::testing::Core Graph_;
 
 TEST_F(Graph_, constructor)
 {
-    EXPECT_TRUE(state.graph->is_empty());
-    EXPECT_NE(state.graph->root_node(), nullptr );
+    EXPECT_TRUE( graph_is_empty(state.graph));
+    EXPECT_NE(graph_root(state.graph), nullptr );
 }
 
 TEST_F(Graph_, create_node)
 {
-    Node* node = graph_create_node(state.graph, state.graph->root_scope()) ;
-    EXPECT_EQ(node->scope, state.graph->root_scope());
+    Node* node = graph_create_node(state.graph) ;
+    EXPECT_EQ(node->scope, graph_root_scope(state.graph));
 }
 
 TEST_F(Graph_, connect)
 {
     // Prepare
     Graph* graph = state.graph;
-    auto* node_1 = graph_create_node(state.graph, state.graph->root_scope());
+    auto* node_1 = graph_create_node(state.graph, graph_root_scope(state.graph));
     auto* prop_1 = node_add_prop<bool>(node_1, "prop_1");
     auto* slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
-    auto* node_2 = graph_create_node(state.graph, state.graph->root_scope());
+    auto* node_2 = graph_create_node(state.graph, graph_root_scope(state.graph));
     auto* prop_2 = node_add_prop<bool>(node_2, "prop_2");
     auto* slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
@@ -69,7 +69,7 @@ TEST_F(Graph_, disconnect)
 TEST_F(Graph_, clear)
 {
     Graph* graph = state.graph;
-    EXPECT_TRUE( graph->is_empty() );
+    EXPECT_TRUE( graph_is_empty(state.graph) );
 
     Function_Descriptor  f;
     f.init<int(int, int)>("+");
@@ -83,14 +83,14 @@ TEST_F(Graph_, clear)
             variable->value_in(),
             Graph_Flag_ALLOW_SIDE_EFFECTS);
 
-    EXPECT_FALSE(graph->is_empty());
+    EXPECT_FALSE(graph_is_empty(state.graph));
 
     // act
     graph_reset(graph);
 
     // test
-    EXPECT_TRUE( graph->is_empty() );
-    EXPECT_TRUE( graph->nodes.size() == 1 && *graph->nodes.cbegin() == graph->root_node() );
+    EXPECT_TRUE( graph_is_empty(state.graph) );
+    EXPECT_TRUE( graph->nodes.size() == 1 && *graph->nodes.cbegin() == graph_root(graph) );
 }
 
 
@@ -116,7 +116,7 @@ TEST_F(Graph_, erase_node_from_non_root_scope)
     // prepare
     Graph* graph = state.graph;
     Node* scope_node = graph_create_scope(graph);
-    graph_connect(graph->root_node()->flow_enter(), scope_node->flow_in());
+    graph_connect(graph_root(graph)->flow_enter(), scope_node->flow_in());
     Node* child = graph_create_node(graph, scope_node->internal_scope);
 
     EXPECT_EQ(child->scope, scope_node->internal_scope );

@@ -109,13 +109,15 @@ void Graph_View::_handle_add_node(Node* node)
 {
     // view
     auto* nodeview = new Node_View();
-    componentbag_add_and_init(& node->component_bag, nodeview);
+    component_init(nodeview, node);
     nodeview->set_size({20.f, 35.f});
+
+    componentbag_add(& node->component_bag, nodeview);
 
     if (Scope_View* scopeview = nodeview->internal_scopeview() )
         scopeview->signal_hover.connect<&Graph_View::_handle_hover>(this); // I'm not sure if this is a good approach...
 
-    if( graph()->root_node() == node )
+    if( graph_root(graph()) == node )
     {
         // root must be parented to the graph view itself
         spatial_node()->add_child( nodeview->spatial_node() );
@@ -127,7 +129,8 @@ void Graph_View::_handle_add_node(Node* node)
 
     // physics
     auto* physics_component = new Physics_Component();
-    componentbag_add_and_init(&node->component_bag, physics_component);
+    component_init(physics_component, node);
+    componentbag_add(&node->component_bag, physics_component);
 }
 
 void Graph_View::_handle_remove_node(Node* node)
@@ -135,7 +138,8 @@ void Graph_View::_handle_remove_node(Node* node)
     // clean physics
     auto* physics_component = componentbag_get<Physics_Component>(&node->component_bag);
     VERIFY(physics_component, "Should have been created from _handle_add_node()");
-    componentbag_remove_and_shutdown(&node->component_bag, physics_component );
+    componentbag_remove(&node->component_bag, physics_component );
+    component_shutdown(physics_component);
     delete physics_component;
 
     // clean nodeview
@@ -152,7 +156,8 @@ void Graph_View::_handle_remove_node(Node* node)
         _parent->remove_child( nodeview->spatial_node() );
     }
 
-    componentbag_remove_and_shutdown( &node->component_bag, nodeview );
+    componentbag_remove( &node->component_bag, nodeview );
+    component_shutdown(nodeview);
     delete nodeview;
 }
 
@@ -575,7 +580,7 @@ void Graph_View::_update_once(float dt)
     if ( _m_physics_dirty )
     {
         _m_contraints.clear();
-        _create_constraints(graph()->root_scope());
+        _create_constraints(graph_root_scope(graph()));
 
         _m_physics_dirty = false;
     }
@@ -599,7 +604,7 @@ void Graph_View::_update_once(float dt)
             view->update(dt);
 
     // Scope_Views
-    if( Scope* root = graph()->root_scope() )
+    if( Scope* root = graph_root_scope(graph()) )
         if ( root->view != nullptr )
             scopeview_update( root->view, dt, Scope_View_Flag_RECURSE );
 }
@@ -630,7 +635,7 @@ void Graph_View::frame_content(Frame_Mode mode )
 {
     auto frame_root_node_view = [&]() {
         // Get root node view
-        Scope* root_scope = graph()->root_scope();
+        Scope* root_scope = graph_root_scope(graph());
         if ( !root_scope ) return;
         auto root_node_view = componentbag_get<Node_View>(&root_scope->node()->component_bag);
         ASSERT(root_node_view);
@@ -700,7 +705,7 @@ void Graph_View::_on_selection_change(Selection::Event_Type type, Selection::Ele
 
 void Graph_View::reset()
 {
-    if ( graph()->is_empty() )
+    if ( graph_is_empty(graph() ) )
         return;
 
     _update_until_unfold(); // Otherwise it would not render a nice graph when nodes are rendered for the first time

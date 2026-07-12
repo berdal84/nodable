@@ -14,27 +14,20 @@
 using namespace ndbl;
 using namespace tools;
 
-Graph::Graph()
-: component_bag(this)
-{}
-
 Graph::~Graph()
 {
-    assert(nodes.empty()); // "Did you call graph_shutdown() ?\n");
+    assert(graph_is_empty(this)); // "Did you call graph_shutdown() ?\n");
 }
 
 void ndbl::graph_init(Graph* graph)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initializing ...\n");
-    ASSERT( graph->nodes.empty() ); // Root must be first, registry should be empty
+    ASSERT( graph->nodes.empty() ); // Did you call graph_init multiple times? Did you forgot to call graph_shutdown() after each graph_init() ?
 
-    // create and _insert root
-    Node* root = new Node();
-    node_init_as_root_scope(root);
-    graph_insert(graph, root, nullptr);
+    componentbag_init(&graph->component_bag, graph);
 
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add root node %p (name: %s, class: %s)\n", root, root->name.c_str(), root->get_class()->name());
-    ASSERT( graph->root_node() == root );
+    graph_clear(graph);
+
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initialized " TOOLS_OK "\n");
 }
 
@@ -50,14 +43,16 @@ void ndbl::graph_shutdown(Graph* graph)
         component_shutdown(component);
     for(auto* component : graph->component_bag)
         delete component;
-    componentbag_clear(&graph->component_bag);
+
+    componentbag_shutdown(&graph->component_bag);
 }
 
 void ndbl::graph_clear(Graph* graph)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Clearing ...\n");
 
-    // delete from last to first (which is the root)
+    // Delete existing nodes
+    // (from last to first (which is the root))
     for(auto it = graph->nodes.rbegin(); it != graph->nodes.rend(); ++it)
     {
         Node* node = *it;
@@ -66,8 +61,14 @@ void ndbl::graph_clear(Graph* graph)
         node_shutdown(node);
         delete node;
     }
-
     graph->nodes.clear();
+
+    // Add a root node
+    Node* root_node = new Node();
+    node_init_as_root_scope(root_node);
+    graph_insert(graph, root_node, nullptr);
+
+    // notify
     graph->signal_change.broadcast();
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Clear " TOOLS_OK "\n");
@@ -77,8 +78,7 @@ void ndbl::graph_reset(Graph* graph)
 {
 	TOOLS_LOG(tools::Verbosity_Diagnostic,  "Graph", "Resetting ...\n");
 
-    graph_clear(graph);
-    graph_init(graph);
+    graph_clear(graph);    
     graph->signal_reset.emit();
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Reset " TOOLS_OK "\n");
@@ -126,7 +126,7 @@ void ndbl::graph_insert(Graph* graph, Node* node, Scope* scope)
 
     if ( node->scope == nullptr && scope == nullptr && graph->nodes.size() != 0 )
     {
-        scope = graph->root_scope();
+        scope = graph_root_scope(graph);
     }
 
     if ( scope != nullptr )
@@ -170,7 +170,7 @@ void ndbl::graph_clean_node(Node* node)
     // transfer children to default scope
     if (Scope* _internal_scope = node->internal_scope )
     {
-        graph_transfer_children( _internal_scope, node->graph->root_scope());
+        graph_transfer_children( _internal_scope, graph_root_scope(node->graph));
     }
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name.c_str() );
@@ -418,7 +418,7 @@ void ndbl::graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                 ASSERT( tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
                 // Ensure disconnected node gets in the right scope
                 //
-                Scope* target_scope = tail->node->graph->root_scope();
+                Scope* target_scope = graph_root_scope(tail->node->graph);
                 if( head->adjacent.size == 1)
                 {
                     target_scope = head->first_adjacent_node()->scope;
@@ -521,7 +521,7 @@ Node* ndbl::graph_create_node(Graph* graph, Create_Node_Type_ type, const Functi
         case Create_Node_Type__BLOCK_FOR_LOOP:   return graph_create_for_loop(graph, scope);
         case Create_Node_Type__BLOCK_WHILE_LOOP: return graph_create_while_loop(graph, scope);
         case Create_Node_Type__ROOT:             graph_reset(graph);
-                                                 return graph->root_node();
+                                                 return graph_root(graph);
 
         case Create_Node_Type__VARIABLE_BOOLEAN: return graph_create_variable_decl<bool>(graph, "b", scope);
         case Create_Node_Type__VARIABLE_DOUBLE:  return graph_create_variable_decl<double>(graph, "d", scope);

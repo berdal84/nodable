@@ -86,18 +86,13 @@ namespace tools
         using iterator          = typename std::vector<Component_Type*>::iterator;
         using const_iterator    = typename std::vector<Component_Type*>::const_iterator;
 
-        Entity_Type*                 entity;
-        std::vector<Component_Type*> components;
+        Entity_Type*                 entity     = nullptr; // TODO: I could remove this field, we don't use it.
+        std::vector<Component_Type*> components = {};
         std::unordered_multimap<std::type_index, Component_Type*> components_indexed_by_typeid;
 
-        Component_Bag() = delete;
-        explicit Component_Bag(Entity_Type* entity)
-        : entity(entity)
-        {
-            ASSERT(entity);
-        };
+        Component_Bag() = default;
         Component_Bag(const Component_Bag&) = delete;
-        Component_Bag(Component_Bag&&) = delete;
+        Component_Bag(Component_Bag&&)      = delete;
 
         ~Component_Bag()
         {
@@ -120,6 +115,22 @@ namespace tools
         bag->components.clear();
         bag->components_indexed_by_typeid.clear();
     }
+
+    template<typename Entity_Type>
+    void componentbag_init(Component_Bag<Entity_Type>* bag, Entity_Type* entity)
+    {
+        VERIFY(entity != nullptr, "An entity is required");
+        VERIFY(bag->entity == nullptr, "Cannot initialize twice");        
+        bag->entity = entity;
+    }
+
+    template<typename Entity_Type>
+    void componentbag_shutdown(Component_Bag<Entity_Type>* bag)
+    {
+        VERIFY(bag->entity != nullptr, "This Component_Bag was not initialized");
+        componentbag_clear(bag);
+        bag->entity = nullptr;
+    }    
 
     template<
         typename Component_Type,
@@ -149,8 +160,11 @@ namespace tools
         typename Component_Type,
         typename Entity_Type = typename Component_Type::Entity_Type
     >
-    void componentbag_remove_and_shutdown(Component_Bag<Entity_Type>* bag, Component_Type* component)
+    void componentbag_remove(Component_Bag<Entity_Type>* bag, Component_Type* component)
     {
+        ASSERT(bag->entity != nullptr); // This Component_Bag was not initialized
+        VERIFY(component->entity == bag->entity, "This component does not belong to the same entity or call component_shutdown() after componentbag_remove()");
+
         // erase from indexed_by_typeid
         auto it = std::find_if(
             bag->components_indexed_by_typeid.begin(), bag->components_indexed_by_typeid.end(),
@@ -162,27 +176,24 @@ namespace tools
         // erase
         bag->components.erase(
             std::find(bag->components.begin(), bag->components.end(), component )
-        );
-
-        // shutdown
-        component_shutdown(component);
+        );        
     }
 
     template<
         typename Component_Type,
         typename Entity_Type = typename Component_Type::Entity_Type
     >
-    void componentbag_add_and_init(Component_Bag<Entity_Type>* bag, Component_Type* component)
+    void componentbag_add(Component_Bag<Entity_Type>* bag, Component_Type* component)
     {
+        ASSERT(bag->entity != nullptr); // This Component_Bag was not initialized
+        VERIFY(component->entity == bag->entity, "This component does not belong to the same entity or call component_init() first");
+
         // add to index
         const auto* type_desc = type::get<Component_Type>();
         auto it = bag->components_indexed_by_typeid.emplace( type_desc->id() , component );
         ASSERT(it != bag->components_indexed_by_typeid.end() );
         
         // add
-        bag->components.push_back(component );
-
-        // init
-        component_init(component, bag->entity );
+        bag->components.push_back(component );        
     }
 }

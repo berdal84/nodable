@@ -28,7 +28,8 @@ File::File()
     graph_init(_graph);
 
     auto* graph_view = new Graph_View();
-    componentbag_add_and_init(&_graph->component_bag, graph_view);
+    component_init(graph_view, _graph);
+    componentbag_add(&_graph->component_bag, graph_view);
 
     _graph->signal_change.connect<&File::set_text_dirty>(this);
     graph_view->signal_change.connect<&File::set_text_dirty>(this);
@@ -68,7 +69,7 @@ File::~File()
 
 void File::_update_text_from_graph()
 {
-    if ( auto* root_node = _graph->root_node() )
+    if ( auto* root_node = graph_root(_graph) )
     {
         std::string code;
         get_language()->serialize_node(code, root_node, Serialization_Flag_RECURSE);
