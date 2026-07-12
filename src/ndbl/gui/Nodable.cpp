@@ -188,10 +188,17 @@ void ndbl::nodable_update(App_State* app)
     // 3. Handle events
 
     // Nodable events
-    IEvent*       event = nullptr;
-    Event_Manager* event_manager     = get_event_manager();
-    Graph_View*    graph_view        = app->current_file ? app->current_file->graph()->component<Graph_View>() : nullptr; // TODO: should be included in the event
-    History*      curr_file_history = app->current_file ? &app->current_file->history : nullptr; // TODO: should be included in the event
+    IEvent*         event               = nullptr;
+    Event_Manager*  event_manager       = get_event_manager();
+    Graph_View*     graph_view          = nullptr; 
+    History*        curr_file_history   = nullptr;
+
+    if ( app->current_file )
+    {
+        graph_view        = componentbag_get<Graph_View>(&app->current_file->graph()->component_bag); // TODO: should be included in the event?
+        curr_file_history = &app->current_file->history; // TODO: should be included in the event?
+    } 
+
     while( (event = event_manager->poll_event()) )
     {
         switch ( event->id )
@@ -354,8 +361,8 @@ void ndbl::nodable_update(App_State* app)
                 {
                     graph_view->selection().clear();
                     for(auto* _view : graph_view->selection().collect<Node_View*>() )
-                        for (auto* _successor : _view->node()->component<Node>()->flow_outputs() )
-                            if (auto* _successor_view = _successor->component<Node_View>() )
+                        for (auto* _successor : _view->node()->flow_outputs() ) // TODO: component<Node> is wrong!
+                            if (auto* _successor_view = componentbag_get<Node_View>(&_successor->component_bag) )
                                 graph_view->selection().append( _successor_view );
                 }
                 break;
@@ -499,7 +506,7 @@ void ndbl::nodable_update(App_State* app)
                 }
 
                 // set new_node's view position, select it
-                if ( auto view = new_node->component<Node_View>() )
+                if ( auto view = componentbag_get<Node_View>(&new_node->component_bag) )
                 {
                     view->spatial_node()->set_position(_event->data.desired_screen_pos, WORLD_SPACE);
                     graph_view->selection().clear();
@@ -731,8 +738,13 @@ void ndbl::nodable_draw(App_State* app)
     if (ImGui::BeginMenuBar())
     {
         History* current_file_history = current_file ? &current_file->history : nullptr;
-        auto has_selection = current_file != nullptr ? !current_file->graph()->component<Graph_View>()->selection().empty()
-                                                     : false;
+        bool has_selection = false;
+        
+        if ( current_file != nullptr )
+        {
+            auto* graphview = componentbag_get<Graph_View>(&current_file->graph()->component_bag);
+            has_selection = !graphview->selection().empty();
+        }
 
         if (ImGui::BeginMenu("File"))
         {
@@ -783,7 +795,10 @@ void ndbl::nodable_draw(App_State* app)
                 {
                     cfg->ui_node_detail = _detail;
                     if (current_file != nullptr)
-                        current_file->graph()->component<Graph_View>()->reset_all_properties();
+                    {
+                        auto* graphview = componentbag_get<Graph_View>(&current_file->graph()->component_bag);
+                        graphview->reset_all_properties();
+                    }
                 }
             };
 
@@ -1046,7 +1061,7 @@ bool ndbl::nodable_draw_node_properties_window(App_State* app)
     {
         if( app->current_file )
         {
-            const Graph_View* graph_view = app->current_file->graph()->component<Graph_View>(); // Graph can't be null
+            const Graph_View* graph_view = componentbag_get<Graph_View>(&app->current_file->graph()->component_bag); // Graph can't be null
             switch ( graph_view->selection().count<Node_View*>() )
             {
                 case 0:

@@ -13,7 +13,7 @@ using namespace ndbl;
 using namespace tools;
 
 Node::Node()
-: components(this)
+: component_bag(this)
 , adjacent_nodes_cache(this)
 {
 }
@@ -23,7 +23,7 @@ Node::~Node()
     assert(slots.empty());
     assert(props_by_name.empty());
     assert(props.empty());
-    assert(components.components().empty());
+    assert(component_bag.empty());
 }
 
 
@@ -153,7 +153,16 @@ void ndbl::node_shutdown(Node* node)
             TOOLS_UNREACHABLE();
     }
 
-    node->components.shutdown();
+    // delete component_bag content
+    //
+    // TODO: we could optimize these two loops by iterating once.
+    //       but for some reasons components have unordered dependencies that needs to be fixed.
+    for(auto* component : node->component_bag)
+        component_shutdown(component);
+    for(auto* component : node->component_bag)
+        delete component;
+    componentbag_clear(&node->component_bag);
+
     node->signal_shutdown.emit();
 }
 
@@ -391,7 +400,8 @@ void ndbl::node_init_internal_scope(Node* node)
     VERIFY( node->internal_scope == nullptr, "Can't call init_internal_scope() more than once");
     VERIFY( node->scope == nullptr, "Must be initialized prior to reset_parent()");
 
-    auto* scope = node->components.create<Scope>();
+    auto* scope = new Scope();
+    componentbag_add_and_init(&node->component_bag, scope);
     scope->name = "Internal Scope";
 
     node->internal_scope = scope;

@@ -306,7 +306,7 @@ void Node_View::arrange_recursively(bool _smoothly)
 
     if (Scope* internal_scope = node()->internal_scope )
         for ( Node* _node : internal_scope->backbone() )
-            if ( auto* _node_view = _node->component<Node_View>() )
+            if ( auto* _node_view = componentbag_get<Node_View>(&_node->component_bag))
                     _node_view->arrange_recursively();
 
     // Force an update of input nodes with a delta time extra high
@@ -621,13 +621,13 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
     ImGui::Separator();
 
     ImGui::Separator();
-    ImGui::Text("Component(s) (%zu)", node->components.size() );
+    ImGui::Text("Component(s) (%zu)", node->component_bag.size() );
     ImGui::Separator();
-    for (Component<Node>* component : node->components )
+    for (Component<Node>* component : node->component_bag )
     {
         if( ImGui::TreeNode(component, "Component %s", component->name ) )
         {
-            if ( component != *node->components.begin() )
+            if ( component != *node->component_bag.begin() )
                 ImGui::Separator();
 
             if ( component->type_desc == type::get<Physics_Component>())
@@ -697,10 +697,10 @@ bool Node_View::draw_as_properties_panel(Node_View *_view, bool* _show_advanced)
                 label.append_fmt("%s %p (%s %p)", scope->name, scope, scope->entity->name.c_str(), scope->entity);
                 if ( ImGui::Button(label.c_str()) )
                 {
-                    Graph_View* graph_view = node->graph->component<Graph_View>();
+                    Graph_View* graph_view = componentbag_get<Graph_View>(&node->graph->component_bag);
                     ASSERT(graph_view);
                     graph_view->selection().clear();
-                    graph_view->selection().append(scope->entity->component<Node_View>() );
+                    graph_view->selection().append(componentbag_get<Node_View>(&scope->entity->component_bag) );
                 }
             }
             else
@@ -760,7 +760,7 @@ Rect Node_View::get_rect_ex(tools::Space space, Node_ViewFlags flags) const
 
     for (Node* input_node : node()->inputs() )
     {
-        auto* view = input_node->component<Node_View>();
+        auto* view = componentbag_get<Node_View>(&input_node->component_bag);
         if( !view )
             continue;
         if( !view->m_view_state.visible() )
@@ -810,7 +810,7 @@ void Node_View::set_expanded_rec(bool _expanded)
 
     if ( Scope* _internal_scope = node()->internal_scope )
         for( Node* _node : _internal_scope->backbone() )
-            if ( auto* view = _node->component<Node_View>() )
+            if ( auto* view = componentbag_get<Node_View>(&_node->component_bag) )
                 view->set_expanded_rec(_expanded);
 }
 
@@ -836,7 +836,7 @@ void Node_View::set_children_visible(bool visible, bool recursively)
 
     for(Scope* _scope : scopes)
         for (Node* _child_node: _scope->backbone())
-            if ( auto* view = _child_node->component<Node_View>() )
+            if ( auto* view = componentbag_get<Node_View>(&_child_node->component_bag) )
                 view->state()->set_visible(visible );
 }
 
@@ -872,7 +872,7 @@ Node_View* Node_View::substitute_with_parent_if_not_visible(Node_View* _view, bo
 
     if ( _recursive )
         if( Scope* scope = _view->node()->scope )
-            if (Node_View* parent_view = scope->entity->component<Node_View>() )
+            if (Node_View* parent_view = componentbag_get<Node_View>(&scope->entity->component_bag) )
                 return parent_view->m_view_state.visible() ? parent_view
                                                       : substitute_with_parent_if_not_visible(parent_view, _recursive);
 
@@ -883,7 +883,7 @@ std::vector<Node_View*> Node_View::get_adjacent(Node_Slot::Flags flags) const
 {
     std::vector<Node_View*> result;
         for(auto _adjacent_node : node_get_adjacent_nodes( node(), flags ) )
-            if( auto* component = _adjacent_node->component<Node_View>() )
+            if( auto* component = componentbag_get<Node_View>(&_adjacent_node->component_bag) )
                 result.push_back( component );
     return result;
 }

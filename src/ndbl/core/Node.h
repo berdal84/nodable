@@ -172,7 +172,7 @@ namespace ndbl
         Scope*                                  internal_scope    = nullptr;       
         std::vector<Node_Property*>             props; // TODO: size-fixed array?
         std::map<std::string, Node_Property*>   props_by_name;
-        tools::Component_Bag<Node>              components;
+        tools::Component_Bag<Node>              component_bag;
         std::vector<Node_Slot*>                 slots; // TODO: size-fixed array?
         std::unordered_map<const Node_Property*, std::vector<Node_Slot*>> slots_by_prop;// TODO: if we are sure a property has a fixed index, we could use a vector instead
         Adjacent_Nodes_Cache                    adjacent_nodes_cache;
@@ -208,7 +208,6 @@ namespace ndbl
         inline const Literal_State&         literal_data() const         { ASSERT(is_literal());             return _literal_data; }
 
 //===== COMMON METHODS =================================================================================================
-        template<class T> T*        component() const { return components.get<T>(); } // shorthand
         void                        set_name(const std::string& _name) { name = _name; signal_name_change.emit(name); }
         bool                        is_expression() const;
         bool                        is_invokable() const { return type == Node_Type_OPERATOR || type == Node_Type_FUNCTION; }

@@ -41,7 +41,7 @@ namespace ndbl
         ~File();
 
         tools::Path            path; // file path on disk
-        File_View               view;
+        File_View              view;
         History                history; // history of changes
     private:
         Isolation              _isolation = Isolation_OFF;

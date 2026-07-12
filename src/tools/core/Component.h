@@ -1,7 +1,9 @@
 #pragma once
 
+#include <cstddef>
 #include <string>
 #include <algorithm>
+#include <typeindex>
 #include <vector>
 
 #include "Signals.h"
@@ -16,10 +18,12 @@ namespace tools
     //
     // Base struct to implement a new Component for a given Entity_Type
     //
-    template<typename Entity_Type>
-    requires std::is_object_v<Entity_Type>
+    template<typename _Entity_Type>
+    requires std::is_object_v<_Entity_Type>
     struct Component
     {
+        using Entity_Type = _Entity_Type;
+
         tools::Simple_Signal            signal_init;            // called after component knows its entity
         tools::Simple_Signal            signal_shutdown;        // called before to be deleted, when component still knows its entity
         Entity_Type*                    entity      = nullptr;
@@ -34,22 +38,16 @@ namespace tools
     };
 
     
-    template<typename Entity_Type>
-    void component_init(Component<Entity_Type>* component, Entity_Type* entity, const Type_Descriptor* type_desc = nullptr)
+    template<
+        typename Component_Type,
+        typename Entity_Type = Component_Type::Entity_Type
+    >
+    void component_init(Component_Type* component, Entity_Type* entity)
     {
         VERIFY(entity != nullptr, "Entity is required");
 
-        if( type_desc == nullptr )
-        {
-            component->type_desc = type::get<Component<Entity_Type>>();
-            ASSERT(component->type_desc != nullptr);
-        }
-        else
-        {
-            component->type_desc = type_desc;
-        }
-
-        component->entity = entity;
+        component->type_desc = type::get<Component_Type>();
+        component->entity    = entity;
         component->signal_init.emit();
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Component", "_init \"%s\" (type: %s ) ...\n", component->name, component->type_desc->name() );
     }
@@ -75,26 +73,23 @@ namespace tools
     // Minimalist example with components having a default constructor:
     //    struct MyEntity
     //    {
-    //         template<typename T>   create_component() { return _m_components.create<T>(); }
-    //         template<typename T>   get_component()    { return _m_components.get<T>(); }
+    //         template<typename T>   create_component() { return components.create<T>(); }
+    //         template<typename T>   get_component()    { return components.get<T>(); }
     //    private:
-    //         Component_Bag<MyEntity> _m_components;
+    //         Component_Bag<MyEntity> components;
     //    }
     //
     template<typename Entity_Type>
     struct Component_Bag
 	{
-        using ComponentT     = Component<Entity_Type>;
-        using iterator       = typename std::vector<ComponentT*>::iterator;
-        using const_iterator = typename std::vector<ComponentT*>::const_iterator;
-        using ComponentByTypeIndex = std::unordered_multimap<std::type_index, ComponentT*>;
-//====== Data ==========================================================================================================
-    private:
-        ComponentByTypeIndex     _m_component_indexed_by_typeid;
-        std::vector<ComponentT*> _m_component;
+        using Component_Type    = Component<Entity_Type>;
+        using iterator          = typename std::vector<Component_Type*>::iterator;
+        using const_iterator    = typename std::vector<Component_Type*>::const_iterator;
+
         Entity_Type*                 entity;
-//====== Methods =======================================================================================================
-    public:
+        std::vector<Component_Type*> components;
+        std::unordered_multimap<std::type_index, Component_Type*> components_indexed_by_typeid;
+
         Component_Bag() = delete;
         explicit Component_Bag(Entity_Type* entity)
         : entity(entity)
@@ -106,127 +101,88 @@ namespace tools
 
         ~Component_Bag()
         {
-            assert(_m_component.empty()); // did you called shutdown() before to delete?
-            assert(_m_component_indexed_by_typeid.empty()); // should be empty if _m_component is.
+            assert(components.empty()); // did you called shutdown() before to delete?
+            assert(components_indexed_by_typeid.empty()); // should be empty if _m_component is.
         }
 
-        void shutdown() noexcept // free memory
-        {
-            // TODO: we could optimize these two loops by iterating once.
-            //       but for some reasons components have unordered dependencies that needs to be fixed.
-            for(ComponentT* component : _m_component)
-                component_shutdown(component);
-            for(ComponentT* component : _m_component)
-                delete component;
-            _m_component.clear();
-            _m_component_indexed_by_typeid.clear();
-        }
-
-        size_t size() const
-        {
-            return _m_component.size();
-        }
-
-        template<Component_For<Entity_Type> T>
-        bool has() const
-        {
-            return get<T>() != nullptr;
-        }
-
-        const std::vector<ComponentT*>& components()
-        {
-            return _m_component;
-        }
-
-        template<Component_For<Entity_Type> Component_Type>
-        Component_Type* create()
-        {
-            auto* c = new Component_Type();
-            _append( c );
-            return c;
-        }
-
-        template<Component_For<Entity_Type> Component_Type, typename ...Component_Args>
-        Component_Type* create(Component_Args...args)
-        {
-            auto* c = new Component_Type(args...);
-            _append( c );
-            return c;
-        }
-
-        template<Component_For<Entity_Type> Component_Type>
-        void destroy(Component_Type* component)
-        {
-            auto it = std::find_if(_m_component_indexed_by_typeid.begin(), _m_component_indexed_by_typeid.end(), [&](const auto& pair) { return pair.second == component; });
-            ASSERT(it != _m_component_indexed_by_typeid.end());
-            _m_component_indexed_by_typeid.erase(it);
-            _m_component.erase(std::find(_m_component.begin(), _m_component.end(), component ) );
-            component_shutdown(component);
-            delete component;
-        }
-
-        template<Component_For<Entity_Type> T>
-        T* get() const
-        {
-            const T* c = _get_by_type<T>();
-            if ( c != nullptr )
-                return const_cast<T*>( c );
-            return nullptr;
-        }
-
-        template<Component_For<Entity_Type> T>
-        static std::vector<T*> get_every(const std::vector<Component_Bag*>& entities)
-        {
-            std::vector<T*> result;
-            result.reserve( entities.size() );
-
-            for(Component_Bag* _entity : entities)
-            {
-                result.push_back(_entity->get<T>() );
-            }
-
-            return result;
-        }
-
-        template<Component_For<Entity_Type> T>
-        T* require(const char* reason) const
-        {
-            T* component = get<T>();
-            VERIFY(component != nullptr, reason);
-            return component;
-        }
-
-        iterator       begin()        { return _m_component.begin(); }
-        iterator       end()          { return _m_component.end(); }
-        const_iterator cbegin() const { return _m_component.cbegin(); }
-        const_iterator cend() const   { return _m_component.cend(); }
-    private:
-
-        template<Component_For<Entity_Type> T>
-        const T* _get_by_type() const
-        {
-            auto it = _m_component_indexed_by_typeid.find(std::type_index(typeid(T)));
-            if (it != _m_component_indexed_by_typeid.end() )
-            {
-                return reinterpret_cast<const T*>(it->second);
-            }
-            return nullptr;
-        }
-
-        template<Component_For<Entity_Type> T>
-        const_iterator _find(T* ptr) const
-        {
-            return std::find(_m_component.begin(), _m_component.end(), ptr);
-        }
-
-        template<Component_For<Entity_Type> T>
-        void _append(T* component)
-        {
-            _m_component.push_back(component );
-            const auto* type = type::get<T>();
-            auto it = _m_component_indexed_by_typeid.emplace( type->id() , component );
-            ASSERT(it != _m_component_indexed_by_typeid.end() );
-            component_init(component, entity, type );
-        }
+        inline iterator         begin()        { return components.begin(); }
+        inline iterator         end()          { return components.end(); }
+        inline const_iterator   cbegin() const { return components.cbegin(); }
+        inline const_iterator   cend() const   { return components.cend(); }
+        
+        inline size_t           size() const   { return components.size(); }
+        inline bool             empty() const  { return components.size() == 0; }
     };
+    
+    template<typename Entity_Type>
+    void componentbag_clear(Component_Bag<Entity_Type>* bag)
+    {
+        bag->components.clear();
+        bag->components_indexed_by_typeid.clear();
+    }
+
+    template<
+        typename Component_Type,
+        typename Entity_Type = typename Component_Type::Entity_Type
+    >
+    Component_Type* componentbag_get(Component_Bag<Entity_Type>* bag)
+    {
+        std::type_index type_index = std::type_index(typeid(Component_Type));
+        auto it = bag->components_indexed_by_typeid.find(type_index);
+        if (it != bag->components_indexed_by_typeid.end() )
+        {
+            return reinterpret_cast<Component_Type*>(it->second);
+        }
+        return nullptr;
+    }
+
+    template<
+        typename Component_Type,
+        typename Entity_Type = typename Component_Type::Entity_Type
+    >
+    bool componentbag_has(const Component_Bag<Entity_Type>* bag)
+    {
+        return componentbag_get<Component_Type>(bag) != nullptr;
+    }
+
+    template<
+        typename Component_Type,
+        typename Entity_Type = typename Component_Type::Entity_Type
+    >
+    void componentbag_remove_and_shutdown(Component_Bag<Entity_Type>* bag, Component_Type* component)
+    {
+        // erase from indexed_by_typeid
+        auto it = std::find_if(
+            bag->components_indexed_by_typeid.begin(), bag->components_indexed_by_typeid.end(),
+            [&](const auto& pair) { return pair.second == component; }
+        );
+        ASSERT(it != bag->components_indexed_by_typeid.end());
+        bag->components_indexed_by_typeid.erase(it);
+
+        // erase
+        bag->components.erase(
+            std::find(bag->components.begin(), bag->components.end(), component )
+        );
+
+        // shutdown
+        component_shutdown(component);
+    }
+
+    template<
+        typename Component_Type,
+        typename Entity_Type = typename Component_Type::Entity_Type
+    >
+    void componentbag_add_and_init(Component_Bag<Entity_Type>* bag, Component_Type* component)
+    {
+        // add to index
+        const auto* type_desc = type::get<Component_Type>();
+        auto it = bag->components_indexed_by_typeid.emplace( type_desc->id() , component );
+        ASSERT(it != bag->components_indexed_by_typeid.end() );
+        
+        // add
+        bag->components.push_back(component );
+
+        // init
+        component_init(component, bag->entity );
+    }
 }

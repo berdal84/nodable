@@ -39,7 +39,7 @@ void File_View::init(File& _file)
 	m_text_editor.SetImGuiChildIgnored(true);
 	m_text_editor.SetPalette( cfg->ui_text_textEditorPalette );
 
-    m_graph_view = m_file->graph()->component<Graph_View>();
+    m_graph_view = componentbag_get<Graph_View>(&m_file->graph()->component_bag);
     VERIFY( m_graph_view, "A Graph_View component is required by File_View" );
 }
 

@@ -15,7 +15,7 @@ using namespace ndbl;
 using namespace tools;
 
 Graph::Graph()
-: components(this)
+: component_bag(this)
 {}
 
 Graph::~Graph()
@@ -41,7 +41,16 @@ void ndbl::graph_init(Graph* graph)
 void ndbl::graph_shutdown(Graph* graph)
 {
     graph_clear(graph);
-    graph->components.shutdown();
+
+    // delete component_bag content
+    //
+    // TODO: we could optimize these two loops by iterating once.
+    //       but for some reasons components have unordered dependencies that needs to be fixed.
+    for(auto* component : graph->component_bag)
+        component_shutdown(component);
+    for(auto* component : graph->component_bag)
+        delete component;
+    componentbag_clear(&graph->component_bag);
 }
 
 void ndbl::graph_clear(Graph* graph)

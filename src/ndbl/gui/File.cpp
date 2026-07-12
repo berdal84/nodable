@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+#include "core/Component.h"
 #include "core/Graph.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/language/Nodlang.h"
@@ -25,7 +26,9 @@ File::File()
     // Graph
     _graph = new Graph();
     graph_init(_graph);
-    auto* graph_view = _graph->components.create<Graph_View>();
+
+    auto* graph_view = new Graph_View();
+    componentbag_add_and_init(&_graph->component_bag, graph_view);
 
     _graph->signal_change.connect<&File::set_text_dirty>(this);
     graph_view->signal_change.connect<&File::set_text_dirty>(this);
@@ -52,7 +55,10 @@ File::File()
 File::~File()
 {
     assert(_graph->signal_change.disconnect<&File::set_text_dirty>(this));
-    _graph->component<Graph_View>()->signal_change.disconnect();
+    
+    Graph_View* graph_view = componentbag_get<Graph_View>(&_graph->component_bag); // TODO: we could store the ptr in ctor.
+    graph_view->signal_change.disconnect();
+
     view.signal_text_view_changed.disconnect();
     view.signal_graph_view_changed.disconnect();
 

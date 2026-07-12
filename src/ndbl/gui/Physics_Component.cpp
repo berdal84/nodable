@@ -27,7 +27,7 @@ Physics_Component::Physics_Component()
 
 void Physics_Component::_on_init()
 {
-    _view      = entity->component<Node_View>();
+    _view = componentbag_get<Node_View>(&entity->component_bag);
     ASSERT(_view);
     _is_active = true;
 }
@@ -53,11 +53,11 @@ void Physics_Component::add_force(const tools::Vec2& force, bool _recurse)
 
     for (Node* input_node: _view->node()->inputs() )
     {
-        Node_View* input_view = input_node->component<Node_View>();
+        Node_View* input_view = componentbag_get<Node_View>(&input_node->component_bag);
 
         if ( !input_view->state()->pinned())
             if (node_is_output_node_in_expression(input_node, _view->node()))
-                if(auto* physics_component = input_node->component<Physics_Component>())
+                if(auto* physics_component = componentbag_get<Physics_Component>(&input_node->component_bag) )
                     physics_component->add_force(force, _recurse);
     }
 }

@@ -149,7 +149,8 @@ bool Node_Property_View::draw(View_Detail _detail)
     const Vec2 new_size = ImGui::GetItemRectSize();
     const Vec2 new_pos  = ImGui::GetItemRectMin() + ImGui::GetItemRectSize() * 0.5f;
     _shape.set_position(new_pos, WORLD_SPACE); // GetItemRectMin is in SCREEN_SPACE
-    _shape.set_size({new_size.x, node->component<Node_View>()->shape()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
+    auto* nodeview = componentbag_get<Node_View>(&node->component_bag);
+    _shape.set_size({new_size.x, nodeview->shape()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
 
 #if DEBUG_DRAW
     ImGuiEx::DebugCircle( spatial_node()->position(), 2.5f, ImColor(0,0,0));
@@ -195,8 +196,8 @@ bool Node_Property_View::draw_input(Node_Property_View* _view, bool _compact_mod
                              connected_property_token.word());
                     float w = calc_input_width(buf);
                     ImGui::PushItemWidth(w);
-                    ImGui::PushStyleColor(ImGuiCol_FrameBg,
-                                          connected_slot->node->component<Node_View>()->get_color(Color_FILL));
+                    auto* nodeview = componentbag_get<Node_View>(&connected_slot->node->component_bag);
+                    ImGui::PushStyleColor(ImGuiCol_FrameBg, nodeview->get_color(Color_FILL));
                     if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
                     {
                         // is ReadOnly

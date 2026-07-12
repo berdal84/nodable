@@ -44,7 +44,7 @@ namespace ndbl
         ~Graph();
         
         std::vector<Node*>                  nodes; // TODO: since Node does not use virtuals, I should replace this by an Arena.
-        tools::Component_Bag<Graph>         components;
+        tools::Component_Bag<Graph>         component_bag;
         tools::Simple_Signal                signal_reset;
         tools::Simple_Broadcast_Signal      signal_change;
         tools::Signal<void(Node*)>          signal_add_node;
@@ -59,7 +59,6 @@ namespace ndbl
         bool                                is_empty()   const { return root_scope()->empty(); };
         Node*                               root_node()  const { return nodes.front(); /* we have the guarantee it exists, see constructor */}
         Scope*                              root_scope() const { return root_node()->internal_scope; };
-        template<class T> T*                component()  const { return components.get<T>(); }
     };
 
     void    graph_init(Graph*);

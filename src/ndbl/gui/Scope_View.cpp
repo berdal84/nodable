@@ -54,11 +54,11 @@ void Scope_View::update(float dt, Scope_View_Flags flags)
     };
 
     // sibling nodeview is always wrapped inside its own scopeview
-    if ( auto sibling_nodeview = m_scope->node()->component<Node_View>() )
+    if ( auto sibling_nodeview = componentbag_get<Node_View>(&m_scope->node()->component_bag) )
         wrap_nodeview( sibling_nodeview );
 
     for( Node* node : m_scope->children() )
-        if ( auto nodeview = node->component<Node_View>() )
+        if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
             wrap_nodeview( nodeview );
 
     for( Node* child_node : m_scope->children() )

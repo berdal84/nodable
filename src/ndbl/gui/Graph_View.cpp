@@ -1,6 +1,7 @@
 #include "Graph_View.h"
 
 #include <algorithm>
+#include "core/Component.h"
 #include "imgui.h"
 #include "tools/core/Types.h"
 #include "tools/gui/ImGuiEx.h"
@@ -106,7 +107,8 @@ void Graph_View::_handle_shutdown()
 void Graph_View::_handle_add_node(Node* node)
 {
     // view
-    auto* nodeview = node->components.create<Node_View>();
+    auto* nodeview = new Node_View();
+    componentbag_add_and_init(& node->component_bag, nodeview);
     nodeview->set_size({20.f, 35.f});
 
     if (Scope_View* scopeview = nodeview->internal_scopeview() )
@@ -124,18 +126,20 @@ void Graph_View::_handle_add_node(Node* node)
     }
 
     // physics
-    node->components.create<Physics_Component>();
+    auto* physics_component = new Physics_Component();
+    componentbag_add_and_init(&node->component_bag, physics_component);
 }
 
 void Graph_View::_handle_remove_node(Node* node)
 {
     // clean physics
-    auto* physics_component = node->component<Physics_Component>();
+    auto* physics_component = componentbag_get<Physics_Component>(&node->component_bag);
     VERIFY(physics_component, "Should have been created from _handle_add_node()");
-    node->components.destroy( physics_component );
+    componentbag_remove_and_shutdown(&node->component_bag, physics_component );
+    delete physics_component;
 
     // clean nodeview
-    auto* nodeview = node->component<Node_View>();
+    auto* nodeview = componentbag_get<Node_View>(&node->component_bag);
     VERIFY(nodeview, "Should have been created from _handle_add_node()");
 
     if ( Scope_View* scopeview = nodeview->internal_scopeview() )
@@ -148,12 +152,13 @@ void Graph_View::_handle_remove_node(Node* node)
         _parent->remove_child( nodeview->spatial_node() );
     }
 
-    node->components.destroy( nodeview );
+    componentbag_remove_and_shutdown( &node->component_bag, nodeview );
+    delete nodeview;
 }
 
 void Graph_View::_handle_change_scope(Graph::Scope_Change change)
 {
-    auto* nodeview = change.node->component<Node_View>();
+    auto* nodeview = componentbag_get<Node_View>(&change.node->component_bag);
     VERIFY(nodeview, "a nodeview must be present since we are in a Graph_View");
 
     // Un-parent from old scope's spatial node
@@ -257,7 +262,7 @@ bool Graph_View::draw(float dt)
     };
     for (Node* each_node: graph()->nodes )
     {
-        Node_View *each_view = Node_View::substitute_with_parent_if_not_visible(each_node->component<Node_View>() );
+        Node_View *each_view = Node_View::substitute_with_parent_if_not_visible( componentbag_get<Node_View>(&each_node->component_bag) );
 
         if (!each_view) {
             continue;
@@ -275,9 +280,9 @@ bool Graph_View::draw(float dt)
 
             for (const auto &adjacent_slot: slot->adjacent)
             {
-                Node*     each_successor_node  = adjacent_slot->node;
-                Node_View* possibly_hidden_view = each_successor_node->component<Node_View>();
-                Node_View* each_successor_view  = Node_View::substitute_with_parent_if_not_visible(possibly_hidden_view);
+                Node*       each_successor_node     = adjacent_slot->node;
+                Node_View*  possibly_hidden_view    = componentbag_get<Node_View>(&each_successor_node->component_bag);
+                Node_View*  each_successor_view     = Node_View::substitute_with_parent_if_not_visible(possibly_hidden_view);
 
                 if ( each_successor_view == nullptr )
                     continue;
@@ -325,8 +330,8 @@ bool Graph_View::draw(float dt)
                 if (slot_in == nullptr)
                     continue;
 
-                auto *node_view_out = slot_out->node->component<Node_View>();
-                auto *node_view_in  = slot_in->node->component<Node_View>();
+                auto *node_view_out = componentbag_get<Node_View>(&slot_out->node->component_bag);
+                auto *node_view_in  = componentbag_get<Node_View>(&slot_in->node->component_bag);
 
                 if ( !node_view_out->state()->visible() )
                     continue;
@@ -393,7 +398,7 @@ bool Graph_View::draw(float dt)
     // Draw Node_Views
     for (Node* node : graph()->nodes  )
     {
-        Node_View* nodeview = node->component<Node_View>();
+        Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag);
 
         if ( !nodeview)
             continue;
@@ -444,10 +449,13 @@ void Graph_View::_create_constraints__align_down(Node* follower, const  std::vec
         return;
 
     std::vector<Node_View*> leader_view;
-    for ( Node* _leader : leader )
-        leader_view.push_back(_leader->component<Node_View>() );
 
-    Node_View* follower_view = follower->component<Node_View>();
+    for ( Node* _leader : leader )
+    {
+        leader_view.push_back( componentbag_get<Node_View>(&_leader->component_bag) );
+    }
+
+    Node_View* follower_view = componentbag_get<Node_View>(&follower->component_bag);
 
     auto& constraint = _m_contraints.emplace_back();
 
@@ -472,14 +480,14 @@ void Graph_View::_create_constraints__align_top_recursively(const std::vector<No
         return;
 
     ASSERT(leader);
-    Node_View* leader_view = leader->component<Node_View>();
+    Node_View* leader_view = componentbag_get<Node_View>(&leader->component_bag);
     // nodeview's inputs must be aligned on center-top
     // It's a one to many constrain.
     //
     std::vector<Node_View*> follower;
     for (auto* _follower : unfiltered_follower )
         if (node_is_output_node_in_expression(_follower, leader))
-            follower.push_back(_follower->component<Node_View>() );
+            follower.push_back( componentbag_get<Node_View>(&_follower->component_bag) );
 
     if ( follower.empty() )
         return;
@@ -518,12 +526,12 @@ void Graph_View::_create_constraints(Scope* scope )
         auto& constraint = _m_contraints.emplace_back();
         constraint.name          = "Align Scope_View partitions";
         constraint.rule          = &ViewConstraintRule_distribute_sub_scope_views;
-        constraint.leader        = {scope->node()->component<Node_View>()};
+        constraint.leader        = {componentbag_get<Node_View>(&scope->node()->component_bag)};
         constraint.leader_pivot  = BOTTOM;
         for(Branch i = 0; i < scope->node()->switch_behavior_data().branch_count(); ++i )
         {
             auto branch = scope->node()->switch_behavior_data().branch_out(i);
-            Node_View* nodeview = branch->node->component<Node_View>();
+            Node_View* nodeview = componentbag_get<Node_View>(&branch->node->component_bag);
             constraint.follower.push_back( nodeview );
         }
         constraint.gap_size      = Size_XL;
@@ -584,20 +592,20 @@ void Graph_View::_update_once(float dt)
 
     // Apply forces (forces => positons)
     for ( Node* node : graph()->nodes )
-        if ( auto* _physics = node->component<Physics_Component>() )
+        if ( auto* _physics = componentbag_get<Physics_Component>(&node->component_bag) )
             _physics->apply_forces(dt);
 
     // TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph_View", "Constraints updated.\n");
 
     // Node_Views
     for (Node* node : graph()->nodes )
-        if ( auto* view = node->component<Node_View>() )
+        if ( auto* view = componentbag_get<Node_View>(&node->component_bag) )
             view->update(dt);
 
     // Scope_Views
-    if( Node* root = graph()->root_node() )
-        if ( auto* view = root->component<Scope_View>())
-            view->update( dt, Scope_View_Flag_RECURSE );
+    if( Scope* root = graph()->root_scope() )
+        if ( root->view() != nullptr )
+            root->view()->update( dt, Scope_View_Flag_RECURSE );
 }
 
 void Graph_View::_update_until_unfold()
@@ -628,7 +636,7 @@ void Graph_View::frame_content(Frame_Mode mode )
         // Get root node view
         Scope* root_scope = graph()->root_scope();
         if ( !root_scope ) return;
-        auto root_node_view = root_scope->node()->component<Node_View>();
+        auto root_node_view = componentbag_get<Node_View>(&root_scope->node()->component_bag);
         ASSERT(root_node_view);
 
         // compute the delta to apply
@@ -658,8 +666,8 @@ void Graph_View::frame_content(Frame_Mode mode )
 
     // apply the delta to all node views
     for (Node* node : graph()->nodes )
-        if ( Node_View* view = node->component<Node_View>() )
-            view->spatial_node()->translate( delta );
+        if ( Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag) )
+            nodeview->spatial_node()->translate( delta );
 }
 
 void Graph_View::_on_graph_change()
@@ -705,7 +713,7 @@ void Graph_View::reset()
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
 
     for( Node* node : graph()->nodes )
-        if ( auto* view = node->component<Node_View>() )
+        if ( auto* view = componentbag_get<Node_View>(&node->component_bag) )
             view->spatial_node()->translate( far_outside );
 
     // physics
@@ -724,7 +732,7 @@ bool Graph_View::has_an_active_tool() const
 void Graph_View::reset_all_properties()
 {
     for( Node* node : graph()->nodes )
-        if ( Node_View* v = node->component<Node_View>() )
+        if ( Node_View* v = componentbag_get<Node_View>(&node->component_bag) )
             v->reset_all_properties();
 }
 
@@ -773,7 +781,7 @@ void Graph_View::drag_state_tick()
         }
         else if ( auto* scopeview = elem.get_if<Scope_View*>() )
         {
-            nodeview = scopeview->node()->component<Node_View>();
+            nodeview = componentbag_get<Node_View>(&scopeview->node()->component_bag);
             nodeview->translate(delta);
             nodeview->state()->set_pinned();
         }
@@ -795,8 +803,8 @@ void Graph_View::view_pan_state_tick()
 
     Vec2 delta = ImGui::GetMouseDragDelta();
     for( Node* node : graph()->nodes )
-        if ( auto v = node->component<Node_View>() )
-            v->spatial_node()->translate(delta);
+        if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
+            nodeview->spatial_node()->translate(delta);
 
     ImGui::ResetMouseDragDelta();
 
@@ -824,7 +832,7 @@ void Graph_View::cursor_state_tick()
             case Selectable::index_of<Scope_View*>():
             {
                 auto* scopeview = _m_focused.get<Scope_View*>();
-                auto* nodeview = scopeview->node()->component<Node_View>();
+                auto* nodeview = componentbag_get<Node_View>(&scopeview->node()->component_bag);
                 if ( ImGui::MenuItem( nodeview->expanded() ? "Collapse Scope" : "Expand Scope" ) )
                 {
                     nodeview->expand_toggle_rec();
@@ -847,13 +855,13 @@ void Graph_View::cursor_state_tick()
                     for(Scope* child : children)
                     {
                         // Include scope owner's view too
-                        if ( auto* view = child->node()->component<Node_View>())
-                            views.push_back( view );
+                        if ( auto* nodeview = componentbag_get<Node_View>(&child->node()->component_bag))
+                            views.push_back( nodeview );
 
                         // and every other child's
                         for( Node* child_node : child->backbone() )
-                            if ( auto* view = child_node->component<Node_View>())
-                                views.push_back(view);
+                            if ( auto* nodeview = componentbag_get<Node_View>(&child_node->component_bag))
+                                views.push_back(nodeview);
                     }
                     // Replace selection
                     _m_selection.clear();
@@ -1116,9 +1124,9 @@ void Graph_View::roi_state_tick()
         // Get the views included in the ROI
         std::set<Node_View*> nodeviews_inside_roi;
         for ( Node* node : graph()->nodes )
-            if ( auto view = node->component<Node_View>() )
-                if ( Rect::contains(roi, view->get_rect()) )
-                    nodeviews_inside_roi.insert( view );
+            if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
+                if ( Rect::contains(roi, nodeview->get_rect()) )
+                    nodeviews_inside_roi.insert( nodeview );
 
         // Select them
         const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
@@ -1173,7 +1181,7 @@ void ndbl::ViewConstraintRule_1_to_N_as_row(ViewConstraint* constraint, float dt
     // Apply a force to translate to the (single) follower
     Vec2 current_pos = _follower->spatial_node()->position(WORLD_SPACE);
     Vec2 desired_pos = current_pos + delta;
-    auto* physics_component = _follower->node()->component<Physics_Component>();
+    auto* physics_component = componentbag_get<Physics_Component>(&_follower->node()->component_bag);
     VERIFY(physics_component, "Component required");
     physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
 }
@@ -1216,7 +1224,7 @@ void ndbl::ViewConstraintRule_N_to_1_as_a_row(ViewConstraint* constraint, float 
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        auto* physics_component = clean_follower[i]->node()->component<Physics_Component>();
+        auto* physics_component = componentbag_get<Physics_Component>(&clean_follower[i]->node()->component_bag);
         if( !physics_component )
             continue;
         Vec2 current_pos = clean_follower[i]->spatial_node()->position(WORLD_SPACE);
@@ -1270,7 +1278,8 @@ void ndbl::ViewConstraintRule_distribute_sub_scope_views(ViewConstraint* constra
         const Vec2 delta = new_pos - cur_pos;
 
         // Apply force to translate head
-        auto* physics = sub_scope_view[i]->scope()->head()->component<Physics_Component>();
+        Node* head_node = sub_scope_view[i]->scope()->head();
+        auto* physics = componentbag_get<Physics_Component>(&head_node->component_bag);
         VERIFY(physics, "A Physics_Component is required on this entity to apply a force to");
         physics->translate(delta, get_config()->ui_node_speed, true );
     }
