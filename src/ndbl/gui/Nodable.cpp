@@ -327,7 +327,7 @@ void ndbl::nodable_update(App_State* app)
                         if ( auto nodeview = elem.get_if<Node_View*>() )
                             graph_flag_node_to_delete(nodeview->node(), Graph_Flag_NONE);
                         else if ( auto scopeview = elem.get_if<Scope_View*>() )
-                            graph_flag_node_to_delete(scopeview->node(), Graph_Flag_ALLOW_SIDE_EFFECTS);
+                            graph_flag_node_to_delete(scopeview->scope->node(), Graph_Flag_ALLOW_SIDE_EFFECTS);
                     }
                 }
 
@@ -346,7 +346,7 @@ void ndbl::nodable_update(App_State* app)
                                 elem.get<Node_View*>()->arrange_recursively();
                                 break;
                             case Selectable::index_of<Scope_View*>():
-                                elem.get<Scope_View*>()->arrange_content();
+                                scopeview_arrange_content(elem.get<Scope_View*>());
                                 break;
                         }
                     }

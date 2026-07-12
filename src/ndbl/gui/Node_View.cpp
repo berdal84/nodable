@@ -4,6 +4,7 @@
 #include <glm/trigonometric.hpp> // for sinus
 #include <vector>
 
+#include "gui/geometry/Space.h"
 #include "tools/core/Math.h"
 
 #include "ndbl/core/Node.h"
@@ -55,7 +56,8 @@ void Node_View::_handle_init()
     {
         // Create view
         auto new_view = new Node_Property_View(property);
-        _add_child(new_view);
+        spatial_node()->add_child( new_view->spatial_node() );
+        new_view->spatial_node()->set_position({}, tools::PARENT_SPACE);
 
         switch ( node()->type )
         {
@@ -147,7 +149,11 @@ void Node_View::_handle_init()
     {
         const u8_t index = count_per_type.at(slot->type_and_order())++;
         auto* view = new Node_Slot_View(slot, get_pivot(slot), get_shapetype(slot), index, shape() );
-        _add_child(view);
+
+        spatial_node()->add_child( view->spatial_node() );
+        view->spatial_node()->set_position({}, tools::PARENT_SPACE);
+        
+        m_slot_views.push_back(view);
     }
 
     // Make sure inputs/outputs are aligned with the property views (if present) and not the node's view.
@@ -206,8 +212,11 @@ void Node_View::_handle_init()
     if ( Scope* internal_scope = node()->internal_scope )
     {
         auto* scopeview = new Scope_View();
-        scopeview->init(internal_scope);
-        _add_child(scopeview);
+        scopeview_init(scopeview, internal_scope);
+
+        spatial_node()->add_child( &scopeview->spatial_node );
+        scopeview->spatial_node.set_position({0.f, 0.f}, tools::PARENT_SPACE);
+
         m_internal_scopeview = scopeview;
     }
 }
@@ -228,8 +237,8 @@ void Node_View::_handle_shutdown()
         delete each;
     m_slot_views.clear();
 
-    if(m_internal_scopeview )
-        m_internal_scopeview->shutdown();
+    if( m_internal_scopeview != nullptr )
+        scopeview_shutdown(m_internal_scopeview);
 
     m_hovered_slotview = nullptr;
 }
@@ -305,7 +314,7 @@ void Node_View::arrange_recursively(bool _smoothly)
     }
 
     if (Scope* internal_scope = node()->internal_scope )
-        for ( Node* _node : internal_scope->backbone() )
+        for ( Node* _node : scope_get_backbone(internal_scope) )
             if ( auto* _node_view = componentbag_get<Node_View>(&_node->component_bag))
                     _node_view->arrange_recursively();
 
@@ -327,8 +336,8 @@ void Node_View::update(float dt)
     for(Node_Slot_View* _slotview  : m_slot_views )
         _slotview->update( dt );
 
-    if ( m_internal_scopeview )
-        m_internal_scopeview->update( dt );
+    if ( m_internal_scopeview != nullptr )
+        scopeview_update( m_internal_scopeview, dt );
 }
 
 bool Node_View::draw()
@@ -809,7 +818,7 @@ void Node_View::set_expanded_rec(bool _expanded)
     set_expanded(_expanded);
 
     if ( Scope* _internal_scope = node()->internal_scope )
-        for( Node* _node : _internal_scope->backbone() )
+        for( Node* _node : scope_get_backbone(_internal_scope) )
             if ( auto* view = componentbag_get<Node_View>(&_node->component_bag) )
                 view->set_expanded_rec(_expanded);
 }
@@ -832,11 +841,11 @@ void Node_View::set_children_visible(bool visible, bool recursively)
         return;
 
     std::set<Scope*> scopes;
-    Scope::get_descendent(scopes, node()->internal_scope, 1 );
+    scope_get_descendent(scopes, node()->internal_scope, 1 );
 
-    for(Scope* _scope : scopes)
-        for (Node* _child_node: _scope->backbone())
-            if ( auto* view = componentbag_get<Node_View>(&_child_node->component_bag) )
+    for(Scope* each_scope : scopes)
+        for (Node* each_child_node: scope_get_backbone(each_scope))
+            if ( auto* view = componentbag_get<Node_View>(&each_child_node->component_bag) )
                 view->state()->set_visible(visible );
 }
 

@@ -124,7 +124,7 @@ TEST_F(Graph_, erase_node_from_non_root_scope)
     graph_find_and_destroy(graph, child );
 
     EXPECT_FALSE( graph_contains( graph, child ) );
-    EXPECT_TRUE(scope_node->internal_scope->empty() );
+    EXPECT_TRUE( scope_is_empty(scope_node->internal_scope) );
 }
 
 
@@ -147,6 +147,6 @@ TEST_F(Graph_, erase_first_node_of_a_scope_with_another_child_after)
 
     EXPECT_FALSE(graph_contains( graph, child1 ));
     EXPECT_TRUE(graph_contains( graph, child2 ));
-    EXPECT_FALSE(scope_node->internal_scope->contains(child1) );
-    EXPECT_TRUE(scope_node->internal_scope->contains(child2 ) );
+    EXPECT_FALSE(scope_contains(scope_node->internal_scope, child1) );
+    EXPECT_TRUE(scope_contains(scope_node->internal_scope, child2 ) );
 }

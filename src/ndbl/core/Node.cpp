@@ -442,7 +442,7 @@ void ndbl::node_reset_scope(Node* node, Scope* scope)
 
     if ( node->internal_scope != nullptr )
     {
-        node->internal_scope->reset_parent( scope );
+        scope_reset_parent( node->internal_scope, scope );
     }
 }
 

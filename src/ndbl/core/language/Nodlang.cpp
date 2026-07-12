@@ -162,7 +162,7 @@ bool Nodlang::parse(Graph* graph_out, const std::string& code)
 
     Scope* scope = parse_program();
 
-    if ( scope->empty(Scope_Flag_RECURSE_CHILD_PARTITION) )
+    if ( scope_is_empty(scope, Scope_Flag_RECURSE_CHILD_PARTITION) )
     {
         return false;
     }
@@ -226,7 +226,7 @@ Node_Slot* Nodlang::token_to_slot(Scope* parent_scope, const Token& _token)
     if (_token.m_type == Token_Type::identifier)
     {
         std::string identifier = _token.word_to_string();
-        if( Node* existing_node = parent_scope->find_variable(identifier) )
+        if( Node* existing_node = scope_find_variable(parent_scope, identifier) )
         {
             return existing_node->variable_data.ref_out;
         }
@@ -1622,7 +1622,7 @@ std::string& Nodlang::serialize_node(std::string &_out, const Node* node, Serial
 std::string& Nodlang::serialize_scope(std::string &_out, const Scope* scope) const
 {
     serialize_token(_out, scope->token_begin);
-    for(Node* node : scope->backbone() )
+    for(Node* node : scope_get_backbone(scope) )
     {
         serialize_node(_out, node, Serialization_Flag_RECURSE);
     }

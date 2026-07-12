@@ -56,7 +56,7 @@ namespace ndbl
         };
         tools::Signal<void(Scope_Change)>   signal_change_scope;
         tools::Simple_Signal                signal_is_complete; // user defined, usually when parser or user is done
-        bool                                is_empty()   const { return root_scope()->empty(); };
+        bool                                is_empty()   const { return scope_is_empty(root_scope()); };
         Node*                               root_node()  const { return nodes.front(); /* we have the guarantee it exists, see constructor */}
         Scope*                              root_scope() const { return root_node()->internal_scope; };
     };

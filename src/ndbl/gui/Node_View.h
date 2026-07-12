@@ -7,7 +7,6 @@
 #include "tools/gui/geometry/Box_2D.h"
 #include "tools/gui/View_State.h"
 #include "ndbl/core/Node_Property.h"
-#include "ndbl/gui/concepts/CView.h"
 #include "Node_Property_View.h"
 #include "Node_Slot_View.h"
 
@@ -112,7 +111,6 @@ namespace ndbl
         void                    _handle_init();
         void                    _handle_shutdown();
         Node_Property_View*     _find_property_view(const Node_Property*);
-        void                    _add_child(CView auto* view);
         void                    _draw_slot(Node_Slot_View*);
         void                    _set_adjacent_visible(Node_Slot::Flags, bool _visible, Node_ViewFlags = Node_ViewFlag_NONE);
 
@@ -127,15 +125,4 @@ namespace ndbl
             float border_width
         );
     };
-
-    void Node_View::_add_child(CView auto* view)
-    {
-        spatial_node()->add_child(view->spatial_node() );
-        view->spatial_node()->set_position({0.f, 0.f}, tools::PARENT_SPACE);
-
-        if constexpr ( std::is_same_v<decltype(view), Node_Slot_View*> )
-        {
-            m_slot_views.push_back(view);
-        }
-    }
 }

@@ -23,46 +23,27 @@ namespace ndbl
         Theme_LIGHT = true
     };
 
-    class Scope_View
+    struct Scope_View
     {
-        using Rect = tools::Rect;
-//== Data ==============================================================================================================
-    public:
-        tools::Signal<void(Scope_View*)> signal_hover;
-    private:
-        tools::View_State           m_view_state{};
-        tools::Spatial_Node         m_spatial_node{};
-        Scope*                      m_scope{};
-        Rect                        m_content_rect{};
-        std::vector<Node_View*>     m_wrapped_node_view{};
-        Theme                       m_theme{};
-//== Methods ===========================================================================================================
-    public:
-        Scope_View() = default;
-        Scope_View(const Scope_View&) = default;
+        tools::Signal<void(Scope_View*)>    signal_hover        = {};
+        tools::Spatial_Node                 spatial_node        = {};
+        std::vector<Node_View*>             wrapped_node_view   = {};
+        tools::Rect                         content_rect        = {};
+        tools::View_State                   state               = {};
+        Scope*                              scope               = {};
+        Theme                               theme               = {};
+    };    
 
-        void                init(Scope*);
-        void                shutdown();
-        void                update(float dt, Scope_View_Flags = Scope_View_Flag_NONE );
-        void                draw(float dt);
-        Node*               node() { return scope()->node(); }
-        const Node*         node() const { return scope()->node(); }
-        tools::View_State*  state() { return &m_view_state; }
-        bool                has_parent() const { return parent() != nullptr; }
-        Scope_View*         parent() const;
-        Scope*              scope() const { return m_scope; }
-        size_t              depth() const { return m_scope->depth(); }
-        tools::Spatial_Node* spatial_node() { return &m_spatial_node; }
-        void                set_position(const tools::Vec2& pos, tools::Space space ) { return m_spatial_node.set_position( pos, space );}
-        void                translate(const tools::Vec2& delta) { m_spatial_node.translate(delta); }
-        bool                must_be_draw() const;
-        bool                pinned() const;
-        void                set_pinned(bool b = true);
-        const Rect&         content_rect() const { return m_content_rect; }
-        void                arrange_content();
-    };
+    void                            scopeview_init(Scope_View*, Scope*);
+    void                            scopeview_shutdown(Scope_View*);
+    void                            scopeview_update(Scope_View*, float dt, Scope_View_Flags = Scope_View_Flag_NONE );
+    void                            scopeview_draw(Scope_View*, float dt);
+    inline bool                     scopeview_has_parent(const Scope_View* scope_view) { return scope_view->scope->parent != nullptr; }
+    Scope_View*                     scopeview_get_parent(const Scope_View* scope_view);
+    inline size_t                   scopeview_get_depth(const Scope_View* scope_view) { return scope_get_depth(scope_view->scope); }
+    bool                            scopeview_must_be_draw(const Scope_View* );
+    void                            scopeview_arrange_content(Scope_View*);
 
-    
     // extra ImGui-related tools
     
     void TreeNode_Scope(const char* title, ndbl::Scope*);

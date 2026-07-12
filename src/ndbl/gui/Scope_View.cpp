@@ -8,40 +8,41 @@
 using namespace ndbl;
 using namespace tools;
 
-void Scope_View::init(Scope* scope)
+void ndbl::scopeview_init(Scope_View* scope_view, Scope* scope)
 {
     ASSERT(scope != nullptr);
 
-    m_scope = scope;
-    scope->set_view(this);
+    scope_view->scope   = scope;
+    scope->view         = scope_view;
 }
 
-void Scope_View::shutdown()
+void ndbl::scopeview_shutdown(Scope_View* scope_view)
 {
-    spatial_node()->clear();
-    m_scope->set_view(nullptr);
-    m_scope = nullptr;
+    scope_view->spatial_node.clear();
+
+    scope_view->scope->view = nullptr;
+    scope_view->scope       = nullptr;
 }
 
-Scope_View* Scope_View::parent() const
+Scope_View* ndbl::scopeview_get_parent(const Scope_View* scope_view)
 {
-    return m_scope->parent() ? m_scope->parent()->view() : nullptr;
+    return scope_view->scope->parent ? scope_view->scope->parent->view : nullptr;
 }
 
-void Scope_View::update(float dt, Scope_View_Flags flags)
+void ndbl::scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags flags)
 {
     const Config* config = get_config();
 
     // 1) update recursively
     //    any scope with higher depth in the same hierarchy will be up to date.
-    for( Node* child_node : m_scope->children() )
+    for( Node* child_node : scope_view->scope->children )
         if ( Scope* internal_scope = child_node->internal_scope )
-            internal_scope->view()->update(dt, flags);
+            scopeview_update(internal_scope->view, dt, flags);
 
     // 2) update content rectangle and wrapped node views
     //
-    m_content_rect = {};
-    m_wrapped_node_view.clear();
+    scope_view->content_rect = {};
+    scope_view->wrapped_node_view.clear();
     auto wrap_nodeview = [&](Node_View* nodeview )
     {
         ASSERT( nodeview );
@@ -49,68 +50,67 @@ void Scope_View::update(float dt, Scope_View_Flags flags)
             return;
 
         const Rect r = nodeview->get_rect(WORLD_SPACE);
-        m_content_rect = Rect::bounding_rect(m_content_rect, r);
-        m_wrapped_node_view.push_back(nodeview);
+        scope_view->content_rect = Rect::bounding_rect(scope_view->content_rect, r);
+        scope_view->wrapped_node_view.push_back(nodeview);
     };
 
     // sibling nodeview is always wrapped inside its own scopeview
-    if ( auto sibling_nodeview = componentbag_get<Node_View>(&m_scope->node()->component_bag) )
+    if ( auto sibling_nodeview = componentbag_get<Node_View>(&scope_view->scope->node()->component_bag) )
         wrap_nodeview( sibling_nodeview );
 
-    for( Node* node : m_scope->children() )
+    for( Node* node : scope_view->scope->children )
         if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
             wrap_nodeview( nodeview );
 
-    for( Node* child_node : m_scope->children() )
+    for( Node* child_node : scope_view->scope->children )
     {
         if ( child_node->internal_scope != nullptr )
         {
-            Scope_View* child_node_scope_view = child_node->internal_scope->view();
-            child_node_scope_view->update(dt, flags);
-            m_content_rect = Rect::bounding_rect(m_content_rect, child_node_scope_view->m_content_rect);
+            Scope_View* child_node_scope_view = child_node->internal_scope->view;
+            scopeview_update(child_node_scope_view, dt, flags);
+            scope_view->content_rect = Rect::bounding_rect(scope_view->content_rect, child_node_scope_view->content_rect);
         }
     }
 
-    if ( must_be_draw() )
+    if ( scopeview_must_be_draw(scope_view) )
     {
         // Add margins to see clearly nested scopes
-        m_content_rect.min -= config->ui_scope_content_rect_margin.min;
-        m_content_rect.max += config->ui_scope_content_rect_margin.max;
+        scope_view->content_rect.min -= config->ui_scope_content_rect_margin.min;
+        scope_view->content_rect.max += config->ui_scope_content_rect_margin.max;
 
         // pixel perfect
-        m_content_rect.min.round();
-        m_content_rect.max.round();
+        scope_view->content_rect.min.round();
+        scope_view->content_rect.max.round();
     }
 
 
     // 2) update theme
     //
-    Scope_View* parent_view = parent();
-    if ( parent_view )
+    if ( Scope_View* parent_view = scopeview_get_parent(scope_view) )
     {
-        m_theme = !parent_view->m_theme;
-        if ( !parent_view->must_be_draw() )
-            m_theme = !m_theme;
+        scope_view->theme = !parent_view->theme;
+        if ( !scopeview_must_be_draw(parent_view) )
+            scope_view->theme = !scope_view->theme;
     }
     else
     {
-        m_theme = Theme_DARK;
+        scope_view->theme = Theme_DARK;
     }
 }
 
-bool Scope_View::must_be_draw() const
+bool ndbl::scopeview_must_be_draw(const Scope_View* scope_view)
 {
-    if (!m_content_rect.has_area())
+    if (!scope_view->content_rect.has_area())
         return false;
 
-    switch ( scope()->children().size() )
+    switch ( scope_view->scope->children.size() )
     {
         case 0:
             return false;
         case 1:
         {
-            Node* single_node = *scope()->children().begin();
-            if ( single_node->internal_scope != nullptr && this->has_parent() )
+            Node* single_node = *scope_view->scope->children.begin();
+            if ( single_node->internal_scope != nullptr && scopeview_has_parent(scope_view) )
                 return false;
             return true;
         }
@@ -119,41 +119,31 @@ bool Scope_View::must_be_draw() const
     }
 }
 
-void Scope_View::draw(float dt)
+void ndbl::scopeview_draw(Scope_View* scope_view, float dt)
 {
-    if ( must_be_draw() )
+    if ( !scopeview_must_be_draw(scope_view) )
+        return;
+    
+    const Rect r = scope_view->content_rect;
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    const Config* config = get_config();
+    const Vec4& fill_col = scope_view->theme == Theme_DARK ? config->ui_scope_fill_col_light
+                                                    : config->ui_scope_fill_col_dark;
+    draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32(fill_col), config->ui_scope_border_radius );
+    if ( scope_view->state.selected() )
     {
-        const Rect r = m_content_rect;
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        const Config* config = get_config();
-        const Vec4& fill_col = m_theme == Theme_DARK ? config->ui_scope_fill_col_light
-                                                     : config->ui_scope_fill_col_dark;
-        draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32(fill_col), config->ui_scope_border_radius );
-        if ( m_view_state.selected() )
-        {
-            draw_list->AddRect(r.min, r.max, ImGui::GetColorU32( config->ui_scope_border_col ) , config->ui_scope_border_radius, 0, config->ui_scope_border_thickness );
-        }
+        draw_list->AddRect(r.min, r.max, ImGui::GetColorU32( config->ui_scope_border_col ) , config->ui_scope_border_radius, 0, config->ui_scope_border_thickness );
+    }
 
-        if ( ImGui::IsMouseHoveringRect(r.min, r.max) )
-        {
-            signal_hover.emit(this);
-        }
+    if ( ImGui::IsMouseHoveringRect(r.min, r.max) )
+    {
+        scope_view->signal_hover.emit(scope_view);
     }
 }
 
-void Scope_View::set_pinned(bool b)
+void ndbl::scopeview_arrange_content(Scope_View* scope_view)
 {
-    m_view_state.set_pinned(b);
-}
-
-bool Scope_View::pinned() const
-{
-    return m_view_state.pinned();
-}
-
-void Scope_View::arrange_content()
-{
-    for( Node_View* view : m_wrapped_node_view )
+    for( Node_View* view : scope_view->wrapped_node_view )
     {
         view->arrange_recursively();
     }
@@ -212,7 +202,7 @@ void ndbl::TreeNode_Node(Node* node)
 void ndbl::TreeNode_ScopeContent(Scope *scope)
 {
     ImGui::PushID( scope );
-    std::vector<Node*> backbone = scope->backbone();
+    std::vector<Node*> backbone = scope_get_backbone(scope);
     if ( ImGui::TreeNodeEx(&backbone, ImGuiTreeNodeFlags_DefaultOpen, "Children (backbone, ordered)" ) )
     {
         for ( Node* each_node : backbone )
@@ -222,18 +212,18 @@ void ndbl::TreeNode_ScopeContent(Scope *scope)
         ImGui::TreePop();
     }
 
-    if ( ImGui::TreeNode(&scope->variables(), "Children (vars only, unordered)") )
+    if ( ImGui::TreeNode(&scope->variables, "Children (vars only, unordered)") )
     {
-        for ( Node* each_node : scope->variables() )
+        for ( Node* each_node : scope->variables )
         {
             TreeNode_Node(each_node);
         }
         ImGui::TreePop();
     }
 
-    if ( ImGui::TreeNode(&scope->children(), "Children (all, unordered)") )
+    if ( ImGui::TreeNode(&scope->children, "Children (all, unordered)") )
     {
-        for ( Node* each_node : scope->children() )
+        for ( Node* each_node : scope->children )
         {
             TreeNode_Node(each_node);
         }

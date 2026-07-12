@@ -135,7 +135,7 @@ void ndbl::graph_insert(Graph* graph, Node* node, Scope* scope)
         VERIFY( node->scope == nullptr, "node must be unscoped, use scope argument instead" );
         VERIFY( scope->node()->graph == graph, "the provided scope belong to another graph" );
         assert(!node->has_flags(Node_Flag_WAS_IN_A_SCOPE_ONCE)); // double-check
-        scope->append(node);
+        scope_append(scope, node);
     }
     else
     {
@@ -164,7 +164,7 @@ void ndbl::graph_clean_node(Node* node)
     // unset scope
     if ( node->scope )
     {
-        node->scope->remove(node);
+        scope_remove(node->scope, node);
     }
 
     // transfer children to default scope
@@ -323,12 +323,12 @@ void ndbl::graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                             {
                                 // insert a scope between target_scope and next_node
                                 Node* intermediate_node = graph_create_scope(tail->node->graph, target_scope);
-                                target_scope->reset_head(intermediate_node);
+                                scope_reset_head(target_scope, intermediate_node);
                                 target_scope = intermediate_node->internal_scope;
                             }
                         }
                         graph_change_scope(next_node, target_scope);
-                        target_scope->reset_head(next_node); // since slot has IS_BRANCH, this node must become the head
+                        scope_reset_head(target_scope, next_node); // since slot has IS_BRANCH, this node must become the head
                     }
                     else
                     {
@@ -348,11 +348,11 @@ void ndbl::graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                     }
                     else
                     {
-                        Scope* target_scope = Scope::lowest_common_ancestor(scopes );
+                        Scope* target_scope = scope_find_lowest_common_ancestor(scopes);
                         if( node_is_conditional(target_scope->node()) )
                         {
                             // We don't want to add a node in a conditional scope, we must pick the parent
-                            target_scope = target_scope->parent();
+                            target_scope = target_scope->parent;
                         }
                         graph_change_scope(next_node, target_scope);
                         // node: no need to branch_scope->reset_head(next_node) here, since when we have 2 flow in or more, we can't be the head
@@ -429,12 +429,12 @@ void ndbl::graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                     std::set<Scope*> scopes;
                     for(Node_Slot* _adjacent_slot : head->adjacent )
                         scopes.insert(_adjacent_slot->node->scope);
-                    Scope* ancestor = Scope::lowest_common_ancestor(scopes);
+                    Scope* ancestor = scope_find_lowest_common_ancestor(scopes);
 
                     if ( ancestor != nullptr )
                     {
-                        ASSERT( ancestor->parent() != nullptr );
-                        target_scope = ancestor->parent();
+                        ASSERT( ancestor->parent != nullptr );
+                        target_scope = ancestor->parent;
                         ASSERT(false); // TODO: here we must create a flow edge from the ancestor's node to edge.head->node
                     }
                 }
@@ -581,7 +581,7 @@ std::set<Scope *> ndbl::graph_collect_root_scopes(const Graph* graph)
     std::set<Scope*> result;
     for (const Node* node : graph->nodes )
         if ( node->internal_scope != nullptr )
-            if ( node->internal_scope->depth() == 0 )
+            if ( scope_get_depth(node->internal_scope) == 0 )
                 result.insert( node->internal_scope );
     return result;
 }
@@ -606,7 +606,7 @@ void ndbl::graph_flag_node_to_delete(Node *node, Graph_Flags flags)
 
         // delete children
         if ( Scope* scope = node->internal_scope )
-            for ( Node* _child : scope->children() )
+            for ( Node* _child : scope->children )
                 graph_flag_node_to_delete(_child, flags);
     }
 
@@ -630,8 +630,8 @@ void ndbl::graph_change_scope(Node* node, Scope* desired_scope)
         return;
     }
 
-    current_scope->remove(node);
-    desired_scope->append(node);
+    scope_remove(current_scope, node);
+    scope_append(desired_scope, node);
 
     ASSERT_DEBUG_ONLY(node->graph != nullptr);
     node->graph->signal_change_scope.emit({
@@ -646,13 +646,13 @@ void ndbl::graph_transfer_children(Scope* source, Scope* target)
     ASSERT(source);
     ASSERT(target);
 
-    std::set<Node*> child_copy{source->children()};
+    std::set<Node*> child_copy{source->children};
     for(Node* _child : child_copy)
     {
         graph_change_scope(_child, target);
         ASSERT(_child->scope == target);
     }
 
-    ASSERT(source->empty());
+    ASSERT( scope_is_empty(source) );
 }
 

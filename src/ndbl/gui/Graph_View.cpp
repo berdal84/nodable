@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include "core/Component.h"
+#include "core/Scope.h"
 #include "imgui.h"
 #include "tools/core/Types.h"
 #include "tools/gui/ImGuiEx.h"
@@ -121,8 +122,7 @@ void Graph_View::_handle_add_node(Node* node)
     }
     else
     {
-        Spatial_Node* scopeview_spatial_node = node->scope->view()->spatial_node();
-        scopeview_spatial_node->add_child( nodeview->spatial_node() );
+        node->scope->view->spatial_node.add_child( nodeview->spatial_node() );
     }
 
     // physics
@@ -166,8 +166,8 @@ void Graph_View::_handle_change_scope(Graph::Scope_Change change)
         _parent->remove_child( nodeview->spatial_node() );
 
     // Parent to new scope or default to graph's spatial node
-    if( Scope_View* _scopeview = change.new_scope->view() )
-        _scopeview->spatial_node()->add_child( nodeview->spatial_node() );
+    if( Scope_View* _scopeview = change.new_scope->view )
+        _scopeview->spatial_node.add_child( nodeview->spatial_node() );
 }
 
 ImGuiID make_wire_id(const Node_Slot *ptr1, const Node_Slot *ptr2)
@@ -229,16 +229,12 @@ bool Graph_View::draw(float dt)
     // Draw Scopes
     std::vector<Scope*> scopes_to_draw = graph_collect_scopes(graph());
     // TODO: we should sort them only when a new parent/child connection is created/deleted
-    auto low_to_high_depth = [](Scope* s1, Scope* s2) { return s1->depth() < s2->depth(); };
+    auto low_to_high_depth = [](Scope* s1, Scope* s2) { return scope_get_depth(s1) < scope_get_depth(s2); };
     std::sort(scopes_to_draw.begin(), scopes_to_draw.end(), low_to_high_depth);
 
     for( Scope* scope : scopes_to_draw )
-    {
-        if (Scope_View* view = scope->view())
-        {
-            view->draw(dt);
-        }
-    }
+        if (scope->view != nullptr)
+            scopeview_draw( scope->view, dt);
 
     // Draw Grid
     const Rect window_content_region = {
@@ -538,18 +534,18 @@ void Graph_View::_create_constraints(Scope* scope )
         constraint.gap_direction = BOTTOM;
     }
 
-    std::vector<Node*> backbone = scope->backbone();
+    std::vector<Node*> backbone = scope_get_backbone(scope);
     for ( Node* child_node : backbone )
     {
         // align child below flow_inputs
-        if ( child_node != backbone.front() || scope->is_orphan() )
+        if ( child_node != backbone.front() || scope_is_orphan(scope) )
             _create_constraints__align_down(child_node, child_node->flow_inputs());
 
         // align child's inputs above
         _create_constraints__align_top_recursively(child_node->inputs(), child_node );
     }
 
-    for ( Node* _child_node : scope->children() )
+    for ( Node* _child_node : scope->children )
         if ( Scope* _child_scope = _child_node->internal_scope )
             _create_constraints(_child_scope);
 };
@@ -604,8 +600,8 @@ void Graph_View::_update_once(float dt)
 
     // Scope_Views
     if( Scope* root = graph()->root_scope() )
-        if ( root->view() != nullptr )
-            root->view()->update( dt, Scope_View_Flag_RECURSE );
+        if ( root->view != nullptr )
+            scopeview_update( root->view, dt, Scope_View_Flag_RECURSE );
 }
 
 void Graph_View::_update_until_unfold()
@@ -683,7 +679,7 @@ void Graph_View::_on_selection_change(Selection::Event_Type type, Selection::Ele
     {
         case Selectable::index_of<Scope_View*>():
         {
-            elem.get<Scope_View*>()->state()->set_selected(selected );
+            elem.get<Scope_View*>()->state.set_selected(selected );
             break;
         }
         case Selectable::index_of<Node_View*>():
@@ -761,7 +757,7 @@ void Graph_View::drag_state_enter()
         if ( auto* nodeview = elem.get_if<Node_View*>() )
             nodeview->state()->set_pinned();
         else if ( auto* scopeview = elem.get_if<Scope_View*>() )
-            scopeview->state()->set_pinned();
+            scopeview->state.set_pinned();
     }
 }
 
@@ -781,7 +777,7 @@ void Graph_View::drag_state_tick()
         }
         else if ( auto* scopeview = elem.get_if<Scope_View*>() )
         {
-            nodeview = componentbag_get<Node_View>(&scopeview->node()->component_bag);
+            nodeview = componentbag_get<Node_View>(&scopeview->scope->entity->component_bag);
             nodeview->translate(delta);
             nodeview->state()->set_pinned();
         }
@@ -832,7 +828,7 @@ void Graph_View::cursor_state_tick()
             case Selectable::index_of<Scope_View*>():
             {
                 auto* scopeview = _m_focused.get<Scope_View*>();
-                auto* nodeview = componentbag_get<Node_View>(&scopeview->node()->component_bag);
+                auto* nodeview = componentbag_get<Node_View>(&scopeview->scope->node()->component_bag);
                 if ( ImGui::MenuItem( nodeview->expanded() ? "Collapse Scope" : "Expand Scope" ) )
                 {
                     nodeview->expand_toggle_rec();
@@ -840,7 +836,7 @@ void Graph_View::cursor_state_tick()
 
                 if ( ImGui::MenuItem("Delete Scope") )
                 {
-                    auto event = new Event_DeleteSelection({scopeview->node()});
+                    auto event = new Event_DeleteSelection({scopeview->scope->node()});
                     get_event_manager()->dispatch(event);
                 }
 
@@ -848,7 +844,7 @@ void Graph_View::cursor_state_tick()
                 {
                     // Get descendent scopes
                     std::set<Scope*> children;
-                    Scope::get_descendent(children, scopeview->scope(), Scope_Flag_INCLUDE_SELF );
+                    scope_get_descendent(children, scopeview->scope, Scope_Flag_INCLUDE_SELF );
 
                     // Extract node views from each descendent
                     std::vector<Node_View*> views;
@@ -859,7 +855,7 @@ void Graph_View::cursor_state_tick()
                             views.push_back( nodeview );
 
                         // and every other child's
-                        for( Node* child_node : child->backbone() )
+                        for( Node* child_node : scope_get_backbone(child ))
                             if ( auto* nodeview = componentbag_get<Node_View>(&child_node->component_bag))
                                 views.push_back(nodeview);
                     }
@@ -1144,7 +1140,7 @@ void Graph_View::_handle_hover(Scope_View* scope_view)
         _m_hovered = scope_view;
     else if ( _m_hovered.empty() )
         _m_hovered = scope_view;
-    else if ( scope_view->depth() >= _m_hovered.get<Scope_View*>()->depth() )
+    else if ( scopeview_get_depth( scope_view ) >= scopeview_get_depth( _m_hovered.get<Scope_View*>() ) )
         _m_hovered = scope_view;
 }
 
@@ -1248,15 +1244,15 @@ void ndbl::ViewConstraintRule_distribute_sub_scope_views(ViewConstraint* constra
     {
         Scope_View* _follower_scopeview = _follower->internal_scopeview();
         ASSERT(_follower_scopeview);
-        if ( !_follower_scopeview->pinned() )
-            if ( _follower_scopeview->must_be_draw() )
+        if ( !_follower_scopeview->state.pinned() )
+            if ( scopeview_must_be_draw(_follower_scopeview) )
                 sub_scope_view.push_back( _follower_scopeview );
     }
 
     // get all content rects
     std::vector<Rect> new_content_rect;
     for(auto _view : sub_scope_view)
-        new_content_rect.push_back( _view->content_rect() );
+        new_content_rect.push_back( _view->content_rect );
 
     // make a row
     const float gap = get_config()->ui_scope_gap( constraint->gap_size );
@@ -1273,12 +1269,12 @@ void ndbl::ViewConstraintRule_distribute_sub_scope_views(ViewConstraint* constra
     // translate each sub_scope
     for(size_t i = 0; i < sub_scope_view.size(); ++i)
     {
-        const Vec2 cur_pos = sub_scope_view[i]->content_rect().center();
+        const Vec2 cur_pos = sub_scope_view[i]->content_rect.center();
         const Vec2 new_pos = new_content_rect[i].center();
         const Vec2 delta = new_pos - cur_pos;
 
         // Apply force to translate head
-        Node* head_node = sub_scope_view[i]->scope()->head();
+        Node* head_node = sub_scope_view[i]->scope->head;
         auto* physics = componentbag_get<Physics_Component>(&head_node->component_bag);
         VERIFY(physics, "A Physics_Component is required on this entity to apply a force to");
         physics->translate(delta, get_config()->ui_node_speed, true );
