@@ -67,6 +67,18 @@ namespace ndbl
         Node_Flag_DEFAULT             = Node_Flag_NONE,
     };
 
+    struct Adjacent_Nodes /* Cached */
+    {
+        const Node*                     node;
+        mutable std::unordered_map<
+            Node_Slot::Flags,
+            std::vector<Node*>>         cache;
+
+        Adjacent_Nodes(const Node* _node): node(_node) {}
+    };
+
+    const std::vector<Node*>& adjacent_nodes_get(const Adjacent_Nodes*, Node_Slot::Flags);
+
     struct Node
 	{
         DECLARE_REFLECT        
@@ -74,18 +86,6 @@ namespace ndbl
         friend class Graph;
 
 //===== INTERNAL STRUCTS ===============================================================================================
-
-        struct Adjacent_Nodes_Cache
-        {
-            // Struct to get a list of nodes from given flags, caches the result
-
-            explicit Adjacent_Nodes_Cache(const Node* node): _node(node) {}
-            const std::vector<Node*>& get(Node_Slot::Flags) const;
-            void set_dirty() { _cache.clear(); }
-        private:
-            const Node* _node;
-            std::unordered_map<Node_Slot::Flags, std::vector<Node*>> _cache;
-        };
 
         struct Switch_Behavior_State
         {
@@ -175,7 +175,7 @@ namespace ndbl
         tools::Component_Bag<Node>              component_bag;
         std::vector<Node_Slot*>                 slots; // TODO: size-fixed array?
         std::unordered_map<const Node_Property*, std::vector<Node_Slot*>> slots_by_prop;// TODO: if we are sure a property has a fixed index, we could use a vector instead
-        Adjacent_Nodes_Cache                    adjacent_nodes_cache;
+        Adjacent_Nodes                    adjacent_nodes;
 
 //===== SIGNALS ========================================================================================================
 
@@ -230,10 +230,10 @@ namespace ndbl
         const Node_Slot*          flow_out() const;
         Node_Slot*                flow_enter();
         const Node_Slot*          flow_enter() const;
-        const std::vector<Node*>& inputs() const       { return adjacent_nodes_cache.get(Node_Slot::Flag_INPUT); }
-        const std::vector<Node*>& outputs() const      { return adjacent_nodes_cache.get(Node_Slot::Flag_OUTPUT); }
-        const std::vector<Node*>& flow_inputs() const  { return adjacent_nodes_cache.get(Node_Slot::Flag_FLOW_IN); }
-        const std::vector<Node*>& flow_outputs() const { return adjacent_nodes_cache.get(Node_Slot::Flag_FLOW_OUT); }
+        const std::vector<Node*>& inputs() const       { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_INPUT); }
+        const std::vector<Node*>& outputs() const      { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_OUTPUT); }
+        const std::vector<Node*>& flow_inputs() const  { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_FLOW_IN); }
+        const std::vector<Node*>& flow_outputs() const { return adjacent_nodes_get(&this->adjacent_nodes, Node_Slot::Flag_FLOW_OUT); }
         void                      handle_slot_change(Node_Slot::Event, Node_Slot*);        
     };
 

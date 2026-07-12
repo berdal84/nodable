@@ -14,7 +14,7 @@ using namespace tools;
 
 Node::Node()
 : component_bag(this)
-, adjacent_nodes_cache(this)
+, adjacent_nodes(this)
 {
 }
 
@@ -215,7 +215,7 @@ Node_Slot* ndbl::node_find_slot_by_property_type(const Node* node, Node_Slot::Fl
 
 void ndbl::Node::handle_slot_change(Node_Slot::Event event, Node_Slot* slot)
 {
-    this->adjacent_nodes_cache.set_dirty();
+    this->adjacent_nodes.cache.clear();
 }
 
 Node_Slot* ndbl::node_add_slot(Node* node, Node_Property* property, Node_Slot::Flags flags, size_t capacity, size_t position)
@@ -384,15 +384,14 @@ bool ndbl::node_update(Node* node)
     return true;
 }
 
-const std::vector<Node*>& Node::Adjacent_Nodes_Cache::get(Node_Slot::Flags flags ) const
+const std::vector<Node*>& ndbl::adjacent_nodes_get(const Adjacent_Nodes* adjacent_nodes, Node_Slot::Flags flags)
 {
-    if ( _cache.find(flags) == _cache.end() )
+    if ( adjacent_nodes->cache.find(flags) == adjacent_nodes->cache.end() )
     {
-        auto _this = const_cast<Adjacent_Nodes_Cache*>(this);
-        _this->_cache.insert_or_assign(flags, node_get_adjacent_nodes(_node, flags ) );
+        adjacent_nodes->cache.insert_or_assign(flags, node_get_adjacent_nodes(adjacent_nodes->node, flags ) );
     }
 
-    return _cache.at(flags);
+    return adjacent_nodes->cache.at(flags);
 }
 
 void ndbl::node_init_internal_scope(Node* node)
