@@ -35,14 +35,12 @@ void ndbl::graph_shutdown(Graph* graph)
 {
     graph_clear(graph);
 
-    // delete component_bag content
-    //
-    // TODO: we could optimize these two loops by iterating once.
-    //       but for some reasons components have unordered dependencies that needs to be fixed.
+    // Delete each component
     for(auto* component : graph->component_bag)
+    {
         component_shutdown(component);
-    for(auto* component : graph->component_bag)
         delete component;
+    }
 
     componentbag_shutdown(&graph->component_bag);
 }
