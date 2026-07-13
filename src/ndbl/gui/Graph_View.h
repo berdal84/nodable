@@ -26,7 +26,7 @@ namespace ndbl
     // forward declarations
     class  Nodable;
     class  Graph;
-    struct ViewConstraint;
+    struct Node_View_Constraint;
     struct Node_Slot_Link_View;
     using  tools::Vec2;
 
@@ -41,103 +41,85 @@ namespace ndbl
     using Selectable = tools::VariantT<Node_View*, Scope_View*, Node_Slot_View*, Node_Slot_Link_View> ;
     using Selection  = tools::Unique_Variant_List<Selectable> ;
 
-    class Graph_View : public tools::Component<Graph>
+    struct Graph_View : public tools::Component<Graph>
     {
-    public:
 	    Graph_View();
 		~Graph_View() override;
 
-        tools::Simple_Signal signal_change;
+        tools::Simple_Signal                signal_change;
+        Node_View_Contextual_Menu           contextual_menu;
+        Selectable                          hovered;
+        Selectable                          focused;
+        Selection                           selection;
+        tools::Box_2D                       shape;
+        std::vector<Node_View_Constraint>   contraints;
+        bool                                is_physics_dirty = false;
 
-        void                   update(float dt);
-        bool                   draw(float dt);
-        void                   add_action_to_node_menu(Action_CreateNode* _action);
-        void                   frame_content(Frame_Mode mode );
-        void                   reset(); // unfold and frame the whole graph
-        bool                   has_an_active_tool() const;
-        Selection&             selection() { return _m_selection; }
-        const Selection&       selection() const { return _m_selection; }
-        void                   reset_all_properties();
-        inline Graph*          graph() const { return entity; } // alias for entity
-        static void            draw_wire_from_slot_to_pos(Node_Slot_View *from, const Vec2 &end_pos);
-    private:
-        tools::Spatial_Node*    spatial_node() { return _m_shape.spatial_node(); }
-        Node_View_Contextual_Menu      _m_create_node_menu;
-        Selectable             _m_hovered;
-        Selectable             _m_focused;
-        Selection              _m_selection;
-        tools::Box_2D          _m_shape;
-        bool                   _m_physics_dirty = false;
-        std::vector<ViewConstraint> _m_contraints;
+        tools::State_Machine                state_machine;
+        tools::Vec2                         state_roi_start_pos;
+        tools::Vec2                         state_roi_end_pos;
 
-        void                   _handle_init();
-        void                   _handle_shutdown();
-        void                   _handle_add_node(Node* node);
-        void                   _handle_remove_node(Node* node);
-        void                   _handle_change_scope(Graph::Scope_Change);
-        void                   _handle_hover(Scope_View *scope_view);
-        void                   _update_until_unfold();
-        void                   _update_once(float dt);
-        void                   _on_graph_change();
-        void                   _on_selection_change(Selection::Event_Type, Selection::Element );
-        void                   _draw_create_node_context_menu(Node_View_Contextual_Menu&, Node_Slot_View* dragged_slotview = nullptr );
-        void                   _create_constraints__align_top_recursively(const std::vector<Node*>& follower, ndbl::Node *leader);
-        void                   _create_constraints__align_down(Node* follower, const std::vector<Node*>& leader);
-        void                   _create_constraints(Scope *scope);
-
-        // Tools State Machine
-        //--------------------
-
-        // The data (for some states)
-
-        tools::State_Machine    _m_state_machine;
-        tools::Vec2            _m_state_roi_start_pos;
-        tools::Vec2            _m_state_roi_end_pos;
-
-        // The behavior
-
-        void cursor_state_tick();
-        void roi_state_enter();
-        void roi_state_tick();
-        void drag_state_enter();
-        void drag_state_tick();
-        void view_pan_state_tick();
-        void line_state_enter();
-        void line_state_tick();
-        void line_state_leave();
-
+        inline tools::Spatial_Node*         spatial_node()  { return shape.spatial_node(); }
+        inline Graph*                       graph() const   { return entity; }
     };
 
+    void    graphview_update(Graph_View*, float dt);
+    bool    graphview_draw(Graph_View*, float dt);
+    void    graphview_frame_content(Graph_View*, Frame_Mode);
+    void    graphview_reset(Graph_View*); // unfold and frame the whole graph
+    bool    graphview_has_an_active_tool(const Graph_View*);
+    void    graphview_reset_all_properties(Graph_View*);
+    void    graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *from, const Vec2 &end_pos);
+    void    graphview_handle_init(Graph_View*);
+    void    graphview_handle_shutdown(Graph_View*);
+    void    graphview_handle_add_node(Graph_View*, Node*);
+    void    graphview_handle_remove_node(Graph_View*, Node* node);
+    void    graphview_handle_change_scope(Graph_View*, Graph::Scope_Change);
+    void    graphview_handle_hover(Graph_View*, Scope_View*);
+    void    graphview_update_until_unfold(Graph_View*);
+    void    graphview_update_once(Graph_View*, float dt);
+    void    graphview_on_graph_change(Graph_View*);
+    void    graphview_on_selection_change(Graph_View*, Selection::Event_Type, Selection::Element );
+    void    graphview_draw_context_menu(Graph_View*, Node_Slot_View* dragged_slotview = nullptr );
+    void    graphview_create_constraints__align_top_recursively(Graph_View*, const std::vector<Node*>& follower, ndbl::Node *leader);
+    void    graphview_create_constraints__align_down(Graph_View*, Node* follower, const std::vector<Node*>& leader);
+    void    graphview_create_constraints(Graph_View*, Scope *scope);
+    void    graphview_cursor_state_tick(Graph_View*);
+    void    graphview_roi_state_enter(Graph_View*);
+    void    graphview_roi_state_tick(Graph_View*);
+    void    graphview_drag_state_enter(Graph_View*);
+    void    graphview_drag_state_tick(Graph_View*);
+    void    graphview_view_pan_state_tick(Graph_View*);
+    void    graphview_line_state_enter(Graph_View*);
+    void    graphview_line_state_tick(Graph_View*);
+    void    graphview_line_state_leave(Graph_View*);
     
     // Set of data and rules to apply constraints to 1 or more views
     // See each rule in rule_xxx(ViewConstraint* constraint, float dt) functions.
-    struct ViewConstraint
+    struct Node_View_Constraint
     {
-        // Types
-
-        using Views = std::vector<Node_View*>;
-        using Rule  = void(*)(ViewConstraint*, float);
+        using Rule  = void(*)(Node_View_Constraint*, float);
 
         // Data
 
-        const char*     name            = "untitled ViewConstraint";
-        Node_View_Flags leader_flags    = Node_View_Flag_WITH_PINNED;
-        Node_View_Flags follower_flags  = Node_View_Flag_WITH_PINNED;
-        tools::Vec2     leader_pivot    = tools::RIGHT;
-        tools::Vec2     follower_pivot  = tools::LEFT;
-        tools::Vec2     row_direction   = tools::RIGHT;
-        tools::Vec2     gap_direction   = tools::CENTER;
-        tools::Size     gap_size        = tools::Size_DEFAULT;
-        Views           leader          = {};
-        Views           follower        = {};
-        Rule            rule            = {};
+        std::vector<Node_View*> leader          = {};
+        std::vector<Node_View*> follower        = {};
+        const char*             name            = "untitled Node_View_Constraint";
+        Node_View_Flags         leader_flags    = Node_View_Flag_WITH_PINNED;
+        Node_View_Flags         follower_flags  = Node_View_Flag_WITH_PINNED;
+        tools::Vec2             leader_pivot    = tools::RIGHT;
+        tools::Vec2             follower_pivot  = tools::LEFT;
+        tools::Vec2             row_direction   = tools::RIGHT;
+        tools::Vec2             gap_direction   = tools::CENTER;
+        tools::Size             gap_size        = tools::Size_DEFAULT;
+        Rule                    rule            = nullptr;
     };
 
-    // Functions (rules to assign to ViewConstraint.rule)
+    // rules to assign to Node_View_Constraint.rule
 
-    static void   ViewConstraintRule_1_to_N_as_row(ViewConstraint*, float dt);
-    static void   ViewConstraintRule_N_to_1_as_a_row(ViewConstraint*, float dt);
-    static void   ViewConstraintRule_distribute_sub_scope_views(ViewConstraint*, float _dt);
+    void nodeviewcontraint_rule_1_to_N_as_row               (Node_View_Constraint*, float dt);
+    void nodeviewcontraint_rule_N_to_1_as_a_row             (Node_View_Constraint*, float dt);
+    void nodeviewcontraint_rule_distribute_sub_scope_views  (Node_View_Constraint*, float dt);
 }
 
 // Custom hash provided to work in std::hash<std::Variant<Node_Slot_Link_View, ...>>

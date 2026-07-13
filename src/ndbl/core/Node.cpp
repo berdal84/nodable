@@ -613,8 +613,8 @@ void ndbl::node_variable_ref_set_variable(Node* node, Node* variable_node)
     node->value->token.word_replace( node_get_identifier(variable_node).c_str() );
 
     // bind signals
-    node->variableref_data.variable_node->signal_name_change.connect<Node, &node_variable_ref_handle_name_change>(node);
-    node->variableref_data.variable_node->signal_shutdown.connect<Node, &node_variable_ref_clear_variable>(node);
+    node->variableref_data.variable_node->signal_name_change.connect< &node_variable_ref_handle_name_change>(node);
+    node->variableref_data.variable_node->signal_shutdown.connect<&node_variable_ref_clear_variable>(node);
 }
 
 void ndbl::node_variable_ref_clear_variable(Node* node)

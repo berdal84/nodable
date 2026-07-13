@@ -1,7 +1,9 @@
 #pragma once
 #include "Delegate.h"
+#include "core/reflection/Function_Traits.h"
 #include <algorithm>
 #include <functional>
+#include <type_traits>
 #include <vector>
 
 namespace tools
@@ -45,20 +47,11 @@ namespace tools
         : _m_delegate(delegate)
         {}
 
-        // TMethod: the address to a member function
-        // object_ptr: the instance to call the member with
-        template<auto Method_Type>
-        void connect(void* object_ptr)
+        template<auto Function>
+        void connect(void* object_ptr) // connect a method or a "c-style method" function (1st arg is object_ptr)
         {
-            auto delegate = Delegate_Type::template from_method<Method_Type>(object_ptr);
-            connect(delegate);
-        }
-      
-        template<typename Struct_Type, auto CStyle_Method_Type>
-        void connect(Struct_Type* object_ptr)
-        {
-            auto delegate = Delegate_Type::template from_cstyle_method<Struct_Type, CStyle_Method_Type>(object_ptr);
-            connect(delegate);
+            auto delegate = Delegate_Type::template from<Function>(object_ptr);
+            connect(delegate);         
         }
 
         void connect(Result_Type(*function)(Arg_Types...) )
@@ -108,11 +101,10 @@ namespace tools
         // TMethod: the address to a member function
         // object_ptr: the instance to call the member with
         // Inserting multiple times the same method for the same pointer is undefined behavior.
-        template<auto Method_Type>
-        requires std::is_member_function_pointer_v<decltype(Method_Type)>
-        void connect(void* object_ptr)
+        template<auto Function_Type, typename Object_Type>
+        void connect(Object_Type* object_ptr)
         {
-            auto delegate = Delegate_Type::template from_method<Method_Type>(object_ptr);
+            auto delegate = Delegate_Type::template from<Function_Type>(object_ptr);
             VERIFY( delegate.callable(), "TMethod is not callable on object_ptr. Is object_ptr null?" );
             connect(delegate);
             // TODO: return an identifier/hash to disconnect with?
@@ -123,12 +115,16 @@ namespace tools
             _m_delegate.emplace_back(std::move(delegate));
         }
 
-        template<auto Method_Type>
-        requires std::is_member_function_pointer_v<decltype(Method_Type)>
-        bool disconnect(void* ptr) // Disconnects a given (TMethod, ptr) delegate
+        template<auto Function_Type, typename Object_Type>
+        bool disconnect(Object_Type* object_ptr)
+        {
+            auto delegate = Delegate_Type::template from<Function_Type>(object_ptr);
+            return disconnect( delegate );
+        }
+
+        bool disconnect(Delegate_Type& delegate) // Disconnects a given (TMethod, ptr) delegate
         {
             // We assume there is only one delegate per (TMethod, ptr) pair
-            auto delegate = Delegate_Type::template from_method<Method_Type>(ptr);
             auto it = std::find(_m_delegate.begin(), _m_delegate.end(), delegate);
 
             if ( it == _m_delegate.end() )

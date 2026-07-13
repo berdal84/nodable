@@ -41,7 +41,9 @@ namespace tools
         const char*  get_current_state_name() const { return m_current_state->name; }
         bool         has_default_state() const { return m_current_state == m_default_state; }
         State*       add_state(const char* name);
-        template<auto TMethod> void bind(const char* name, When when)
+        
+        template<auto Function>
+        void bind(const char* name, When when)
         {
             // Guards
             VERIFY( when < When_COUNT, "when argument is out of bound" );
@@ -51,7 +53,7 @@ namespace tools
             ASSERT(state != nullptr);
 
             // Override the delegate
-            state->delegate[when] = Simple_Delegate::from_method<TMethod>(m_context_ptr);
+            state->delegate[when] = Simple_Delegate::from<Function>(m_context_ptr);
         }
 
         void change_state(const char* name);

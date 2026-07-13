@@ -16,7 +16,7 @@ Scope::Scope()
 : Component<Node>("Scope")
 {
     // Component::signal_init.connect<&Scope::on_init>(this);
-    Component::signal_shutdown.connect<Scope, &scope_on_shutdown>(this);
+    Component::signal_shutdown.connect<&scope_on_shutdown>(this);
     // Component::signal_name_change.connect<&Scope::_on_name_change>(this);
 }
 

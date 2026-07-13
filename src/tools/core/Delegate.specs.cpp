@@ -30,7 +30,7 @@ TEST(Delegate, void_no_args__on_classes )
     };
 
     MyClass obj;
-    auto d = Simple_Delegate::from_method<&MyClass::method>(&obj);
+    auto d = Simple_Delegate::from<&MyClass::method>(&obj);
     d.call();
 
     EXPECT_TRUE(success);
@@ -45,7 +45,7 @@ TEST(Delegate, void_no_args__on_structs )
     };
 
     MyStruct obj;
-    auto d = Simple_Delegate::from_method<&MyStruct::set_ok>(&obj);
+    auto d = Simple_Delegate::from<&MyStruct::set_ok>(&obj);
     d.call();
     EXPECT_TRUE(obj.ok);
 }
@@ -59,7 +59,7 @@ TEST(Delegate, bind )
     };
 
     MyStruct obj;
-    auto d = Simple_Delegate::from_method<&MyStruct::set_ok>(nullptr);
+    auto d = Simple_Delegate::from<&MyStruct::set_ok>(nullptr);
     d.bind(&obj);
     d.call();
     EXPECT_TRUE(obj.ok);

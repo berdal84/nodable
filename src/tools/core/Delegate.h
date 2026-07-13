@@ -1,5 +1,5 @@
 #pragma once
-#include <functional>
+#include <tuple>
 #include <type_traits>
 #include "tools/core/Asserts.h"
 #include "tools/core/reflection/Function_Traits.h"
@@ -105,28 +105,26 @@ namespace tools
             }
 
         }
-
-        template<auto Method_Type>
-        requires std::is_member_function_pointer_v<decltype(Method_Type)>
-        static Delegate from_method(void* object_ptr)
+        
+        template<auto Function>
+        static Delegate from(void* object_ptr)
         {
             ASSERT(object_ptr != nullptr);
-            using Class_Type = typename Function_Trait<decltype(Method_Type)>::Class_Type;
             Delegate delegate;
-            delegate._m_type = DELEGATE_TYPE_METHOD;
-            delegate._m_method.object_ptr   = object_ptr;
-            delegate._m_method.function_ptr = &_method_caller<Class_Type, Method_Type>; // <-- get address of a static function able to call the method
-            return delegate;
-        }
+            delegate._m_type              = DELEGATE_TYPE_METHOD; // we consider c-style functions as "methods".
+            delegate._m_method.object_ptr = object_ptr;
 
-        template<typename Struct_Type, auto CStyle_Method_Type>
-        static Delegate from_cstyle_method(void* data_ptr)
-        {
-            ASSERT(data_ptr != nullptr);
-            Delegate delegate;
-            delegate._m_type = DELEGATE_TYPE_METHOD;
-            delegate._m_method.object_ptr   = data_ptr;
-            delegate._m_method.function_ptr = &_cstyle_method_caller<Struct_Type, CStyle_Method_Type>; // <-- get address of a static function able to call the method
+            if constexpr (std::is_member_function_pointer_v<decltype(Function)>)
+            {
+                using Class_Type = typename Function_Trait<decltype(Function)>::Class_Type;
+                delegate._m_method.function_ptr = &_method_caller<Class_Type, Function>;
+            }
+            else
+            {
+                using Struct_Type = typename Function_Trait<decltype(Function)>::First_Arg_Type ;
+                delegate._m_method.function_ptr = &_cstyle_method_caller<Struct_Type, Function>;
+            }
+            
             return delegate;
         }
 
@@ -151,18 +149,18 @@ namespace tools
         }
 
         // Can convert a methods to a regular static function with 1arg for the object ptr
-        template <class TClass,  Result_Type(TClass::*Method_Type)(Args_Type...)>
+        template <class TClass,  Result_Type(TClass::*Method)(Args_Type...)>
         static Result_Type _method_caller(void* ptr, Args_Type... args)
         {
             TClass* object_ptr = static_cast<TClass*>(ptr);
-            return (object_ptr->*Method_Type)(args...); // The trick is here, the method IS A TYPE!
+            return (object_ptr->*Method)(args...); // The trick is here, the method IS A TYPE!
         }
 
-        template <typename Struct_Type,  Result_Type(*CStyle_Method_Type)(Struct_Type*, Args_Type...)>
+        template <typename First_Arg_Type,  Result_Type(*CStyle_Method)(First_Arg_Type, Args_Type...)>
         static Result_Type _cstyle_method_caller(void* ptr, Args_Type... args)
         {
-            auto* data_ptr = static_cast<Struct_Type*>(ptr);
-            return (*CStyle_Method_Type)(data_ptr, args...);
+            auto* data_ptr = static_cast<First_Arg_Type>(ptr);
+            return (*CStyle_Method)(data_ptr, args...);
         }
     };
 

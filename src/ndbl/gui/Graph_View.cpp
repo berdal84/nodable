@@ -33,79 +33,79 @@ constexpr const char* DRAG_STATE       = "Drag Node Tool";
 constexpr const char* VIEW_PAN_STATE   = "Grab View Tool";
 constexpr const char* LINE_STATE       = "Line Tool";
 
-Graph_View::Graph_View()
+ndbl::Graph_View::Graph_View()
 : Component<Graph>("View")
-, _m_state_machine(this)
-, _m_shape( Vec2{100.f, 100.f} ) // non null area
+, state_machine(this)
+, shape( Vec2{100.f, 100.f} ) // non null area
 {
-    Component::signal_init.connect<&Graph_View::_handle_init>(this);
-    Component::signal_shutdown.connect<&Graph_View::_handle_shutdown>(this);
+    Component::signal_init.connect<&graphview_handle_init>(this);
+    Component::signal_shutdown.connect<&graphview_handle_shutdown>(this);
 
-    _m_state_machine.add_state(CURSOR_STATE);
-    _m_state_machine.bind<&Graph_View::cursor_state_tick>(CURSOR_STATE, When::OnTick);
-    _m_state_machine.set_default_state(CURSOR_STATE);
+    state_machine.add_state(CURSOR_STATE);
+    state_machine.bind<&graphview_cursor_state_tick>(CURSOR_STATE, When::OnTick);
+    state_machine.set_default_state(CURSOR_STATE);
 
-    _m_state_machine.add_state(ROI_STATE);
-    _m_state_machine.bind<&Graph_View::roi_state_enter>(ROI_STATE, When::OnEnter);
-    _m_state_machine.bind<&Graph_View::roi_state_tick>(ROI_STATE, When::OnTick);
+    state_machine.add_state(ROI_STATE);
+    state_machine.bind<&graphview_roi_state_enter>(ROI_STATE, When::OnEnter);
+    state_machine.bind<&graphview_roi_state_tick>(ROI_STATE, When::OnTick);
 
-    _m_state_machine.add_state(DRAG_STATE);
-    _m_state_machine.bind<&Graph_View::drag_state_enter>(DRAG_STATE, When::OnEnter);
-    _m_state_machine.bind<&Graph_View::drag_state_tick>(DRAG_STATE, When::OnTick);
+    state_machine.add_state(DRAG_STATE);
+    state_machine.bind<&graphview_drag_state_enter>(DRAG_STATE, When::OnEnter);
+    state_machine.bind<&graphview_drag_state_tick>(DRAG_STATE, When::OnTick);
 
-    _m_state_machine.add_state(VIEW_PAN_STATE);
-    _m_state_machine.bind<&Graph_View::view_pan_state_tick>(VIEW_PAN_STATE, When::OnTick);
+    state_machine.add_state(VIEW_PAN_STATE);
+    state_machine.bind<&graphview_view_pan_state_tick>(VIEW_PAN_STATE, When::OnTick);
 
-    _m_state_machine.add_state(LINE_STATE);
-    _m_state_machine.bind<&Graph_View::line_state_enter>(LINE_STATE, When::OnEnter);
-    _m_state_machine.bind<&Graph_View::line_state_tick>(LINE_STATE, When::OnTick);
-    _m_state_machine.bind<&Graph_View::line_state_leave>(LINE_STATE, When::OnLeave);
+    state_machine.add_state(LINE_STATE);
+    state_machine.bind<&graphview_line_state_enter>(LINE_STATE, When::OnEnter);
+    state_machine.bind<&graphview_line_state_tick>(LINE_STATE, When::OnTick);
+    state_machine.bind<&graphview_line_state_leave>(LINE_STATE, When::OnLeave);
 }
 
-Graph_View::~Graph_View()
+ndbl::Graph_View::~Graph_View()
 {
     Component::signal_init.disconnect(); // Simple_Signal
     Component::signal_shutdown.disconnect();
 }
 
-void Graph_View::_handle_init()
+void ndbl::graphview_handle_init(Graph_View* graph_view)
 {
     // add nodes present before connecting signals
-    for( auto* node : graph()->nodes )
+    for( Node* each_node : graph_view->graph()->nodes )
     {
-        _handle_add_node(node);
+        graphview_handle_add_node(graph_view, each_node);
     }
 
-    _m_selection.signal_change.connect<&Graph_View::_on_selection_change>(this);
-    graph()->signal_change.connect<&Graph_View::_on_graph_change>(this);
-    graph()->signal_add_node.connect<&Graph_View::_handle_add_node>(this);
-    graph()->signal_remove_node.connect<&Graph_View::_handle_remove_node>(this);
-    graph()->signal_change_scope.connect<&Graph_View::_handle_change_scope>(this);
-    graph()->signal_reset.connect<&Graph_View::reset>(this);
-    graph()->signal_is_complete.connect<&Graph_View::reset>(this);
+    graph_view->selection.signal_change.connect<&graphview_on_selection_change>(graph_view);
+    graph_view->graph()->signal_change.connect<&graphview_on_graph_change>(graph_view);
+    graph_view->graph()->signal_add_node.connect<&graphview_handle_add_node>(graph_view);
+    graph_view->graph()->signal_remove_node.connect<&graphview_handle_remove_node>(graph_view);
+    graph_view->graph()->signal_change_scope.connect<&graphview_handle_change_scope>(graph_view);
+    graph_view->graph()->signal_reset.connect<&graphview_reset>(graph_view);
+    graph_view->graph()->signal_is_complete.connect<&graphview_reset>(graph_view);
 
-    _m_state_machine.start();
+    graph_view->state_machine.start();
 }
 
-void Graph_View::_handle_shutdown()
+void ndbl::graphview_handle_shutdown(Graph_View* graph_view)
 {
-    _m_state_machine.stop();
+    graph_view->state_machine.stop();
 
-    _m_selection.signal_change.disconnect();
-    graph()->signal_add_node.disconnect();
-    graph()->signal_remove_node.disconnect();
-    graph()->signal_reset.disconnect();
-    graph()->signal_is_complete.disconnect();
-    ASSERT_DEBUG_ONLY( graph()->signal_change.disconnect<&Graph_View::_on_graph_change>(this) );
+    graph_view->selection.signal_change.disconnect();
+    graph_view->graph()->signal_add_node.disconnect();
+    graph_view->graph()->signal_remove_node.disconnect();
+    graph_view->graph()->signal_reset.disconnect();
+    graph_view->graph()->signal_is_complete.disconnect();
+    ASSERT_DEBUG_ONLY( graph_view->graph()->signal_change.disconnect<&graphview_on_graph_change>(graph_view) );
 
     // add nodes still present after connecting signals
-    for( auto* node : graph()->nodes )
+    for( Node* each_node : graph_view->graph()->nodes )
     {
-        _handle_remove_node(node);
+        graphview_handle_remove_node(graph_view, each_node);
     }
 }
 
-void Graph_View::_handle_add_node(Node* node)
+void ndbl::graphview_handle_add_node(Graph_View* graph_view, Node* node)
 {
     // view
     auto* nodeview = new Node_View();
@@ -115,12 +115,12 @@ void Graph_View::_handle_add_node(Node* node)
     componentbag_add(& node->component_bag, nodeview);
 
     if (Scope_View* scopeview = nodeview->internal_scopeview )
-        scopeview->signal_hover.connect<&Graph_View::_handle_hover>(this); // I'm not sure if this is a good approach...
+        scopeview->signal_hover.connect<&graphview_handle_hover>(graph_view); // I'm not sure if this is a good approach...
 
-    if( graph_root(graph()) == node )
+    if( node == graph_root(graph_view->graph()) )
     {
         // root must be parented to the graph view itself
-        spatial_node()->add_child( nodeview->spatial_node() );
+        graph_view->spatial_node()->add_child( nodeview->spatial_node() );
     }
     else
     {
@@ -133,7 +133,7 @@ void Graph_View::_handle_add_node(Node* node)
     componentbag_add(&node->component_bag, physics_component);
 }
 
-void Graph_View::_handle_remove_node(Node* node)
+void ndbl::graphview_handle_remove_node(Graph_View* graph_view, Node* node)
 {
     // clean physics
     auto* physics_component = componentbag_get<Physics_Component>(&node->component_bag);
@@ -161,7 +161,7 @@ void Graph_View::_handle_remove_node(Node* node)
     delete nodeview;
 }
 
-void Graph_View::_handle_change_scope(Graph::Scope_Change change)
+void ndbl::graphview_handle_change_scope(Graph_View* graph_view, Graph::Scope_Change change)
 {
     auto* nodeview = componentbag_get<Node_View>(&change.node->component_bag);
     VERIFY(nodeview, "a nodeview must be present since we are in a Graph_View");
@@ -182,7 +182,7 @@ ImGuiID make_wire_id(const Node_Slot *ptr1, const Node_Slot *ptr2)
     return ImGui::GetID(id.c_str());
 }
 
-void Graph_View::draw_wire_from_slot_to_pos(Node_Slot_View *from, const Vec2 &end_pos)
+void ndbl::graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *from, const Vec2 &end_pos)
 {
     VERIFY(from != nullptr, "from slot can't be nullptr");
 
@@ -215,24 +215,24 @@ void Graph_View::draw_wire_from_slot_to_pos(Node_Slot_View *from, const Vec2 &en
     ImGuiEx::DrawWire(id, ImGui::GetWindowDrawList(), segment, style);
 }
 
-bool Graph_View::draw(float dt)
+bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 {
     bool changed = false;
 
     // Ensure view state fit with content region
     // (n.b. we could also implement a struct RootView_State wrapping View_State)
     Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE);
-    _m_shape.set_size( region.size() );
-    _m_shape.set_position(region.center()); // children will be relative to the center
-    _m_shape.draw_debug_info();
+    graph_view->shape.set_size( region.size() );
+    graph_view->shape.set_position(region.center()); // children will be relative to the center
+    graph_view->shape.draw_debug_info();
 
-    _m_hovered = {};
+    graph_view->hovered = {};
 
     Config*         cfg       = get_config();
     ImDrawList*     draw_list = ImGui::GetWindowDrawList();
 
     // Draw Scopes
-    std::vector<Scope*> scopes_to_draw = graph_collect_scopes(graph());
+    std::vector<Scope*> scopes_to_draw = graph_collect_scopes(graph_view->graph());
     // TODO: we should sort them only when a new parent/child connection is created/deleted
     auto low_to_high_depth = [](Scope* s1, Scope* s2) { return scope_get_depth(s1) < scope_get_depth(s2); };
     std::sort(scopes_to_draw.begin(), scopes_to_draw.end(), low_to_high_depth);
@@ -261,7 +261,7 @@ bool Graph_View::draw(float dt)
             cfg->ui_codeflow_thickness(),
             0.0f
     };
-    for (Node* each_node: graph()->nodes )
+    for (Node* each_node: graph_view->graph()->nodes )
     {
         Node_View *each_view = nodeview_substitute_with_parent_if_not_visible( componentbag_get<Node_View>(&each_node->component_bag) );
 
@@ -307,7 +307,7 @@ bool Graph_View::draw(float dt)
                 ImGuiEx::DrawWire(id, draw_list, segment, code_flow_style);
                 if (ImGui::GetHoveredID() == id )
                 {
-                    _m_hovered = Node_Slot_Link_View{tail, head};
+                    graph_view->hovered = Node_Slot_Link_View{tail, head};
                 }
             }
         }
@@ -322,7 +322,7 @@ bool Graph_View::draw(float dt)
             cfg->ui_wire_bezier_roundness.x // roundness min
     };
     float time = ImGui::GetTime();
-    for (Node* node_out: graph()->nodes )
+    for (Node* node_out: graph_view->graph()->nodes )
     {
         for (const Node_Slot* slot_out: node_filter_slots(node_out, Node_Slot::Flag_OUTPUT))
         {
@@ -352,7 +352,7 @@ bool Graph_View::draw(float dt)
 
                 // Animate style
                 ImGuiEx::WireStyle style = default_wire_style;
-                if ( _m_selection.contains( node_view_out ) || _m_selection.contains( node_view_in ) )
+                if ( graph_view->selection.contains( node_view_out ) || graph_view->selection.contains( node_view_in ) )
                 {
                     style.color.w *= wave(0.5f, 1.f, time, 10.f);
                 }
@@ -389,7 +389,7 @@ bool Graph_View::draw(float dt)
                     ImGuiEx::DrawWire(id, draw_list, segment, style);
                     if (ImGui::GetHoveredID() == id)
                     {
-                        _m_hovered = Node_Slot_Link_View{slot_view_out, slot_view_in};
+                        graph_view->hovered = Node_Slot_Link_View{slot_view_out, slot_view_in};
                     }
                 }
             }
@@ -397,7 +397,7 @@ bool Graph_View::draw(float dt)
     }
 
     // Draw Node_Views
-    for (Node* node : graph()->nodes  )
+    for (Node* node : graph_view->graph()->nodes  )
     {
         Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag);
 
@@ -412,23 +412,25 @@ bool Graph_View::draw(float dt)
         {
             if ( nodeview->hovered_slotview != nullptr)
             {
-                _m_hovered = nodeview->hovered_slotview;
+                graph_view->hovered = nodeview->hovered_slotview;
             }
             else
-                _m_hovered = {nodeview};
+            {
+                graph_view->hovered = {nodeview};
+            }
         }
     }
 
-    _m_state_machine.tick();
+    graph_view->state_machine.tick();
 
     // Debug Infos
     if (cfg->tools_cfg->runtime_debug)
     {
         if (ImGui::Begin("Graph_ViewToolState_Machine"))
         {
-            ImGui::Text("current_tool:         %s" , _m_state_machine.get_current_state_name());
-            ImGui::Text("_m_focused.type:       %zu", _m_focused.index() );
-            ImGui::Text("_m_hovered.type:       %zu", _m_hovered.index() );
+            ImGui::Text("current_tool:         %s"  , graph_view->state_machine.get_current_state_name());
+            ImGui::Text("_m_focused.type:       %zu", graph_view->focused.index() );
+            ImGui::Text("_m_hovered.type:       %zu", graph_view->hovered.index() );
             Vec2 mouse_pos = ImGui::GetMousePos();
             ImGui::Text("_m_mouse_pos:          (%f, %f)", mouse_pos.x, mouse_pos.y);
         }
@@ -439,12 +441,12 @@ bool Graph_View::draw(float dt)
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
 
     if ( changed )
-        signal_change.emit();
+        graph_view->signal_change.emit();
 
 	return changed;
 }
 
-void Graph_View::_create_constraints__align_down(Node* follower, const  std::vector<Node*>& leader )
+void ndbl::graphview_create_constraints__align_down(Graph_View* graph_view, Node* follower, const  std::vector<Node*>& leader )
 {
     if( leader.empty() )
         return;
@@ -458,10 +460,10 @@ void Graph_View::_create_constraints__align_down(Node* follower, const  std::vec
 
     Node_View* follower_view = componentbag_get<Node_View>(&follower->component_bag);
 
-    auto& constraint = _m_contraints.emplace_back();
+    auto& constraint = graph_view->contraints.emplace_back();
 
     constraint.name           = "Position below previous";
-    constraint.rule           = &ViewConstraintRule_1_to_N_as_row;
+    constraint.rule           = &nodeviewcontraint_rule_1_to_N_as_row;
     constraint.leader         = leader_view;
     constraint.follower       = {follower_view};
     constraint.follower_flags = Node_View_Flag_WITH_RECURSION;
@@ -475,7 +477,7 @@ void Graph_View::_create_constraints__align_down(Node* follower, const  std::vec
 
 };
 
-void Graph_View::_create_constraints__align_top_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node* leader )
+void ndbl::graphview_create_constraints__align_top_recursively(Graph_View* graph_view, const std::vector<Node*>& unfiltered_follower, ndbl::Node* leader )
 {
     if ( unfiltered_follower.empty() )
         return;
@@ -493,9 +495,9 @@ void Graph_View::_create_constraints__align_top_recursively(const std::vector<No
     if ( follower.empty() )
         return;
 
-    auto& constraint = _m_contraints.emplace_back();
+    auto& constraint = graph_view->contraints.emplace_back();
     constraint.name           = "Align many inputs above";
-    constraint.rule           = &ViewConstraintRule_N_to_1_as_a_row;
+    constraint.rule           = &nodeviewcontraint_rule_N_to_1_as_a_row;
     constraint.leader         = { leader_view };
     constraint.leader_pivot   = TOP;
     constraint.follower       = follower;
@@ -515,18 +517,20 @@ void Graph_View::_create_constraints__align_top_recursively(const std::vector<No
         constraint.row_direction  = RIGHT;
     }
 
-    for( Node_View* _leader : follower )
-        _create_constraints__align_top_recursively(_leader->node()->inputs(), _leader->node());
+    for( Node_View* _leader : follower ) // TODO: _leader vs follower ??!
+    {
+        graphview_create_constraints__align_top_recursively(graph_view, _leader->node()->inputs(), _leader->node());
+    }
 };
 
-void Graph_View::_create_constraints(Scope* scope )
+void ndbl::graphview_create_constraints(Graph_View* graph_view, Scope* scope )
 {
     // distribute child scopes
     if ( node_is_conditional(scope->node()) )
     {
-        auto& constraint = _m_contraints.emplace_back();
+        auto& constraint = graph_view->contraints.emplace_back();
         constraint.name          = "Align Scope_View partitions";
-        constraint.rule          = &ViewConstraintRule_distribute_sub_scope_views;
+        constraint.rule          = &nodeviewcontraint_rule_distribute_sub_scope_views;
         constraint.leader        = {componentbag_get<Node_View>(&scope->node()->component_bag)};
         constraint.leader_pivot  = BOTTOM;
         for(Branch i = 0; i < scope->node()->switch_data.branch_count(); ++i )
@@ -544,18 +548,18 @@ void Graph_View::_create_constraints(Scope* scope )
     {
         // align child below flow_inputs
         if ( child_node != backbone.front() || scope_is_orphan(scope) )
-            _create_constraints__align_down(child_node, child_node->flow_inputs());
+            graphview_create_constraints__align_down(graph_view, child_node, child_node->flow_inputs());
 
         // align child's inputs above
-        _create_constraints__align_top_recursively(child_node->inputs(), child_node );
+        graphview_create_constraints__align_top_recursively(graph_view, child_node->inputs(), child_node );
     }
 
     for ( Node* _child_node : scope->children )
         if ( Scope* _child_scope = _child_node->internal_scope )
-            _create_constraints(_child_scope);
+            graphview_create_constraints(graph_view, _child_scope);
 };
 
-void Graph_View::update(float dt)
+void ndbl::graphview_update(Graph_View* graph_view, float dt)
 {
     // Determines how many times update should be called
     ASSERT( dt >= 0.f);
@@ -566,50 +570,50 @@ void Graph_View::update(float dt)
 
     // Do the update(s)
     for(size_t i = 0; i < sample_count; ++i)
-        _update_once(sample_dt);
+        graphview_update_once(graph_view, sample_dt);
 }
 
-void Graph_View::_update_once(float dt)
+void ndbl::graphview_update_once(Graph_View* graph_view, float dt)
 {
-    ASSERT( graph() );
+    ASSERT( graph_view->graph() );
 
     // Physics Components
     // TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph_View", "Updating constraints ...\n");
 
     // Reset constraints when necessary
-    if ( _m_physics_dirty )
+    if ( graph_view->is_physics_dirty )
     {
-        _m_contraints.clear();
-        _create_constraints(graph_root_scope(graph()));
+        graph_view->contraints.clear();
+        graphview_create_constraints(graph_view, graph_root_scope(graph_view->graph()));
 
-        _m_physics_dirty = false;
+        graph_view->is_physics_dirty = false;
     }
 
     // Apply contraints (constraints => forces)
     // Note: This could run in parallel.
-    for (ViewConstraint& constraint : _m_contraints)
-        if( constraint.rule ) // is 0-initialized
-            constraint.rule(&constraint, dt);
+    for ( Node_View_Constraint& each_constraint : graph_view->contraints)
+        if( each_constraint.rule ) // is nullptr initialized
+            each_constraint.rule(&each_constraint, dt);
 
     // Apply forces (forces => positons)
-    for ( Node* node : graph()->nodes )
+    for ( Node* node : graph_view->graph()->nodes )
         if ( auto* _physics = componentbag_get<Physics_Component>(&node->component_bag) )
             _physics->apply_forces(dt);
 
     // TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph_View", "Constraints updated.\n");
 
     // Node_Views
-    for (Node* node : graph()->nodes )
+    for (Node* node : graph_view->graph()->nodes )
         if ( auto* view = componentbag_get<Node_View>(&node->component_bag) )
             nodeview_update(view, dt);
 
     // Scope_Views
-    if( Scope* root = graph_root_scope(graph()) )
+    if( Scope* root = graph_root_scope(graph_view->graph()) )
         if ( root->view != nullptr )
             scopeview_update( root->view, dt, Scope_View_Flag_RECURSE );
 }
 
-void Graph_View::_update_until_unfold()
+void ndbl::graphview_update_until_unfold(Graph_View* graph_view)
 {
     const Config* cfg = get_config();
 
@@ -623,60 +627,55 @@ void Graph_View::_update_until_unfold()
     ASSERT(sample_dt > 0.f );
 
     for(u32_t i = 0; i < samples; ++i)
-        _update_once( sample_dt );
+        graphview_update_once(graph_view, sample_dt );
 }
 
-void Graph_View::add_action_to_node_menu(Action_CreateNode* _action )
+void ndbl::graphview_frame_content(Graph_View* graph_view, Frame_Mode mode )
 {
-    _m_create_node_menu.add_action(_action);
-}
-
-void Graph_View::frame_content(Frame_Mode mode )
-{
-    auto frame_root_node_view = [&]() {
+    // Frame_Mode::Root_Node_View
+    if ( mode ==  Frame_Mode::Root_Node_View || graph_view->selection.collect<Node_View*>().empty() )
+    {
         // Get root node view
-        Scope* root_scope = graph_root_scope(graph());
+        Scope* root_scope = graph_root_scope(graph_view->graph());
         if ( !root_scope ) return;
         auto root_node_view = componentbag_get<Node_View>(&root_scope->node()->component_bag);
         ASSERT(root_node_view);
 
         // compute the delta to apply
         const Vec2 margin(40.f);
-        const Vec2 target = margin + _m_shape.pivot( tools::TOP_LEFT, WORLD_SPACE);
-        const Vec2 origin = root_node_view->shape.pivot( tools::TOP_LEFT, WORLD_SPACE);
-        const Vec2 delta = target - origin;
+        const Vec2 target   = margin + graph_view->shape.pivot( tools::TOP_LEFT, WORLD_SPACE);
+        const Vec2 origin   = root_node_view->shape.pivot( tools::TOP_LEFT, WORLD_SPACE);
+        const Vec2 delta    = target - origin;
 
         // apply the delta
         root_node_view->spatial_node()->translate( delta );
-    };
+        
+        return;
+    }
 
-    if ( mode ==  Frame_Mode::Root_Node_View )
-        return frame_root_node_view();
+    // Frame_Mode::Selected_Node_Views
 
     // Get selected node views rectangle
-    auto selected_nodeviews = _m_selection.collect<Node_View*>();
-    if ( selected_nodeviews.empty() )
-        return frame_root_node_view(); // by default, we frame the root node
-
+    std::vector<Node_View*> selected_nodeviews = graph_view->selection.collect<Node_View*>();
     const Rect rect = nodeview_bounding_rect( selected_nodeviews, tools::WORLD_SPACE);
 
     // compute the delta to apply
-    const Vec2 target = _m_shape.pivot( tools::CENTER, tools::WORLD_SPACE);
+    const Vec2 target = graph_view->shape.pivot( tools::CENTER, tools::WORLD_SPACE);
     const Vec2 source = Box_2D(rect).pivot(tools::CENTER, WORLD_SPACE);
     const Vec2 delta =  target - source;
 
     // apply the delta to all node views
-    for (Node* node : graph()->nodes )
+    for (Node* node : graph_view->graph()->nodes )
         if ( Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag) )
             nodeview->spatial_node()->translate( delta );
 }
 
-void Graph_View::_on_graph_change()
+void ndbl::graphview_on_graph_change(Graph_View* graph_view)
 {
-    _m_physics_dirty = true;
+    graph_view->is_physics_dirty = true;
 }
 
-void Graph_View::_on_selection_change(Selection::Event_Type type, Selection::Element elem)
+void ndbl::graphview_on_selection_change(Graph_View* graph_view, Selection::Event_Type type, Selection::Element elem)
 {
     bool selected = type == Selection::Event_Type::Append;
 
@@ -703,49 +702,49 @@ void Graph_View::_on_selection_change(Selection::Event_Type type, Selection::Ele
     }
 }
 
-void Graph_View::reset()
+void ndbl::graphview_reset(Graph_View* graph_view)
 {
-    if ( graph_is_empty(graph() ) )
+    if ( graph_is_empty(graph_view->graph() ) )
         return;
 
-    _update_until_unfold(); // Otherwise it would not render a nice graph when nodes are rendered for the first time
+    graphview_update_until_unfold(graph_view); // Otherwise it would not render a nice graph when nodes are rendered for the first time
 
     // make sure views are outside viewable rectangle (to avoid flickering)
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
 
-    for( Node* node : graph()->nodes )
+    for( Node* node : graph_view->graph()->nodes )
         if ( auto* view = componentbag_get<Node_View>(&node->component_bag) )
             view->spatial_node()->translate( far_outside );
 
     // physics
-    _m_physics_dirty = true;
+    graph_view->is_physics_dirty = true;
 
     //   Note: Instead of waiting an arbitrary period of time, we should rather be able to unfold the graph instantly
     const size_t dispatch_delay_ms = 100;
     get_event_manager()->dispatch_delayed<Event_FrameSelection>( dispatch_delay_ms, { Frame_Mode::Root_Node_View } );
 }
 
-bool Graph_View::has_an_active_tool() const
+bool ndbl::graphview_has_an_active_tool(const Graph_View* graph_view)
 {
-    return !_m_state_machine.has_default_state();
+    return !graph_view->state_machine.has_default_state();
 }
 
-void Graph_View::reset_all_properties()
+void ndbl::graphview_reset_all_properties(Graph_View* graph_view)
 {
-    for( Node* node : graph()->nodes )
+    for( Node* node : graph_view->graph()->nodes )
         if ( Node_View* each_node_view = componentbag_get<Node_View>(&node->component_bag) )
             nodeview_reset_all_properties(each_node_view);
 }
 
 //-----------------------------------------------------------------------------
 
-void Graph_View::_draw_create_node_context_menu(Node_View_Contextual_Menu& menu, Node_Slot_View* dragged_slotview)
+void ndbl::graphview_draw_context_menu(Graph_View* graph_view, Node_Slot_View* dragged_slotview)
 {
-    if (Action_CreateNode* triggered_action = menu.draw_search_input( dragged_slotview, 10))
+    if (Action_CreateNode* triggered_action = graph_view->contextual_menu.draw_search_input( dragged_slotview, 10))
     {
         // Generate an event from this action, add some info to the state and dispatch it.
         auto event                     = triggered_action->make_event();
-        event->data.graph              = graph();
+        event->data.graph              = graph_view->graph();
         event->data.active_slotview    = dragged_slotview;
         event->data.desired_screen_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
         get_event_manager()->dispatch(event);
@@ -755,9 +754,9 @@ void Graph_View::_draw_create_node_context_menu(Node_View_Contextual_Menu& menu,
 
 //-----------------------------------------------------------------------------
 
-void Graph_View::drag_state_enter()
+void ndbl::graphview_drag_state_enter(Graph_View* graph_view)
 {
-    for( const Selectable& elem : _m_selection )
+    for( const Selectable& elem : graph_view->selection )
     {
         if ( auto* nodeview = elem.get_if<Node_View*>() )
             nodeview->state.set_pinned();
@@ -766,12 +765,12 @@ void Graph_View::drag_state_enter()
     }
 }
 
-void Graph_View::drag_state_tick()
+void ndbl::graphview_drag_state_tick(Graph_View* graph_view)
 {
     const Vec2 delta = ImGui::GetMouseDragDelta();
     ImGui::ResetMouseDragDelta();
 
-    for ( const Selectable& elem : _m_selection )
+    for ( const Selectable& elem : graph_view->selection )
     {
         auto* nodeview = elem.get_if<Node_View*>();
 
@@ -789,50 +788,50 @@ void Graph_View::drag_state_tick()
     }
 
     if ( ImGui::IsMouseReleased(0) )
-        _m_state_machine.exit_state();
+        graph_view->state_machine.exit_state();
 }
 
 
 //-----------------------------------------------------------------------------
 
-void Graph_View::view_pan_state_tick()
+void ndbl::graphview_view_pan_state_tick(Graph_View* graph_view)
 {
     // The code is very similar to drag_state_tick, however it should not be. Indeed, we hack a little here
-    // by translating all the nodes instead of translating the graphview content...
+    // by translating all the nodes instead of translating the graph_view content...
 
     ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
 
     Vec2 delta = ImGui::GetMouseDragDelta();
-    for( Node* node : graph()->nodes )
+    for( Node* node : graph_view->graph()->nodes )
         if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
             nodeview->spatial_node()->translate(delta);
 
     ImGui::ResetMouseDragDelta();
 
     if ( ImGui::IsMouseReleased(0) )
-        _m_state_machine.exit_state();
+        graph_view->state_machine.exit_state();
 }
 
 //-----------------------------------------------------------------------------
 
-void Graph_View::cursor_state_tick()
+void ndbl::graphview_cursor_state_tick(Graph_View* graph_view)
 {
     if ( ImGui::BeginPopup(CONTEXT_POPUP) )
     {
         if ( ImGui::IsWindowAppearing())
-            _m_create_node_menu.flag_to_be_reset();
+            graph_view->contextual_menu.flag_to_be_reset();
 
-        switch ( _m_focused.index() )
+        switch ( graph_view->focused.index() )
         {
             case Selectable::index_null:
             {
-                _draw_create_node_context_menu(_m_create_node_menu);
+                graphview_draw_context_menu(graph_view);
                 break;
             }
 
             case Selectable::index_of<Scope_View*>():
             {
-                auto* scopeview = _m_focused.get<Scope_View*>();
+                auto* scopeview = graph_view->focused.get<Scope_View*>();
                 auto* nodeview = componentbag_get<Node_View>(&scopeview->scope->node()->component_bag);
                 if ( ImGui::MenuItem( nodeview->is_expanded ? "Collapse Scope" : "Expand Scope" ) )
                 {
@@ -865,19 +864,19 @@ void Graph_View::cursor_state_tick()
                                 views.push_back(nodeview);
                     }
                     // Replace selection
-                    _m_selection.clear();
-                    _m_selection.append( views.begin(), views.end() ) ;
+                    graph_view->selection.clear();
+                    graph_view->selection.append( views.begin(), views.end() ) ;
                 }
 
                 ImGui::Separator();
-                _draw_create_node_context_menu(_m_create_node_menu);
+                graphview_draw_context_menu(graph_view);
 
                 break;
             }
 
             case Selectable::index_of<Node_Slot_Link_View>():
             {
-                auto edge = _m_focused.get<Node_Slot_Link_View>();
+                auto edge = graph_view->focused.get<Node_Slot_Link_View>();
                 if ( ImGui::MenuItem(ICON_FA_TRASH " Delete Edge") )
                 {
                     auto* event = new Event_DeleteEdge();
@@ -894,7 +893,7 @@ void Graph_View::cursor_state_tick()
                 if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect Edges") )
                 {
                     auto* event = new Event_Node_SlotDisconnectAll();
-                    event->data.first = _m_focused.get<Node_Slot_View*>()->slot;
+                    event->data.first = graph_view->focused.get<Node_Slot_View*>()->slot;
                     get_event_manager()->dispatch( event );
                 }
 
@@ -903,7 +902,7 @@ void Graph_View::cursor_state_tick()
 
             case Selectable::index_of<Node_View*>():
             {
-                auto nodeview = _m_focused.get<Node_View*>();
+                auto nodeview = graph_view->focused.get<Node_View*>();
 
                 if ( ImGui::MenuItem(ICON_FA_TRASH " Delete Node") )
                 {
@@ -930,23 +929,23 @@ void Graph_View::cursor_state_tick()
         ImGui::EndPopup();
 
         // When we're focused on something with popup open, we don't want to do things based on _m_hovered.type (see below)
-        if ( !_m_focused.empty() )
+        if ( !graph_view->focused.empty() )
             return;
     }
 
-    switch ( _m_hovered.index() )
+    switch ( graph_view->hovered.index() )
     {
         case Selectable::index_of<Node_Slot_View*>():
         {
             if ( ImGui::IsMouseClicked(1) )
             {
-                _m_focused = _m_hovered;
+                graph_view->focused = graph_view->hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);
             }
             else if (ImGui::IsMouseDragging(0, 0.f))
             {
-                _m_focused = _m_hovered;
-                _m_state_machine.change_state(LINE_STATE);
+                graph_view->focused = graph_view->hovered;
+                graph_view->state_machine.change_state(LINE_STATE);
             }
             break;
         }
@@ -955,11 +954,11 @@ void Graph_View::cursor_state_tick()
         {
             if (ImGui::IsMouseDragging(0, 0.1f))
             {
-                _m_focused = _m_hovered;
+                graph_view->focused = graph_view->hovered;
             }
             else if (ImGui::IsMouseClicked(1))
             {
-                _m_focused = _m_hovered;
+                graph_view->focused = graph_view->hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);
             }
             break;
@@ -974,37 +973,37 @@ void Graph_View::cursor_state_tick()
             {
                 if ( ctrl_pressed )
                 {
-                    if ( !_m_selection.contains( _m_hovered ) )
+                    if ( !graph_view->selection.contains( graph_view->hovered ) )
                     {
-                        _m_selection.append( _m_hovered );
-                        _m_focused = _m_hovered;
+                        graph_view->selection.append( graph_view->hovered );
+                        graph_view->focused = graph_view->hovered;
                     }
                     else
                     {
-                        _m_selection.remove( _m_hovered );
+                        graph_view->selection.remove( graph_view->hovered );
                     }
                 }
                 else
                 {
-                    _m_selection.clear();
-                    _m_selection.append( _m_hovered );
-                    _m_focused = _m_hovered;
+                    graph_view->selection.clear();
+                    graph_view->selection.append( graph_view->hovered );
+                    graph_view->focused = graph_view->hovered;
                 }
             }
             else if (ImGui::IsMouseClicked(1))
             {
-                _m_focused = _m_hovered;
+                graph_view->focused = graph_view->hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);
             }
             else if ( ImGui::IsMouseDragging(0) )
             {
-                if ( !_m_selection.contains( _m_hovered) )
+                if ( !graph_view->selection.contains( graph_view->hovered) )
                 {
                     if ( !ctrl_pressed )
-                        _m_selection.clear();
-                    _m_selection.append( _m_hovered );
+                        graph_view->selection.clear();
+                    graph_view->selection.append( graph_view->hovered );
                 }
-                _m_state_machine.change_state(DRAG_STATE);
+                graph_view->state_machine.change_state(DRAG_STATE);
             }
             break;
         }
@@ -1014,17 +1013,17 @@ void Graph_View::cursor_state_tick()
             if ( ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
             {
                 if (ImGui::IsMouseClicked(0))
-                    _m_selection.clear(); // Deselect All (Click on the background)
+                    graph_view->selection.clear(); // Deselect All (Click on the background)
                 else if (ImGui::IsMouseReleased(0))
-                    _m_focused = {};
+                    graph_view->focused = {};
                 else if (ImGui::IsMouseClicked(1))
                     ImGui::OpenPopup(CONTEXT_POPUP);
                 else if (ImGui::IsMouseDragging(0))
                 {
                     if (ImGui::IsKeyDown(ImGuiKey_Space))
-                        _m_state_machine.change_state(VIEW_PAN_STATE);
+                        graph_view->state_machine.change_state(VIEW_PAN_STATE);
                     else
-                        _m_state_machine.change_state(ROI_STATE);
+                        graph_view->state_machine.change_state(ROI_STATE);
                 }
             }
 
@@ -1038,15 +1037,15 @@ void Graph_View::cursor_state_tick()
 
 //-----------------------------------------------------------------------------
 
-void Graph_View::line_state_enter()
+void ndbl::graphview_line_state_enter(Graph_View* graph_view)
 {
-    ASSERT( _m_focused.holds_alternative<Node_Slot_View*>() );
+    ASSERT( graph_view->focused.holds_alternative<Node_Slot_View*>() );
 }
 
-void Graph_View::line_state_tick()
+void ndbl::graphview_line_state_tick(Graph_View* graph_view)
 {
     Vec2 mouse_pos_snapped = Vec2{ImGui::GetMousePos()};
-    if ( auto slotview = _m_hovered.get_if<Node_Slot_View*>() )
+    if ( auto slotview = graph_view->hovered.get_if<Node_Slot_View*>() )
     {
         mouse_pos_snapped = slotview->spatial_node()->position(WORLD_SPACE);
     }
@@ -1057,27 +1056,27 @@ void Graph_View::line_state_tick()
         mouse_pos_snapped = ImGui::GetMousePosOnOpeningCurrentPopup();
 
         if ( ImGui::IsWindowAppearing() )
-            _m_create_node_menu.flag_to_be_reset();
+            graph_view->contextual_menu.flag_to_be_reset();
 
-        if ( _m_hovered.empty() )
-            _draw_create_node_context_menu(_m_create_node_menu, _m_focused.get<Node_Slot_View*>() );
+        if ( graph_view->hovered.empty() )
+            graphview_draw_context_menu(graph_view, graph_view->focused.get<Node_Slot_View*>() );
 
         if ( ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
-            _m_state_machine.exit_state();
+            graph_view->state_machine.exit_state();
 
         ImGui::EndPopup();
     }
     else if ( ImGui::IsMouseReleased(0) )
     {
-        if ( _m_hovered.holds_alternative<Node_Slot_View*>() )
+        if ( graph_view->hovered.holds_alternative<Node_Slot_View*>() )
         {
-            if ( _m_focused != _m_hovered )
+            if ( graph_view->focused != graph_view->hovered )
             {
                 auto event = new Event_Node_SlotDropped();
-                event->data.first  = _m_focused.get<Node_Slot_View*>()->slot;
-                event->data.second = _m_hovered.get<Node_Slot_View*>()->slot;
+                event->data.first  = graph_view->focused.get<Node_Slot_View*>()->slot;
+                event->data.second = graph_view->hovered.get<Node_Slot_View*>()->slot;
                 get_event_manager()->dispatch(event);
-                _m_state_machine.exit_state();
+                graph_view->state_machine.exit_state();
             }
         }
         else
@@ -1087,28 +1086,28 @@ void Graph_View::line_state_tick()
     }
 
     // Draw a temporary wire from focused/dragged slotview to the mouse cursor
-    Graph_View::draw_wire_from_slot_to_pos(_m_focused.get<Node_Slot_View*>(), mouse_pos_snapped );
+    ndbl::graphview_draw_wire_from_slot_to_pos(graph_view, graph_view->focused.get<Node_Slot_View*>(), mouse_pos_snapped );
 }
 
-void Graph_View::line_state_leave()
+void ndbl::graphview_line_state_leave(Graph_View* graph_view)
 {
-    _m_focused = {};
+    graph_view->focused = {};
 }
 
 //-----------------------------------------------------------------------------
 
-void Graph_View::roi_state_enter()
+void ndbl::graphview_roi_state_enter(Graph_View* graph_view)
 {
-    _m_state_roi_start_pos = ImGui::GetMousePos();
-    _m_state_roi_end_pos   = ImGui::GetMousePos();;
+    graph_view->state_roi_start_pos = ImGui::GetMousePos();
+    graph_view->state_roi_end_pos   = ImGui::GetMousePos();;
 }
 
-void Graph_View::roi_state_tick()
+void ndbl::graphview_roi_state_tick(Graph_View* graph_view)
 {
-    _m_state_roi_end_pos = ImGui::GetMousePos();
+    graph_view->state_roi_end_pos = ImGui::GetMousePos();
 
     // Get normalized ROI rectangle
-    Rect roi = Rect::normalize({_m_state_roi_start_pos, _m_state_roi_end_pos});
+    Rect roi = Rect::normalize({graph_view->state_roi_start_pos, graph_view->state_roi_end_pos});
 
     // Expand to avoid null area
     const int roi_border_width = 2;
@@ -1124,7 +1123,7 @@ void Graph_View::roi_state_tick()
     {
         // Get the views included in the ROI
         std::set<Node_View*> nodeviews_inside_roi;
-        for ( Node* node : graph()->nodes )
+        for ( Node* node : graph_view->graph()->nodes )
             if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
                 if ( Rect::contains(roi, nodeview_get_rect(nodeview)) )
                     nodeviews_inside_roi.insert( nodeview );
@@ -1132,21 +1131,21 @@ void Graph_View::roi_state_tick()
         // Select them
         const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
         if ( !ctrl_pressed )
-            _m_selection.clear();
-        _m_selection.append(nodeviews_inside_roi.begin(), nodeviews_inside_roi.end() );
+            graph_view->selection.clear();
+        graph_view->selection.append(nodeviews_inside_roi.begin(), nodeviews_inside_roi.end() );
 
-        _m_state_machine.exit_state();
+        graph_view->state_machine.exit_state();
     }
 }
 
-void Graph_View::_handle_hover(Scope_View* scope_view)
+void ndbl::graphview_handle_hover(Graph_View* graph_view, Scope_View* scope_view)
 {
-    if ( !_m_hovered.holds_alternative<Scope_View*>() )
-        _m_hovered = scope_view;
-    else if ( _m_hovered.empty() )
-        _m_hovered = scope_view;
-    else if ( scopeview_get_depth( scope_view ) >= scopeview_get_depth( _m_hovered.get<Scope_View*>() ) )
-        _m_hovered = scope_view;
+    if ( !graph_view->hovered.holds_alternative<Scope_View*>() )
+        graph_view->hovered = scope_view;
+    else if ( graph_view->hovered.empty() )
+        graph_view->hovered = scope_view;
+    else if ( scopeview_get_depth( scope_view ) >= scopeview_get_depth( graph_view->hovered.get<Scope_View*>() ) )
+        graph_view->hovered = scope_view;
 }
 
 std::vector<Node_View*> get_clean_views(std::vector<Node_View*>& possibly_hidden_views)
@@ -1159,7 +1158,7 @@ std::vector<Node_View*> get_clean_views(std::vector<Node_View*>& possibly_hidden
     return std::move(result);
 }
 
-void ndbl::ViewConstraintRule_1_to_N_as_row(ViewConstraint* constraint, float dt)
+void ndbl::nodeviewcontraint_rule_1_to_N_as_row(Node_View_Constraint* constraint, float dt)
 {
     // This type of constrain is designed to make a single Node_View to follow many others
 
@@ -1187,7 +1186,7 @@ void ndbl::ViewConstraintRule_1_to_N_as_row(ViewConstraint* constraint, float dt
     physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
 }
 
-void ndbl::ViewConstraintRule_N_to_1_as_a_row(ViewConstraint* constraint, float _dt)
+void ndbl::nodeviewcontraint_rule_N_to_1_as_a_row(Node_View_Constraint* constraint, float _dt)
 {
     ASSERT(constraint->leader.size() == 1);
     ASSERT(constraint->follower.size() > 0);
@@ -1234,7 +1233,7 @@ void ndbl::ViewConstraintRule_N_to_1_as_a_row(ViewConstraint* constraint, float 
     }
 }
 
-void ndbl::ViewConstraintRule_distribute_sub_scope_views(ViewConstraint* constraint, float dt)
+void ndbl::nodeviewcontraint_rule_distribute_sub_scope_views(Node_View_Constraint* constraint, float dt)
 {
     // filter views to constrain
     //

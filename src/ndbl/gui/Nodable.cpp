@@ -307,7 +307,7 @@ void ndbl::nodable_update(App_State* app)
             {
                 auto _event = reinterpret_cast<Event_FrameSelection*>( event );
                 VERIFY(graph_view, "a graph_view is required");
-                graph_view->frame_content(_event->data.mode);
+                graphview_frame_content(graph_view, _event->data.mode);
                 break;
             }
 
@@ -322,7 +322,7 @@ void ndbl::nodable_update(App_State* app)
             {
                 if ( graph_view )
                 {
-                    for(const Selectable& elem : graph_view->selection() )
+                    for( const Selectable& elem : graph_view->selection )
                     {
                         if ( auto nodeview = elem.get_if<Node_View*>() )
                             graph_flag_node_to_delete(nodeview->node(), Graph_Flag_NONE);
@@ -338,7 +338,7 @@ void ndbl::nodable_update(App_State* app)
             {
                 if ( graph_view )
                 {
-                    for( const Selectable& elem : graph_view->selection() )
+                    for( const Selectable& elem : graph_view->selection )
                     {
                         switch ( elem.index() )
                         {
@@ -357,13 +357,13 @@ void ndbl::nodable_update(App_State* app)
 
             case Event_SelectNext::id:
             {
-                if ( graph_view && graph_view->selection().contains<Node_View*>() )
+                if ( graph_view && graph_view->selection.contains<Node_View*>() )
                 {
-                    graph_view->selection().clear();
-                    for(auto* _view : graph_view->selection().collect<Node_View*>() )
+                    graph_view->selection.clear();
+                    for(auto* _view : graph_view->selection.collect<Node_View*>() )
                         for (auto* _successor : _view->node()->flow_outputs() ) // TODO: component<Node> is wrong!
                             if (auto* _successor_view = componentbag_get<Node_View>(&_successor->component_bag) )
-                                graph_view->selection().append( _successor_view );
+                                graph_view->selection.append( _successor_view );
                 }
                 break;
             }
@@ -373,7 +373,7 @@ void ndbl::nodable_update(App_State* app)
                 if ( graph_view )
                     break;
 
-                for( Node_View* each_node_view : graph_view->selection().collect<Node_View*>() )
+                for( Node_View* each_node_view : graph_view->selection.collect<Node_View*>() )
                 {
                     auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
                     _event->data.mode == RECURSIVELY ? nodeview_expand_toggle_rec(each_node_view)
@@ -509,8 +509,8 @@ void ndbl::nodable_update(App_State* app)
                 if ( auto view = componentbag_get<Node_View>(&new_node->component_bag) )
                 {
                     view->spatial_node()->set_position(_event->data.desired_screen_pos, WORLD_SPACE);
-                    graph_view->selection().clear();
-                    graph_view->selection().append(view);
+                    graph_view->selection.clear();
+                    graph_view->selection.append(view);
                 }
                 break;
             }
@@ -742,8 +742,8 @@ void ndbl::nodable_draw(App_State* app)
         
         if ( current_file != nullptr )
         {
-            auto* graphview = componentbag_get<Graph_View>(&current_file->graph()->component_bag);
-            has_selection = !graphview->selection().empty();
+            auto* graph_view = componentbag_get<Graph_View>(&current_file->graph()->component_bag);
+            has_selection = !graph_view->selection.empty();
         }
 
         if (ImGui::BeginMenu("File"))
@@ -796,8 +796,8 @@ void ndbl::nodable_draw(App_State* app)
                     cfg->ui_node_detail = _detail;
                     if (current_file != nullptr)
                     {
-                        auto* graphview = componentbag_get<Graph_View>(&current_file->graph()->component_bag);
-                        graphview->reset_all_properties();
+                        auto* graph_view = componentbag_get<Graph_View>(&current_file->graph()->component_bag);
+                        graphview_reset_all_properties(graph_view);
                     }
                 }
             };
@@ -1062,14 +1062,14 @@ bool ndbl::nodable_draw_node_properties_window(App_State* app)
         if( app->current_file )
         {
             const Graph_View* graph_view = componentbag_get<Graph_View>(&app->current_file->graph()->component_bag); // Graph can't be null
-            switch ( graph_view->selection().count<Node_View*>() )
+            switch ( graph_view->selection.count<Node_View*>() )
             {
                 case 0:
                     break;
                 case 1:
                 {
                     ImGui::Indent(10.0f);
-                    auto* first_nodeview = graph_view->selection().first_of<Node_View*>();
+                    auto* first_nodeview = graph_view->selection.first_of<Node_View*>();
                     changed |= nodeview_draw_as_properties_panel(first_nodeview, &app->view->show_advanced_node_properties);
                     break;
                 }

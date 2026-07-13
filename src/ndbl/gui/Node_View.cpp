@@ -29,8 +29,8 @@ using namespace tools;
 Node_View::Node_View()
 : Component<Node>("View")
 {
-    Component::signal_init.connect<Node_View, &nodeview_handle_init>(this);
-    Component::signal_shutdown.connect<Node_View, &nodeview_handle_shutdown>(this);
+    Component::signal_init.connect<&nodeview_handle_init>(this);
+    Component::signal_shutdown.connect<&nodeview_handle_shutdown>(this);
 }
 
 Node_View::~Node_View()
@@ -708,8 +708,8 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* node_view, bool* _show_a
                 {
                     Graph_View* graph_view = componentbag_get<Graph_View>(&node->graph->component_bag);
                     ASSERT(graph_view);
-                    graph_view->selection().clear();
-                    graph_view->selection().append(componentbag_get<Node_View>(&scope->entity->component_bag) );
+                    graph_view->selection.clear();
+                    graph_view->selection.append(componentbag_get<Node_View>(&scope->entity->component_bag) );
                 }
             }
             else

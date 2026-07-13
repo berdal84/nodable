@@ -45,7 +45,7 @@ void File_View::init(File& _file)
 
 void File_View::update(float dt)
 {
-    m_graph_view->update(dt);
+    graphview_update(m_graph_view, dt);
 }
 
 void File_View::draw(float dt)
@@ -55,7 +55,7 @@ void File_View::draw(float dt)
     // 2) Draw Text and Graph Editors
 
     clear_overlay();
-    Condition condition_flags = m_graph_view->selection().empty()
+    Condition condition_flags = m_graph_view->selection.empty()
                               ? Condition_ENABLE_IF_HAS_NO_SELECTION
                               : Condition_ENABLE_IF_HAS_SELECTION;
     refresh_overlay( condition_flags );
@@ -164,9 +164,9 @@ void File_View::draw(float dt)
             auto old_selected_text = m_text_editor.GetSelectedText();
             auto old_line_text = m_text_editor.GetCurrentLineText();
 
-            auto allow_keyboard = !m_graph_view->has_an_active_tool();
+            auto allow_keyboard = !graphview_has_an_active_tool(m_graph_view);
 
-            auto allow_mouse = !m_graph_view->has_an_active_tool() &&
+            auto allow_mouse = !graphview_has_an_active_tool(m_graph_view) &&
                                !ImGui::IsAnyItemHovered() &&
                                !ImGui::IsAnyItemFocused();
 
@@ -227,7 +227,7 @@ void File_View::draw(float dt)
         ImGui::BeginChild("graph", graph_editor_size, false, flags);
         {
             // Draw graph
-            graph_view_changed |= m_graph_view->draw(dt);
+            graph_view_changed |= graphview_draw(m_graph_view, dt);
 
             // Draw overlay: shortcuts
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );

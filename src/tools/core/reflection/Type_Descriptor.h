@@ -5,6 +5,7 @@
 #include <string>
 #include <typeinfo>
 #include <vector>
+#include <tuple>
 
 #include "Function_Traits.h"
 #include "Type_Register.h"
@@ -297,9 +298,9 @@ namespace tools
         m_return_type   = type::get<typename Function_Trait<T>::Result_Type >();
         m_name          = _name;
 
-        using Args = typename Function_Trait<T>::Args_Type;
-        if constexpr ( std::tuple_size_v<Args> != 0)
-            push_args<Args>();
+        using Args_Type = typename Function_Trait<T>::Args_Type;
+        if constexpr ( std::tuple_size_v<Args_Type> != 0)
+            push_args<Args_Type>();
     }
 
     template<typename T>
