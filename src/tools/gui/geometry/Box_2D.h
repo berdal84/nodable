@@ -26,5 +26,5 @@ namespace tools
     // Return the delta between two Box2D pivots on a given axis
     Vec2 box2d_diff(const Box_2D&  leader, const Vec2& leader_pivot,
                     const Box_2D&  follower, const Vec2& follower_pivot,
-                    const Vec2& axis = XY_AXIS);
+                    const Vec2& axis = AXIS_XY);
 }

@@ -3,7 +3,7 @@
 
 namespace tools
 {
-    constexpr static Vec2 X_AXIS  = {1.f, 0.f};
-    constexpr static Vec2 Y_AXIS  = {0.f, 1.f};
-    constexpr static Vec2 XY_AXIS = X_AXIS + Y_AXIS;
+    constexpr static Vec2 AXIS_X  = {1.f, 0.f};
+    constexpr static Vec2 AXIS_Y  = {0.f, 1.f};
+    constexpr static Vec2 AXIS_XY = AXIS_X + AXIS_Y;
 }

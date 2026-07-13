@@ -294,15 +294,15 @@ void ImGuiEx::Grid(const Rect& region, float grid_size, int subdiv_count, ImU32 
         if ( axis == AXIS_HORIZONTAL )
         {
             line_len         = region.width();
-            line_dir         = X_AXIS;
-            line_distrib_dir = Y_AXIS;
+            line_dir         = AXIS_X;
+            line_distrib_dir = AXIS_Y;
             line_count       = (int)(region.height() / subdiv_size);
         }
         else
         {
             line_len         = region.height();
-            line_dir         = Y_AXIS;
-            line_distrib_dir = X_AXIS;
+            line_dir         = AXIS_Y;
+            line_distrib_dir = AXIS_X;
             line_count       = (int) (region.width() / subdiv_size);
         }
 
