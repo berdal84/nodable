@@ -473,9 +473,9 @@ bool ndbl::nodeview_draw(Node_View* node_view)
     // Draw the properties depending on node type
     if (node_view->node()->type != Node_Type_OPERATOR )
     {
-        changed |= Node_Property_View::draw_all(node_view->view_by_property_type[Property_Category_IN_STRICTLY], cfg->ui_node_detail);
-        changed |= Node_Property_View::draw_all(node_view->view_by_property_type[Property_Category_INOUT_STRICTLY], cfg->ui_node_detail);
-        changed |= Node_Property_View::draw_all(node_view->view_by_property_type[Property_Category_OUT_STRICTLY], cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all(node_view->view_by_property_type[Property_Category_IN_STRICTLY]    , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all(node_view->view_by_property_type[Property_Category_INOUT_STRICTLY] , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all(node_view->view_by_property_type[Property_Category_OUT_STRICTLY]   , cfg->ui_node_detail);
     }
     else
     {
@@ -483,7 +483,7 @@ bool ndbl::nodeview_draw(Node_View* node_view)
         for( Node_Property_View* property_view : node_view->view_by_property_type[Property_Category_IN] )
         {
             ImGui::SameLine();
-            changed |= property_view->draw( cfg->ui_node_detail );
+            changed |= nodepropertyview_draw( property_view, cfg->ui_node_detail );
 
             // draw inner label when necessary
             if ( i < operator_label.size() && !operator_label[i].empty() )
@@ -592,7 +592,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* node_view, bool* _show_a
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        return Node_Property_View::draw_input(_property_view, !_show_advanced, nullptr);
+        return nodepropertyview_draw_input(_property_view, !_show_advanced, nullptr);
     };
 
     ImGui::Text("Name:       \"%s\"" , node->name.c_str());
@@ -923,6 +923,8 @@ Node_Property_View* ndbl::nodeview_find_property_view(Node_View* node_view, cons
 void ndbl::nodeview_reset_all_properties(Node_View* node_view)
 {
     for( auto& [_, property_view] : node_view->view_by_property )
-        property_view->reset();
+    {
+        nodepropertyview_reset(property_view);
+    }
 }
 
