@@ -105,11 +105,11 @@ namespace tools
             }
 
         }
-        
+
+       
         template<auto Function>
-        static Delegate from(void* object_ptr)
+        static Delegate from(void* object_ptr = nullptr /* we allow to call bind() later on. */)
         {
-            ASSERT(object_ptr != nullptr);
             Delegate delegate;
             delegate._m_type              = DELEGATE_TYPE_METHOD; // we consider c-style functions as "methods".
             delegate._m_method.object_ptr = object_ptr;

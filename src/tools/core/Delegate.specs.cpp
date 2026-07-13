@@ -59,7 +59,7 @@ TEST(Delegate, bind )
     };
 
     MyStruct obj;
-    auto d = Simple_Delegate::from<&MyStruct::set_ok>(nullptr);
+    auto d = Simple_Delegate::from<&MyStruct::set_ok>();
     d.bind(&obj);
     d.call();
     EXPECT_TRUE(obj.ok);
