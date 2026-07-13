@@ -1,9 +1,8 @@
 #pragma once
-#include <string>
 
 namespace tools
 {
-    extern void system_open_url_async(std::string /* url */); // Browse a given URL asynchronously
-    extern void system_clear_console();
-    extern int  system_run_command(const char* command);
+    void system_open_url_async(const char* /* url */); // Browse a given URL asynchronously
+    void system_clear_console();
+    int  system_run_command(const char* command);
 }

@@ -16,9 +16,11 @@ int tools::system_run_command(const char* command)
     return exit_code;
 };
 
-void tools::system_open_url_async(std::string url)
+void tools::system_open_url_async(const char* url)
 {
-    std::string command = "x-www-browser " + url; // TODO: does not work on all distros
+    std::string command;
+    command.append("x-www-browser ");
+    command.append(url); // TODO: does not work on all distros
     std::thread thread( system_run_command, command.c_str() );
     thread.detach();
 }
@@ -44,12 +46,12 @@ EM_JS(void, call_open_url, (), {
   throw 'all done';
 });
 
-void system_open_url_async(std::string url)
+void tools::system_open_url_async(const char* url)
 {
     call_open_url();
 }
 
-void system_clear_console() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
+void tools::system_clear_console() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
 {
     call_clear_console();
 }
