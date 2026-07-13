@@ -1,20 +1,16 @@
 #pragma once
 
-#include <map>
-#include <string>
 #include <functional>
 #include <vector>
 
 #include "tools/core/Component.h"  // base class
 #include "tools/core/Variant.h"
 #include "tools/core/Unique_Variant_List.h"
-#include "tools/gui/View_State.h"
 #include "tools/gui/geometry/Pivots.h"
 #include "tools/gui/Size.h"
 
 #include "ndbl/core/Scope.h"
 
-#include "Action.h"
 #include "Node_View.h"
 #include "Node_Slot_View.h"
 #include "tools/core/State_Machine.h"

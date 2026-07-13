@@ -2,6 +2,7 @@
 
 #include <numeric>
 #include <ranges> // for std::iota
+#include "gui/View_State.h"
 #include "tools/core/Math.h"
 #include "tools/core/Asserts.h"
 #include "tools/core/Component.h"
@@ -55,7 +56,7 @@ void Physics_Component::add_force(const tools::Vec2& force, bool _recurse)
     {
         Node_View* input_view = componentbag_get<Node_View>(&input_node->component_bag);
 
-        if ( !input_view->state.pinned())
+        if ( !input_view->state.has_flags(View_Flag_PINNED))
             if (node_is_output_node_in_expression(input_node, _view->node()))
                 if(auto* physics_component = componentbag_get<Physics_Component>(&input_node->component_bag) )
                     physics_component->add_force(force, _recurse);

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include "core/Component.h"
 #include "core/Scope.h"
+#include "gui/View_State.h"
 #include "imgui.h"
 #include "tools/core/Types.h"
 #include "tools/gui/ImGuiEx.h"
@@ -287,9 +288,9 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 
                 if ( each_successor_view == nullptr )
                     continue;
-                if ( !each_view->state.visible() )
+                if ( !each_view->state.has_flags(View_Flag_VISIBLE) )
                     continue;
-                if ( !each_successor_view->state.visible() )
+                if ( !each_successor_view->state.has_flags(View_Flag_VISIBLE) )
                     continue;
 
                 Node_Slot_View* tail = slot->view;
@@ -334,9 +335,9 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                 auto *node_view_out = componentbag_get<Node_View>(&slot_out->node->component_bag);
                 auto *node_view_in  = componentbag_get<Node_View>(&slot_in->node->component_bag);
 
-                if ( !node_view_out->state.visible() )
+                if ( !node_view_out->state.has_flags(View_Flag_VISIBLE) )
                     continue;
-                if ( !node_view_in->state.visible() )
+                if ( !node_view_in->state.has_flags(View_Flag_VISIBLE) )
                     continue;
 
                 Vec2 p1, cp1, cp2, p2; // BezierCurveSegment's points
@@ -369,7 +370,7 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                 if (node_out->type == Node_Type_VARIABLE ) // from a variable
                 {
                     if (slot_out == node_out->variable_data.ref_out ) // from a reference slot (can't be a declaration link)
-                        if (!node_view_out->state.selected() && !node_view_in->state.selected() )
+                        if (!node_view_out->state.has_flags(View_Flag_SELECTED) && !node_view_in->state.has_flags(View_Flag_SELECTED) )
                             style.color.w *= 0.25f;
                 }
 
@@ -403,12 +404,12 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 
         if ( !nodeview)
             continue;
-        if ( !nodeview->state.visible() )
+        if ( !nodeview->state.has_flags(View_Flag_VISIBLE) )
             continue;
 
         changed |= nodeview_draw(nodeview);
 
-        if ( nodeview->state.hovered() ) // no check if something else is hovered, last node always win against an edge
+        if ( nodeview->state.has_flags(View_Flag_HOVERED) ) // no check if something else is hovered, last node always win against an edge
         {
             if ( nodeview->hovered_slotview != nullptr)
             {
@@ -683,12 +684,12 @@ void ndbl::graphview_on_selection_change(Graph_View* graph_view, Selection::Even
     {
         case Selectable::index_of<Scope_View*>():
         {
-            elem.get<Scope_View*>()->state.set_selected(selected );
+            elem.get<Scope_View*>()->state.set_flags(View_Flag_SELECTED, selected);
             break;
         }
         case Selectable::index_of<Node_View*>():
         {
-            elem.get<Node_View*>()->state.set_selected(selected );
+            elem.get<Node_View*>()->state.set_flags(View_Flag_SELECTED, selected);
             break;
         }
         case Selectable::index_of<Node_Slot_Link_View>():
@@ -759,9 +760,9 @@ void ndbl::graphview_drag_state_enter(Graph_View* graph_view)
     for( const Selectable& elem : graph_view->selection )
     {
         if ( auto* nodeview = elem.get_if<Node_View*>() )
-            nodeview->state.set_pinned();
+            nodeview->state.set_flags(View_Flag_PINNED);
         else if ( auto* scopeview = elem.get_if<Scope_View*>() )
-            scopeview->state.set_pinned();
+            scopeview->state.set_flags(View_Flag_PINNED);
     }
 }
 
@@ -777,13 +778,13 @@ void ndbl::graphview_drag_state_tick(Graph_View* graph_view)
         if ( nodeview )
         {
             nodeview->spatial_node()->translate(delta);
-            nodeview->state.set_pinned();
+            nodeview->state.set_flags(View_Flag_PINNED);
         }
         else if ( auto* scopeview = elem.get_if<Scope_View*>() )
         {
             nodeview = componentbag_get<Node_View>(&scopeview->scope->entity->component_bag);
             nodeview->spatial_node()->translate(delta);
-            nodeview->state.set_pinned();
+            nodeview->state.set_flags(View_Flag_PINNED);
         }
     }
 
@@ -913,8 +914,8 @@ void ndbl::graphview_cursor_state_tick(Graph_View* graph_view)
 
                 if ( ImGui::MenuItem(ICON_FA_MAP_PIN " Pin/Unpin Node") )
                 {
-                    const bool pinned = nodeview->state.pinned();
-                    nodeview->state.set_pinned( !pinned );
+                    const bool pinned = nodeview->state.has_flags(View_Flag_PINNED);
+                    nodeview->state.set_flags(View_Flag_PINNED, !pinned );
                 }
 
                 if ( ImGui::MenuItem(ICON_FA_WINDOW_RESTORE " Arrange Node") )
@@ -1152,8 +1153,8 @@ std::vector<Node_View*> get_clean_views(std::vector<Node_View*>& possibly_hidden
 {
     std::vector<Node_View*> result;
     for(Node_View* view : possibly_hidden_views)
-        if (view->state.visible())
-            if (!view->state.pinned())
+        if (view->state.has_flags(View_Flag_VISIBLE))
+            if (!view->state.has_flags(View_Flag_PINNED))
                 result.push_back(view);
     return std::move(result);
 }
@@ -1248,7 +1249,7 @@ void ndbl::nodeviewcontraint_rule_distribute_sub_scope_views(Node_View_Constrain
     {
         Scope_View* _follower_scopeview = _follower->internal_scopeview;
         ASSERT(_follower_scopeview);
-        if ( !_follower_scopeview->state.pinned() )
+        if ( !_follower_scopeview->state.has_flags(View_Flag_PINNED) )
             if ( scopeview_must_be_draw(_follower_scopeview) )
                 sub_scope_view.push_back( _follower_scopeview );
     }

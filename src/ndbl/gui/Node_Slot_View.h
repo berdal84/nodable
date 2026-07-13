@@ -1,11 +1,12 @@
 #pragma once
 
+#include "tools/gui/geometry/Box_2D.h"
 #include "tools/core/reflection/Type_Descriptor.h"
-
-#include "ndbl/core/Node_Slot.h"
-#include "ndbl/core/Node_Property.h"
 #include "tools/gui/geometry/Vec2.h"
 #include "tools/gui/View_State.h"
+
+#include "ndbl/core/Node_Property.h"
+#include "ndbl/core/Node_Slot.h"
 
 
 namespace ndbl

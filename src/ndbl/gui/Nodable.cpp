@@ -1,5 +1,7 @@
 #include "Nodable.h"
+#include "IconsFontAwesome5.h"
 #include "gui/App.h"
+#include "gui/ImGuiEx.h"
 
 #include <utility>
 #include <algorithm>

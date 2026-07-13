@@ -1,5 +1,6 @@
 #include "Node_Property_View.h"
 
+#include "gui/ImGuiEx.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/Node.h"
 #include "Node_View.h"
@@ -13,47 +14,42 @@ constexpr float PROPERTY_INPUT_PADDING   = 5.0f;
 constexpr float PROPERTY_INPUT_SIZE_MIN  = 12.0f;
 
 Node_Property_View::Node_Property_View(Node_Property* _property )
-: _property(_property)
+: property(_property)
 , show(false)
 , touched(false)
-, _state()
-, _shape(Vec2{10.f, 10.f})
+, state()
+, shape(Vec2{10.f, 10.f})
 {
 }
 
 void Node_Property_View::reset()
 {
-    touched    = false;
-    show = false;
+    touched = false;
+    show    = false;
 }
 
-Node_Property* Node_Property_View::get_property() const
+Node* Node_Property_View::node() const
 {
-    return _property;
-}
-
-Node* Node_Property_View::get_node() const
-{
-    return _property->node;
+    return property->node;
 }
 
 bool Node_Property_View::has_input_connected() const
 {
-    return node_has_input_connected(get_node(), _property );
+    return node_has_input_connected(node(), property );
 }
 
-Node_Slot* Node_Property_View::get_connected_slot() const
+Node_Slot* Node_Property_View::connected_slot() const
 {
-    const Node_Slot* input_slot = node_find_slot_by_property(get_node(), _property, Node_Slot::Flag_INPUT );
+    const Node_Slot* input_slot = node_find_slot_by_property(node(), property, Node_Slot::Flag_INPUT );
     if( !input_slot )
         return nullptr;
 
     return input_slot->first_adjacent();
 }
 
-Node* Node_Property_View::get_connected_variable() const
+Node* Node_Property_View::connected_variable() const
 {
-    Node_Slot* adjacent_slot = get_connected_slot();
+    Node_Slot* adjacent_slot = connected_slot();
     if( !adjacent_slot )
         return nullptr;
 
@@ -62,15 +58,13 @@ Node* Node_Property_View::get_connected_variable() const
 
 bool Node_Property_View::draw(View_Detail _detail)
 {
-    _shape.draw_debug_info();
+    shape.draw_debug_info();
 
-    if ( !_state.visible() )
+    if ( !state.has_flags(View_Flag_VISIBLE) )
         return false;
 
     bool            changed            = false;
-    Node_Property*  property           = get_property();
-    Node*           node               = get_node();
-    Node_Type       node_type          = node->type;
+    Node_Type       node_type          = node()->type;
 
     /*
      * Handle input visibility
@@ -90,8 +84,8 @@ bool Node_Property_View::draw(View_Detail _detail)
         this->show |= node_type == Node_Type_VARIABLE_REF;
 
         // Always show when connected to a variable
-        if ( const Node_Slot* connected_slot = get_connected_slot() )
-            switch ( connected_slot->node->type )
+        if ( const Node_Slot* slot = connected_slot() )
+            switch ( slot->node->type )
             {
                 case Node_Type_VARIABLE:
                 case Node_Type_VARIABLE_REF:
@@ -99,7 +93,7 @@ bool Node_Property_View::draw(View_Detail _detail)
             }
 
         // Always show properties that have an input slot free
-        if (auto* slot = node_find_slot_by_property(node, property, Node_Slot::Flag_INPUT))
+        if (auto* slot = node_find_slot_by_property(node(), property, Node_Slot::Flag_INPUT))
             this->show |= !slot->is_full();
 
         this->show |= this->touched;
@@ -135,8 +129,8 @@ bool Node_Property_View::draw(View_Detail _detail)
         ImGui::Text("%s %s\n", property->type->name(), property->name.c_str());
 
         std::string  source_code;
-        if( property == node->value || node_find_slot_by_property( node, property, Node_Slot::Flag_OUTPUT ))
-            get_language()->serialize_node(source_code, node, Serialization_Flag_RECURSE);
+        if( property == node()->value || node_find_slot_by_property( node(), property, Node_Slot::Flag_OUTPUT ))
+            get_language()->serialize_node(source_code, node(), Serialization_Flag_RECURSE);
         else
             get_language()->serialize_property(source_code, property );
 
@@ -148,9 +142,9 @@ bool Node_Property_View::draw(View_Detail _detail)
     // Memorize new size and position fo this property
     const Vec2 new_size = ImGui::GetItemRectSize();
     const Vec2 new_pos  = ImGui::GetItemRectMin() + ImGui::GetItemRectSize() * 0.5f;
-    _shape.set_position(new_pos, WORLD_SPACE); // GetItemRectMin is in SCREEN_SPACE
-    auto* nodeview = componentbag_get<Node_View>(&node->component_bag);
-    _shape.set_size({new_size.x, nodeview->shape.size().y}); // We always want the box to fit with the node, it's easier to align things on it
+    shape.set_position(new_pos, WORLD_SPACE); // GetItemRectMin is in SCREEN_SPACE
+    auto* nodeview = componentbag_get<Node_View>(&node()->component_bag);
+    shape.set_size({new_size.x, nodeview->shape.size().y}); // We always want the box to fit with the node, it's easier to align things on it
 
 #if DEBUG_DRAW
     ImGuiEx::DebugCircle( spatial_node()->position(), 2.5f, ImColor(0,0,0));
@@ -165,9 +159,8 @@ float Node_Property_View::calc_input_width(const char *buf)
 
 bool Node_Property_View::draw_input(Node_Property_View* _view, bool _compact_mode, const char* _override_label)
 {
-    Node_Property*      property       = _view->get_property();
-    Token&              property_token = property->token;
-    const Node_Slot*    connected_slot = _view->get_connected_slot();
+    Token&              property_token = _view->property->token;
+    const Node_Slot*    connected_slot = _view->connected_slot();
     ImGuiInputTextFlags flags          = ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
     std::string         label;
 
@@ -175,7 +168,7 @@ bool Node_Property_View::draw_input(Node_Property_View* _view, bool _compact_mod
     if ( _override_label != nullptr )
         label.append(_override_label);
     else
-        label.append("##" + property->name);
+        label.append("##" + _view->property->name);
 
     //
     // Strategy:
@@ -183,7 +176,7 @@ bool Node_Property_View::draw_input(Node_Property_View* _view, bool _compact_mod
     // 2) if property is an identifier, or a literal we allow edition via an InputText, InputDouble/Int or Checkbox
 
     // 1
-    if (property->node->type != Node_Type_VARIABLE)
+    if (_view->property->node->type != Node_Type_VARIABLE)
         if ( connected_slot != nullptr )
             switch (connected_slot->node->type)
             {

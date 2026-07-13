@@ -1,4 +1,5 @@
 #pragma once
+#include "gui/geometry/Spatial_Node.h"
 #include "tools/gui/geometry/Rect.h"
 #include "tools/gui/View_State.h"
 #include "ndbl/core/Scope.h"

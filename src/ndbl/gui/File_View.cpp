@@ -1,5 +1,6 @@
 #include "File_View.h"
 
+#include "tools/gui/ImGuiEx.h"
 #include "tools/gui/Font_Manager.h"
 #include "tools/gui/ImGuiTypeConvert.h"
 #include "ndbl/core/Graph.h"

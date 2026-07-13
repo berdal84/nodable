@@ -1,39 +1,29 @@
 #pragma once
-
-#include "geometry/Box_2D.h"
-#include "geometry/Rect.h"
-#include "geometry/Space.h"
-#include "ImGuiEx.h" // ImGui with extensions
+#include <tools/core/Types.h>
 
 namespace tools
 {
+    typedef u8_t View_Flags;
+    enum View_Flag_
+    {
+        View_Flag_NONE          = 0,
+        View_Flag_PINNED        = 1 << 0,
+        View_Flag_SELECTED      = 1 << 1,
+        View_Flag_VISIBLE       = 1 << 2, // TODO: mirror this to View_Flag_HIDDEN
+        View_Flag_HOVERED       = 1 << 3,
+
+        // MAX!        = 1 << 7,
+    };
+
     /**
-     * This class is not supposed to be used as-is to draw a view, it has to be wrapped.
+     * Simple struct to hold some flags and getters/setters to modify them easily.
      * See examples in Node_View or Node_Slot_View
      */
 	struct View_State
 	{
-        typedef int Flags;
-        enum Flags_
-        {
-            Flags_None     = 0,
-            Flags_Pinned   = 1 << 0,
-            Flags_Selected = 1 << 1,
-            Flags_Visible  = 1 << 2,
-            Flags_Hovered  = 1 << 3,
-        };
+        View_Flags flags = View_Flag_VISIBLE;
 
-		View_State(Flags flags = Flags_Visible);
-
-        bool                 pinned() const              { return _flags & Flags_Pinned; }
-        bool                 selected() const            { return _flags & Flags_Selected;   }
-        bool                 visible() const             { return _flags & Flags_Visible;  }
-        bool                 hovered() const             { return _flags & Flags_Hovered;  }
-        void                 set_pinned(bool b = true)   { _flags = (_flags & ~Flags_Pinned)   | ( b * Flags_Pinned   ) ;}
-        void                 set_selected(bool b = true) { _flags = (_flags & ~Flags_Selected) | ( b * Flags_Selected ) ;}
-        void                 set_visible(bool b = true)  { _flags = (_flags & ~Flags_Visible)  | ( b * Flags_Visible  ) ;}
-        void                 set_hovered(bool b = true)  { _flags = (_flags & ~Flags_Hovered)  | ( b * Flags_Hovered  ) ;}
-    private:
-        Flags      _flags = Flags_None;
+        bool    has_flags(View_Flags _flag) const           { return (flags & _flag) == _flag; }
+        void    set_flags(View_Flags _flag, bool on = true) { flags = (flags & ~_flag) | ( on * _flag   ) ;}
     };
 }

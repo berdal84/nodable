@@ -205,7 +205,6 @@ common.sources = FileList[
     "src/tools/gui/Font_Manager.cpp",
     "src/tools/gui/ImGuiEx.cpp",
     "src/tools/gui/Texture_Manager.cpp",
-    "src/tools/gui/View_State.cpp",
 
     # Nodable Core
     "src/ndbl/core/index.cpp",

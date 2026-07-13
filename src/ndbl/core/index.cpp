@@ -1,6 +1,7 @@
 #include "index.h"
 #include "tools/core/index.h"
 #include "Node.h"
+#include "Scope.h"
 
 void ndbl::init_reflection()
 {

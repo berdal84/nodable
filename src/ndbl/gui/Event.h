@@ -1,11 +1,8 @@
 #pragma once
 #include <utility>
 
-#include "tools/core/Event_Manager.h"
-
+#include "core/Event.h"
 #include "ndbl/core/Graph.h"
-
-#include "Event.h"
 #include "Frame_Mode.h"
 #include "Node_Slot_View.h"
 

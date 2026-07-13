@@ -4,6 +4,8 @@
 #include <glm/trigonometric.hpp> // for sinus
 #include <vector>
 
+#include "gui/ImGuiEx.h"
+#include "gui/View_State.h"
 #include "gui/geometry/Space.h"
 #include "tools/core/Math.h"
 
@@ -68,9 +70,13 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
             case Node_Type_FOR_LOOP:
             case Node_Type_IF_ELSE:
             case Node_Type_WHILE_LOOP:
+            {
                 // hide THIS property
                 if ( property->has_flags(Node_Property::Flag_IS_NODE_VALUE) )
-                    new_view->state()->set_visible(false);
+                {
+                    new_view->state.set_flags(View_Flag_VISIBLE, false);
+                }
+            }
         }
 
         // Indexing
@@ -164,8 +170,8 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
             case Node_Slot::Flag_TYPE_VALUE:
             {
                 const Node_Property_View* property_view = nodeview_find_property_view(node_view, slot_view->property());
-                if ( property_view != nullptr && property_view->state()->visible() )
-                    slot_view->alignment_ref = property_view->shape();
+                if ( property_view != nullptr && property_view->state.has_flags(View_Flag_VISIBLE) )
+                    slot_view->alignment_ref = &property_view->shape;
             }
         }
     }
@@ -308,7 +314,7 @@ void ndbl::nodeview_arrange_recursively(Node_View* node_view, bool _smoothly)
 {
     for (auto each_input: nodeview_get_adjacent(node_view, Node_Slot::Flag_INPUT) )
     {
-        if ( !each_input->state.pinned() )
+        if ( !each_input->state.has_flags(View_Flag_PINNED) )
             if (node_is_output_node_in_expression(each_input->node(), node_view->node() ) )
                 nodeview_arrange_recursively(each_input);
     }
@@ -325,7 +331,7 @@ void ndbl::nodeview_arrange_recursively(Node_View* node_view, bool _smoothly)
         nodeview_update(node_view, float(1000));
     }
 
-    node_view->state.set_pinned(false);
+    node_view->state.set_flags(View_Flag_PINNED, false);
 }
 
 void ndbl::nodeview_update(Node_View* node_view, float dt)
@@ -344,7 +350,7 @@ bool ndbl::nodeview_draw(Node_View* node_view)
 {
     node_view->shape.draw_debug_info();
 
-    if ( !node_view->state.visible() )
+    if ( !node_view->state.has_flags(View_Flag_VISIBLE) )
         return false;
 
     ASSERT( node_view->node() );
@@ -375,7 +381,7 @@ bool ndbl::nodeview_draw(Node_View* node_view)
 
 	// Draw the background of the Group
     Vec4 border_color = cfg->ui_node_borderColor;
-    if ( node_view->state.selected() )
+    if ( node_view->state.has_flags(View_Flag_SELECTED) )
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
@@ -396,7 +402,7 @@ bool ndbl::nodeview_draw(Node_View* node_view)
             cfg->ui_node_borderColor,
             cfg->ui_node_shadowColor,
             border_color,
-            node_view->state.selected(),
+            node_view->state.has_flags(View_Flag_SELECTED),
             5.0f,
             border_width );
 
@@ -520,7 +526,7 @@ bool ndbl::nodeview_draw(Node_View* node_view)
         node_view->node()->set_flags(Node_Flag_IS_DIRTY );
 
     const bool _hovered = is_rect_hovered || node_view->hovered_slotview != nullptr;
-    node_view->state.set_hovered(_hovered );
+    node_view->state.set_flags(View_Flag_HOVERED, _hovered );
 
 	return changed;
 }
@@ -569,7 +575,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* node_view, bool* _show_a
 
     auto draw_labeled_property_view = [&](Node_Property_View* _property_view) -> bool
     {
-        Node_Property*property = _property_view->get_property();
+        Node_Property* property = _property_view->property;
         // label (<name> (<type>): )
         ImGui::SetNextItemWidth(labelColumnWidth);
         ImGui::Text(
@@ -756,7 +762,7 @@ Rect ndbl::nodeview_get_rect_ex(const Node_View* node_view, tools::Space space, 
 
     Rect result;
 
-    if ( node_view->state.visible() )
+    if ( node_view->state.has_flags(View_Flag_VISIBLE) )
     {
         result = node_view->shape.rect(space);
     }
@@ -772,11 +778,11 @@ Rect ndbl::nodeview_get_rect_ex(const Node_View* node_view, tools::Space space, 
         auto* view = componentbag_get<Node_View>(&input_node->component_bag);
         if( !view )
             continue;
-        if( !view->state.visible() )
+        if( !view->state.has_flags(View_Flag_VISIBLE) )
             continue;
-        if( view->state.selected() && (flags & Node_View_Flag_EXCLUDE_UNSELECTED) )
+        if( view->state.has_flags(View_Flag_SELECTED) && (flags & Node_View_Flag_EXCLUDE_UNSELECTED) )
             continue;
-        if( view->state.pinned() && (flags & Node_View_Flag_WITH_PINNED ) == 0 )
+        if( view->state.has_flags(View_Flag_PINNED) && (flags & Node_View_Flag_WITH_PINNED ) == 0 )
             continue;
         if( node_is_output_node_in_expression( input_node, node_view->node() ) )
         {
@@ -845,7 +851,7 @@ void ndbl::nodeview_set_children_visible(Node_View* node_view, bool visible, boo
     for(Scope* each_scope : scopes)
         for (Node* each_child_node: scope_get_backbone(each_scope))
             if ( auto* view = componentbag_get<Node_View>(&each_child_node->component_bag) )
-                view->state.set_visible(visible );
+                view->state.set_flags(View_Flag_VISIBLE, visible );
 }
 
 void ndbl::nodeview_set_adjacent_visible(Node_View* node_view, Node_Slot::Flags slot_flags, bool _visible, Node_View_Flags node_flags)
@@ -861,7 +867,7 @@ void ndbl::nodeview_set_adjacent_visible(Node_View* node_view, Node_Slot::Flags 
                 nodeview_set_children_visible(each_child_view,_visible, true);
                 nodeview_set_inputs_visible(each_child_view, _visible, true);
             }
-            each_child_view->state.set_visible(_visible );
+            each_child_view->state.set_flags(View_Flag_VISIBLE,_visible );
         }
     }
 }
@@ -873,7 +879,7 @@ Node_View* ndbl::nodeview_substitute_with_parent_if_not_visible(Node_View* _view
         return _view;
     }
 
-    if( _view->state.visible() )
+    if( _view->state.has_flags(View_Flag_VISIBLE) )
     {
         return _view;
     }
@@ -881,7 +887,7 @@ Node_View* ndbl::nodeview_substitute_with_parent_if_not_visible(Node_View* _view
     if ( _recursive )
         if( Scope* scope = _view->node()->scope )
             if (Node_View* parent_view = componentbag_get<Node_View>(&scope->entity->component_bag) )
-                return parent_view->state.visible() ? parent_view
+                return parent_view->state.has_flags(View_Flag_VISIBLE) ? parent_view
                                                       : nodeview_substitute_with_parent_if_not_visible(parent_view, _recursive);
 
     return nullptr;
@@ -900,7 +906,7 @@ void ndbl::nodeview_draw_slot(Node_View* node_view, Node_Slot_View* slot_view)
 {
     nodeslotview_draw(slot_view);
 
-    if( slot_view->state.hovered() )
+    if( slot_view->state.has_flags(View_Flag_HOVERED) )
     {
         node_view->hovered_slotview = slot_view; // last wins
     }
