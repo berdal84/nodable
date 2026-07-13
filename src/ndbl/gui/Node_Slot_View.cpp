@@ -163,12 +163,12 @@ void ndbl::nodeslotview_update(Node_Slot_View* view, float dt)
                        + Vec2( dir_x * size.x * float(view->index), 0.f) // jump to index
                        + Vec2(0.f, view->alignment.y * size.y * 0.5f); // align edge vertically
 
-        view->shape.spatial_node.set_position(pos, WORLD_SPACE); // relative to Node_View's
+        spatialnode_set_position(&view->shape.spatial_node, pos, WORLD_SPACE); // relative to Node_View's
     }
     else if (view->alignment_ref != nullptr )
     {
         const Vec2 pos  = view->alignment_ref->pivot( view->alignment, WORLD_SPACE);
-        view->shape.spatial_node.set_position(pos, WORLD_SPACE);
+        spatialnode_set_position(&view->shape.spatial_node, pos, WORLD_SPACE);
     }
     else
     {

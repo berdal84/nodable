@@ -58,8 +58,8 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
     {
         // Create view
         auto new_view = new Node_Property_View(property);
-        node_view->shape.spatial_node.add_child( &new_view->shape.spatial_node );
-        new_view->shape.spatial_node.set_position({}, tools::PARENT_SPACE);
+        spatialnode_add_child(&node_view->shape.spatial_node, &new_view->shape.spatial_node);
+        spatialnode_set_position(&new_view->shape.spatial_node, {}, tools::PARENT_SPACE);
 
         switch ( node_view->entity->type )
         {
@@ -156,8 +156,8 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
         const u8_t index = count_per_type.at(slot->type_and_order())++;
         auto* view = new Node_Slot_View(slot, get_pivot(slot), get_shapetype(slot), index, &node_view->shape );
 
-        node_view->shape.spatial_node.add_child( &view->shape.spatial_node );
-        view->shape.spatial_node.set_position({}, tools::PARENT_SPACE);
+        spatialnode_add_child( &node_view->shape.spatial_node, &view->shape.spatial_node );
+        spatialnode_set_position(&view->shape.spatial_node, {}, tools::PARENT_SPACE);
         
         node_view->slot_views.push_back(view);
     }
@@ -220,8 +220,8 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
         auto* scopeview = new Scope_View();
         scopeview_init(scopeview, internal_scope);
 
-        node_view->shape.spatial_node.add_child( &scopeview->spatial_node );
-        scopeview->spatial_node.set_position({0.f, 0.f}, tools::PARENT_SPACE);
+        spatialnode_add_child   (&node_view->shape.spatial_node, &scopeview->spatial_node);
+        spatialnode_set_position(&scopeview->spatial_node, {0.f, 0.f}, tools::PARENT_SPACE);
 
         node_view->internal_scopeview = scopeview;
     }
@@ -229,7 +229,7 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
 
 void ndbl::nodeview_handle_shutdown(Node_View* node_view)
 {
-    node_view->shape.spatial_node.clear();
+    spatialnode_clear(&node_view->shape.spatial_node);
 
     for(auto& [_, each] : node_view->view_by_property )
         delete each;
@@ -465,7 +465,7 @@ bool ndbl::nodeview_draw(Node_View* node_view)
                 {
                     const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
                     const float y = node_view->shape.pivot(BOTTOM, WORLD_SPACE).y;
-                    slot_view_out->shape.spatial_node.set_position({x, y}, WORLD_SPACE);
+                    spatialnode_set_position(&slot_view_out->shape.spatial_node, {x, y}, WORLD_SPACE);
                     slot_view_out->direction = BOTTOM;
                 }
     }

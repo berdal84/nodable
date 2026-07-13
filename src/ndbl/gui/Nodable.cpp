@@ -510,7 +510,7 @@ void ndbl::nodable_update(App_State* app)
                 // set new_node's view position, select it
                 if ( auto view = componentbag_get<Node_View>(&new_node->component_bag) )
                 {
-                    view->shape.spatial_node.set_position(_event->data.desired_screen_pos, WORLD_SPACE);
+                    spatialnode_set_position(&view->shape.spatial_node, _event->data.desired_screen_pos, WORLD_SPACE);
                     graph_view->selection.clear();
                     graph_view->selection.append(view);
                 }

@@ -19,7 +19,7 @@ void ndbl::scopeview_init(Scope_View* scope_view, Scope* scope)
 
 void ndbl::scopeview_shutdown(Scope_View* scope_view)
 {
-    scope_view->spatial_node.clear();
+    spatialnode_clear(&scope_view->spatial_node);
 
     scope_view->scope->view = nullptr;
     scope_view->scope       = nullptr;

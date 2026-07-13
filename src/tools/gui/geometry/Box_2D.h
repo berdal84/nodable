@@ -15,7 +15,7 @@ namespace tools
         Vec2            _half_size;
 
         Vec2            position(Space space = PARENT_SPACE) const;
-        void            set_position(Vec2 p, Space space = PARENT_SPACE ) { spatial_node.set_position(p, space); }
+        void            set_position(Vec2 p, Space space = PARENT_SPACE ) { spatialnode_set_position(&spatial_node, p, space); }
         void            set_size(const Vec2& s);
         inline Vec2     size() const { return _half_size * 2.0f; }
         Rect            rect(Space = PARENT_SPACE) const;

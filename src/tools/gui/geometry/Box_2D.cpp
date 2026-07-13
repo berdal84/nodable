@@ -1,4 +1,5 @@
 #include "Box_2D.h"
+#include "gui/geometry/Spatial_Node.h"
 #include "tools/gui/ImGuiEx.h"
 #include "Pivots.h"
 
@@ -17,7 +18,7 @@ Box_2D::Box_2D(const Vec2 & size)
 Box_2D::Box_2D(const Rect& rect)
 : _half_size( rect.size() * 0.5f  )
 {
-    spatial_node.set_position(rect.center());
+    spatialnode_set_position(&spatial_node, rect.center());
 }
 
 Vec2 Box_2D::pivot(const Vec2& pivot, Space space) const
@@ -29,7 +30,7 @@ Vec2 Box_2D::pivot(const Vec2& pivot, Space space) const
 
 Vec2 Box_2D::position(Space space) const
 {
-    return spatial_node.position(space);
+    return spatialnode_position(&spatial_node, space);
 }
 
 Rect Box_2D::rect(Space space) const
@@ -84,9 +85,9 @@ void tools::box2d_draw_debug_info(const Box_2D* box)
     ImGuiEx::DebugCircle(r.center(), 2.f, ImColor(255, 0,0)); // center
 
     // center to parent center
-    if ( box->spatial_node.parent() != nullptr)
+    if ( box->spatial_node.parent != nullptr)
     {
-        ImGuiEx::DebugLine(box->spatial_node.parent()->position(WORLD_SPACE), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
+        ImGuiEx::DebugLine(spatialnode_position(box->spatial_node.parent, WORLD_SPACE), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
     }
 #endif
 }
