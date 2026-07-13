@@ -647,7 +647,7 @@ File*ndbl::nodable_new_file(App_State* app)
     app->untitled_file_count++;
 
     String_32 name;
-    name.append_fmt("Untitled_%i.cpp", app->untitled_file_count);
+    string_append_fmt(&name, "Untitled_%i.cpp", app->untitled_file_count);
     auto* file = new File();
     file->path = name.c_str();
 

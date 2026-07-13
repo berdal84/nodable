@@ -52,8 +52,8 @@ String_64 ndbl::nodeslotview_compute_tooltip(const Node_Slot_View* view)
     String_64 result;
     switch (view->slot->type_and_order())
     {
-        case Node_Slot::Flag_INPUT:  result.append_fmt("%s (in)",  prop_name.c_str());  break;
-        case Node_Slot::Flag_OUTPUT: result.append_fmt("%s (out)", prop_name.c_str());
+        case Node_Slot::Flag_INPUT:  string_append_fmt(&result, "%s (in)",  prop_name.c_str());  break;
+        case Node_Slot::Flag_OUTPUT: string_append_fmt(&result, "%s (out)", prop_name.c_str());
     }
 
     return std::move(result);

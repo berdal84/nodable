@@ -45,7 +45,7 @@ const IAction* Action_Manager::get_action_with_id(Event_ID id) const
     if ( found == m_actions_by_id.end() )
     {
         String_128 str;
-        str.append_fmt("Unable to find an action bound to EventId %i\n", id);
+        string_append_fmt(&str, "Unable to find an action bound to EventId %i\n", id);
         VERIFY(false, str.c_str() );
     }
     return found->second;
