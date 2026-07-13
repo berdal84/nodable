@@ -1,7 +1,6 @@
 #pragma once
 #include "Vec2.h"
 #include "Rect.h"
-#include "tools/core/Asserts.h"
 #include <vector>
 
 namespace tools
@@ -26,18 +25,10 @@ namespace tools
         , p3(x3, y3)
         , p4(x4, y4)
         {}
-
-        void translate(const Vec2& offset)
-        {
-            p1 += offset;
-            p2 += offset;
-            p3 += offset;
-            p4 += offset;
-        }
-
-
-        static Rect bbox(const Bezier_Curve_Segment_2D& segment);
-        // Copied from ImGui's internal and adapted
-        static std::vector<Vec2>* tesselate(std::vector<Vec2>* path, const Bezier_Curve_Segment_2D& curve, int num_segments = 0, float curve_tesselation_tol = 0.1f);
     };
+
+
+    void                beziercurve_translate(Bezier_Curve_Segment_2D*, const Vec2& /* offset */);
+    Rect                beziercurve_bbox(const Bezier_Curve_Segment_2D*);
+    std::vector<Vec2>*  beziercurve_tesselate(std::vector<Vec2>* path, const Bezier_Curve_Segment_2D* curve, int num_segments = 0, float curve_tesselation_tol = 0.1f); // Copied from ImGui's internal and adapted
 }

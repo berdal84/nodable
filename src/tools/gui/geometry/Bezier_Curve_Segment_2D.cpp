@@ -1,6 +1,16 @@
 #include "Bezier_Curve_Segment_2D.h"
+#include "core/Asserts.h"
 
 using namespace tools;
+
+
+void tools::beziercurve_translate(Bezier_Curve_Segment_2D* curve, const Vec2& offset)
+{
+    curve->p1 += offset;
+    curve->p2 += offset;
+    curve->p3 += offset;
+    curve->p4 += offset;
+}
 
 static void PathBezierCubicCurveToCasteljau(std::vector<Vec2>* path, const Bezier_Curve_Segment_2D& curv, float tess_tol, int level )
 {
@@ -40,25 +50,25 @@ static Vec2 BezierCubicCalc(const Bezier_Curve_Segment_2D& curve, float t )
     };
 }
 
-std::vector<Vec2>* Bezier_Curve_Segment_2D::tesselate(std::vector<Vec2>* path, const Bezier_Curve_Segment_2D& curve, int num_segments, float curve_tesselation_tol )
+std::vector<Vec2>* tools::beziercurve_tesselate(std::vector<Vec2>* path, const Bezier_Curve_Segment_2D* curve, int num_segments, float curve_tesselation_tol )
 {
-    path->push_back(curve.p1);
+    path->push_back(curve->p1);
     if (num_segments == 0)
     {
         ASSERT(curve_tesselation_tol > 0.0f);
-        PathBezierCubicCurveToCasteljau(path, curve, curve_tesselation_tol, 0); // Auto-tessellated
+        PathBezierCubicCurveToCasteljau(path, *curve, curve_tesselation_tol, 0); // Auto-tessellated
     }
     else
     {
         float t_step = 1.0f / (float)num_segments;
         for (int i_step = 1; i_step <= num_segments; i_step++)
-            path->push_back(BezierCubicCalc(curve, t_step * (float)i_step));
+            path->push_back(BezierCubicCalc(*curve, t_step * (float)i_step));
     }
     return path;
 }
 
-Rect Bezier_Curve_Segment_2D::bbox(const tools::Bezier_Curve_Segment_2D& segment )
+Rect tools::beziercurve_bbox(const tools::Bezier_Curve_Segment_2D* curve )
 {
-    const std::vector<Vec2> points{ segment.p1, segment.p2, segment.p3, segment.p4};
+    const std::vector<Vec2> points{ curve->p1, curve->p2, curve->p3, curve->p4};
     return Rect::bounding_rect(&points);
 }

@@ -1,5 +1,6 @@
 #include "ImGuiEx.h"
 
+#include "gui/geometry/Bezier_Curve_Segment_2D.h"
 #include "tools/core/Log.h"
 #include "tools/core/Asserts.h"
 
@@ -117,19 +118,19 @@ void ImGuiEx::DrawWire(
     // Line
     // Generate curve
     std::vector<Vec2> fill_path;
-    Bezier_Curve_Segment_2D::tesselate(&fill_path, curve);
+    beziercurve_tesselate(&fill_path, &curve);
 
     if ( fill_path.size() == 1) return;
 
     // Shadow
     Bezier_Curve_Segment_2D shadow_curve = curve;
-    shadow_curve.translate({ 1.f, 1.f });
+    beziercurve_translate(&shadow_curve, { 1.f, 1.f });
     shadow_curve.p2 = curve.p2 + Vec2(0.f, 10.f);
     shadow_curve.p3 = curve.p3 + Vec2(0.f, 10.f);
 
     // Generate curve
     std::vector<Vec2> shadow_path;
-    Bezier_Curve_Segment_2D::tesselate(&shadow_path, shadow_curve);
+    beziercurve_tesselate(&shadow_path, &shadow_curve);
 
     // 2) draw the shadow
 
@@ -139,7 +140,7 @@ void ImGuiEx::DrawWire(
     // 3) draw the curve
 
     // Mouse behavior
-    MultiSegmentLineBehavior(id, &fill_path, Bezier_Curve_Segment_2D::bbox(curve), style.thickness );
+    MultiSegmentLineBehavior(id, &fill_path, beziercurve_bbox(&curve), style.thickness );
 
     // Draw the path
     if ( ImGui::GetHoveredID() == id )
