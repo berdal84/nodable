@@ -1,64 +1,41 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
+    "inputs": [
+		{
+            "id":           "PLATFORM",
+            "type":         "pickString",
+            "description": "Select a platform",
+            "options":      ["linux", "windows"],
+            "default":      "linux"
+		},
+        {
+            "id":           "CONFIG",
+            "type":         "pickString",
+            "description":  "Select a build config",
+            "options":      ["debug", "optimized", "release"],
+            "default":      "debug"
+		}
+	],
     "configurations": [
         {
             "name": "tests",
             "type": "lldb",
             "request": "launch",
-            "linux": {
-                "program": "${workspaceRoot}/build-linux-debug/nodable-tests/bin/nodable-tests",
-            },
-            "windows": {
-                "program": "${workspaceRoot}/build-windows-debug/nodable-tests/bin/nodable-tests.exe",
-            },
-            "args": [
-                "--gtest_break_on_failure"
-            ],
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": "nodable-tests:build:debug"
+            "args": ["--gtest_break_on_failure"],
+            "preLaunchTask": "nodable-tests:build-${input:PLATFORM}-${input:CONFIG}",
+            "linux":    { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable-tests/bin/nodable-tests" },
+            "windows":  { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable-tests/bin/nodable-tests.exe" },
+            "console": "internalConsole",
         },
         {
-            "name": "nodable:debug",
+            "name": "nodable",
             "type": "lldb",
             "request": "launch",
-            "linux": {
-                "program": "${workspaceRoot}/build-linux-debug/nodable/bin/nodable",
-            },
-            "windows": {
-                "program": "${workspaceRoot}/build-windows-debug/nodable/bin/nodable.exe",
-            },
-            "args": [],
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": "build:debug"
-        },{
-            "name": "nodable:optimized",
-            "type": "lldb",
-            "request": "launch",
-            "linux": {
-                "program": "${workspaceRoot}/build-linux-optimized/nodable/bin/nodable",
-            },
-            "windows": {
-                "program": "${workspaceRoot}/build-windows-optimized/nodable/bin/nodable.exe",
-            },
-            "args": [],
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": "build:optimized"
-        },{
-            "name": "nodable:release",
-            "type": "lldb",
-            "request": "launch",
-            "linux": {
-                "program": "${workspaceRoot}/build-linux-release/nodable/bin/nodable",
-            },
-            "windows": {
-                "program": "${workspaceRoot}/build-windows-release/nodable/bin/nodable.exe",
-            },
-            "args": [],
-            "cwd": "${workspaceRoot}",
-            "preLaunchTask": "build:release"
+            "preLaunchTask": "nodable:build-${input:PLATFORM}-${input:CONFIG}",
+            "linux":    { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable/bin/nodable" },
+            "windows":  { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable/bin/nodable.exe" },
+            "console": "internalConsole",
+
         }
     ]
-}
+}   

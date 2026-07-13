@@ -54,7 +54,7 @@ void ndbl::_scope_update_backbone_cache(const Scope* scope)
 
 void ndbl::scope_on_shutdown(Scope* scope)
 {
-    VERIFY_(scope->parent == nullptr, "Remove this scope from parent first");
+    VERIFY(scope->parent == nullptr, "Remove this scope from parent first");
 
     // reset partitions (they will be shutdown individually by the Component_Bag)
     for(Scope* partition : scope->partition )

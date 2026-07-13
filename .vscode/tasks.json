@@ -1,40 +1,82 @@
 {
 	"version": "2.0.0",
 	"tasks": [
+		// DEBUG
 		{
-			"type": "shell",
-			"command": "CONFIG=debug rake tools-tests:build nodable-tests:build",
-			"label": "nodable-tests:build:debug",
-			"problemMatcher": [],
-			"group": {
-				"kind": "build"
+			"label": 	"nodable-tests:build-linux-debug",
+			"type": 	"shell",
+			"command": 	"rake tools-tests:build nodable-tests:build",
+			"group":	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"debug",
+					"PLATFORM": "linux"
+				}
 			}
 		},
 		{
-			"type": "shell",
-			"command": "CONFIG=debug rake build",
-			"label": "build:debug",
-			"problemMatcher": [],
-			"group": {
-				"kind": "build"
+			"label": 	"nodable:build-linux-debug",
+			"type": 	"shell",
+			"command": 	"rake build",
+			"group": 	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"debug",
+					"PLATFORM": "linux"
+				}
+			}
+		},
+
+		// OPTIMIZED
+		{
+			"label": 	"nodable-tests:build-linux-optimized",
+			"type": 	"shell",
+			"command": 	"rake tools-tests:build nodable-tests:build",
+			"group":	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"optimized",
+					"PLATFORM": "linux"
+				}
+			}
+
+		},
+		{
+			"label": 	"nodable:build-linux-optimized",
+			"type": 	"shell",
+			"command": 	"rake build",
+			"group": 	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"optimized",
+					"PLATFORM": "linux"
+				}
+			}
+		},
+
+		// RELEASE
+		{
+			"label": 	"nodable-tests:build-linux-release",
+			"type": 	"shell",
+			"command": 	"rake tools-tests:build nodable-tests:build",
+			"group":	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"release",
+					"PLATFORM": "linux"
+				}
 			}
 		},
 		{
-			"type": "shell",
-			"command": "CONFIG=optimized rake build",
-			"label": "build:optimized",
-			"problemMatcher": [],
-			"group": {
-				"kind": "build"
-			}
-		},
-		{
-			"type": "shell",
-			"command": "CONFIG=release rake build",
-			"label": "build:release",
-			"problemMatcher": [],
-			"group": {
-				"kind": "build"
+			"label": 	"nodable:build-linux-release",
+			"type": 	"shell",
+			"command": 	"rake build",
+			"group": 	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"release",
+					"PLATFORM": "linux"
+				}
 			}
 		}
 	]

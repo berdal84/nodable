@@ -534,7 +534,7 @@ void tools::appview_end(App_View_State* view)
     view->dt_in_s       = float(dt) / 1000.f;
     before              = now;
 
-    TOOLS_LOG( TOOLS_MESSAGE, "Nodable", "dt: %f sec, %i msec \n", view->dt_in_s, view->dt_in_ms);
+    TOOLS_DEBUG_LOG( TOOLS_DIAG, "tools::App_View", "dt: %f sec, %i msec \n", view->dt_in_s, view->dt_in_ms);
 
     // Format nice title
     char title[256];

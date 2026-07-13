@@ -593,13 +593,13 @@ def target_initialize(target)
     
     # Enable LTO (link time optimization)
     if RELEASE
-        target.linker_flags   |= [
-            "-flto",        # lto|lto=thin, LTO: link time optimization
-            "-fuse-ld=lld"  # required by LTO
-        ]
-        target.compiler_flags |= [
-            "-flto",
-        ]
+        target.compiler_flags |= ["-flto"]
+        target.linker_flags   |= ["-flto"] # lto|lto=thin, LTO: link time optimization
+
+        if WINDOWS
+            target.linker_flags |= ["-fuse-ld=lld"]  # required by LTO
+        end
+
     end
 
     # 2) Cache some flags as string to share the data accross multiple compilation units
