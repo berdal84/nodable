@@ -55,7 +55,6 @@ namespace ndbl
         tools::Vec2                         state_roi_start_pos;
         tools::Vec2                         state_roi_end_pos;
 
-        inline tools::Spatial_Node*         spatial_node()  { return shape.spatial_node(); }
         inline Graph*                       graph() const   { return entity; }
     };
 

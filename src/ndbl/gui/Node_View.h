@@ -74,12 +74,8 @@ namespace ndbl
 
         Node_View();
 		~Node_View() override;
-
-        // shorthands:
         
         inline Node*                                node() const { return entity; }
-        tools::Spatial_Node*                        spatial_node() { return shape.spatial_node(); }
-        const tools::Spatial_Node*                  spatial_node() const { return shape.spatial_node(); }
     };
 
     std::vector<Node_View*> nodeview_get_adjacent(const Node_View*, Node_Slot::Flags);

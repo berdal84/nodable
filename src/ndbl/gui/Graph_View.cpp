@@ -4,6 +4,7 @@
 #include "core/Component.h"
 #include "core/Scope.h"
 #include "gui/View_State.h"
+#include "gui/geometry/Box_2D.h"
 #include "imgui.h"
 #include "tools/core/Types.h"
 #include "tools/gui/ImGuiEx.h"
@@ -121,11 +122,11 @@ void ndbl::graphview_handle_add_node(Graph_View* graph_view, Node* node)
     if( node == graph_root(graph_view->graph()) )
     {
         // root must be parented to the graph view itself
-        graph_view->spatial_node()->add_child( nodeview->spatial_node() );
+        graph_view->shape.spatial_node.add_child( &nodeview->shape.spatial_node );
     }
     else
     {
-        node->scope->view->spatial_node.add_child( nodeview->spatial_node() );
+        node->scope->view->spatial_node.add_child( &nodeview->shape.spatial_node );
     }
 
     // physics
@@ -152,9 +153,9 @@ void ndbl::graphview_handle_remove_node(Graph_View* graph_view, Node* node)
         scopeview->signal_hover.disconnect(); // I'm not sure if this is a good approach...
     }
 
-    if( Spatial_Node* _parent = nodeview->spatial_node()->parent() )
+    if( Spatial_Node* _parent = nodeview->shape.spatial_node.parent() )
     {
-        _parent->remove_child( nodeview->spatial_node() );
+        _parent->remove_child( &nodeview->shape.spatial_node );
     }
 
     componentbag_remove( &node->component_bag, nodeview );
@@ -168,12 +169,12 @@ void ndbl::graphview_handle_change_scope(Graph_View* graph_view, Graph::Scope_Ch
     VERIFY(nodeview, "a nodeview must be present since we are in a Graph_View");
 
     // Un-parent from old scope's spatial node
-    if( auto _parent = nodeview->spatial_node()->parent() )
-        _parent->remove_child( nodeview->spatial_node() );
+    if( auto _parent = nodeview->shape.spatial_node.parent() )
+        _parent->remove_child( &nodeview->shape.spatial_node );
 
     // Parent to new scope or default to graph's spatial node
     if( Scope_View* _scopeview = change.new_scope->view )
-        _scopeview->spatial_node.add_child( nodeview->spatial_node() );
+        _scopeview->spatial_node.add_child( &nodeview->shape.spatial_node );
 }
 
 ImGuiID make_wire_id(const Node_Slot *ptr1, const Node_Slot *ptr2)
@@ -206,7 +207,7 @@ void ndbl::graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *fro
     // Draw
 
     ImGuiID id = make_wire_id(from->slot, nullptr);
-    Vec2 start_pos = from->spatial_node()->position(WORLD_SPACE);
+    Vec2 start_pos = from->shape.spatial_node.position(WORLD_SPACE);
 
     Bezier_Curve_Segment_2D segment{
             start_pos, start_pos,
@@ -225,7 +226,7 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
     Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE);
     graph_view->shape.set_size( region.size() );
     graph_view->shape.set_position(region.center()); // children will be relative to the center
-    graph_view->shape.draw_debug_info();
+    box2d_draw_debug_info(&graph_view->shape);
 
     graph_view->hovered = {};
 
@@ -297,8 +298,8 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                 Node_Slot_View* head = adjacent_slot->view;
 
                 ImGuiID id = make_wire_id(slot, adjacent_slot);
-                Vec2 tail_pos = tail->spatial_node()->position(WORLD_SPACE);
-                Vec2 head_pos = head->spatial_node()->position(WORLD_SPACE);
+                Vec2 tail_pos = tail->shape.spatial_node.position(WORLD_SPACE);
+                Vec2 head_pos = head->shape.spatial_node.position(WORLD_SPACE);
                 Bezier_Curve_Segment_2D segment{
                         tail_pos,
                         tail_pos,
@@ -345,8 +346,8 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                 Node_Slot_View* slot_view_out = slot_out->view;
                 Node_Slot_View* slot_view_in  = slot_in->view;
 
-                p1 = slot_view_out->spatial_node()->position(WORLD_SPACE);
-                p2 = slot_view_in->spatial_node()->position(WORLD_SPACE);
+                p1 = slot_view_out->shape.spatial_node.position(WORLD_SPACE);
+                p2 = slot_view_in->shape.spatial_node.position(WORLD_SPACE);
 
                 const Vec2  signed_dist = Vec2::distance(p1, p2);
                 const float lensqr_dist = signed_dist.lensqr();
@@ -649,7 +650,7 @@ void ndbl::graphview_frame_content(Graph_View* graph_view, Frame_Mode mode )
         const Vec2 delta    = target - origin;
 
         // apply the delta
-        root_node_view->spatial_node()->translate( delta );
+        root_node_view->shape.spatial_node.translate( delta );
         
         return;
     }
@@ -668,7 +669,7 @@ void ndbl::graphview_frame_content(Graph_View* graph_view, Frame_Mode mode )
     // apply the delta to all node views
     for (Node* node : graph_view->graph()->nodes )
         if ( Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag) )
-            nodeview->spatial_node()->translate( delta );
+            nodeview->shape.spatial_node.translate( delta );
 }
 
 void ndbl::graphview_on_graph_change(Graph_View* graph_view)
@@ -715,7 +716,7 @@ void ndbl::graphview_reset(Graph_View* graph_view)
 
     for( Node* node : graph_view->graph()->nodes )
         if ( auto* view = componentbag_get<Node_View>(&node->component_bag) )
-            view->spatial_node()->translate( far_outside );
+            view->shape.spatial_node.translate( far_outside );
 
     // physics
     graph_view->is_physics_dirty = true;
@@ -777,13 +778,13 @@ void ndbl::graphview_drag_state_tick(Graph_View* graph_view)
 
         if ( nodeview )
         {
-            nodeview->spatial_node()->translate(delta);
+            nodeview->shape.spatial_node.translate(delta);
             nodeview->state.set_flags(View_Flag_PINNED);
         }
         else if ( auto* scopeview = elem.get_if<Scope_View*>() )
         {
             nodeview = componentbag_get<Node_View>(&scopeview->scope->entity->component_bag);
-            nodeview->spatial_node()->translate(delta);
+            nodeview->shape.spatial_node.translate(delta);
             nodeview->state.set_flags(View_Flag_PINNED);
         }
     }
@@ -805,7 +806,7 @@ void ndbl::graphview_view_pan_state_tick(Graph_View* graph_view)
     Vec2 delta = ImGui::GetMouseDragDelta();
     for( Node* node : graph_view->graph()->nodes )
         if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
-            nodeview->spatial_node()->translate(delta);
+            nodeview->shape.spatial_node.translate(delta);
 
     ImGui::ResetMouseDragDelta();
 
@@ -1048,7 +1049,7 @@ void ndbl::graphview_line_state_tick(Graph_View* graph_view)
     Vec2 mouse_pos_snapped = Vec2{ImGui::GetMousePos()};
     if ( auto slotview = graph_view->hovered.get_if<Node_Slot_View*>() )
     {
-        mouse_pos_snapped = slotview->spatial_node()->position(WORLD_SPACE);
+        mouse_pos_snapped = slotview->shape.spatial_node.position(WORLD_SPACE);
     }
 
     // Contextual menu
@@ -1176,11 +1177,11 @@ void ndbl::nodeviewcontraint_rule_1_to_N_as_row(Node_View_Constraint* constraint
     const Box_2D follower_box{ nodeview_get_rect_ex(_follower, WORLD_SPACE, constraint->follower_flags) };
 
     // Compute how much the follower box needs to be moved to snap the leader's box at a given pivots.
-    Vec2 delta = Box_2D::diff(leaders_box, constraint->leader_pivot , follower_box, constraint->follower_pivot );
+    Vec2 delta = box2d_diff(leaders_box, constraint->leader_pivot , follower_box, constraint->follower_pivot );
     delta += constraint->gap_direction * cfg->ui_node_gap(constraint->gap_size);
 
     // Apply a force to translate to the (single) follower
-    Vec2 current_pos = _follower->spatial_node()->position(WORLD_SPACE);
+    Vec2 current_pos = _follower->shape.spatial_node.position(WORLD_SPACE);
     Vec2 desired_pos = current_pos + delta;
     auto* physics_component = componentbag_get<Physics_Component>(&_follower->node()->component_bag);
     VERIFY(physics_component, "Component required");
@@ -1211,13 +1212,13 @@ void ndbl::nodeviewcontraint_rule_N_to_1_as_a_row(Node_View_Constraint* constrai
         {
             // First box is aligned with the leader
             const Box_2D leader_box{ nodeview_get_rect_ex(constraint->leader[0], WORLD_SPACE, constraint->leader_flags) };
-            delta[i] = Box_2D::diff(leader_box, constraint->leader_pivot, box[i], constraint->follower_pivot);
+            delta[i] = box2d_diff(leader_box, constraint->leader_pivot, box[i], constraint->follower_pivot);
             delta[i] += gap * constraint->gap_direction;
         }
         else
         {
             // i+1 box is aligned with the i
-            delta[i] = Box_2D::diff(box[i - 1] , constraint->row_direction, box[i], -constraint->row_direction);
+            delta[i] = box2d_diff(box[i - 1] , constraint->row_direction, box[i], -constraint->row_direction);
             delta[i] += gap * constraint->row_direction;
             delta[i] -= delta[i-1]; //
         }
@@ -1228,7 +1229,7 @@ void ndbl::nodeviewcontraint_rule_N_to_1_as_a_row(Node_View_Constraint* constrai
         auto* physics_component = componentbag_get<Physics_Component>(&clean_follower[i]->node()->component_bag);
         if( !physics_component )
             continue;
-        Vec2 current_pos = clean_follower[i]->spatial_node()->position(WORLD_SPACE);
+        Vec2 current_pos = clean_follower[i]->shape.spatial_node.position(WORLD_SPACE);
         Vec2 desired_pos = current_pos + delta[i];
         physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
     }

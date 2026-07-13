@@ -41,7 +41,7 @@ void Physics_Component::translate(const tools::Vec2& delta, float speed, bool re
 
 void Physics_Component::translate_to(const tools::Vec2& pos, float speed, bool recursive, tools::Space space)
 {
-    const Vec2 delta = pos - _view->spatial_node()->position(space);
+    const Vec2 delta = pos - _view->shape.spatial_node.position(space);
     const Vec2 force = delta * speed;
     add_force(force, recursive);
 }
@@ -70,7 +70,7 @@ void ndbl::Physics_Component::apply_forces(float _dt)
     Vec2  soften_force_sum = Vec2::lerp(_last_frame_forces_sum, _forces_sum, 0.95f);
     Vec2  delta            = soften_force_sum * (1.0f - friction_coef) * _dt;
 
-    _view->spatial_node()->translate( delta );
+    _view->shape.spatial_node.translate( delta );
 
     _last_frame_forces_sum = soften_force_sum;
     _forces_sum            = Vec2();

@@ -61,7 +61,7 @@ String_64 ndbl::nodeslotview_compute_tooltip(const Node_Slot_View* view)
 
 bool ndbl::nodeslotview_draw(Node_Slot_View* view)
 {
-    view->shape.draw_debug_info();
+    box2d_draw_debug_info(&view->shape);
 
     if ( !view->state.has_flags(View_Flag_VISIBLE) )
         return false;
@@ -163,12 +163,12 @@ void ndbl::nodeslotview_update(Node_Slot_View* view, float dt)
                        + Vec2( dir_x * size.x * float(view->index), 0.f) // jump to index
                        + Vec2(0.f, view->alignment.y * size.y * 0.5f); // align edge vertically
 
-        view->spatial_node()->set_position(pos, WORLD_SPACE); // relative to Node_View's
+        view->shape.spatial_node.set_position(pos, WORLD_SPACE); // relative to Node_View's
     }
     else if (view->alignment_ref != nullptr )
     {
         const Vec2 pos  = view->alignment_ref->pivot( view->alignment, WORLD_SPACE);
-        view->spatial_node()->set_position(pos, WORLD_SPACE);
+        view->shape.spatial_node.set_position(pos, WORLD_SPACE);
     }
     else
     {

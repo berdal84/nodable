@@ -17,7 +17,7 @@ Box_2D::Box_2D(const Vec2 & size)
 Box_2D::Box_2D(const Rect& rect)
 : _half_size( rect.size() * 0.5f  )
 {
-    _spatial_node.set_position(rect.center());
+    spatial_node.set_position(rect.center());
 }
 
 Vec2 Box_2D::pivot(const Vec2& pivot, Space space) const
@@ -29,7 +29,7 @@ Vec2 Box_2D::pivot(const Vec2& pivot, Space space) const
 
 Vec2 Box_2D::position(Space space) const
 {
-    return _spatial_node.position(space);
+    return spatial_node.position(space);
 }
 
 Rect Box_2D::rect(Space space) const
@@ -44,12 +44,12 @@ void Box_2D::set_size(const Vec2& size)
     _half_size = size * 0.5f;
 }
 
-Vec2 Box_2D::diff(
-    const Box_2D & leader,
-    const Vec2& leader_pivot,
-    const Box_2D & follower,
-    const Vec2& follower_pivot,
-    const Vec2& axis
+Vec2 tools::box2d_diff(
+    const Box_2D&   leader,
+    const Vec2&     leader_pivot,
+    const Box_2D&   follower,
+    const Vec2&     follower_pivot,
+    const Vec2&     axis
     )
 {
     Vec2 follower_pos = follower.pivot(follower_pivot, WORLD_SPACE);
@@ -71,10 +71,10 @@ Vec2 Box_2D::diff(
 }
 
 
-void Box_2D::draw_debug_info()
+void tools::box2d_draw_debug_info(const Box_2D* box)
 {
 #if DEBUG_draw_debug_info
-    Rect r = rect(WORLD_SPACE);
+    Rect r = box->rect(WORLD_SPACE);
     if ( r.size().lensqr() < 0.1f )
         return;
 
@@ -84,7 +84,9 @@ void Box_2D::draw_debug_info()
     ImGuiEx::DebugCircle(r.center(), 2.f, ImColor(255, 0,0)); // center
 
     // center to parent center
-    if ( _spatial_node.parent() != nullptr)
-         ImGuiEx::DebugLine(_spatial_node.parent()->position(WORLD_SPACE), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
+    if ( box->spatial_node.parent() != nullptr)
+    {
+        ImGuiEx::DebugLine(box->spatial_node.parent()->position(WORLD_SPACE), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
+    }
 #endif
 }

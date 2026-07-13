@@ -43,8 +43,6 @@ namespace ndbl
         
         Node*                           node()const { return slot->node; }
         bool                            allows(Node_Slot::Flag flags) const { return slot->has_flags(flags); }
-        tools::Spatial_Node*            spatial_node() { return shape.spatial_node(); }
-        const tools::Spatial_Node*      spatial_node() const { return shape.spatial_node(); }
         const Node_Property*            property()const { return slot->property; }
         const tools::Type_Descriptor*   property_type()const { return property() ? property()->type : nullptr; }
     };

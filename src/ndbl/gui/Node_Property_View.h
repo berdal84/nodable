@@ -17,21 +17,18 @@ namespace ndbl
      */
     struct Node_Property_View
     {
+        Node_Property_View(Node_Property*);
+
         bool                show;       // TODO: move this to State_View?
         bool                touched;    // TODO: move this to State_View?
         Node_Property*      property;
         tools::View_State   state;
         tools::Box_2D       shape;
 
-        Node_Property_View(Node_Property*);
-
-        
-        Node*                       node() const;
-        Node_Slot*                  connected_slot() const;
-        Node*                       connected_variable() const;
-        bool                        has_input_connected() const;
-        tools::Spatial_Node*        spatial_node()          { return shape.spatial_node(); };
-        const tools::Spatial_Node*  spatial_node() const    { return shape.spatial_node(); };
+        Node*               node() const;
+        Node_Slot*          connected_slot() const;
+        Node*               connected_variable() const;
+        bool                has_input_connected() const;
     };
 
     bool  nodepropertyview_draw(Node_Property_View*, View_Detail); // return true when changed

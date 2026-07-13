@@ -52,7 +52,7 @@ Node* Node_Property_View::connected_variable() const
 
 bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 {
-    view->shape.draw_debug_info();
+    box2d_draw_debug_info(&view->shape);
 
     if ( !view->state.has_flags(View_Flag_VISIBLE) )
         return false;
