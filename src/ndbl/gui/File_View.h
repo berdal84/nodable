@@ -2,7 +2,6 @@
 
 #include "Condition.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
-#include "Isolation.h"
 #include "core/Types.h"
 #include "core/reflection/Type_Descriptor.h"
 #include "gui/geometry/Rect.h"
@@ -67,11 +66,11 @@ namespace ndbl
         bool                    is_history_dragged                  = false;
     };
 
-    void                            fileview_update(File_View*, float d);
-    void                            fileview_init(File_View*, File& _file);
+    void                            fileview_init(File_View*, File*); // TODO: No fileview_shutdown(File*) ?!
+    void                            fileview_update(File_View*, float dt);
     void                            fileview_draw(File_View*, float dt);
-    std::string                     fileview_get_text(const File_View*, Isolation = Isolation_OFF);
-    void                            fileview_set_text(File_View*, const std::string&, Isolation mode = Isolation_OFF);
+    std::string                     fileview_get_text(const File_View*, bool isolation_on = false);
+    void                            fileview_set_text(File_View*, const std::string&, bool isolation_on = false);
     static void                     fileview_set_cursor_position(File_View* file_view, const TextEditor::Coordinates& _cursorPosition) { file_view->text_editor.SetCursorPosition(_cursorPosition); }
     static TextEditor::Coordinates  fileview_get_cursor_position(const File_View* file_view) { return file_view->text_editor.GetCursorPosition(); }
     void	                        fileview_set_undo_buffer(File_View*, TextEditor::IExternalUndoBuffer*);

@@ -175,7 +175,8 @@ void ndbl::nodable_update(App_State* app)
     // 1. delete flagged files
     for( File* file : app->flagged_to_delete_file )
     {
-        TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file->filename().c_str());
+        TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file_filename(file).c_str());
+        file_shutdown(file);
         delete file;
     }
     app->flagged_to_delete_file.clear();
@@ -183,8 +184,7 @@ void ndbl::nodable_update(App_State* app)
     // 2. Update current file
     if (app->current_file)
     {
-        app->current_file->set_isolation( app->config->isolation ); // might change
-        app->current_file->update();
+        file_update(app->current_file, app->config->has_flags(Config_Flag_ISOLATION_ON));
     }
 
     // 3. Handle events
@@ -197,7 +197,7 @@ void ndbl::nodable_update(App_State* app)
 
     if ( app->current_file )
     {
-        graph_view        = componentbag_get<Graph_View>(&app->current_file->graph()->component_bag); // TODO: should be included in the event?
+        graph_view        = componentbag_get<Graph_View>(&app->current_file->graph->component_bag); // TODO: should be included in the event?
         curr_file_history = &app->current_file->history; // TODO: should be included in the event?
     } 
 
@@ -207,16 +207,16 @@ void ndbl::nodable_update(App_State* app)
         {
             case Event_ID_RESET_GRAPH:
             {
-                app->current_file->set_graph_dirty();
+                app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
                 break;
             }
 
             case Event_ID_TOGGLE_ISOLATION_FLAGS:
             {
-                app->config->isolation = ~app->config->isolation;
+                app->config->flags ^= Config_Flag_ISOLATION_ON;
                 if(app->current_file)
                 {
-                    app->current_file->set_graph_dirty();
+                    app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
                 }
                 break;
             }
@@ -535,6 +535,7 @@ void ndbl::nodable_shutdown(App_State* app)
     for( File* each_file : app->loaded_files )
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::App", "Delete file %s ...\n", each_file->path.c_str());
+        file_shutdown(each_file);
         delete each_file;
     }
 
@@ -567,11 +568,14 @@ File* ndbl::nodable_open_file(App_State* app, const tools::Path& _path)
 {
     File* file = new File();
 
-    if ( File::read( *file, _path ) )
+    file_init(file);
+
+    if ( file_read(file, _path ) )
     {
         return nodable_add_file(app, file);
     }
 
+    file_shutdown(file);
     delete file;
     TOOLS_LOG(tools::Verbosity_Error, "File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
     return nullptr;
@@ -586,21 +590,21 @@ File* ndbl::nodable_add_file(App_State* app, File* _file)
     return _file;
 }
 
-void ndbl::nodable_save_file(const App_State* app, File* _file)
+void ndbl::nodable_save_file(const App_State* app, File* file)
 {
-    VERIFY(_file, "file must be defined");
+    VERIFY(file, "file must be defined");
 
-	if ( !File::write(*_file, _file->path) )
+	if ( !file_write(file, file->path) )
     {
-        TOOLS_LOG(tools::Verbosity_Error, "ndbl::App", "Unable to save %s (%s)\n", _file->filename().c_str(), _file->path.c_str());
+        TOOLS_LOG(tools::Verbosity_Error, "ndbl::App", "Unable to save %s (%s)\n", file_filename(file).c_str(), file->path.c_str());
         return;
     }
-    TOOLS_LOG(tools::Verbosity_Message, "ndbl::App", "File saved: %s\n", _file->path.c_str());
+    TOOLS_LOG(tools::Verbosity_Message, "ndbl::App", "File saved: %s\n", file->path.c_str());
 }
 
-void ndbl::nodable_save_file_as(const App_State* app, File* _file, const tools::Path& _path)
+void ndbl::nodable_save_file_as(const App_State* app, File* file, const tools::Path& _path)
 {
-    if ( !File::write(*_file, _path) )
+    if ( !file_write(file, _path) )
     {
         TOOLS_LOG(tools::Verbosity_Error, "ndbl::App", "Unable to save %s (%s)\n", _path.filename().c_str(), _path.c_str());
         return;
@@ -639,7 +643,7 @@ void ndbl::nodable_reset_current_graph(App_State* app)
     if(!app->current_file) return;
 
     // n.b. nodable is still text oriented
-    app->current_file->set_graph_dirty();
+    app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
 }
 
 File*ndbl::nodable_new_file(App_State* app)
@@ -648,7 +652,9 @@ File*ndbl::nodable_new_file(App_State* app)
 
     String_32 name;
     string_append_fmt(&name, "Untitled_%i.cpp", app->untitled_file_count);
+    
     auto* file = new File();
+    file_init(file);
     file->path = name.c_str();
 
     return nodable_add_file(app, file);
@@ -744,14 +750,14 @@ void ndbl::nodable_draw(App_State* app)
         
         if ( current_file != nullptr )
         {
-            auto* graph_view = componentbag_get<Graph_View>(&current_file->graph()->component_bag);
+            auto* graph_view = componentbag_get<Graph_View>(&current_file->graph->component_bag);
             has_selection = !graph_view->selection.empty();
         }
 
         if (ImGui::BeginMenu("File"))
         {
             bool has_file = current_file != nullptr;
-            bool is_current_file_content_dirty = current_file != nullptr && current_file->needs_to_be_saved();
+            bool is_current_file_content_dirty = current_file != nullptr && current_file->has_flags(File_Flag_NEEDS_TO_BE_SAVED);
             ImGuiEx::MenuItem_EventTrigger<Event_FileNew>();
             ImGuiEx::MenuItem_EventTrigger<Event_FileBrowse>();
             ImGui::Separator();
@@ -799,7 +805,7 @@ void ndbl::nodable_draw(App_State* app)
                     cfg->ui_node_detail = _detail;
                     if (current_file != nullptr)
                     {
-                        auto* graph_view = componentbag_get<Graph_View>(&current_file->graph()->component_bag);
+                        auto* graph_view = componentbag_get<Graph_View>(&current_file->graph->component_bag);
                         graphview_reset_all_properties(graph_view);
                     }
                 }
@@ -834,7 +840,7 @@ void ndbl::nodable_draw(App_State* app)
 
         if (ImGui::BeginMenu("Code"))
         {
-            ImGuiEx::MenuItem_EventTrigger<Event_ToggleIsolationFlags>(cfg->isolation);
+            ImGuiEx::MenuItem_EventTrigger<Event_ToggleIsolationFlags>(cfg->has_flags(Config_Flag_ISOLATION_ON));
             ImGui::EndMenu();
         }
 
@@ -854,7 +860,7 @@ void ndbl::nodable_draw(App_State* app)
 
             ImGui::Separator();
 
-            ImGuiEx::MenuItem_EventTrigger<Event_ToggleIsolationFlags>(cfg->isolation);
+            ImGuiEx::MenuItem_EventTrigger<Event_ToggleIsolationFlags>(cfg->has_flags(Config_Flag_ISOLATION_ON));
 
             ImGui::EndMenu();
         }
@@ -976,7 +982,7 @@ void ndbl::nodable_draw(App_State* app)
         nodable_draw_imgui_config_window(app);
 
         if ( nodable_draw_node_properties_window(app) )
-            app->current_file->set_text_dirty();
+            app->current_file->set_flags(File_Flag_TEXT_IS_DIRTY);
         nodable_draw_help_window(app);
     }
 
@@ -1064,7 +1070,7 @@ bool ndbl::nodable_draw_node_properties_window(App_State* app)
     {
         if( app->current_file )
         {
-            const Graph_View* graph_view = componentbag_get<Graph_View>(&app->current_file->graph()->component_bag); // Graph can't be null
+            const Graph_View* graph_view = componentbag_get<Graph_View>(&app->current_file->graph->component_bag); // Graph can't be null
             switch ( graph_view->selection.count<Node_View*>() )
             {
                 case 0:
@@ -1167,7 +1173,7 @@ void ndbl::nodable_draw_file_window( App_State* app, ImGuiID dockspace_id, bool 
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar
-                                  | ImGuiWindowFlags_UnsavedDocument * file->needs_to_be_saved();
+                                  | ImGuiWindowFlags_UnsavedDocument * file->has_flags(File_Flag_NEEDS_TO_BE_SAVED);
 
     auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
     child_bg.w = 0;
@@ -1175,7 +1181,7 @@ void ndbl::nodable_draw_file_window( App_State* app, ImGuiID dockspace_id, bool 
     ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
     bool open    = true;
-    bool visible = ImGui::Begin(file->filename().c_str(), &open, window_flags);
+    bool visible = ImGui::Begin(file_filename(file).c_str(), &open, window_flags);
 
     ImGui::PopStyleVar();
     ImGui::PopStyleColor(1);
@@ -1350,8 +1356,7 @@ void ndbl::nodable_draw_toolbar_window(App_State* app)
         ImGui::SameLine();
 
         // enter isolation mode
-        bool isolation_on = cfg->isolation & Isolation_ON;
-        if (ImGui::Button(isolation_on ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF", button_size))
+        if (ImGui::Button(cfg->has_flags(Config_Flag_ISOLATION_ON) ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF", button_size))
         {
             event_manager->dispatch( Event_ID_TOGGLE_ISOLATION_FLAGS );
         }

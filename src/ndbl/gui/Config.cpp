@@ -154,7 +154,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     // Misc.
     flags                                 = Config_Flag_EXPERIMENTAL_HYBRID_HISTORY
                                           | Config_Flag_EXPERIMENTAL_MULTI_SELECTION;
-    isolation                             = Isolation_OFF;
+                                          
     graph_view_unfold_duration            = 2.0f; // in sec.
 
     // NodableView

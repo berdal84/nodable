@@ -10,7 +10,6 @@
 #include "ndbl/core/Node_Slot.h"
 
 #include "View_Detail.h"
-#include "Isolation.h"
 
 namespace ndbl
 {
@@ -22,7 +21,8 @@ namespace ndbl
     enum Config_Flag_
     {
         Config_Flag_NONE                              = 0,
-        Config_Flag_DRAW_DEBUG_LINES                  = 1 << 0,
+        Config_Flag_ISOLATION_ON                      = 1 << 0,
+        Config_Flag_DRAW_DEBUG_LINES                  = 1 << 1,
         Config_Flag_EXPERIMENTAL_HYBRID_HISTORY       = 1 << 2,
         Config_Flag_EXPERIMENTAL_MULTI_SELECTION      = 1 << 3,
     };
@@ -98,7 +98,6 @@ namespace ndbl
         float          ui_scope_border_thickness;
         float          ui_scope_gap_base;
         float          ui_scope_gap(tools::Size size = tools::Size_DEFAULT) const;
-        Isolation      isolation;
         float          graph_view_unfold_duration; // The virtual duration used to simulate a graph view unfolding, like accelerating time.
         Config_Flags   flags;
         tools::Config* tools_cfg;

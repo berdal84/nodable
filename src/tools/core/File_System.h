@@ -37,6 +37,9 @@ namespace tools
         Path& operator/(const Path& other)
         { m_path /= other.m_path; return *this; }
 
+        bool operator==(const Path& other)
+        { return m_path == other.m_path; }
+
         static bool  create_directories(const Path&);
         static Path  get_executable_path();            // Get the executable directory absolute path
         static Path  absolute(const Path &_path);

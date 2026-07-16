@@ -16,24 +16,30 @@
 using namespace ndbl;
 using namespace tools;
 
-File::File()
-: path()
-, view()
-, history()
-, _flags(Flags_NEEDS_TO_BE_SAVED | Flags_GRAPH_IS_DIRTY ) // we're text-based!
+namespace ndbl
+{
+    void _file_set_text_dirty(File* file)
+    {
+        file->flags |= File_Flag_TEXT_IS_DIRTY;
+    }
+}
+
+void ndbl::file_init(File* file)
 {
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "Constructor being called ...\n");
 
+    file->flags = File_Flag_NEEDS_TO_BE_SAVED | File_Flag_GRAPH_IS_DIRTY; // A File is text-based by default, so we set the graph dirty to force it to be refreshed from the text.
+
     // Graph
-    _graph = new Graph();
-    graph_init(_graph);
+    file->graph = new Graph();
+    graph_init(file->graph);
 
     auto* graph_view = new Graph_View();
-    component_init(graph_view, _graph);
-    componentbag_add(&_graph->component_bag, graph_view);
+    component_init(graph_view, file->graph);
+    componentbag_add(&file->graph->component_bag, graph_view);
 
-    _graph->signal_change.connect<&File::set_text_dirty>(this);
-    graph_view->signal_change.connect<&File::set_text_dirty>(this);
+    file->graph->signal_change.connect<&_file_set_text_dirty>(file);
+    graph_view->signal_change.connect<&_file_set_text_dirty>(file);
 
     // Fill the "create node" context menu
     for( IAction* action : get_action_manager()->get_actions() )
@@ -41,37 +47,38 @@ File::File()
             graph_view->contextual_menu.add_action(create_node_action);
 
     // File_View
-    fileview_init(&view, *this);
-    view.signal_change.connect<&File::handle_file_view_change>(this);
+    fileview_init(&file->view, file);
+    file->view.signal_change.connect<&file_handle_file_view_change>(file);
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "View built, creating History ...\n");
 
     // History
-    TextEditor_Buffer* text_editor_buf = history.configure_text_editor_undo_buffer(&view.text_editor);
-    fileview_set_undo_buffer(&view, text_editor_buf);
+    TextEditor_Buffer* text_editor_buf = file->history.configure_text_editor_undo_buffer(&file->view.text_editor);
+    fileview_set_undo_buffer(&file->view, text_editor_buf);
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "Constructor being called.\n");
 }
 
-File::~File()
+void ndbl::file_shutdown(File* file)
 {
-    assert(_graph->signal_change.disconnect<&File::set_text_dirty>(this));
+    assert(file->graph->signal_change.disconnect<&_file_set_text_dirty>(file));
     
-    Graph_View* graph_view = componentbag_get<Graph_View>(&_graph->component_bag); // TODO: we could store the ptr in ctor.
+    Graph_View* graph_view = componentbag_get<Graph_View>(&file->graph->component_bag); // TODO: we could store the ptr in ctor.
     graph_view->signal_change.disconnect();
 
-    view.signal_change.disconnect();
+    file->view.signal_change.disconnect();
 
-    graph_shutdown(_graph);
-    delete _graph;
+    graph_shutdown(file->graph);
+    delete file->graph;
+    file->graph = nullptr;
 }
 
-void File::_update_text_from_graph()
+void ndbl::file_update_text_from_graph(File* file, bool isolation_on)
 {
-    if ( auto* root_node = graph_root(_graph) )
+    if ( auto* root_node = graph_root( file->graph ) )
     {
         std::string code;
         get_language()->serialize_node(code, root_node, Serialization_Flag_RECURSE);
-        fileview_set_text(&view, code, _isolation );
+        fileview_set_text( &file->view, code, isolation_on );
     }
     else
     {
@@ -79,12 +86,12 @@ void File::_update_text_from_graph()
     }
 }
 
-void File::update()
+void ndbl::file_update(File* file, bool isolation_on)
 {
     //
     // When history is dirty we update the graph from the text.
     // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-    if ( history.is_dirty )
+    if ( file->history.is_dirty )
     {
         if ( get_config()->has_flags(Config_Flag_EXPERIMENTAL_HYBRID_HISTORY) )
         {
@@ -92,49 +99,49 @@ void File::update()
         }
         else
         {
-            _flags = _flags & ~Flags_TEXT_IS_DIRTY // unset text is dirty
-                   | Flags_GRAPH_IS_DIRTY; // set graph dirty (we are text-based!)
+            file->flags = file->flags & ~File_Flag_TEXT_IS_DIRTY // unset text is dirty
+                        | File_Flag_GRAPH_IS_DIRTY; // set graph dirty (we are text-based!)
         }
-        history.is_dirty = false;
+        file->history.is_dirty = false;
     }
 
-    if ( _flags & Flags_GRAPH_IS_DIRTY )
+    if ( file->flags & File_Flag_GRAPH_IS_DIRTY )
     {
-        _update_graph_from_text();
-        graph_update(_graph);
-        _flags = _flags & ~Flags_IS_DIRTY_MASK;  // clear dirty flags
+        file_update_graph_from_text(file, isolation_on);
+        graph_update(file->graph);
+        file->flags = file->flags & ~File_Flag_IS_DIRTY_MASK;  // clear dirty flags
     }
-    else if ( _flags & Flags_TEXT_IS_DIRTY )
+    else if ( file->flags & File_Flag_TEXT_IS_DIRTY )
     {
-        graph_update(_graph);
-        _update_text_from_graph();
-        _flags = _flags & ~Flags_IS_DIRTY_MASK;  // clear dirty flags
+        graph_update(file->graph);
+        file_update_text_from_graph(file, isolation_on);
+        file->flags = file->flags & ~File_Flag_IS_DIRTY_MASK;  // clear dirty flags
     }
     else
     {
-        graph_update(_graph);
+        graph_update(file->graph);
     }
 }
 
-void File::_update_graph_from_text()
+void ndbl::file_update_graph_from_text(File* file, bool isolation_on)
 {
     // Parse source code
     // note: File owns the parsed text buffer
-    _parsed_text = fileview_get_text(&view, _isolation);
-    get_language()->parse(_graph, _parsed_text);
+    file->parsed_text = fileview_get_text(&file->view, isolation_on );
+    get_language()->parse(file->graph, file->parsed_text);
 }
 
-size_t File::size() const
+size_t ndbl::file_size(const File* file)
 {
-    return fileview_size(&view);
+    return fileview_size(&file->view);
 }
 
-std::string File::filename() const
+std::string ndbl::file_filename(const File* file)
 {
-    return path.filename().string();
+    return file->path.filename().string();
 }
 
-bool File::write( File& file, const tools::Path& path)
+bool ndbl::file_write(File* file, const tools::Path& path)
 {
     if( path.empty() )
     {
@@ -142,24 +149,29 @@ bool File::write( File& file, const tools::Path& path)
         return false;
     }
 
-    if ( (file._flags & Flags_NEEDS_TO_BE_SAVED) == 0 )
+    if ( (file->flags & File_Flag_NEEDS_TO_BE_SAVED) == 0 && path == file->path )
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "File", "Nothing to save\n");
+        return true;
     }
 
+    // get content (We do a copy here, because the data from the fileview is not necessarily contiguous, and texteditor gives us a new string instance)
+    std::string content = fileview_get_text(&file->view, false );
+
+    // write bytes
     std::ofstream out_fstream(path.string());
-    std::string result;
-    result = fileview_get_text(&file.view, file._isolation);
-    std::string content = result;
     out_fstream.write(content.c_str(), content.size()); // TODO: size can exceed fstream!
-    file._flags &= ~Flags_NEEDS_TO_BE_SAVED; // unset flag
-    file.path = path;
-    TOOLS_LOG(tools::Verbosity_Message, "File", "%s saved\n", file.filename().c_str() );
+
+    // update file
+    file->flags &= ~File_Flag_NEEDS_TO_BE_SAVED; // unset flag
+    file->path = path;
+
+    TOOLS_LOG(tools::Verbosity_Message, "File", "%s saved\n", file_filename(file).c_str() );
 
     return true;
 }
 
-bool File::read( File& file, const tools::Path& path)
+bool ndbl::file_read( File* file, const tools::Path& path)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "File", "\"%s\" loading... (%s).\n", path.filename().c_str(), path.c_str());
     if(path.empty() )
@@ -176,38 +188,25 @@ bool File::read( File& file, const tools::Path& path)
     }
 
     std::string content((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
-    fileview_set_text(&file.view, content, file._isolation);
-    file._flags &= ~Flags_NEEDS_TO_BE_SAVED; // unset flag
-    file.path = path;
+    fileview_set_text(&file->view, content, false);
+    file->flags &= ~File_Flag_NEEDS_TO_BE_SAVED; // unset flag
+    file->path = path;
 
     TOOLS_LOG(tools::Verbosity_Message, "File", "%s loaded\n", path.filename().c_str(), path.c_str());
 
     return true;
 }
 
-void File::set_isolation(Isolation isolation)
-{
-    if ( _isolation == isolation )
-        return;
-
-    _isolation   = isolation;
-    _parsed_text = fileview_get_text(&view, _isolation);
-
-    // when isolation changes, the text has the priority over the graph.
-    _flags &= ~Flags_IS_DIRTY_MASK; // unset flags
-    _flags |= Flags_GRAPH_IS_DIRTY;
-}
-
-void File::handle_file_view_change(File_View_Event_Type type)
+void ndbl::file_handle_file_view_change(File* file, File_View_Event_Type type)
 {
     switch ( type )
     {
         case File_View_Overlay_Type_TEXT:
-            _flags |= Flags_TEXT_IS_DIRTY;
+            file->flags |= File_Flag_TEXT_IS_DIRTY;
             break;
         
         case File_View_Overlay_Type_GRAPH:
-            _flags |= Flags_GRAPH_IS_DIRTY;
+            file->flags |= File_Flag_GRAPH_IS_DIRTY;
             break;
         
         default:

@@ -17,12 +17,12 @@
 using namespace ndbl;
 using namespace tools;
 
-void ndbl::fileview_init(File_View* file_view, File& _file)
+void ndbl::fileview_init(File_View* file_view, File* file)
 {
     Config* cfg = get_config();
 
-    file_view->file = &_file;
-    std::string overlay_basename{_file.filename()};
+    file_view->file = file;
+    std::string overlay_basename{ file_filename(file)};
     file_view->text_overlay_window_name  = overlay_basename + "_text_overlay";
     file_view->graph_overlay_window_name = overlay_basename + "_graph_overlay";
 
@@ -31,7 +31,7 @@ void ndbl::fileview_init(File_View* file_view, File& _file)
 	file_view->text_editor.SetImGuiChildIgnored(true);
 	file_view->text_editor.SetPalette( cfg->ui_text_textEditorPalette );
 
-    file_view->graph_view = componentbag_get<Graph_View>(&file_view->file->graph()->component_bag);
+    file_view->graph_view = componentbag_get<Graph_View>(&file_view->file->graph->component_bag);
     VERIFY( file_view->graph_view, "A Graph_View component is required by File_View" );
 }
 
@@ -204,7 +204,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
 
             text_view_changed  = is_line_text_modified;
             text_view_changed |= file_view->text_editor.IsTextChanged();
-            text_view_changed |= cfg->isolation && is_selected_text_modified;
+            text_view_changed |= cfg->has_flags(Config_Flag_ISOLATION_ON) && is_selected_text_modified;
         }
         ImGui::EndChild();
 
@@ -228,7 +228,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
-            if( cfg->isolation )
+            if( cfg->has_flags(Config_Flag_ISOLATION_ON) )
             {
                 Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( cfg->ui_overlay_margin);
                 ImGui::SetCursorPos(cursor_pos);
@@ -247,9 +247,9 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
     ImGui::PopStyleColor();
 }
 
-std::string ndbl::fileview_get_text( const File_View* file_view, Isolation mode )
+std::string ndbl::fileview_get_text( const File_View* file_view, bool isolation_on )
 {
-    if ( mode == Isolation_OFF )
+    if ( !isolation_on )
     {
         return file_view->text_editor.GetText();
     }
@@ -262,14 +262,14 @@ std::string ndbl::fileview_get_text( const File_View* file_view, Isolation mode 
     return file_view->text_editor.GetCurrentLineText(); // By default, we consider the current line as the selection
 }
 
-void ndbl::fileview_set_text(File_View* file_view, const std::string& text, Isolation mode)
+void ndbl::fileview_set_text(File_View* file_view, const std::string& text, bool isolation_on)
 {
-    if ( fileview_get_text(file_view, mode) == text )
+    if ( fileview_get_text(file_view, isolation_on) == text )
     {
         return;
     }
 
-    if( mode == Isolation_ON )
+    if( isolation_on )
     {
         auto start = file_view->text_editor.GetCursorPosition();
 
@@ -318,19 +318,19 @@ void ndbl::fileview_draw_info_panel(const File_View* file_view)
     ImGui::Text("Current file:");
     ImGui::Indent();
     ImGui::TextWrapped("path: %s", file_view->file->path.string().c_str());
-    ImGui::TextWrapped("set_size: %0.3f KiB", float(file_view->file->size()) / 1000.0f );
+    ImGui::TextWrapped("set_size: %0.3f KiB", float(file_size(file_view->file)) / 1000.0f );
     ImGui::Unindent();
     ImGui::NewLine();
 
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %zu", file_view->file->graph()->nodes.size());
+    ImGui::Text("Node count: %zu", file_view->file->graph->nodes.size());
     ImGui::Unindent();
     ImGui::NewLine();
 
     // Hierarchy
-    Scope* scope = graph_root_scope(file_view->file->graph());
+    Scope* scope = graph_root_scope(file_view->file->graph);
     VERIFY(scope, "An Scope root is required to draw the AST as an ImGui tree");
     TreeNode_Scope("Graph's Root Scope", scope);
 }
