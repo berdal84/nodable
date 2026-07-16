@@ -58,7 +58,7 @@ void ndbl::file_init(File* file)
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "Constructor being called.\n");
 }
 
-void ndbl::file_shutdown(File* file)
+void ndbl::file_deinit(File* file)
 {
     assert(file->graph->signal_change.disconnect<&_file_set_text_dirty>(file));
     
@@ -67,7 +67,7 @@ void ndbl::file_shutdown(File* file)
 
     file->view.signal_change.disconnect();
 
-    graph_shutdown(file->graph);
+    graph_deinit(file->graph);
     delete file->graph;
     file->graph = nullptr;
 }

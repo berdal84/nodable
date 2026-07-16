@@ -69,7 +69,7 @@ void App_Example::draw()
 void App_Example::shutdown()
 {
     // Shutdown our stuff
-    app_shutdown(this);
+    app_deinit(this);
     m_view.shutdown();
     shutdown_config(m_config);
 

@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
         ndbl::App_State state;
         nodable_init(&state);
         nodable_run(&state);
-        nodable_shutdown(&state);
+        nodable_deinit(&state);
     }
     TOOLS_catch
     return 0;

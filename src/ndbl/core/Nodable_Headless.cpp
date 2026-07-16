@@ -17,11 +17,11 @@ void ndbl::nodable_init(App_Headless_State* state)
     state->language->_state.reset( state->graph ); // in some cases (like during tests), we call parse_xxx methods that implicitly requires the state to be reset
 }
 
-void ndbl::nodable_shutdown(App_Headless_State* state)
+void ndbl::nodable_deinit(App_Headless_State* state)
 {
     ASSERT(state->graph);
     nodable_clear(state);
-    graph_shutdown(state->graph);
+    graph_deinit(state->graph);
     delete state->graph;
     tools::shutdown_task_manager(state->task_manager);
     shutdown_language(state->language);

@@ -45,7 +45,7 @@ void App_View_Example::shutdown()
     this->signal_reset_layout.disconnect();
 
     // Here we undo what we did in init()
-    appview_shutdown(this); // base view will release its resources
+    appview_deinit(this); // base view will release its resources
 }
 
 void App_View_Example::draw()

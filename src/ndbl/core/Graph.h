@@ -60,7 +60,7 @@ namespace ndbl
     };
 
     void                    graph_init(Graph*);
-    void                    graph_shutdown(Graph*);
+    void                    graph_deinit(Graph*);
     void                    graph_clear(Graph*);
     bool                    graph_update(Graph*);
     void                    graph_reset(Graph*); // Delete all nodes, wires, edges and reset scope.

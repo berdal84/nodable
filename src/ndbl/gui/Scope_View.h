@@ -36,7 +36,7 @@ namespace ndbl
     };    
 
     void                            scopeview_init(Scope_View*, Scope*);
-    void                            scopeview_shutdown(Scope_View*);
+    void                            scopeview_deinit(Scope_View*);
     void                            scopeview_update(Scope_View*, float dt, Scope_View_Flags = Scope_View_Flag_NONE );
     void                            scopeview_draw(Scope_View*, float dt);
     inline bool                     scopeview_has_parent(const Scope_View* scope_view) { return scope_view->scope->parent != nullptr; }

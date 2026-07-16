@@ -169,7 +169,7 @@ namespace ndbl
             Literal_State                       literal_data;               // check type before use!
         };
 
-        tools::Simple_Signal                    signal_shutdown     = {}; // emit once shutdown() has been called
+        tools::Simple_Signal                    signal_deinit     = {}; // emit once component_deinit() has been called
         tools::Signal<void(const std::string&)> signal_name_change  = {};   
         std::vector<Node_Property*>             props               = {}; // TODO: size-fixed array?
         std::map<std::string, Node_Property*>   props_by_name       = {};
@@ -222,7 +222,7 @@ namespace ndbl
     void                    node_init_as_empty_instruction(Node*);
     void                    node_init_internal_scope(Node*);
     void                    node_init_branches(Node*, size_t branch_count);
-    void                    node_shutdown(Node*);
+    void                    node_deinit(Node*);
     bool                    node_update(Node*);
     void                    node_reset_scope(Node*, Scope*);
     void                    node_variable_ref_clear_variable(Node*);

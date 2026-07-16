@@ -32,13 +32,13 @@ Node_View::Node_View()
 : Component<Node>("View")
 {
     Component::signal_init.connect<&nodeview_handle_init>(this);
-    Component::signal_shutdown.connect<&nodeview_handle_shutdown>(this);
+    Component::signal_deinit.connect<&nodeview_handle_deinit>(this);
 }
 
 Node_View::~Node_View()
 {
     Component::signal_init.disconnect();
-    Component::signal_shutdown.disconnect();
+    Component::signal_deinit.disconnect();
     assert(slot_views.empty());
     assert(view_by_property.empty());
     for(auto vector : view_by_property_type )
@@ -227,7 +227,7 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
     }
 }
 
-void ndbl::nodeview_handle_shutdown(Node_View* node_view)
+void ndbl::nodeview_handle_deinit(Node_View* node_view)
 {
     spatialnode_clear(&node_view->shape.spatial_node);
 
@@ -244,7 +244,7 @@ void ndbl::nodeview_handle_shutdown(Node_View* node_view)
     node_view->slot_views.clear();
 
     if( node_view->internal_scopeview != nullptr )
-        scopeview_shutdown(node_view->internal_scopeview);
+        scopeview_deinit(node_view->internal_scopeview);
 
     node_view->hovered_slotview = nullptr;
 }

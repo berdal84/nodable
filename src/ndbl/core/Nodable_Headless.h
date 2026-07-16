@@ -24,8 +24,8 @@ namespace ndbl
     };
 
     void            nodable_init(App_Headless_State*);
+    void            nodable_deinit(App_Headless_State*);
     void            nodable_update(App_Headless_State*);
-    void            nodable_shutdown(App_Headless_State*);
     void            nodable_clear(App_Headless_State*);
     std::string&    nodable_serialize(const App_Headless_State*, std::string& out);
     Graph*          nodable_parse(const App_Headless_State*, const std::string& in );

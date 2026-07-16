@@ -1,5 +1,6 @@
 #include "Nodable.h"
 #include "IconsFontAwesome5.h"
+#include "ImGuiColorTextEdit/TextEditor.h"
 #include "gui/App.h"
 #include "gui/ImGuiEx.h"
 
@@ -43,6 +44,22 @@ using namespace tools;
 #include "File_View.h"
 #include "Graph_View.h"
 #include "History.h"
+
+namespace ndbl
+{
+    // private API
+    
+    void            _nodable_draw_file_info_window(App_State*);
+    void            _nodable_draw_file_window(App_State*, ImGuiID dockspace_id, bool redock_all, File*file);
+    void            _nodable_draw_help_window(const App_State*);
+    void            _nodable_draw_imgui_config_window(App_State*);
+    bool            _nodable_draw_node_properties_window(App_State*);
+    void            _nodable_draw_config_window(App_State*);
+    void            _nodable_draw_startup_window(App_State*, ImGuiID dockspace_id);
+    void            _nodable_draw_toolbar_window(App_State*);
+    void            _nodable_on_draw_splashscreen_content();
+    void            _nodable_on_reset_layout();
+}
 
 using namespace ndbl;
 using namespace tools;
@@ -176,7 +193,7 @@ void ndbl::nodable_update(App_State* app)
     for( File* file : app->flagged_to_delete_file )
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file_filename(file).c_str());
-        file_shutdown(file);
+        file_deinit(file);
         delete file;
     }
     app->flagged_to_delete_file.clear();
@@ -528,14 +545,14 @@ void ndbl::nodable_update(App_State* app)
     }
 }
 
-void ndbl::nodable_shutdown(App_State* app)
+void ndbl::nodable_deinit(App_State* app)
 {
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_shutdown ...\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_deinit ...\n");
 
     for( File* each_file : app->loaded_files )
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::App", "Delete file %s ...\n", each_file->path.c_str());
-        file_shutdown(each_file);
+        file_deinit(each_file);
         delete each_file;
     }
 
@@ -545,15 +562,15 @@ void ndbl::nodable_shutdown(App_State* app)
     // get_texture_manager()->release(app->view->logo);
     app->view->signal_reset_layout.disconnect();
     app->view->signal_draw_splashscreen_content.disconnect();
-    appview_shutdown(app->view);
-    tools::app_shutdown(app);
+    appview_deinit(app->view);
+    tools::app_deinit(app);
     ndbl::shutdown_config(app->config);
 
     delete app->view;
 
     g_nodable_state = nullptr;
     
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_shutdown " TOOLS_OK "\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_deinit " TOOLS_OK "\n");
 }
 
 File* ndbl::nodable_open_asset_file(App_State* app, const tools::Path& _path)
@@ -569,13 +586,20 @@ File* ndbl::nodable_open_file(App_State* app, const tools::Path& _path)
     File* file = new File();
 
     file_init(file);
+    
+    // Currently, we rely on the LanguageDefinition provided by the text editor to perform syntax highlighting
+    // In case we want to handle different languages, we'll have to do some detection here.
+    // Right now, I'll always use C language definition.
+    //
+    static TextEditor::LanguageDefinition c_lang_def = TextEditor::LanguageDefinition::C();
+    file->view.text_editor.SetLanguageDefinition( c_lang_def );
 
     if ( file_read(file, _path ) )
     {
         return nodable_add_file(app, file);
     }
 
-    file_shutdown(file);
+    file_deinit(file);
     delete file;
     TOOLS_LOG(tools::Verbosity_Error, "File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
     return nullptr;
@@ -964,32 +988,32 @@ void ndbl::nodable_draw(App_State* app)
         bool show_startup_window = !app->view->show_splashscreen;
         if( show_startup_window )
         {
-            nodable_draw_startup_window(app, ds_root);
+            _nodable_draw_startup_window(app, ds_root);
         }
     }
     else
     {
-        nodable_draw_toolbar_window(app);
+        _nodable_draw_toolbar_window(app);
 
         for ( File* each_file : app->loaded_files )
         {
-            nodable_draw_file_window( app, ds_root, redock_all, each_file);
+            _nodable_draw_file_window( app, ds_root, redock_all, each_file);
         }
 
-        nodable_draw_file_info_window(app);
-        nodable_draw_config_window(app);
-        nodable_draw_imgui_config_window(app);
+        _nodable_draw_file_info_window(app);
+        _nodable_draw_config_window(app);
+        _nodable_draw_imgui_config_window(app);
 
-        if ( nodable_draw_node_properties_window(app) )
+        if ( _nodable_draw_node_properties_window(app) )
             app->current_file->set_flags(File_Flag_TEXT_IS_DIRTY);
-        nodable_draw_help_window(app);
+        _nodable_draw_help_window(app);
     }
 
     // end the drawing
     appview_end(app->view);
 }
 
-void ndbl::nodable_draw_help_window(const App_State* app)
+void ndbl::_nodable_draw_help_window(const App_State* app)
 {
     Config*      cfg  = get_config();
     if (ImGui::Begin( cfg->ui_help_window_label))
@@ -1028,7 +1052,7 @@ void ndbl::nodable_draw_help_window(const App_State* app)
     ImGui::End();
 }
 
-void ndbl::nodable_draw_imgui_config_window(App_State* app)
+void ndbl::_nodable_draw_imgui_config_window(App_State* app)
 {
     Config*      cfg  = get_config();
     tools::Config* tools_cfg = tools::get_config();
@@ -1044,7 +1068,7 @@ void ndbl::nodable_draw_imgui_config_window(App_State* app)
     ImGui::End();
 }
 
-void ndbl::nodable_draw_file_info_window(App_State* app)
+void ndbl::_nodable_draw_file_info_window(App_State* app)
 {
     Config* cfg  = get_config();
 
@@ -1061,7 +1085,7 @@ void ndbl::nodable_draw_file_info_window(App_State* app)
     ImGui::End();
 }
 
-bool ndbl::nodable_draw_node_properties_window(App_State* app)
+bool ndbl::_nodable_draw_node_properties_window(App_State* app)
 {
     bool changed = false;
     Config* cfg = get_config();
@@ -1091,7 +1115,7 @@ bool ndbl::nodable_draw_node_properties_window(App_State* app)
     return changed;
 }
 
-void ndbl::nodable_draw_startup_window(App_State* app, ImGuiID dockspace_id)
+void ndbl::_nodable_draw_startup_window(App_State* app, ImGuiID dockspace_id)
 {
     Config*      cfg  = get_config();
 
@@ -1166,7 +1190,7 @@ void ndbl::nodable_draw_startup_window(App_State* app, ImGuiID dockspace_id)
     ImGui::End(); // Startup Window
 }
 
-void ndbl::nodable_draw_file_window( App_State* app, ImGuiID dockspace_id, bool redock_all, File*file)
+void ndbl::_nodable_draw_file_window( App_State* app, ImGuiID dockspace_id, bool redock_all, File*file)
 {
     Config* cfg = get_config();
 
@@ -1203,7 +1227,7 @@ void ndbl::nodable_draw_file_window( App_State* app, ImGuiID dockspace_id, bool 
     }
 }
 
-void ndbl::nodable_draw_config_window(App_State* app)
+void ndbl::_nodable_draw_config_window(App_State* app)
 {
     Config*      cfg  = get_config();
     auto* tools_cfg = tools::get_config();
@@ -1331,7 +1355,7 @@ void ndbl::nodable_draw_config_window(App_State* app)
     ImGui::End();
 }
 
-void ndbl::nodable_draw_toolbar_window(App_State* app)
+void ndbl::_nodable_draw_toolbar_window(App_State* app)
 {
     Config*      cfg  = get_config();
 

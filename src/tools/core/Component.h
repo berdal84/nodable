@@ -25,7 +25,7 @@ namespace tools
         using Entity_Type = _Entity_Type;
 
         tools::Simple_Signal            signal_init;            // called after component knows its entity
-        tools::Simple_Signal            signal_shutdown;        // called before to be deleted, when component still knows its entity
+        tools::Simple_Signal            signal_deinit;        // called before to be deleted, when component still knows its entity
         Entity_Type*                    entity      = nullptr;
         const tools::Type_Descriptor*   type_desc   = nullptr;
         const char*                     name        = "";
@@ -53,10 +53,10 @@ namespace tools
     }
 
     template<typename Entity_Type>
-    void component_shutdown(Component<Entity_Type>* component) // do the mirror of component_init()
+    void component_deinit(Component<Entity_Type>* component) // do the mirror of component_init()
     {
-        TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Component", "_shutdown \"%s\" ...\n", component->name);
-        component->signal_shutdown.emit();
+        TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Component", "_deinit \"%s\" ...\n", component->name);
+        component->signal_deinit.emit();
         component->entity    = nullptr;
         component->type_desc = nullptr;
     }
@@ -125,7 +125,7 @@ namespace tools
     }
 
     template<typename Entity_Type>
-    void componentbag_shutdown(Component_Bag<Entity_Type>* bag)
+    void componentbag_deinit(Component_Bag<Entity_Type>* bag)
     {
         VERIFY(bag->entity != nullptr, "This Component_Bag was not initialized");
         componentbag_clear(bag);
@@ -163,7 +163,7 @@ namespace tools
     void componentbag_remove(Component_Bag<Entity_Type>* bag, Component_Type* component)
     {
         ASSERT(bag->entity != nullptr); // This Component_Bag was not initialized
-        VERIFY(component->entity == bag->entity, "This component does not belong to the same entity or call component_shutdown() after componentbag_remove()");
+        VERIFY(component->entity == bag->entity, "This component does not belong to the same entity or call component_deinit() after componentbag_remove()");
 
         // erase from indexed_by_typeid
         auto it = std::find_if(

@@ -67,7 +67,7 @@ namespace ndbl
     void    graphview_reset_all_properties(Graph_View*);
     void    graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *from, const Vec2 &end_pos);
     void    graphview_handle_init(Graph_View*);
-    void    graphview_handle_shutdown(Graph_View*);
+    void    graphview_handle_deinit(Graph_View*);
     void    graphview_handle_add_node(Graph_View*, Node*);
     void    graphview_handle_remove_node(Graph_View*, Node* node);
     void    graphview_handle_change_scope(Graph_View*, Graph::Scope_Change);

@@ -41,7 +41,7 @@ ndbl::Graph_View::Graph_View()
 , shape( Vec2{100.f, 100.f} ) // non null area
 {
     signal_init.connect<&graphview_handle_init>(this);
-    signal_shutdown.connect<&graphview_handle_shutdown>(this);
+    signal_deinit.connect<&graphview_handle_deinit>(this);
 
     state_machine.add_state(CURSOR_STATE);
     state_machine.bind<&graphview_cursor_state_tick>(CURSOR_STATE, When::OnTick);
@@ -68,7 +68,7 @@ ndbl::Graph_View::~Graph_View()
 {
     // not really needed, but lets clear memory
     signal_init.disconnect();
-    signal_shutdown.disconnect();
+    signal_deinit.disconnect();
 }
 
 void ndbl::graphview_handle_init(Graph_View* graph_view)
@@ -90,7 +90,7 @@ void ndbl::graphview_handle_init(Graph_View* graph_view)
     graph_view->state_machine.start();
 }
 
-void ndbl::graphview_handle_shutdown(Graph_View* graph_view)
+void ndbl::graphview_handle_deinit(Graph_View* graph_view)
 {
     graph_view->state_machine.stop();
 
@@ -142,7 +142,7 @@ void ndbl::graphview_handle_remove_node(Graph_View* graph_view, Node* node)
     auto* physics_component = componentbag_get<Physics_Component>(&node->component_bag);
     VERIFY(physics_component, "Should have been created from _handle_add_node()");
     componentbag_remove(&node->component_bag, physics_component );
-    component_shutdown(physics_component);
+    component_deinit(physics_component);
     delete physics_component;
 
     // clean nodeview
@@ -160,7 +160,7 @@ void ndbl::graphview_handle_remove_node(Graph_View* graph_view, Node* node)
     }
 
     componentbag_remove( &node->component_bag, nodeview );
-    component_shutdown(nodeview);
+    component_deinit(nodeview);
     delete nodeview;
 }
 

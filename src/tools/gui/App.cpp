@@ -58,14 +58,14 @@ void tools::app_main_loop(App_State* app)
     }
 }
 
-void tools::app_shutdown(App_State* app)
+void tools::app_deinit(App_State* app)
 {
     TOOLS_LOG(tools::Verbosity_Message, "tools::BaseApp", "Shutting down ...\n");
 
     // Optionally shutdown view
     if (app->flags & AppFlag_OWNS_VIEW_MEMORY )
     {
-        appview_shutdown(app->view);
+        appview_deinit(app->view);
     }
 
     // Optionally shutdown config

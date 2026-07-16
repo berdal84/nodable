@@ -17,7 +17,7 @@ void ndbl::scopeview_init(Scope_View* scope_view, Scope* scope)
     scope->view         = scope_view;
 }
 
-void ndbl::scopeview_shutdown(Scope_View* scope_view)
+void ndbl::scopeview_deinit(Scope_View* scope_view)
 {
     spatialnode_clear(&scope_view->spatial_node);
 

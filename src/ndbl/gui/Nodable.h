@@ -39,11 +39,11 @@ namespace ndbl
     // common
 
     void            nodable_init(App_State*);
+    void            nodable_deinit(App_State*);
     App_State*      nodable_state();
     void            nodable_run(App_State*);
     void            nodable_update(App_State*);
     void            nodable_draw(App_State*);
-    void            nodable_shutdown(App_State*);
     bool            nodable_should_stop(const App_State*);
     void            nodable_do_frame(App_State*);
 
@@ -59,19 +59,4 @@ namespace ndbl
     void            nodable_close_file(App_State*);
     void            nodable_close_file(App_State*, File*);
     void            nodable_reset_current_graph(App_State*);
-
-    // secondary draw functions
-
-    void            nodable_draw_file_info_window(App_State*);
-    void            nodable_draw_file_window(App_State*, ImGuiID dockspace_id, bool redock_all, File*file);
-    void            nodable_draw_help_window(const App_State*);
-    void            nodable_draw_imgui_config_window(App_State*);
-    bool            nodable_draw_node_properties_window(App_State*);
-    void            nodable_draw_config_window(App_State*);
-    void            nodable_draw_startup_window(App_State*, ImGuiID dockspace_id);
-    void            nodable_draw_toolbar_window(App_State*);
-
-    // 
-    void            _nodable_on_draw_splashscreen_content();
-    void            _nodable_on_reset_layout();
 }

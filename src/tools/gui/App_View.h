@@ -70,7 +70,7 @@ namespace tools
     void        appview_update(App_View_State*);
     void        appview_begin(App_View_State*);
     void        appview_end(App_View_State*);
-    void        appview_shutdown(App_View_State*);
+    void        appview_deinit(App_View_State*);
     void        appview_draw_splashscreen(App_View_State*); // If needed, use begin/end_splashscreen static methods to override this. Ex: if ( AppView::begin_splashscreen(m_app->config) ) { /* your code here */; AppView::end_splashscreen(); }
     ImGuiID     appview_get_dockspace(App_View_State*, Dockspace);
     int         appview_fps(App_View_State*);      // get the current frame per second (un-smoothed)

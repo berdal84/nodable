@@ -46,7 +46,7 @@ namespace ndbl
     void                                _scope_update_depth_cache(const Scope*);
     void                                _scope_set_depth_cache_dirty(const Scope*);
 
-    void                                scope_on_shutdown(Scope*);
+    void                                scope_on_deinit(Scope*);
     std::vector<Node*>                  scope_get_leaves(Scope*);
     std::vector<Node*>&                 scope_get_leaves_ex(std::vector<Node*>& out, Scope*);
     inline size_t                       scope_get_depth(const Scope* scope) { _scope_update_depth_cache(scope); return scope->_cached_depth; };

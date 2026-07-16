@@ -215,7 +215,7 @@ void tools::appview_init(App_View_State* view, App_State* app)
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "init DONE\n");
 }
 
-void tools::appview_shutdown(App_View_State* view)
+void tools::appview_deinit(App_View_State* view)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down ...\n");
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down managers ...\n");

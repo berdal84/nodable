@@ -16,14 +16,14 @@ Scope::Scope()
 : Component<Node>("Scope")
 {
     // Component::signal_init.connect<&Scope::on_init>(this);
-    Component::signal_shutdown.connect<&scope_on_shutdown>(this);
+    Component::signal_deinit.connect<&scope_on_deinit>(this);
     // Component::signal_name_change.connect<&Scope::_on_name_change>(this);
 }
 
 Scope::~Scope()
 {
     // assert(Component::signal_init.disconnect<&Scope::on_init>(this));
-    Component::signal_shutdown.disconnect();
+    Component::signal_deinit.disconnect();
     // assert(Component::signal_name_change.disconnect<&Scope::_on_name_change>(this));
     assert(parent == nullptr);
     assert(head == nullptr);
@@ -52,7 +52,7 @@ void ndbl::_scope_update_backbone_cache(const Scope* scope)
     scope->_cached_backbone_dirty = false;
 }
 
-void ndbl::scope_on_shutdown(Scope* scope)
+void ndbl::scope_on_deinit(Scope* scope)
 {
     VERIFY(scope->parent == nullptr, "Remove this scope from parent first");
 

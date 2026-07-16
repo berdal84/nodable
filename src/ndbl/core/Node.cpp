@@ -89,7 +89,7 @@ void ndbl::node_init(Node* node, Node_Type type, const std::string& label)
     node->flags |= Node_Flag_IS_INITIALIZED;
 }
 
-void ndbl::node_shutdown(Node* node)
+void ndbl::node_deinit(Node* node)
 {
     ASSERT(node != nullptr);
 
@@ -160,12 +160,12 @@ void ndbl::node_shutdown(Node* node)
     // TODO: we could optimize these two loops by iterating once.
     //       but for some reasons components have unordered dependencies that needs to be fixed.
     for(auto* component : node->component_bag)
-        component_shutdown(component);
+        component_deinit(component);
     for(auto* component : node->component_bag)
         delete component;
-    componentbag_shutdown(&node->component_bag);
+    componentbag_deinit(&node->component_bag);
 
-    node->signal_shutdown.emit();
+    node->signal_deinit.emit();
 }
 
 const Function_Descriptor* ndbl::node_get_connected_function_type(const Node* node, const char* property_name)
@@ -614,7 +614,7 @@ void ndbl::node_variable_ref_set_variable(Node* node, Node* variable_node)
 
     // bind signals
     node->variableref_data.variable_node->signal_name_change.connect< &node_variable_ref_handle_name_change>(node);
-    node->variableref_data.variable_node->signal_shutdown.connect<&node_variable_ref_clear_variable>(node);
+    node->variableref_data.variable_node->signal_deinit.connect<&node_variable_ref_clear_variable>(node);
 }
 
 void ndbl::node_variable_ref_clear_variable(Node* node)
@@ -625,7 +625,7 @@ void ndbl::node_variable_ref_clear_variable(Node* node)
 
     // unbind signals
     variable_node->signal_name_change.disconnect();
-    variable_node->signal_shutdown.disconnect();
+    variable_node->signal_deinit.disconnect();
     variable_node = nullptr;
 }
 

@@ -47,7 +47,7 @@ namespace ndbl
     };
 
     void                    file_init(File*);
-    void                    file_shutdown(File*);
+    void                    file_deinit(File*);
     void                    file_update(File*, bool isolation_on); // to call each frame
     void                    file_handle_file_view_change(File*, File_View_Event_Type type);
     std::string             file_filename(const File*);

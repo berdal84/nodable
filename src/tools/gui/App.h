@@ -26,7 +26,7 @@ namespace tools
     void    app_init(App_State* app);
     void    app_init_ex(App_State* app, App_View_State* , Config*);
     void    app_main_loop(App_State* app);
-    void    app_shutdown(App_State* app);
+    void    app_deinit(App_State* app);
     void    app_update(App_State* app);
     void    app_draw(App_State* app); // Consider overriding AppView::draw instead of App::draw
     static bool app_should_stop(const App_State* app) { return app->flags & AppFlag_SHOULD_STOP; }

@@ -10,11 +10,11 @@ TEST_F(Gui_App, constructor)
     ndbl::App_State app;
 }
 
-TEST_F(Gui_App, init_shutdown)
+TEST_F(Gui_App, init_deinit)
 {
     ndbl::App_State app;
     nodable_init(&app);
-    nodable_shutdown(&app);
+    nodable_deinit(&app);
 }
 
 TEST_F(Gui_App, update)
@@ -22,7 +22,7 @@ TEST_F(Gui_App, update)
     ndbl::App_State app;
     nodable_init(&app);
     nodable_update(&app);
-    nodable_shutdown(&app);
+    nodable_deinit(&app);
 }
 
 TEST_F(Gui_App, loop_count_1)
@@ -30,7 +30,7 @@ TEST_F(Gui_App, loop_count_1)
     ndbl::App_State app;
     nodable_init(&app);
     loop_count(&app, 1);
-    nodable_shutdown(&app);
+    nodable_deinit(&app);
 }
 
 TEST_F(Gui_App, loop_duration_5s)
@@ -38,7 +38,7 @@ TEST_F(Gui_App, loop_duration_5s)
     ndbl::App_State app;
     nodable_init(&app);
     loop_for_x_sec(&app, 5.0 );
-    nodable_shutdown(&app);
+    nodable_deinit(&app);
 }
 
 TEST_F(Gui_App, new_file)
@@ -49,7 +49,7 @@ TEST_F(Gui_App, new_file)
     nodable_new_file(&app);
     loop_for_x_sec(&app, 1.0 );
     save_screenshot(&app, "TEST_Gui_App__new_file__0.png");
-    nodable_shutdown(&app);
+    nodable_deinit(&app);
 }
 
 TEST_F(Gui_App, open_file)
@@ -62,7 +62,7 @@ TEST_F(Gui_App, open_file)
     EXPECT_TRUE(nodable_open_asset_file(&app, "examples/arithmetic.cpp"));
     loop_for_x_sec(&app, 1.0 );
     save_screenshot(&app, "TEST_Gui_App__open_file__1.png");
-    nodable_shutdown(&app);
+    nodable_deinit(&app);
 }
 
 TEST_F(Gui_App, close_file)
@@ -76,7 +76,7 @@ TEST_F(Gui_App, close_file)
     nodable_close_file(&app, file );
     loop_for_x_sec(&app, 1.0 );
     save_screenshot(&app, "TEST_Gui_App__close_file__1.png");
-    nodable_shutdown(&app);
+    nodable_deinit(&app);
 }
 
 TEST_F(Gui_App, open_examples)
@@ -98,7 +98,7 @@ TEST_F(Gui_App, open_examples)
     EXPECT_TRUE(nodable_open_asset_file(&app, "examples/multi-instructions.cpp"));
     loop_for_x_sec(&app, 1.0 );
     save_screenshot(&app, "TEST_Gui_App__open_examples__4.png");
-    nodable_shutdown(&app);
+    nodable_deinit(&app);
 }
 
 

@@ -98,7 +98,7 @@ namespace ndbl
     bool                    nodeview_draw_as_properties_panel(Node_View*, bool* show_advanced );
     Node_View*              nodeview_substitute_with_parent_if_not_visible(Node_View*, bool _recursive = true);
     void                    nodeview_handle_init(Node_View*);
-    void                    nodeview_handle_shutdown(Node_View*);
+    void                    nodeview_handle_deinit(Node_View*);
     Node_Property_View*     nodeview_find_property_view(Node_View*, const Node_Property*);
     void                    nodeview_draw_slot(Node_View*, Node_Slot_View*);
     void                    nodeview_set_adjacent_visible(Node_View*, Node_Slot::Flags, bool _visible, Node_View_Flags = Node_View_Flag_NONE);

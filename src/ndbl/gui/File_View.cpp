@@ -26,8 +26,6 @@ void ndbl::fileview_init(File_View* file_view, File* file)
     file_view->text_overlay_window_name  = overlay_basename + "_text_overlay";
     file_view->graph_overlay_window_name = overlay_basename + "_graph_overlay";
 
-    static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
-	file_view->text_editor.SetLanguageDefinition(lang);
 	file_view->text_editor.SetImGuiChildIgnored(true);
 	file_view->text_editor.SetPalette( cfg->ui_text_textEditorPalette );
 

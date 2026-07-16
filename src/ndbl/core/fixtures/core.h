@@ -29,7 +29,7 @@ public:
 
     void TearDown() override
     {
-        nodable_shutdown(&state);
+        nodable_deinit(&state);
     }
 
     std::string parse_and_serialize(const std::string &_source_code)

@@ -16,13 +16,13 @@ using namespace tools;
 
 Graph::~Graph()
 {
-    assert(graph_is_empty(this)); // "Did you call graph_shutdown() ?\n");
+    assert(graph_is_empty(this)); // "Did you call graph_deinit() ?\n");
 }
 
 void ndbl::graph_init(Graph* graph)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initializing ...\n");
-    ASSERT( graph->nodes.empty() ); // Did you call graph_init multiple times? Did you forgot to call graph_shutdown() after each graph_init() ?
+    ASSERT( graph->nodes.empty() ); // Did you call graph_init multiple times? Did you forgot to call graph_deinit() after each graph_init() ?
 
     componentbag_init(&graph->component_bag, graph);
 
@@ -31,18 +31,18 @@ void ndbl::graph_init(Graph* graph)
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initialized " TOOLS_OK "\n");
 }
 
-void ndbl::graph_shutdown(Graph* graph)
+void ndbl::graph_deinit(Graph* graph)
 {
     graph_clear(graph);
 
     // Delete each component
     for(auto* component : graph->component_bag)
     {
-        component_shutdown(component);
+        component_deinit(component);
         delete component;
     }
 
-    componentbag_shutdown(&graph->component_bag);
+    componentbag_deinit(&graph->component_bag);
 }
 
 void ndbl::graph_clear(Graph* graph)
@@ -56,7 +56,7 @@ void ndbl::graph_clear(Graph* graph)
         Node* node = *it;
         graph_clean_node(node);
         graph->signal_remove_node.emit(node);        
-        node_shutdown(node);
+        node_deinit(node);
         delete node;
     }
     graph->nodes.clear();
@@ -105,7 +105,7 @@ bool ndbl::graph_update(Graph* graph)
         _changed |= true;
         Node* node = node_to_delete.top();
         graph_clean_node(node);
-        node_shutdown(node);
+        node_deinit(node);
         delete node;
         node_to_delete.pop();
     }
@@ -234,7 +234,7 @@ void ndbl::graph_find_and_destroy(Graph* graph, Node* node)
     graph->signal_remove_node.emit(node);
     graph->signal_change.broadcast();
 
-    node_shutdown(node);
+    node_deinit(node);
     delete node;
 }
 
