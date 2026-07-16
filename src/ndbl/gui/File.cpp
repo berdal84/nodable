@@ -2,6 +2,7 @@
 
 #include <fstream>
 
+#include "core/Asserts.h"
 #include "core/Component.h"
 #include "core/Graph.h"
 #include "ndbl/core/Node.h"
@@ -40,16 +41,14 @@ File::File()
             graph_view->contextual_menu.add_action(create_node_action);
 
     // File_View
-    view.init(*this);
-    view.signal_text_view_changed.connect<&File::set_graph_dirty>(this);
-    view.signal_graph_view_changed.connect<&File::set_text_dirty>(this);
+    fileview_init(&view, *this);
+    view.signal_change.connect<&File::handle_file_view_change>(this);
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "View built, creating History ...\n");
 
     // History
-    TextEditor*       text_editor     = view.get_text_editor();
-    TextEditor_Buffer* text_editor_buf = history.configure_text_editor_undo_buffer(text_editor);
-    view.set_undo_buffer(text_editor_buf);
+    TextEditor_Buffer* text_editor_buf = history.configure_text_editor_undo_buffer(&view.text_editor);
+    fileview_set_undo_buffer(&view, text_editor_buf);
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "Constructor being called.\n");
 }
 
@@ -60,8 +59,7 @@ File::~File()
     Graph_View* graph_view = componentbag_get<Graph_View>(&_graph->component_bag); // TODO: we could store the ptr in ctor.
     graph_view->signal_change.disconnect();
 
-    view.signal_text_view_changed.disconnect();
-    view.signal_graph_view_changed.disconnect();
+    view.signal_change.disconnect();
 
     graph_shutdown(_graph);
     delete _graph;
@@ -73,7 +71,7 @@ void File::_update_text_from_graph()
     {
         std::string code;
         get_language()->serialize_node(code, root_node, Serialization_Flag_RECURSE);
-        view.set_text(code, _isolation );
+        fileview_set_text(&view, code, _isolation );
     }
     else
     {
@@ -122,13 +120,13 @@ void File::_update_graph_from_text()
 {
     // Parse source code
     // note: File owns the parsed text buffer
-    _parsed_text = view.get_text(_isolation);
+    _parsed_text = fileview_get_text(&view, _isolation);
     get_language()->parse(_graph, _parsed_text);
 }
 
 size_t File::size() const
 {
-    return view.size();
+    return fileview_size(&view);
 }
 
 std::string File::filename() const
@@ -151,7 +149,7 @@ bool File::write( File& file, const tools::Path& path)
 
     std::ofstream out_fstream(path.string());
     std::string result;
-    result = file.view.get_text(file._isolation);
+    result = fileview_get_text(&file.view, file._isolation);
     std::string content = result;
     out_fstream.write(content.c_str(), content.size()); // TODO: size can exceed fstream!
     file._flags &= ~Flags_NEEDS_TO_BE_SAVED; // unset flag
@@ -178,7 +176,7 @@ bool File::read( File& file, const tools::Path& path)
     }
 
     std::string content((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
-    file.view.set_text(content, file._isolation);
+    fileview_set_text(&file.view, content, file._isolation);
     file._flags &= ~Flags_NEEDS_TO_BE_SAVED; // unset flag
     file.path = path;
 
@@ -193,9 +191,26 @@ void File::set_isolation(Isolation isolation)
         return;
 
     _isolation   = isolation;
-    _parsed_text = view.get_text(_isolation);
+    _parsed_text = fileview_get_text(&view, _isolation);
 
     // when isolation changes, the text has the priority over the graph.
     _flags &= ~Flags_IS_DIRTY_MASK; // unset flags
     _flags |= Flags_GRAPH_IS_DIRTY;
+}
+
+void File::handle_file_view_change(File_View_Event_Type type)
+{
+    switch ( type )
+    {
+        case File_View_Overlay_Type_TEXT:
+            _flags |= Flags_TEXT_IS_DIRTY;
+            break;
+        
+        case File_View_Overlay_Type_GRAPH:
+            _flags |= Flags_GRAPH_IS_DIRTY;
+            break;
+        
+        default:
+            TOOLS_UNREACHABLE();
+    }
 }

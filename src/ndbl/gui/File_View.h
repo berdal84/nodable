@@ -3,6 +3,7 @@
 #include "Condition.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "Isolation.h"
+#include "core/Types.h"
 #include "core/reflection/Type_Descriptor.h"
 #include "gui/geometry/Rect.h"
 #include "tools/core/Signals.h"
@@ -14,68 +15,71 @@ namespace ndbl
     class Graph_View;
     class Graph;
 
-    enum Overlay_Pos {
-        Overlay_Pos_Top,
-        Overlay_Pos_Right,
-        Overlay_Pos_Bottom,
-        Overlay_Pos_Left,
+    typedef u8_t File_View_Overlay_Pos;
+    enum File_View_Overlay_Pos_ : u8_t
+    {
+        File_View_Overlay_Pos_Top,
+        File_View_Overlay_Pos_Right,
+        File_View_Overlay_Pos_Bottom,
+        File_View_Overlay_Pos_Left,
     };
 
-    using Overlay_Type = int;
-    enum Overlay_Type_
+    using File_View_Overlay_Type = u8_t;
+    enum File_View_Overlay_Type_ : u8_t
     {
-        Overlay_Type_TEXT,
-        Overlay_Type_GRAPH,
-        Overlay_Type_COUNT
+        File_View_Overlay_Type_TEXT,
+        File_View_Overlay_Type_GRAPH,
+        File_View_Overlay_Type_COUNT
     };
 
-    struct Overlay_Data
+    struct File_View_Overlay_Data
     {
-        std::string label;
-        std::string description;
-        Overlay_Pos position;
+        std::string           label;
+        std::string           description;
+        File_View_Overlay_Pos position;
     } ;
 
-    class File_View
-	{
-    public:
-        DECLARE_REFLECT
-        explicit File_View();
-        File_View(const File_View&) = delete;
-		~File_View() = default;
-
-        tools::Simple_Signal signal_text_view_changed;
-        tools::Simple_Signal signal_graph_view_changed;
-
-        void                           update(float d);
-        void                           init(File& _file);
-        void                           draw(float dt);
-        std::string                    get_text(Isolation = Isolation_OFF)const;
-        void                           set_text(const std::string&, Isolation mode = Isolation_OFF);
-        TextEditor*					   get_text_editor(){ return &m_text_editor; }
-        void                           set_cursor_position(const TextEditor::Coordinates& _cursorPosition) { m_text_editor.SetCursorPosition(_cursorPosition); }
-        TextEditor::Coordinates        get_cursor_position()const { return m_text_editor.GetCursorPosition(); }
-        void						   set_undo_buffer(TextEditor::IExternalUndoBuffer*);
-        void                           draw_info_panel()const;
-        void                           experimental_clipboard_auto_paste(bool);
-        bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
-        void                           clear_overlay();
-        void                           push_overlay(Overlay_Data, Overlay_Type) ;
-        void                           refresh_overlay(Condition condition);
-        void                           draw_overlay(const char* title, const std::vector<Overlay_Data>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
-        size_t                         size() const;
-    private:
-        std::array<std::vector<Overlay_Data>, Overlay_Type_COUNT> m_overlay_data;
-        File*        m_file;
-        Graph_View*  m_graph_view;
-        std::string  m_text_overlay_window_name;
-        std::string  m_graph_overlay_window_name;
-		TextEditor   m_text_editor;
-		float        m_child1_size;
-		float        m_child2_size;
-        std::string  m_experimental_clipboard_curr;
-        std::string  m_experimental_clipboard_prev;
-        bool         m_experimental_clipboard_auto_paste;
-        bool         m_is_history_dragged = false;
+    typedef u8_t File_View_Event_Type;
+    enum File_View_Event_Type_ : u8_t
+    {
+        File_View_Event_Type_GRAPH_CHANGED = 0,
+        File_View_Event_Type_TEXT_CHANGED,
     };
+
+    struct File_View
+	{
+        DECLARE_REFLECT
+
+        std::array<std::vector<File_View_Overlay_Data>, File_View_Overlay_Type_COUNT> 
+                                overlay_data                        = {};
+        tools::Signal<void(File_View_Event_Type)>
+                                signal_change                    = {};
+        File*                   file                                = nullptr;
+        Graph_View*             graph_view                          = nullptr;
+        std::string             text_overlay_window_name            = {};
+        std::string             graph_overlay_window_name           = {};
+		TextEditor              text_editor                         = {};
+		float                   text_child_size                     = 0.3f;
+		float                   graph_child_size                    = 0.7f;
+        std::string             experimental_clipboard_curr         = {};
+        std::string             experimental_clipboard_prev         = {};
+        bool                    experimental_clipboard_auto_paste   = false;
+        bool                    is_history_dragged                  = false;
+    };
+
+    void                            fileview_update(File_View*, float d);
+    void                            fileview_init(File_View*, File& _file);
+    void                            fileview_draw(File_View*, float dt);
+    std::string                     fileview_get_text(const File_View*, Isolation = Isolation_OFF);
+    void                            fileview_set_text(File_View*, const std::string&, Isolation mode = Isolation_OFF);
+    static void                     fileview_set_cursor_position(File_View* file_view, const TextEditor::Coordinates& _cursorPosition) { file_view->text_editor.SetCursorPosition(_cursorPosition); }
+    static TextEditor::Coordinates  fileview_get_cursor_position(const File_View* file_view) { return file_view->text_editor.GetCursorPosition(); }
+    void	                        fileview_set_undo_buffer(File_View*, TextEditor::IExternalUndoBuffer*);
+    void                            fileview_draw_info_panel(const File_View*);
+    void                            fileview_set_experimental_clipboard_auto_paste(File_View*, bool /* enable*/);
+    void                            fileview_clear_overlay(File_View*);
+    void                            fileview_push_overlay(File_View*, File_View_Overlay_Data, File_View_Overlay_Type) ;
+    void                            fileview_refresh_overlay(File_View*, Condition);
+    void                            fileview_draw_overlay(const char* title, const std::vector<File_View_Overlay_Data>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
+    size_t                          fileview_size(const File_View*);
 }

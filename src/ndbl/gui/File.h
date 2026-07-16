@@ -53,7 +53,8 @@ namespace ndbl
     public:
         bool                   needs_to_be_saved() const { return _flags & Flags_NEEDS_TO_BE_SAVED; }
         void                   update(); // to call each frame
-        void                   set_graph_dirty() { _flags |= Flags_GRAPH_IS_DIRTY; }
+        void                   handle_file_view_change(File_View_Event_Type type);
+        void                   set_graph_dirty() {_flags |= Flags_GRAPH_IS_DIRTY; }
         void                   set_text_dirty() {_flags |= Flags_TEXT_IS_DIRTY; }
         Graph*                 graph() { return _graph; };
         std::string            filename() const;

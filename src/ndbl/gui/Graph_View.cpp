@@ -36,12 +36,12 @@ constexpr const char* VIEW_PAN_STATE   = "Grab View Tool";
 constexpr const char* LINE_STATE       = "Line Tool";
 
 ndbl::Graph_View::Graph_View()
-: base("View")
+: Component<Graph>("Graph_View")
 , state_machine(this)
 , shape( Vec2{100.f, 100.f} ) // non null area
 {
-    base.signal_init.connect<&graphview_handle_init>(this);
-    base.signal_shutdown.connect<&graphview_handle_shutdown>(this);
+    signal_init.connect<&graphview_handle_init>(this);
+    signal_shutdown.connect<&graphview_handle_shutdown>(this);
 
     state_machine.add_state(CURSOR_STATE);
     state_machine.bind<&graphview_cursor_state_tick>(CURSOR_STATE, When::OnTick);
@@ -67,8 +67,8 @@ ndbl::Graph_View::Graph_View()
 ndbl::Graph_View::~Graph_View()
 {
     // not really needed, but lets clear memory
-    base.signal_init.disconnect();
-    base.signal_shutdown.disconnect();
+    signal_init.disconnect();
+    signal_shutdown.disconnect();
 }
 
 void ndbl::graphview_handle_init(Graph_View* graph_view)
@@ -1173,7 +1173,7 @@ void ndbl::nodeviewcontraint_rule_1_to_N_as_row(Node_View_Constraint* constraint
         return;
 
     Config* cfg = get_config();
-    const Node_View* _follower      = clean_follower[0];
+    Node_View* _follower      = clean_follower[0];
     const Box_2D leaders_box{nodeview_bounding_rect(constraint->leader, WORLD_SPACE, constraint->leader_flags) };
     const Box_2D follower_box{ nodeview_get_rect_ex(_follower, WORLD_SPACE, constraint->follower_flags) };
 

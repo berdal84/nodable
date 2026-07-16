@@ -170,7 +170,7 @@ void ndbl::nodable_update(App_State* app)
 
     // 0. Update Views (TODO: is this the right moment to do this? )
     if( app->current_file )
-        app->current_file->view.update( dt);
+        fileview_update(&app->current_file->view, dt);
 
     // 1. delete flagged files
     for( File* file : app->flagged_to_delete_file )
@@ -316,8 +316,8 @@ void ndbl::nodable_update(App_State* app)
             case Event_ID_FILE_OPENED:
             {
                 ASSERT(app->current_file != nullptr );
-                app->current_file->view.clear_overlay();
-                app->current_file->view.refresh_overlay(Condition_ENABLE_IF_HAS_NO_SELECTION );
+                fileview_clear_overlay(&app->current_file->view);
+                fileview_refresh_overlay(&app->current_file->view, Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
             }
             case Event_DeleteSelection::id:
@@ -760,10 +760,11 @@ void ndbl::nodable_draw(App_State* app)
             ImGui::Separator();
             ImGuiEx::MenuItem_EventTrigger<Event_FileClose>(false, has_file);
 
-            auto auto_paste = has_file && current_file->view.experimental_clipboard_auto_paste();
+            auto auto_paste = has_file && current_file->view.experimental_clipboard_auto_paste;
 
-            if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, has_file ) && has_file ) {
-                current_file->view.experimental_clipboard_auto_paste(!auto_paste);
+            if (ImGui::MenuItem(ICON_FA_COPY "  Auto-paste clipboard", "", auto_paste, has_file ) && has_file )
+            {
+                fileview_set_experimental_clipboard_auto_paste(&current_file->view, !auto_paste);
             }
 
             ImGuiEx::MenuItem_EventTrigger<Event_Exit>();
@@ -1049,7 +1050,7 @@ void ndbl::nodable_draw_file_info_window(App_State* app)
 
     if (ImGui::Begin( cfg->ui_file_info_window_label))
     {
-        app->current_file->view.draw_info_panel();
+        fileview_draw_info_panel(&app->current_file->view);
     }
 
     ImGui::End();
@@ -1187,7 +1188,7 @@ void ndbl::nodable_draw_file_window( App_State* app, ImGuiID dockspace_id, bool 
                 nodable_set_current_file(app, file);
 
         // Draw content
-        file->view.draw( app->view->dt_in_s );
+        fileview_draw( &file->view, app->view->dt_in_s );
     }
     ImGui::End();
 
@@ -1316,7 +1317,7 @@ void ndbl::nodable_draw_config_window(App_State* app)
             ImGui::Text("Pool stats:");
             auto pool = get_pool_manager()->get_pool();
             ImGui::Text(" - Node.................... %8zu", pool->get_all<Node>().size() );
-            ImGui::Text(" - Node_View................ %8zu", pool->get_all<Node_View>().size() );
+            ImGui::Text(" - Node_View............... %8zu", pool->get_all<Node_View>().size() );
             ImGui::Text(" - Physics................. %8zu", pool->get_all<Physics>().size() );
             ImGui::Text(" - Scope................... %8zu", pool->get_all<Scope>().size() );
         }
