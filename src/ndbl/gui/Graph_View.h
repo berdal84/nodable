@@ -3,6 +3,7 @@
 #include <functional>
 #include <vector>
 
+#include "core/reflection/Place.h"
 #include "tools/core/Component.h"  // base class
 #include "tools/core/Variant.h"
 #include "tools/core/Unique_Variant_List.h"
@@ -40,7 +41,7 @@ namespace ndbl
     struct Graph_View : public tools::Component<Graph>
     {
 	    Graph_View();
-		~Graph_View() override;
+		~Graph_View();
 
         tools::Simple_Signal                signal_change;
         Node_View_Contextual_Menu           contextual_menu;
@@ -53,9 +54,9 @@ namespace ndbl
 
         tools::State_Machine                state_machine;
         tools::Vec2                         state_roi_start_pos;
-        tools::Vec2                         state_roi_end_pos;
-
-        inline Graph*                       graph() const   { return entity; }
+        tools::Vec2                         state_roi_end_pos;   
+        
+        PLACE(Graph*, graph, entity);
     };
 
     void    graphview_update(Graph_View*, float dt);

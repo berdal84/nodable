@@ -2,6 +2,7 @@
 
 #include "tools/gui/geometry/Box_2D.h"
 #include "tools/core/reflection/Type_Descriptor.h"
+#include "tools/core/reflection/Place.h"
 #include "tools/gui/geometry/Vec2.h"
 #include "tools/gui/View_State.h"
 
@@ -39,11 +40,10 @@ namespace ndbl
         tools::View_State               state;
         tools::Box_2D                   shape;
 
-        // shorthands
-        
-        Node*                           node()const { return slot->node; }
+        PLACE( Node*            , node      , slot->node )
+        PLACE( Node_Property*   , property  , slot->property )
+
         bool                            allows(Node_Slot::Flag flags) const { return slot->has_flags(flags); }
-        const Node_Property*            property()const { return slot->property; }
         const tools::Type_Descriptor*   property_type()const { return property() ? property()->type : nullptr; }
     };
 

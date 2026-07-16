@@ -36,12 +36,12 @@ constexpr const char* VIEW_PAN_STATE   = "Grab View Tool";
 constexpr const char* LINE_STATE       = "Line Tool";
 
 ndbl::Graph_View::Graph_View()
-: Component<Graph>("View")
+: base("View")
 , state_machine(this)
 , shape( Vec2{100.f, 100.f} ) // non null area
 {
-    Component::signal_init.connect<&graphview_handle_init>(this);
-    Component::signal_shutdown.connect<&graphview_handle_shutdown>(this);
+    base.signal_init.connect<&graphview_handle_init>(this);
+    base.signal_shutdown.connect<&graphview_handle_shutdown>(this);
 
     state_machine.add_state(CURSOR_STATE);
     state_machine.bind<&graphview_cursor_state_tick>(CURSOR_STATE, When::OnTick);
@@ -66,8 +66,9 @@ ndbl::Graph_View::Graph_View()
 
 ndbl::Graph_View::~Graph_View()
 {
-    Component::signal_init.disconnect(); // Simple_Signal
-    Component::signal_shutdown.disconnect();
+    // not really needed, but lets clear memory
+    base.signal_init.disconnect();
+    base.signal_shutdown.disconnect();
 }
 
 void ndbl::graphview_handle_init(Graph_View* graph_view)
