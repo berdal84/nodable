@@ -176,7 +176,7 @@ const Function_Descriptor* ndbl::node_get_connected_function_type(const Node* no
 
     if ( adjacent_slot )
         if ( node_is_invokable(adjacent_slot->node) )
-            return adjacent_slot->node->invokable_data.get_func_type();
+            return &adjacent_slot->node->invokable_data.func_type;
 
     return nullptr;
 }
@@ -502,13 +502,13 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& 
     ASSERT(node_type == Node_Type_OPERATOR || node_type == Node_Type_FUNCTION );
 
     node_init(node, node_type, _func_type.get_identifier());
-    node->invokable_data.m_func_type = _func_type;
-    node->invokable_data.m_identifier_token = {
+    node->invokable_data.func_type = _func_type;
+    node->invokable_data.identifier_token = {
             Token_Type::identifier,
             _func_type.get_identifier()
     };
-    node->invokable_data.m_argument_slot.resize(_func_type.arg_count());
-    node->invokable_data.m_argument_props.resize(_func_type.arg_count());
+    node->invokable_data.argument_slots.resize(_func_type.arg_count());
+    node->invokable_data.argument_props.resize(_func_type.arg_count());
 
     switch ( node->type )
     {
@@ -564,8 +564,8 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& 
         if ( arg.pass_by_ref )
             property->set_flags(Node_Property::Flag_IS_REF);
 
-        node->invokable_data.m_argument_slot[i]  = node_add_slot(node, property, Node_Slot::Flag_INPUT, 1);
-        node->invokable_data.m_argument_props[i] = property;
+        node->invokable_data.argument_slots[i]  = node_add_slot(node, property, Node_Slot::Flag_INPUT, 1);
+        node->invokable_data.argument_props[i] = property;
     }
 }
 
@@ -785,7 +785,7 @@ bool ndbl::node_could_be_instruction(const Node* node)
 bool ndbl::node_is_unary_operator(const Node* node)
 {
     if (node->type == Node_Type_OPERATOR )
-        if (node->invokable_data.get_func_type()->arg_count() == 1 )
+        if (node->invokable_data.func_type.arg_count() == 1 )
             return true;
     return false;
 }
@@ -793,7 +793,7 @@ bool ndbl::node_is_unary_operator(const Node* node)
 bool ndbl::node_is_binary_operator(const Node* node)
 {
     if (node->type == Node_Type_OPERATOR )
-        if (node->invokable_data.get_func_type()->arg_count() == 2 )
+        if (node->invokable_data.func_type.arg_count() == 2 )
             return true;
     return false;
 }

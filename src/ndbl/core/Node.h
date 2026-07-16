@@ -114,32 +114,26 @@ namespace ndbl
 
         struct Invokable_State
         {
-            Token                                   m_identifier_token = {Token_Type::identifier };
-            tools::Function_Descriptor              m_func_type; // not owned
-            tools::Inline_Vector8<Node_Slot*>       m_argument_slot;
-            tools::Inline_Vector8<Node_Property*>   m_argument_props;
-            Node*                                   m_node = nullptr;  // Can't we remove this?!
+            Token                                   identifier_token = {Token_Type::identifier };
+            tools::Function_Descriptor              func_type; // not owned
+            tools::Inline_Vector8<Node_Slot*>       argument_slots;
+            tools::Inline_Vector8<Node_Property*>   argument_props;
 
-            Node_Slot*                              get_arg_slot(size_t i) const { return m_argument_slot[i]; }
-            tools::Array_View<const Node_Slot*>     get_arg_slots() const { return m_argument_slot; }
-            const tools::Function_Descriptor*       get_func_type()const { return &m_func_type; }
-            const Token&                            get_identifier_token() const { return m_identifier_token; }
-            void                                    set_identifier_token(const Token& tok) { m_identifier_token = tok; }
-            Node_Slot*                              lvalue_in() const { return m_argument_slot[0]; }
-            Node_Slot*                              rvalue_in() const { return m_argument_slot[1]; }
+            Node_Slot*                              lvalue_in() const { return argument_slots[0]; }
+            Node_Slot*                              rvalue_in() const { return argument_slots[1]; }
         };
 
         struct Variable_State
         { 
             Token         type_token        = {Token_Type::keyword_unknown }; // [int] var  =
             Token         operator_token    = {Token_Type::operator_ };       //  int  var [=]
-            VariableFlags m_vflags          = VariableFlag_NONE;
+            VariableFlags flags             = VariableFlag_NONE;
             Node_Slot*    decl_out          = nullptr;
             Node_Slot*    ref_out           = nullptr;
 
-            bool                has_flags(VariableFlags flags)const { return (m_vflags & flags) == flags; };
-            void                set_flags(VariableFlags flags) { m_vflags |= flags; }
-            void                clear_flags(VariableFlags flags = VariableFlag_ALL) { m_vflags &= ~flags; }
+            bool                has_flags(VariableFlags _flags) const { return (flags & _flags) == _flags; };
+            void                set_flags(VariableFlags _flags) { flags |= _flags; }
+            void                clear_flags(VariableFlags _flags = VariableFlag_ALL) { flags &= ~_flags; }
         };
 
         struct Variable_Ref_State

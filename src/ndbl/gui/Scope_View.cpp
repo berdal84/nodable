@@ -171,7 +171,7 @@ void ndbl::TreeNode_Node(Node* node)
         case Node_Type_FUNCTION:
         {
             std::string signature;
-            get_language()->serialize_func_sig(signature, node->invokable_data.get_func_type());
+            get_language()->serialize_func_sig(signature, &node->invokable_data.func_type);
             char str[255];
             open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name(), signature.c_str());
             break;

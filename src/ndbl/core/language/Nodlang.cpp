@@ -326,7 +326,7 @@ Node_Slot* Nodlang::parse_binary_operator_expression(Scope* parent_scope, u8_t _
 
         Node::Invokable_State& binary_op = binary_op_node->invokable_data;
 
-        binary_op.set_identifier_token(operator_token);
+        binary_op.identifier_token = operator_token;
         binary_op.lvalue_in()->property->token.m_type = _left->property->token.m_type;
         binary_op.rvalue_in()->property->token.m_type = right->property->token.m_type;
 
@@ -385,7 +385,7 @@ Node_Slot* Nodlang::parse_unary_operator_expression(Scope* parent_scope, u8_t _p
     type.arg_at(0).type = out_atomic->property->type;
 
     Node* node = graph_create_operator(_state.graph(), type, parent_scope );
-    node->invokable_data.set_identifier_token( operator_token );
+    node->invokable_data.identifier_token = operator_token;
     node->invokable_data.lvalue_in()->property->token.m_type = out_atomic->property->token.m_type;
 
     graph_connect_or_merge(out_atomic, node->invokable_data.lvalue_in() );
@@ -1093,10 +1093,10 @@ Node_Slot* Nodlang::parse_function_call(Scope* parent_scope)
     // Find the prototype in the language library
     Node* fct_node = graph_create_function( _state.graph(), signature, parent_scope );
 
-    for ( int i = 0; i < fct_node->invokable_data.get_arg_slots().size; i++ )
+    for ( int i = 0; i < fct_node->invokable_data.argument_slots.size; i++ )
     {
         // Connects each results to the corresponding input
-        graph_connect_or_merge(result_slots.at(i), fct_node->invokable_data.get_arg_slot(i) );
+        graph_connect_or_merge(result_slots.at(i), fct_node->invokable_data.argument_slots[i] );
     }
 
     _state.commit();
@@ -1387,10 +1387,10 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
 {
     if (_node->type == Node_Type_OPERATOR )
     {
-        tools::Array_View<const Node_Slot*> args = _node->invokable_data.get_arg_slots();
-        int precedence = get_precedence(_node->invokable_data.get_func_type());
+        tools::Array_View<const Node_Slot*> args = _node->invokable_data.argument_slots;
+        int precedence = get_precedence(&_node->invokable_data.func_type);
 
-        switch ( _node->invokable_data.get_func_type()->arg_count() )
+        switch ( _node->invokable_data.func_type.arg_count() )
         {
             case 2:
             {
@@ -1404,8 +1404,8 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
                 }
 
                 // Operator
-                VERIFY( _node->invokable_data.get_identifier_token(), "identifier token should have been assigned in parse_function_call");
-                serialize_token( _out, _node->invokable_data.get_identifier_token() );
+                VERIFY( _node->invokable_data.identifier_token, "identifier token should have been assigned in parse_function_call");
+                serialize_token( _out, _node->invokable_data.identifier_token );
 
                 // Right part of the expression
                 {
@@ -1422,8 +1422,8 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
             {
                 // operator ( ... innerOperator ... )   ex:   -(a+b)
 
-                ASSERT( _node->invokable_data.get_identifier_token() );
-                serialize_token(_out, _node->invokable_data.get_identifier_token());
+                ASSERT( _node->invokable_data.identifier_token );
+                serialize_token(_out, _node->invokable_data.identifier_token);
 
                 bool needs_braces    = node_get_connected_function_type(_node, LEFT_VALUE_PROPERTY) != nullptr;
                 Serialization_Flags flags = Serialization_Flag_RECURSE
@@ -1435,7 +1435,7 @@ const Node_Slot* Nodlang::serialize_invokable(std::string &_out, const Node* _no
     }
     else
     {
-        serialize_func_call(_out, _node->invokable_data.get_func_type(), _node->invokable_data.get_arg_slots() );
+        serialize_func_call(_out, &_node->invokable_data.func_type, _node->invokable_data.argument_slots );
     }
 
     return _node->value_out();
