@@ -2,101 +2,181 @@
 
 #include <cassert>
 #include <cstring> // for memcpy
+#include <cstdarg> // va_list, va_start, va_end
 #include <cstdio>
 #include <utility> // std::move
 
 namespace tools
 {
-    enum class Allocation_Strategy // TODO: remove this enum and use allocators!
-    {  
+    enum class Allocation_Strategy {
         NEXT_ALLOC_USE_HEAP, // Currently allocated on stack, next alloc will be on the heap
         HEAP                 // Currently allocated on the heap, next alloc will be on the heap
     };
 
-    struct String
+    template<typename Char_Type = char>
+    class Basic_String
     {
-        using Char_Type = char; // We'll see later to handle different sizes...
 
-        Char_Type*          buf;                    // Pointer to the buffer (static or dynamic)
-        size_t              size;                   // String length (excluding terminal string)
-        size_t              capacity;               // Buffer size - 1
-        Allocation_Strategy allocation_strategy;
+    protected: Char_Type* m_ptr;          // Pointer to the buffer (static or dynamic)
+    protected: size_t m_length;       // String length (excluding terminal string)
+    protected: size_t m_capacity;     // Buffer size - 1
+    protected: Allocation_Strategy m_alloc_strategy;
 
-        String()
-        : allocation_strategy(Allocation_Strategy::HEAP)
-        , capacity(0)
-        , size(0)
-        , buf(nullptr)
+    public:
+        Basic_String()
+            : m_alloc_strategy(Allocation_Strategy::HEAP)
+            , m_capacity(0)
+            , m_length(0)
+            , m_ptr(nullptr)
         {}
 
-        explicit String(const Char_Type* str)
-        : allocation_strategy(Allocation_Strategy::HEAP)
-        , size(strlen(str))
-        , capacity(0)
-        , buf(nullptr)
+        explicit Basic_String(const Char_Type* str)
+            : m_alloc_strategy(Allocation_Strategy::HEAP)
+            , m_length(strlen(str))
+            , m_capacity(0)
+            , m_ptr(nullptr)
         {
-            if( size > 0 )
+            if( m_length > 0 )
             {
-                buf = expand_capacity_to_fit(size);
-                memcpy(buf, str, size);
-                buf[size] = 0;
+                m_ptr = expand_capacity_to_fit(m_length);
+                memcpy(m_ptr, str, m_length);
+                m_ptr[m_length] = 0;
             }
         }
 
-        String(const String& other)
-        : String(other.c_str())
+        Basic_String(const Basic_String& other)
+            : Basic_String(other.c_str())
         {}
 
-        String& operator=(const String& other)
+        Basic_String(Basic_String&& other) noexcept
+            : m_alloc_strategy(Allocation_Strategy::NEXT_ALLOC_USE_HEAP)
+            , m_length(0)
+            , m_capacity(0)
+            , m_ptr(nullptr)
         {
-            if( this == &other)
+            *this = std::move(other);
+        }
+
+        Basic_String& operator=(Basic_String&& other) noexcept
+        {
+            if ( this == &other )
                 return *this;
 
-            if( capacity < other.capacity)
-                buf = expand_capacity_to_fit(other.size);
+            if( m_alloc_strategy == Allocation_Strategy::HEAP )
+            {
+                delete[] m_ptr;
+                m_ptr = other.m_ptr;
+                m_length = other.m_length;
+                m_capacity = other.m_capacity;
+            }
+            else
+            {
+                append(other); // may use heap or stack depending on capacity
+            }
 
-            memcpy(buf, other.buf, other.size);
-            size        = other.size;
-            capacity    = other.capacity;
-            buf[size]   = 0;
+            other.m_length = 0;
+            other.m_capacity = 0;
+            other.m_ptr = nullptr;
 
             return *this;
         }
 
-        String(
-            Char_Type* data,
-            size_t     capacity,
-            size_t     length,
-            Allocation_Strategy strategy = Allocation_Strategy::NEXT_ALLOC_USE_HEAP
-        )
-        : allocation_strategy(strategy)
-        , capacity(capacity )
-        , size(length)
-        , buf(data)
+        Basic_String& operator=(const Basic_String& other)
+        {
+            if( this == &other)
+                return *this;
+
+            if( m_capacity < other.m_capacity)
+                m_ptr = expand_capacity_to_fit(other.m_length);
+
+            memcpy(m_ptr, other.m_ptr, other.m_length);
+            m_length = other.m_length;
+            m_capacity = other.m_capacity;
+            m_ptr[m_length] = 0;
+            return *this;
+        }
+
+    protected:
+        Basic_String(Char_Type* data, size_t capacity, size_t length, Allocation_Strategy strategy = Allocation_Strategy::NEXT_ALLOC_USE_HEAP)
+            : m_alloc_strategy(strategy)
+            , m_capacity(capacity )
+            , m_length(length)
+            , m_ptr(data)
         {}
 
 
-        ~String()
+    public:
+        ~Basic_String()
         {
-            // TODO: use an allocator
-            if( allocation_strategy == Allocation_Strategy::HEAP && buf != nullptr)
+            if( m_alloc_strategy == Allocation_Strategy::HEAP && m_ptr != nullptr)
             {
-                delete[] buf;
+                delete[] m_ptr;
             }
         }
 
-        inline const Char_Type* c_str() const
-        { return buf != nullptr ? const_cast<const char*>(buf) : ""; }
+        bool heap_allocated() const
+        { return m_alloc_strategy == Allocation_Strategy::HEAP; }
 
-        inline bool heap_allocated() const
-        { return allocation_strategy == Allocation_Strategy::HEAP; }
+        const char* data() const
+        { return m_ptr != nullptr ? const_cast<const char*>(m_ptr) : ""; }
 
+        const char* c_str() const
+        { return data(); }
+
+        Basic_String& append(const Char_Type* str, size_t length)
+        {
+            if( m_capacity < m_length + length )
+            {
+                m_ptr = expand_capacity_to_fit(m_length + length);
+            }
+            memcpy(m_ptr + m_length, str, length);
+            m_length += length;
+            m_ptr[m_length] = 0;
+            return *this;
+        }
+        Basic_String& append(const Basic_String& str)
+        { return append(str.m_ptr, str.m_length); }
+
+        Basic_String& append(const Char_Type* str)
+        { return append(str, strlen(str)); }
+
+        template<typename ...Args>
+        size_t append_fmt(const char* _Format, Args...args )
+        { return m_length = snprintf(m_ptr+m_length, m_capacity-m_length, _Format, args... ); }
+
+        size_t append_fmt(const char* _str )
+        { return m_length = snprintf(m_ptr+m_length, m_capacity-m_length, "%s", _str ); }
+
+        /** provided to easily switch to/from std::string */
+        Basic_String& push_back(Char_Type str)
+        { return append(&str, 1); }
+
+        size_t capacity() const
+        { return m_capacity; }
+
+        size_t length() const
+        { return m_length; }
+
+        bool is_empty() const
+        { return m_length == 0; }
+
+        void clear()
+        {
+            m_length = 0;
+            if( m_ptr != nullptr) m_ptr[0] = 0;
+        }
+
+        bool equals(const Basic_String& other) const {
+            return m_length == other.m_length && strcmp(c_str(), other.c_str()) == 0;
+        }
+
+    private:
         /**
-        * Expand the buffer to the closest power of two of the desired set_size.
-        */
+         * Expand the buffer to the closest power of two of the desired set_size.
+         */
         Char_Type* expand_capacity_to_fit(size_t desired_capacity)
         {
-            assert(desired_capacity > capacity );
+            assert(desired_capacity > m_capacity );
 
             // compute the next highest power of 2 of 64-bit
 
@@ -113,87 +193,24 @@ namespace tools
 
             Char_Type* new_ptr = new Char_Type[new_buf_size];
 
-            if( buf )
+            if( m_ptr )
             {
-                memcpy(new_ptr, buf, size+1); // We only copy the string + null char
+                memcpy(new_ptr, m_ptr, m_length+1); // We only copy the string + null char
             }
 
-            if (allocation_strategy == Allocation_Strategy::HEAP)
+            if (m_alloc_strategy == Allocation_Strategy::HEAP)
             {
-                delete[] buf;
+                delete[] m_ptr;
             }
             else
             {
-                allocation_strategy = Allocation_Strategy::HEAP;
+                m_alloc_strategy = Allocation_Strategy::HEAP;
             }
-            capacity = new_buf_size - 1;
+            m_capacity = new_buf_size - 1;
 
             return new_ptr;
         }
     };
-
-    inline String* string_append(String* str, const char* buf, size_t length)
-    {
-        if( str->capacity < str->size + length )
-        {
-            str->buf = str->expand_capacity_to_fit(str->size + length);
-        }
-        memcpy(str->buf + str->size, buf, length);
-        str->size += length;
-        str->buf[str->size] = 0;
-        return str;
-    }
-
-    inline String* string_append(String* str, const String* other)
-    {
-        return string_append(str, other->buf, other->size);
-    }
-
-    inline String* string_append(String* str, const char* c_str)
-    {
-        return string_append(str, c_str, strlen(c_str));
-    }
-
-    template<typename ...Args>
-    size_t string_append_fmt(String* str, const char* format, Args...args )
-    {
-        return str->size = snprintf(str->buf+str->size, str->capacity-str->size, format, args... );
-    }
-
-    template<typename ...Args>
-    size_t string_append_fmt(String* str, const char* _str )
-    {
-        return str->size = snprintf(str->buf+str->size, str->capacity-str->size, "%s", _str );
-    }
-
-    /** provided to easily switch to/from std::string */
-    inline String* string_push_back(String* str, String::Char_Type c)
-    {
-        return string_append(str, &c, 1);
-    }
-
-    inline bool string_is_empty(const String* str)
-    {
-        return str->size == 0;
-    }
-    
-    template<typename Char_Type>
-    void string_clear(String* str)
-    {
-        str->size = 0;
-
-        if( str->buf != nullptr)
-        {
-            str->buf[0] = 0;
-        }
-    }
-
-    template<typename Char_Type>
-    bool operator==(const String& left, const String& right)
-    {
-        return left.size == right.size
-            && strcmp(left.c_str(), right.c_str()) == 0;
-    }
 
     /**
      * Stack allocated string.
@@ -201,32 +218,28 @@ namespace tools
      *
      * Buffer set_size and string length are stored in an unsigned integer (1 byte)
      */
-    template<size_t STATIC_BUF_SIZE>
-    struct Inline_String : public String
-    {
-        using Char_Type = char;
-
+    template<size_t STATIC_BUF_SIZE, typename CharType = char>
+    class Inline_String : public Basic_String<CharType> {
+    private:
         static_assert(STATIC_BUF_SIZE >= 8);
-        Char_Type static_buf[STATIC_BUF_SIZE]; // Static buffer
+        CharType m_static_buf[STATIC_BUF_SIZE]; // Static buffer
 
-        Inline_String()
-        : String(static_buf, STATIC_BUF_SIZE-1, 0)
-        { static_buf[0] = '\0'; }
+    public:
+        Inline_String(): Basic_String<CharType>(m_static_buf, STATIC_BUF_SIZE-1, 0)
+        { m_static_buf[0] = '\0'; }
 
-        Inline_String(Char_Type *str, size_t length)
-        : String(static_buf, STATIC_BUF_SIZE-1, 0)
-        { string_append(this, str, length); }
+        Inline_String(CharType *str, size_t length) : Basic_String<CharType>(m_static_buf, STATIC_BUF_SIZE-1, 0)
+        { this->append(str, length); }
 
-        Inline_String(const Char_Type *str)
-        : Inline_String(const_cast<char*>(str), strlen(str))
+        Inline_String(const CharType *str) : Inline_String(const_cast<char*>(str), strlen(str))
         {}
 
-        Inline_String(const String& other)
-        : Inline_String()
-        { string_append(this, other.buf, other.size ); }
+        Inline_String(const Basic_String<CharType>& other): Inline_String()
+        {  this->append(other.c_str(), other.length()); }
     };
 
     // Define some aliases
+    using String     = Basic_String<char>;
     using String_8   = Inline_String<8>;
     using String_16  = Inline_String<16>;
     using String_32  = Inline_String<32>;

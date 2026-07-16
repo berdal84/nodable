@@ -709,7 +709,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* node_view, bool* _show_a
             if (scope)
             {
                 String_128 label;
-                string_append_fmt(&label, "%s %p (%s %p)", scope->name, scope, scope->entity->name.c_str(), scope->entity);
+                label.append_fmt("%s %p (%s %p)", scope->name, scope, scope->entity->name.c_str(), scope->entity);
                 if ( ImGui::Button(label.c_str()) )
                 {
                     Graph_View* graph_view = componentbag_get<Graph_View>(&node->graph->component_bag);

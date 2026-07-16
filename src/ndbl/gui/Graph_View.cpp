@@ -181,7 +181,7 @@ void ndbl::graphview_handle_change_scope(Graph_View* graph_view, Graph::Scope_Ch
 ImGuiID make_wire_id(const Node_Slot *ptr1, const Node_Slot *ptr2)
 {
     String_128 id;
-    string_append_fmt(&id, "wire %zu->%zu", ptr1, ptr2);
+    id.append_fmt("wire %zu->%zu", ptr1, ptr2);
     return ImGui::GetID(id.c_str());
 }
 

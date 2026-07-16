@@ -114,7 +114,7 @@ namespace tools
     bool             show_log_message(const MessageData&, const VerbosityFilter& filter); // return true if messages needs to be displayed depending on filter and global verbosity
 
     template<typename...Args>
-    void log(Verbosity verbosity, const char* category, const char* format, Args... args) // print a message like "[time|verbosity|category] message"
+    void log(Verbosity verbosity, const char* category, const char* Format, Args... args) // print a message like "[time|verbosity|category] message"
     {
         struct VerbosityInfo
         {
@@ -133,15 +133,14 @@ namespace tools
         message.verbosity = verbosity;
         message.category  = category;
         // text prefix
-        string_append_fmt(
-            &message.text,
-            "[%s|%s|%s] ",
-            Format::time_point_to_string(message.date).c_str(),
-            verbosity_info[verbosity].label,
-            category
-        );
+        message.text.append_fmt(
+                "[%s|%s|%s] ",
+                Format::time_point_to_string(message.date).c_str(),
+                verbosity_info[verbosity].label,
+                category
+                );
         // text body
-        string_append_fmt(&message.text, format, args...);
+        message.text.append_fmt(Format, args...);
 
         // print if allowed
         if ( message.verbosity <= get_log_verbosity(category) )

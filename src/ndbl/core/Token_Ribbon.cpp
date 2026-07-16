@@ -18,7 +18,7 @@ Token & Token_Ribbon::push(Token &_token)
 std::string Token_Ribbon::to_string()const
 {
     tools::String out;
-    string_append(&out, TOOLS_COLOR_DEFAULT);
+    out.append(TOOLS_COLOR_DEFAULT);
 
     size_t buffer_size = 0;
 
@@ -26,8 +26,8 @@ std::string Token_Ribbon::to_string()const
     for (const Token& each_token : m_tokens)
         buffer_size += each_token.length();
 
-    string_append(&out, "Logging token ribbon state:\n");
-    string_append(&out, "___________[TOKEN RIBBON]_________\n");
+    out.append("Logging token ribbon state:\n");
+    out.append("___________[TOKEN RIBBON]_________\n");
 
     for (const Token& token : m_tokens)
     {
@@ -35,38 +35,38 @@ std::string Token_Ribbon::to_string()const
         
         if ( token.m_index == 0 )
         {
-            string_append(&line, "B"); // begin
+            line.append("B"); // begin
         }
         else if ( token.m_index == m_tokens.back().m_index )
         {
-            string_append(&line, "E"); // end
+            line.append("E"); // end
         }
         else
         {
-            string_append(&line, "|"); // default
+            line.append("|"); // default
         }
 
         if ( !m_transaction.empty()
               && token.m_index >= m_transaction.top()
               && token.m_index <= m_cursor )
         {
-            string_append(&line, "T"); // transaction
+            line.append("T"); // transaction
         }
         else
         {
-            string_append(&line, "."); // no transaction
+            line.append("."); // no transaction
         }
 
         const std::string word = token.word_to_string();
-        string_append_fmt(&line, "%5zu) \"%s\"", token.m_index, word.c_str() );
+        line.append_fmt("%5zu) \"%s\"", token.m_index, word.c_str() );
       
         if ( token.m_index == m_cursor )
         {
-            string_append(&line, " [c]"); // current
+            line.append(" [c]"); // current
         }
         
-        string_append(&out, &line);
-        string_append(&out, "\n");
+        out.append(line.c_str());
+        out.append("\n");
     }
 
     return out.c_str();
