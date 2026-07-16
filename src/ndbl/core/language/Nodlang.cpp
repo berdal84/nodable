@@ -1119,7 +1119,7 @@ Node* Nodlang::parse_if_block(Scope* parent_scope, Node_Slot* flow_out)
 
     bool    success  = false;
     Node*   if_node  = graph_create_cond_struct( _state.graph(), parent_scope );
-    if_node->switch_data.m_branch_prefix = _state.tokens().get_eaten();
+    if_node->switch_data.branch_prefix = _state.tokens().get_eaten();
 
     graph_connect(flow_out, if_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
@@ -1140,7 +1140,7 @@ Node* Nodlang::parse_if_block(Scope* parent_scope, Node_Slot* flow_out)
                 // else
                 if ( _state.tokens().eat_if(Token_Type::keyword_else) )
                 {
-                    if_node->switch_data.m_branch_suffix = _state.tokens().get_eaten();
+                    if_node->switch_data.branch_suffix = _state.tokens().get_eaten();
 
                     if ( Node* else_block = parse_atomic_code_block( if_node->internal_scope, if_node->switch_data.branch_out(Branch_FALSE) ) )
                     {
@@ -1195,7 +1195,7 @@ Node* Nodlang::parse_for_block(Scope* parent_scope, Node_Slot* flow_out)
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing for loop ...\n");
 
         for_node = graph_create_for_loop( _state.graph(), parent_scope );
-        for_node->switch_data.m_branch_prefix = token_for;
+        for_node->switch_data.branch_prefix = token_for;
 
         graph_connect( flow_out, for_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
@@ -1207,9 +1207,9 @@ Node* Nodlang::parse_for_block(Scope* parent_scope, Node_Slot* flow_out)
             // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
 
             // parse init; condition; iteration or nothing
-            parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_data.initialization_slot())
+            parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_data.initialization_slot)
             && parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_data.condition_in())
-            && parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_data.iteration_slot());
+            && parse_expression_block(for_node->internal_scope, nullptr, for_node->switch_data.iteration_slot);
 
             // parse parenthesis close
             if ( Token parenthesis_close = _state.tokens().eat_if(Token_Type::parenthesis_close) )
@@ -1267,7 +1267,7 @@ Node* Nodlang::parse_while_block(Scope* parent_scope,  Node_Slot* flow_out)
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing while ...\n");
 
         while_node = graph_create_while_loop( _state.graph(), parent_scope );
-        while_node->switch_data.m_branch_prefix = token_while;
+        while_node->switch_data.branch_prefix = token_while;
 
         graph_connect( flow_out, while_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
@@ -1670,7 +1670,7 @@ std::string& Nodlang::serialize_for_loop(std::string &_out, const Node* _for_loo
 {
     ASSERT( _for_loop->type == Node_Type_FOR_LOOP );
 
-    serialize_token(_out, _for_loop->switch_data.m_branch_prefix);
+    serialize_token(_out, _for_loop->switch_data.branch_prefix);
     serialize_default_buffer(_out, Token_Type::parenthesis_open);
     {
         const Node_Slot* init_slot = node_find_slot_by_property_name(_for_loop, INITIALIZATION_PROPERTY, Node_Slot::Flag_INPUT );
@@ -1691,7 +1691,7 @@ std::string& Nodlang::serialize_while_loop(std::string &_out, const Node* _while
     ASSERT( _while_loop_node->type == Node_Type_WHILE_LOOP );
 
     // while
-    serialize_token(_out, _while_loop_node->switch_data.m_branch_prefix);
+    serialize_token(_out, _while_loop_node->switch_data.branch_prefix);
 
     // condition
     Serialization_Flags flags = Serialization_Flag_RECURSE
@@ -1712,7 +1712,7 @@ std::string& Nodlang::serialize_cond_struct(std::string &_out, const Node* if_no
     ASSERT( if_node->type == Node_Type_IF_ELSE );
 
     // if
-    serialize_token(_out, if_node->switch_data.m_branch_prefix );
+    serialize_token(_out, if_node->switch_data.branch_prefix );
 
     // condition
     Serialization_Flags flags = Serialization_Flag_RECURSE
@@ -1723,7 +1723,7 @@ std::string& Nodlang::serialize_cond_struct(std::string &_out, const Node* if_no
     serialize_node(_out, if_node->switch_data.branch_out(Branch_TRUE)->first_adjacent_node(), Serialization_Flag_RECURSE );
 
     // when condition is false
-    serialize_token(_out, if_node->switch_data.m_branch_suffix);
+    serialize_token(_out, if_node->switch_data.branch_suffix);
     serialize_node(_out, if_node->switch_data.branch_out(Branch_FALSE)->first_adjacent_node(), Serialization_Flag_RECURSE );
 
     return _out;

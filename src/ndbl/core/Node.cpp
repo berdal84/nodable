@@ -652,7 +652,7 @@ void ndbl::node_init_branches(Node* node, size_t branch_count)
     VERIFY( node_has_switch_behavior(node), "Node does not have a switch behavior" );
 
 
-    node->switch_data.m_branch_count = branch_count;
+    node->switch_data.branch_count = branch_count;
 
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);      // accepts N inputs
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1); // accepts 0 or 1 output
@@ -660,14 +660,14 @@ void ndbl::node_init_branches(Node* node, size_t branch_count)
     // add 1 slot per branch
     for(size_t branch = 0; branch < branch_count; ++branch )
     {
-        node->switch_data.m_branch_slot[branch] = node_add_slot(node, node->value, Node_Slot::Flag_FLOW_ENTER, 1, branch);
+        node->switch_data.branch_slots[branch] = node_add_slot(node, node->value, Node_Slot::Flag_FLOW_ENTER, 1, branch);
     }
 
     // add 1 condition per branch except for the default branch
     for(size_t branch = 1; branch < branch_count; ++branch )
     {
         auto condition_property = node_add_prop<tools::any>(node, CONDITION_PROPERTY);
-        node->switch_data.m_condition_in[branch-1]  = node_add_slot(node, condition_property, Node_Slot::Flag_INPUT, 1, branch);
+        node->switch_data.condition_in_slots[branch-1]  = node_add_slot(node, condition_property, Node_Slot::Flag_INPUT, 1, branch);
     }
 }
 
@@ -676,18 +676,18 @@ void ndbl::node_init_as_cond_struct(Node* node)
     node_init(node, Node_Type_IF_ELSE, "If");
     node_init_internal_scope(node);
     node_init_branches(node, 2);
-    node->switch_data.m_branch_prefix = {Token_Type::keyword_if};
+    node->switch_data.branch_prefix = {Token_Type::keyword_if};
 }
 
 void ndbl::node_init_as_for_loop(Node* node)
 {
     node_init(node, Node_Type_FOR_LOOP, "For");
 
-    node->switch_data.m_branch_prefix = {Token_Type::keyword_for};
+    node->switch_data.branch_prefix = {Token_Type::keyword_for};
 
     // add initialization property and slot
     Node_Property* init_prop = node_add_prop<any>(node, INITIALIZATION_PROPERTY);
-    node->switch_data.m_initialization_slot = node_add_slot(node, init_prop, Node_Slot::Flag_INPUT, 1);
+    node->switch_data.initialization_slot = node_add_slot(node, init_prop, Node_Slot::Flag_INPUT, 1);
 
     // add conditional-related properties and slots
     node_init_internal_scope(node);
@@ -695,7 +695,7 @@ void ndbl::node_init_as_for_loop(Node* node)
 
     // add iteration property and slot
     Node_Property* iter_prop = node_add_prop<any>(node, ITERATION_PROPERTY);
-    node->switch_data.m_iteration_slot = node_add_slot(node, iter_prop, Node_Slot::Flag_INPUT, 1);
+    node->switch_data.iteration_slot = node_add_slot(node, iter_prop, Node_Slot::Flag_INPUT, 1);
 }
 
 void ndbl::node_init_as_while_loop(Node* node)
@@ -703,7 +703,7 @@ void ndbl::node_init_as_while_loop(Node* node)
     node_init(node, Node_Type_WHILE_LOOP, "While");
     node_init_internal_scope(node);
     node_init_branches(node, 2);
-    node->switch_data.m_branch_prefix = {Token_Type::keyword_while};
+    node->switch_data.branch_prefix = {Token_Type::keyword_while};
 }
 
 void ndbl::node_init_as_scope(Node* node)

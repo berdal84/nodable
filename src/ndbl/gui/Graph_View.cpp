@@ -536,7 +536,7 @@ void ndbl::graphview_create_constraints(Graph_View* graph_view, Scope* scope )
         constraint.rule          = &nodeviewcontraint_rule_distribute_sub_scope_views;
         constraint.leader        = {componentbag_get<Node_View>(&scope->node()->component_bag)};
         constraint.leader_pivot  = BOTTOM;
-        for(Branch i = 0; i < scope->node()->switch_data.branch_count(); ++i )
+        for(Branch i = 0; i < scope->node()->switch_data.branch_count; ++i )
         {
             auto branch = scope->node()->switch_data.branch_out(i);
             Node_View* nodeview = componentbag_get<Node_View>(&branch->node->component_bag);

@@ -95,26 +95,21 @@ namespace ndbl
         {
             // Handle any conditionnal structure, for now it only handle 2 branches, but it will be modified to have N branches (like a switch)
 
-            static constexpr size_t                 BRANCH_MAX            = 2;
-            Token                                   m_branch_prefix       = {Token_Type::ignore}; // e.g. if|for|while
-            Token                                   m_branch_suffix       = {Token_Type::ignore}; // e.g. else
-            size_t                                  m_branch_count        = 0;
-            std::array<Node_Slot*, BRANCH_MAX>      m_branch_slot         = {};
-            std::array<Node_Slot*, BRANCH_MAX - 1>  m_condition_in        = {};            
-            Node_Slot*                              m_initialization_slot = {nullptr};
-            Node_Slot*                              m_iteration_slot      = {nullptr};
+            static constexpr size_t                 BRANCH_MAX          = 2;
+            Token                                   branch_prefix       = {Token_Type::ignore}; // e.g. if|for|while
+            Token                                   branch_suffix       = {Token_Type::ignore}; // e.g. else
+            size_t                                  branch_count        = 0;
+            std::array<Node_Slot*, BRANCH_MAX>      branch_slots        = {};
+            std::array<Node_Slot*, BRANCH_MAX - 1>  condition_in_slots  = {};            
+            Node_Slot*                              initialization_slot = {nullptr};
+            Node_Slot*                              iteration_slot      = {nullptr};
 
-            Node_Slot*          branch_out(Branch branch)                       { ASSERT(branch < m_branch_count); return m_branch_slot[branch]; }
-            const Node_Slot*    branch_out(Branch branch) const                 { ASSERT(branch < m_branch_count); return m_branch_slot[branch]; }
-            size_t              branch_count() const                            { return m_branch_count; }
-            const Node*         condition(Branch branch = Branch_TRUE) const    { ASSERT(Branch_FALSE < branch && branch < m_branch_count); return m_condition_in[branch - 1]->first_adjacent_node(); }
-            Node*               condition(Branch branch = Branch_TRUE)          { ASSERT(Branch_FALSE < branch && branch < m_branch_count); return m_condition_in[branch - 1]->first_adjacent_node(); }
-            const Node_Slot*    condition_in(Branch branch = Branch_TRUE) const { ASSERT(Branch_FALSE < branch && branch < m_branch_count); return m_condition_in[branch - 1]; }
-            Node_Slot*          condition_in(Branch branch = Branch_TRUE)       { ASSERT(Branch_FALSE < branch && branch < m_branch_count); return m_condition_in[branch - 1]; }    
-            Node_Slot*          iteration_slot()                                { return m_iteration_slot; }
-            Node_Slot*          initialization_slot()                           { return m_initialization_slot; }
-            const Node_Slot*    iteration_slot() const                          { return m_iteration_slot; }
-            const Node_Slot*    initialization_slot() const                     { return m_initialization_slot; }
+            Node_Slot*          branch_out(Branch branch)                       { ASSERT(branch < branch_count); return branch_slots[branch]; }
+            const Node_Slot*    branch_out(Branch branch) const                 { ASSERT(branch < branch_count); return branch_slots[branch]; }
+            const Node*         condition(Branch branch = Branch_TRUE) const    { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]->first_adjacent_node(); }
+            Node*               condition(Branch branch = Branch_TRUE)          { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]->first_adjacent_node(); }
+            const Node_Slot*    condition_in(Branch branch = Branch_TRUE) const { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]; }
+            Node_Slot*          condition_in(Branch branch = Branch_TRUE)       { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]; }    
         };
 
         struct Invokable_State
