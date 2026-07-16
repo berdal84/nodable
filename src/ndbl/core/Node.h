@@ -210,16 +210,16 @@ namespace ndbl
     };
 
     void                    node_init(Node*, Node_Type, const std::string& name);
+    void                    node_init_as_empty_instruction(Node*);  // TODO: remove this, move code into node_init()
+    void                    node_init_as_while_loop(Node*);         // TODO:  (same)
+    void                    node_init_as_for_loop(Node*);           // TODO:  (same)
+    void                    node_init_as_cond_struct(Node*);        // TODO:  (same)
+    void                    node_init_as_scope(Node*);              // TODO:  (same)
+    void                    node_init_as_root_scope(Node*);         // TODO:  (same)
+    void                    node_init_as_variable_ref(Node*);       // TODO:  (same)
     void                    node_init_as_invokable(Node*, const tools::Function_Descriptor&, Node_Type = Node_Type_FUNCTION);
     void                    node_init_as_variable(Node*, const tools::Type_Descriptor* type, const char* identifier);
-    void                    node_init_as_variable_ref(Node*);
     void                    node_init_as_literal(Node*, const tools::Type_Descriptor* _type);
-    void                    node_init_as_root_scope(Node*);
-    void                    node_init_as_scope(Node*);
-    void                    node_init_as_cond_struct(Node*);
-    void                    node_init_as_for_loop(Node*);
-    void                    node_init_as_while_loop(Node*);
-    void                    node_init_as_empty_instruction(Node*);
     void                    node_init_internal_scope(Node*);
     void                    node_init_branches(Node*, size_t branch_count);
     void                    node_deinit(Node*);
