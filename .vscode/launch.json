@@ -22,10 +22,9 @@
             "type": "lldb",
             "request": "launch",
             "args": ["--gtest_break_on_failure"],
-            "preLaunchTask": "nodable-tests:build-${input:PLATFORM}-${input:CONFIG}",
-            "linux":    { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable-tests/bin/nodable-tests" },
-            "windows":  { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable-tests/bin/nodable-tests.exe" },
-            "console": "internalConsole",
+            "preLaunchTask": "tests:build-${input:PLATFORM}-${input:CONFIG}",
+            "linux":    { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/tests/bin/tests" },
+            "windows":  { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/tests/bin/tests.exe" },
         },
         {
             "name": "nodable",
@@ -34,7 +33,6 @@
             "preLaunchTask": "nodable:build-${input:PLATFORM}-${input:CONFIG}",
             "linux":    { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable/bin/nodable" },
             "windows":  { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable/bin/nodable.exe" },
-            "console": "internalConsole",
 
         }
     ]

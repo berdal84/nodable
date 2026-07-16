@@ -271,28 +271,6 @@ tools_app.depends_on_target = [
 ]
 
 #---------------------------------------------------------------------------
-
-tools_test = base_target("tools-tests", TARGET_TYPE_EXECUTABLE)
-
-tools_test.sources |= FileList[
-    "src/tools/core/Delegate.specs.cpp",
-    "src/tools/core/Containers.specs.cpp",
-    "src/tools/core/String.specs.cpp",
-    "src/tools/core/reflection/index.specs.cpp",
-    "src/tools/gui/geometry/Spatial_Node.specs.cpp",
-    "src/tools/gui/geometry/Rect.specs.cpp",
-    "src/tools/test/main.cpp",
-]
-
-tools_test.vcpkg |= [
-    "gtest"
-]
-
-tools_test.depends_on_target = [
-    common
-]
-
-#---------------------------------------------------------------------------
 ndbl_app = base_target("nodable", TARGET_TYPE_EXECUTABLE)
 
 ndbl_app.sources = FileList[
@@ -333,9 +311,9 @@ ndbl_app.depends_on_target = [
 ]
 
 #---------------------------------------------------------------------------
-ndbl_test = base_target("nodable-tests", TARGET_TYPE_EXECUTABLE)
+tests = base_target("tests", TARGET_TYPE_EXECUTABLE)
 
-ndbl_test.sources |= FileList[
+tests.sources |= FileList[
     "src/ndbl/core/Node.specs.cpp",
     "src/ndbl/core/Node_Slot.specs.cpp",
     "src/ndbl/core/Token.specs.cpp",
@@ -346,27 +324,34 @@ ndbl_test.sources |= FileList[
     "src/ndbl/core/language/Nodlang.parse_token.specs.cpp",
     "src/ndbl/core/language/Nodlang.tokenize.specs.cpp",
     "src/ndbl/test/main.cpp",
+
+    "src/tools/core/Delegate.specs.cpp",
+    "src/tools/core/Containers.specs.cpp",
+    "src/tools/core/String.specs.cpp",
+    "src/tools/core/reflection/index.specs.cpp",
+    "src/tools/gui/geometry/Spatial_Node.specs.cpp",
+    "src/tools/gui/geometry/Rect.specs.cpp",
 ]
 
-ndbl_test_gui_sources = FileList[
+tests_gui_sources = FileList[
     "src/ndbl/gui/Nodable.specs.cpp"
 ]
 
-ndbl_test.assets |= ndbl_app.assets # we load some .cpp files in tests
+tests.assets |= ndbl_app.assets # we load some .cpp files in tests
 
 if HEADLESS_TESTS
-    puts "HEADLESS_TESTS is TRUE, #{ndbl_test_gui_sources} won't be included." if VERBOSE
+    puts "HEADLESS_TESTS is TRUE, #{tests_gui_sources} won't be included." if VERBOSE
 else
-    ndbl_test.sources |= ndbl_test_gui_sources
+    tests.sources |= tests_gui_sources
 end
 
-ndbl_test.unity_build_slice_size = ndbl_test.sources.size
+tests.unity_build_slice_size = tests.sources.size
 
-ndbl_test.vcpkg |= [
+tests.vcpkg |= [
     "gtest"
 ]
 
-ndbl_test.depends_on_target = [
+tests.depends_on_target = [
     common
 ]
 
@@ -393,10 +378,7 @@ multitask :build_all => ['nodable:build', 'tools-app-example:build']
 
 if PLATFORM == PLATFORM_WINDOWS or PLATFORM == PLATFORM_LINUX
     desc "Run all tests"
-    task :test => [
-        'tools-tests:run',
-        'nodable-tests:run'
-    ]
+    task :test => 'tests:run'
 else
     desc "Run all tests"
     task :test do
@@ -478,8 +460,7 @@ end
 target_define_tasks( extern )
 target_define_tasks( common )
 target_define_tasks( tools_app )
-target_define_tasks( tools_test )
 target_define_tasks( ndbl_app )
-target_define_tasks( ndbl_test )
+target_define_tasks( tests )
 
 #---------------------------------------------------------------------------

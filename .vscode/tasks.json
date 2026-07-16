@@ -3,9 +3,9 @@
 	"tasks": [
 		// DEBUG
 		{
-			"label": 	"nodable-tests:build-linux-debug",
+			"label": 	"tests:build-linux-debug",
 			"type": 	"shell",
-			"command": 	"rake tools-tests:build nodable-tests:build",
+			"command": 	"rake tests:build",
 			"group":	{ "kind": "build" },
 			"options": {
 				"env": {
@@ -29,9 +29,9 @@
 
 		// OPTIMIZED
 		{
-			"label": 	"nodable-tests:build-linux-optimized",
+			"label": 	"tests:build-linux-optimized",
 			"type": 	"shell",
-			"command": 	"rake tools-tests:build nodable-tests:build",
+			"command": 	"rake tests:build",
 			"group":	{ "kind": "build" },
 			"options": {
 				"env": {
@@ -56,9 +56,9 @@
 
 		// RELEASE
 		{
-			"label": 	"nodable-tests:build-linux-release",
+			"label": 	"tests:build-linux-release",
 			"type": 	"shell",
-			"command": 	"rake tools-tests:build nodable-tests:build",
+			"command": 	"rake tests:build",
 			"group":	{ "kind": "build" },
 			"options": {
 				"env": {
