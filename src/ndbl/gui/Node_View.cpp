@@ -6,6 +6,7 @@
 
 #include "gui/ImGuiEx.h"
 #include "gui/View_State.h"
+#include "gui/geometry/Pivots.h"
 #include "gui/geometry/Space.h"
 #include "tools/core/Math.h"
 
@@ -16,8 +17,6 @@
 #include "Node_Property_View.h"
 #include "Node_Slot_View.h"
 #include "Graph_View.h"
-#include "Physics_Component.h"
-
 
 #ifdef NDBL_DEBUG
 #define NDBL_ASTNODEVIEW_DEBUG_DRAW 0
@@ -645,22 +644,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* node_view, bool* _show_a
             if ( component != *node->component_bag.begin() )
                 ImGui::Separator();
 
-            if ( component->type_desc == type::get<Physics_Component>())
-            {
-                auto* physics_component = reinterpret_cast<Physics_Component*>( component );
-
-                ImGui::Checkbox("On/Off", &physics_component->is_active());
-
-                // for (ViewConstraint& constraint: physics_component->constraints())
-                // {
-                //     if (ImGui::TreeNode(&constraint, "%s", constraint.name) )
-                //     {
-                //         ImGui::Checkbox("enabled", &constraint.enabled);
-                //         ImGui::TreePop();
-                //     }
-                // }
-            }
-            else if (component->type_desc == type::get<Scope>())
+            if (component->type_desc == type::get<Scope>())
             {
                 TreeNode_Scope("Scope", static_cast<Scope *>( component ));
             }

@@ -232,7 +232,6 @@ common.sources = FileList[
     "src/ndbl/gui/History.cpp",
     "src/ndbl/gui/Nodable.cpp",
     "src/ndbl/gui/Nodable_View.cpp",
-    "src/ndbl/gui/Physics_Component.cpp",
 ]
 
 common.depends_on_target = [extern]

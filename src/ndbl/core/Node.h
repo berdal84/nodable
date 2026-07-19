@@ -271,4 +271,7 @@ namespace ndbl
     bool                    node_is_expression(const Node*);
     inline bool             node_is_invokable(const Node* node)     { return node->type == Node_Type_OPERATOR || node->type == Node_Type_FUNCTION; }
     inline bool             node_is_orphan(const Node* node)        { return node->scope == nullptr; }
+
+    template<typename Component_Type>
+    inline Component_Type* node_component(Node* node) { return tools::componentbag_get<Component_Type>(&node->component_bag); }
 }

@@ -1,10 +1,20 @@
 #include "Graph_View.h"
 
 #include <algorithm>
+#include <array>
+#include <cstddef>
+#include <cstdio>
+#include <vector>
 #include "core/Component.h"
+#include "core/Log.h"
 #include "core/Scope.h"
+#include "glm/common.hpp"
 #include "gui/View_State.h"
 #include "gui/geometry/Box_2D.h"
+#include "gui/geometry/Pivots.h"
+#include "gui/geometry/Space.h"
+#include "gui/geometry/Spatial_Node.h"
+#include "gui/geometry/Vec2.h"
 #include "imgui.h"
 #include "tools/core/Types.h"
 #include "tools/gui/ImGuiEx.h"
@@ -19,7 +29,6 @@
 #include "Config.h"
 #include "Event.h"
 #include "Node_View.h"
-#include "Physics_Component.h"
 #include "Node_Slot_View.h"
 #include "Scope_View.h"
 
@@ -38,9 +47,7 @@ namespace ndbl
     void    _graphview_on_graph_change(Graph_View*);
     void    _graphview_on_selection_change(Graph_View*, Selection::Event_Type, Selection::Element );
     void    _graphview_draw_context_menu(Graph_View*, Node_Slot_View* dragged_slotview = nullptr );
-    void    _graphview_create_constraints__align_top_recursively(Graph_View*, const std::vector<Node*>& follower, ndbl::Node *leader);
-    void    _graphview_create_constraints__align_down(Graph_View*, Node* follower, const std::vector<Node*>& leader);
-    void    _graphview_create_constraints(Graph_View*, Scope *scope);
+    void    _graphview_update_scopes_and_nodes_layout_recursively(Graph_View*, Node* /* root_node */);
     void    _graphview_cursor_state_tick(Graph_View*);
     void    _graphview_roi_state_enter(Graph_View*);
     void    _graphview_roi_state_tick(Graph_View*);
@@ -159,22 +166,10 @@ void ndbl::_graphview_handle_add_node(Graph_View* graph_view, Node* node)
     {
         spatialnode_add_child(&node->scope->view->spatial_node, &nodeview->shape.spatial_node );
     }
-
-    // physics
-    auto* physics_component = new Physics_Component();
-    component_init(physics_component, node);
-    componentbag_add(&node->component_bag, physics_component);
 }
 
 void ndbl::_graphview_handle_remove_node(Graph_View* graph_view, Node* node)
 {
-    // clean physics
-    auto* physics_component = componentbag_get<Physics_Component>(&node->component_bag);
-    VERIFY(physics_component, "Should have been created from _handle_add_node()");
-    componentbag_remove(&node->component_bag, physics_component );
-    component_deinit(physics_component);
-    delete physics_component;
-
     // clean nodeview
     auto* nodeview = componentbag_get<Node_View>(&node->component_bag);
     VERIFY(nodeview, "Should have been created from _handle_add_node()");
@@ -479,117 +474,170 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 	return changed;
 }
 
-void ndbl::_graphview_create_constraints__align_down(Graph_View* graph_view, Node* follower, const  std::vector<Node*>& leader )
+namespace tools
 {
-    if( leader.empty() )
-        return;
-
-    std::vector<Node_View*> leader_view;
-
-    for ( Node* _leader : leader )
+    struct Element
     {
-        leader_view.push_back( componentbag_get<Node_View>(&_leader->component_bag) );
-    }
+        float width     = 0;
+        float height    = 0;
+    };
 
-    Node_View* follower_view = componentbag_get<Node_View>(&follower->component_bag);
+    constexpr static size_t ROW_ELEMS_MAX = 20;
 
-    auto& constraint = graph_view->contraints.emplace_back();
-
-    constraint.name           = "Position below previous";
-    constraint.rule           = &nodeviewcontraint_rule_1_to_N_as_row;
-    constraint.leader         = leader_view;
-    constraint.follower       = {follower_view};
-    constraint.follower_flags = Node_View_Flag_WITH_RECURSION;
-    const Vec2 halignment     = constraint.leader.size() == 1 ? LEFT : CENTER;
-    constraint.leader_pivot   = halignment + BOTTOM;
-    constraint.follower_pivot = halignment + TOP;
-
-    // vertical gap
-    constraint.gap_size      = Size_MD;
-    constraint.gap_direction = BOTTOM;
-
-};
-
-void ndbl::_graphview_create_constraints__align_top_recursively(Graph_View* graph_view, const std::vector<Node*>& unfiltered_follower, ndbl::Node* leader )
-{
-    if ( unfiltered_follower.empty() )
-        return;
-
-    ASSERT(leader);
-    Node_View* leader_view = componentbag_get<Node_View>(&leader->component_bag);
-    // nodeview's inputs must be aligned on center-top
-    // It's a one to many constrain.
-    //
-    std::vector<Node_View*> follower;
-    for (auto* _follower : unfiltered_follower )
-        if (node_is_output_node_in_expression(_follower, leader))
-            follower.push_back( componentbag_get<Node_View>(&_follower->component_bag) );
-
-    if ( follower.empty() )
-        return;
-
-    auto& constraint = graph_view->contraints.emplace_back();
-    constraint.name           = "Align many inputs above";
-    constraint.rule           = &nodeviewcontraint_rule_N_to_1_as_a_row;
-    constraint.leader         = { leader_view };
-    constraint.leader_pivot   = TOP;
-    constraint.follower       = follower;
-    constraint.follower_pivot = BOTTOM;
-    constraint.gap_size       = Size_SM;
-    constraint.gap_direction  = TOP;
-
-    if (follower.size() > 1 )
+    enum Axis
     {
-        constraint.follower_flags = Node_View_Flag_WITH_RECURSION;
-    }
+        Row,
+        Column
+    };
 
-    if ( node_has_flow_adjacent(leader) )
+    struct Layout_State
     {
-        constraint.follower_pivot = BOTTOM_LEFT;
-        constraint.leader_pivot   = TOP_RIGHT;
-        constraint.row_direction  = RIGHT;
-    }
+        std::array<Element, ROW_ELEMS_MAX> elems;
+        
+        Vec2    cursor              = {0,0};
+        size_t  elem_count          = 0;
+        float   elem_width_max      = 0.f;
+        float   elem_height_max     = 0.f;
+        float   width               = 0.f;
+        float   height              = 0.f;
+        float   gap                 = 0.f;
+        Axis    main_axis           = Row;
 
-    for( Node_View* _leader : follower ) // TODO: _leader vs follower ??!
-    {
-        _graphview_create_constraints__align_top_recursively(graph_view, _leader->node()->inputs(), _leader->node());
-    }
-};
-
-void ndbl::_graphview_create_constraints(Graph_View* graph_view, Scope* scope )
-{
-    // distribute child scopes
-    if ( node_is_conditional(scope->node()) )
-    {
-        auto& constraint = graph_view->contraints.emplace_back();
-        constraint.name          = "Align Scope_View partitions";
-        constraint.rule          = &nodeviewcontraint_rule_distribute_sub_scope_views;
-        constraint.leader        = {componentbag_get<Node_View>(&scope->node()->component_bag)};
-        constraint.leader_pivot  = BOTTOM;
-        for(Branch i = 0; i < scope->node()->switch_data.branch_count; ++i )
+        inline void push(const Element& element)
         {
-            auto branch = scope->node()->switch_data.branch_out(i);
-            Node_View* nodeview = componentbag_get<Node_View>(&branch->node->component_bag);
-            constraint.follower.push_back( nodeview );
+            assert(elem_count + 1 < ROW_ELEMS_MAX);
+            elems[elem_count] = element;
+            elem_count++;
+
+            elem_width_max   = glm::max(elem_width_max, element.width);
+            elem_height_max  = glm::max(elem_height_max, element.height);
+            width  += element.width;
+            height += element.height;
+
+            if ( main_axis == Column )
+                cursor.y += element.height;
+            else
+                cursor.x += element.width;
         }
-        constraint.gap_size      = Size_XL;
-        constraint.gap_direction = BOTTOM;
-    }
 
-    std::vector<Node*> backbone = scope_get_backbone(scope);
-    for ( Node* child_node : backbone )
+        inline void print()
+        {
+            printf("State elements:\n");
+            for(size_t i = 0; i < elem_count; i++)
+            {
+                const Element& elem = elems[i];
+                printf("Element %lu: %f x %f px.\n", i, elem.width, elem.height );
+            }
+            printf("width: %f, height: %f, width_max: %f, height_max: %f\n", width, height, elem_width_max,  elem_height_max );
+            printf("--\n");
+        }
+    };
+
+    static Layout_State layout_state;
+
+#define LAYOUT_BEGIN( AXIS )        assert(tools::layout_state.elem_count == 0); tools::layout_state.main_axis = AXIS
+#define LAYOUT_END()                tools::layout_state.print(); tools::layout_state = {}
+#define LAYOUT_PUSH( ELEM )         tools::layout_state.push( ELEM )        
+#define LAYOUT_SET_CURSOR( POS )    tools::layout_state.cursor = POS            
+#define LAYOUT_GET_CURSOR()         tools::layout_state.cursor
+#define LAYOUT_MOVE_CURSOR( X, Y ) tools::layout_state.cursor += {X, Y}
+}
+
+void ndbl::_graphview_update_scopes_and_nodes_layout_recursively(Graph_View* graph_view, Node* node )
+{
+    auto node_view = node_component<Node_View>(node);
+    if ( node == graph_root(graph_view->graph()))
     {
-        // align child below flow_inputs
-        if ( child_node != backbone.front() || scope_is_orphan(scope) )
-            _graphview_create_constraints__align_down(graph_view, child_node, child_node->flow_inputs());
-
-        // align child's inputs above
-        _graphview_create_constraints__align_top_recursively(graph_view, child_node->inputs(), child_node );
+        LAYOUT_SET_CURSOR( nodeview_get_rect(node_view).top_left() );
     }
 
-    for ( Node* _child_node : scope->children )
-        if ( Scope* _child_scope = _child_node->internal_scope )
-            _graphview_create_constraints(graph_view, _child_scope);
+    //--------------
+    // TODO: new algorithm to update the layout
+    //      
+    //      needs:
+    //      - align in row
+    //      - align in column
+    //      - justify left/right/top/bottom
+    //      - must traverse from root to leafs, but must update the leafs first (high depth to low depth)
+    //--------------
+
+
+    //
+    // Update inputs recusively first
+    // We want nodes/scope at higher depth to be "unfolded" before the one with a lower depth.
+    // This is to ensure we have to unfold the whole graph once to get a stabilized structure in 1 pass.
+    // Some nodes may have to be readjusted in a second pass in case they connect nodes from different branches of the tree.
+    //
+
+    // Now we can align inputs/children since they have their layout.
+    if( !node->inputs().empty() )
+    {
+        for( Node* input_node : node->inputs() )
+            _graphview_update_scopes_and_nodes_layout_recursively(graph_view, input_node);
+
+
+        Rect rect = nodeview_get_rect(node_view);
+        LAYOUT_SET_CURSOR( rect.top_right() );
+        LAYOUT_BEGIN( Row );
+
+        for( Node* input_node : node->inputs() )
+        {
+            Node_View* input_node_view = node_component<Node_View>(input_node);
+            LAYOUT_MOVE_CURSOR(0.f, -50.f);
+
+            if(input_node_view->state.has_flags(View_Flag_PINNED))
+                continue;
+
+
+            // Snap to cursor
+            spatialnode_set_position(&input_node_view->spatial_node(), LAYOUT_GET_CURSOR(), WORLD_SPACE);
+
+            // Push Element
+            Rect rect = nodeview_get_rect(input_node_view);
+
+            Element elem;
+            elem.height = rect.height();
+            elem.width  = rect.width();
+
+            LAYOUT_PUSH(elem);
+        }
+
+        LAYOUT_END();
+    }
+
+    if( node->internal_scope != nullptr)
+    {
+        for( Node* backbone_node : scope_get_backbone(node->internal_scope) )
+            _graphview_update_scopes_and_nodes_layout_recursively(graph_view, backbone_node);
+
+
+        Rect rect = nodeview_get_rect(node_view);
+        LAYOUT_SET_CURSOR( rect.center() );
+        LAYOUT_BEGIN( Column );
+
+        for( Node* backbone_node : scope_get_backbone(node->internal_scope) )
+        {
+            LAYOUT_MOVE_CURSOR(0.f, 100.f);
+
+            // Snap to cursor
+            Node_View* backbone_node_view = node_component<Node_View>(backbone_node);
+
+            if(backbone_node_view->state.has_flags(View_Flag_PINNED))
+                continue;
+
+
+            spatialnode_set_position(&backbone_node_view->spatial_node(), LAYOUT_GET_CURSOR(), WORLD_SPACE);
+
+            Rect rect = nodeview_get_rect(backbone_node_view);
+
+            Element elem;
+            elem.height = rect.height();
+            elem.width  = rect.width();
+
+            LAYOUT_PUSH(elem);
+        }
+        LAYOUT_END();
+    }
 };
 
 void ndbl::graphview_update(Graph_View* graph_view, float dt)
@@ -610,30 +658,9 @@ void ndbl::_graphview_update_once(Graph_View* graph_view, float dt)
 {
     ASSERT( graph_view->graph() );
 
-    // Physics Components
-    // TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph_View", "Updating constraints ...\n");
-
-    // Reset constraints when necessary
-    if ( graph_view->is_physics_dirty )
-    {
-        graph_view->contraints.clear();
-        _graphview_create_constraints(graph_view, graph_root_scope(graph_view->graph()));
-
-        graph_view->is_physics_dirty = false;
-    }
-
-    // Apply contraints (constraints => forces)
-    // Note: This could run in parallel.
-    for ( Node_View_Constraint& each_constraint : graph_view->contraints)
-        if( each_constraint.rule ) // is nullptr initialized
-            each_constraint.rule(&each_constraint, dt);
-
-    // Apply forces (forces => positons)
-    for ( Node* node : graph_view->graph()->nodes )
-        if ( auto* _physics = componentbag_get<Physics_Component>(&node->component_bag) )
-            _physics->apply_forces(dt);
-
-    // TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph_View", "Constraints updated.\n");
+    // Layout
+    Node* root_node = graph_root(graph_view->graph());
+    _graphview_update_scopes_and_nodes_layout_recursively(graph_view, root_node);
 
     // Node_Views
     for (Node* node : graph_view->graph()->nodes )
@@ -705,7 +732,7 @@ void ndbl::graphview_frame_content(Graph_View* graph_view, Frame_Mode mode )
 
 void ndbl::_graphview_on_graph_change(Graph_View* graph_view)
 {
-    graph_view->is_physics_dirty = true;
+    // graph_view->is_physics_dirty = true;
 }
 
 void ndbl::_graphview_on_selection_change(Graph_View* graph_view, Selection::Event_Type type, Selection::Element elem)
@@ -740,17 +767,11 @@ void ndbl::graphview_reset(Graph_View* graph_view)
     if ( graph_is_empty(graph_view->graph() ) )
         return;
 
-    _graphview_update_until_unfold(graph_view); // Otherwise it would not render a nice graph when nodes are rendered for the first time
-
-    // make sure views are outside viewable rectangle (to avoid flickering)
-    Vec2 far_outside = Vec2(-1000.f, -1000.0f);
+    Vec2 initial_pos = Vec2(-0.f, -0.0f);
 
     for( Node* node : graph_view->graph()->nodes )
         if ( auto* view = componentbag_get<Node_View>(&node->component_bag) )
-            spatialnode_translate( &view->shape.spatial_node, far_outside );
-
-    // physics
-    graph_view->is_physics_dirty = true;
+            spatialnode_translate( &view->shape.spatial_node, initial_pos );
 
     //   Note: Instead of waiting an arbitrary period of time, we should rather be able to unfold the graph instantly
     const size_t dispatch_delay_ms = 100;
@@ -1189,131 +1210,4 @@ std::vector<Node_View*> get_clean_views(std::vector<Node_View*>& possibly_hidden
             if (!view->state.has_flags(View_Flag_PINNED))
                 result.push_back(view);
     return std::move(result);
-}
-
-void ndbl::nodeviewcontraint_rule_1_to_N_as_row(Node_View_Constraint* constraint, float dt)
-{
-    // This type of constrain is designed to make a single Node_View to follow many others
-
-    VERIFY(!constraint->leader.empty(), "No leader found!");
-    VERIFY(constraint->follower.size() == 1, "This is a one to many relationship, a single follower only is allowed");
-
-    std::vector<Node_View*> clean_follower = get_clean_views(constraint->follower);
-    if( clean_follower.empty() )
-        return;
-
-    Config* cfg = get_config();
-    Node_View* _follower      = clean_follower[0];
-    const Box_2D leaders_box{nodeview_bounding_rect(constraint->leader, WORLD_SPACE, constraint->leader_flags) };
-    const Box_2D follower_box{ nodeview_get_rect_ex(_follower, WORLD_SPACE, constraint->follower_flags) };
-
-    // Compute how much the follower box needs to be moved to snap the leader's box at a given pivots.
-    Vec2 delta = box2d_diff(leaders_box, constraint->leader_pivot , follower_box, constraint->follower_pivot );
-    delta += constraint->gap_direction * cfg->ui_node_gap(constraint->gap_size);
-
-    // Apply a force to translate to the (single) follower
-    Vec2 current_pos = spatialnode_position(&_follower->shape.spatial_node, WORLD_SPACE);
-    Vec2 desired_pos = current_pos + delta;
-    auto* physics_component = componentbag_get<Physics_Component>(&_follower->node()->component_bag);
-    VERIFY(physics_component, "Component required");
-    physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
-}
-
-void ndbl::nodeviewcontraint_rule_N_to_1_as_a_row(Node_View_Constraint* constraint, float _dt)
-{
-    ASSERT(constraint->leader.size() == 1);
-    ASSERT(constraint->follower.size() > 0);
-
-    Config* cfg = get_config();
-    std::vector<Node_View*> clean_follower = get_clean_views(constraint->follower);
-    if( clean_follower.empty() )
-        return;
-
-    // Form a row with each view box
-    std::vector<Box_2D> box(constraint->follower.size());
-    std::vector<Vec2>       delta(constraint->follower.size());
-    const Vec2              gap = cfg->ui_node_gap(constraint->gap_size);
-
-    for(size_t i = 0; i < clean_follower.size(); i++)
-    {
-        box[i] = Box_2D{ nodeview_get_rect_ex(clean_follower[i], WORLD_SPACE, constraint->follower_flags) };
-
-        // Determine the delta required to snap the current follower with either the leaders or the previous follower.
-        if ( i == 0 )
-        {
-            // First box is aligned with the leader
-            const Box_2D leader_box{ nodeview_get_rect_ex(constraint->leader[0], WORLD_SPACE, constraint->leader_flags) };
-            delta[i] = box2d_diff(leader_box, constraint->leader_pivot, box[i], constraint->follower_pivot);
-            delta[i] += gap * constraint->gap_direction;
-        }
-        else
-        {
-            // i+1 box is aligned with the i
-            delta[i] = box2d_diff(box[i - 1] , constraint->row_direction, box[i], -constraint->row_direction);
-            delta[i] += gap * constraint->row_direction;
-            delta[i] -= delta[i-1]; //
-        }
-    }
-
-    for(size_t i = 0; i < clean_follower.size(); i++)
-    {
-        auto* physics_component = componentbag_get<Physics_Component>(&clean_follower[i]->node()->component_bag);
-        if( !physics_component )
-            continue;
-        Vec2 current_pos = spatialnode_position(&clean_follower[i]->shape.spatial_node, WORLD_SPACE);
-        Vec2 desired_pos = current_pos + delta[i];
-        physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
-    }
-}
-
-void ndbl::nodeviewcontraint_rule_distribute_sub_scope_views(Node_View_Constraint* constraint, float dt)
-{
-    // filter views to constrain
-    //
-    // TODO: there is an issue here, due to the specific case of Scope being partitions (sharing the same node with
-    //       their parent scope), it is complicated to disable the constraints when the partition contains a single
-    //       nested scope (e.g. in a while/if/for/etc.).
-    //       The concept of partition should be removed. They must be either dynamically added/removed when user
-    //       connects a node to a branch, or they must be attached to a separate node.
-    //
-    std::vector<Scope_View*> sub_scope_view;
-    for( Node_View* _follower : constraint->follower )
-    {
-        Scope_View* _follower_scopeview = _follower->internal_scopeview;
-        ASSERT(_follower_scopeview);
-        if ( !_follower_scopeview->state.has_flags(View_Flag_PINNED) )
-            if ( scopeview_must_be_draw(_follower_scopeview) )
-                sub_scope_view.push_back( _follower_scopeview );
-    }
-
-    // get all content rects
-    std::vector<Rect> new_content_rect;
-    for(auto _view : sub_scope_view)
-        new_content_rect.push_back( _view->content_rect );
-
-    // make a row
-    const float gap = get_config()->ui_scope_gap( constraint->gap_size );
-    Rect::make_row(new_content_rect, gap );
-
-    // v align
-    const Vec2 align_pos = constraint->leader[0]->shape.pivot(constraint->leader_pivot, WORLD_SPACE )
-                         + Vec2{0.f, gap} * constraint->gap_direction;
-    Rect::align_top(new_content_rect, align_pos.y );
-
-    // h align
-    Rect::center(new_content_rect, align_pos.x );
-
-    // translate each sub_scope
-    for(size_t i = 0; i < sub_scope_view.size(); ++i)
-    {
-        const Vec2 cur_pos = sub_scope_view[i]->content_rect.center();
-        const Vec2 new_pos = new_content_rect[i].center();
-        const Vec2 delta = new_pos - cur_pos;
-
-        // Apply force to translate head
-        Node* head_node = sub_scope_view[i]->scope->head;
-        auto* physics = componentbag_get<Physics_Component>(&head_node->component_bag);
-        VERIFY(physics, "A Physics_Component is required on this entity to apply a force to");
-        physics->translate(delta, get_config()->ui_node_speed, true );
-    }
 }
