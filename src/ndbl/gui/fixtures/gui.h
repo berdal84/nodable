@@ -1,12 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "gui/App_View.h"
 #include "ndbl/gui/Nodable.h"
-#include "tools/core/System.h"
-
-#include <thread>
+#include "ndbl/gui/Nodable_View.h"
 
 #ifdef NDBL_GUI_TEST_HUMAN_SPEED
+#include <thread>
 #define SLEEP_FOR_HUMAN( delay_in_ms ) std::this_thread::sleep_for( std::chrono::milliseconds( delay_in_ms ) );
 #else
 #define SLEEP_FOR_HUMAN( delay_in_ms )
@@ -60,7 +58,7 @@ namespace testing
             }
         }
 
-        void save_screenshot(ndbl::App_State* state, const char* relative_path)
+        void save_screenshot(const ndbl::App_State* app, const char* relative_path)
         {
             TOOLS_LOG(tools::Verbosity_Message, "Test", "Taking screenshot ...\n");
             auto path = tools::Path::get_executable_path().parent_path() / "screenshots" / relative_path;
@@ -68,7 +66,7 @@ namespace testing
             {
                 tools::Path::create_directories(path.parent_path());
             }
-            tools::appview_save_screenshot(state->view, path);
+            tools::appview_save_screenshot(app->view(), path);
         }
     };
 }

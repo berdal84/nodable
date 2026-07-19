@@ -45,7 +45,7 @@ TEST_F(Gui_App, new_file)
 {
     ndbl::App_State app;
     nodable_init(&app);
-    app.view->show_splashscreen = false;
+    app.view()->show_splashscreen = false;
     nodable_new_file(&app);
     loop_for_x_sec(&app, 1.0 );
     save_screenshot(&app, "TEST_Gui_App__new_file__0.png");
@@ -56,7 +56,7 @@ TEST_F(Gui_App, open_file)
 {
     ndbl::App_State app;
     nodable_init(&app);
-    app.view->show_splashscreen = false;
+    app.view()->show_splashscreen = false;
     loop_for_x_sec(&app, 1.0 );
     save_screenshot(&app, "TEST_Gui_App__open_file__0.png");
     EXPECT_TRUE(nodable_open_asset_file(&app, "examples/arithmetic.cpp"));
@@ -69,7 +69,7 @@ TEST_F(Gui_App, close_file)
 {
     ndbl::App_State app;
     nodable_init(&app);
-    app.view->show_splashscreen = false;
+    app.view()->show_splashscreen = false;
     File* file = nodable_open_asset_file(&app, "examples/arithmetic.cpp");
     loop_for_x_sec(&app, 1.0 );
     save_screenshot(&app, "TEST_Gui_App__close_file__0.png");
@@ -83,7 +83,7 @@ TEST_F(Gui_App, open_examples)
 {
     ndbl::App_State app;
     nodable_init(&app);
-    app.view->show_splashscreen = false;
+    app.view()->show_splashscreen = false;
     nodable_update(&app);
     save_screenshot(&app, "TEST_Gui_App__open_examples__0.png");
     EXPECT_TRUE(nodable_open_asset_file(&app, "examples/arithmetic.cpp"));

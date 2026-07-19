@@ -84,10 +84,10 @@ void ndbl::graph_reset(Graph* graph)
 
 bool ndbl::graph_update(Graph* graph)
 {
-    bool _changed = false;
+    bool changed = false;
 
-    std::stack<Node*> node_to_delete;
-
+    // Update nodes
+    std::stack<Node*> node_to_delete; // store pointers to delete all later (avoids to allocate or move data in graph->nodes)
     for(Node* node : graph->nodes)
     {
         if ( node->has_flags(Node_Flag_MUST_BE_DELETED))
@@ -96,13 +96,14 @@ bool ndbl::graph_update(Graph* graph)
         }
         else if ( node->has_flags(Node_Flag_IS_DIRTY) )
         {
-            _changed |= node_update(node);
+            changed |= node_update(node);
         }
     }
 
+    // Delete flagged nodes
     while( !node_to_delete.empty() )
     {
-        _changed |= true;
+        changed |= true;
         Node* node = node_to_delete.top();
         graph_clean_node(node);
         node_deinit(node);
@@ -110,12 +111,12 @@ bool ndbl::graph_update(Graph* graph)
         node_to_delete.pop();
     }
 
-    if ( _changed )
+    if ( changed )
     {
-        graph->signal_change.broadcast(); // TODO: rather be signal_update, signal_change is already emitted within function calls from this method
+        graph->signal_change.broadcast();
     }
 
-    return _changed;
+    return changed;
 }
 
 void ndbl::graph_insert(Graph* graph, Node* node, Scope* scope)

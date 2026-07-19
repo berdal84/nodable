@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gui/App_View.h"
+#include "core/reflection/Place.h"
 #include "tools/gui/App.h"
 #include "Config.h"
 
@@ -14,26 +14,19 @@ namespace ndbl
 {
     // forward declarations
     class Nodlang;
-    class File;
-
-    struct App_View_State : public tools::App_View_State
-    {
-        tools::Texture*     logo                            = nullptr;
-        bool                show_properties_editor          = false;
-        bool                show_imgui_demo                 = false;
-        bool                show_advanced_node_properties   = false;
-        bool                scroll_to_curr_instr            = true;
-    };
+    struct File;
+    struct App_View_State;
 
     struct App_State : public tools::App_State
     {
-        App_View_State*     view              = nullptr;
-        Config*             config            = nullptr;
-        File*               current_file      = nullptr;
-        Nodlang*            language          = nullptr;
+        Config*             config              = nullptr;
+        File*               current_file        = nullptr;
+        Nodlang*            language            = nullptr;
         u8_t                untitled_file_count = 0;
         std::vector<File*>  files;
         std::vector<File*>  files_to_delete;
+
+        PLACE_CAST(App_View_State*, view, reinterpret_cast, tools::App_State::view)
     };
 
     // common

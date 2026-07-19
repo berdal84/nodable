@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <string>
 
+#include "tools/core/File_System.h"
 #include "ndbl/gui/File_View.h"
 #include "ndbl/gui/History.h"
 #include "ndbl/gui/Nodable.h"

@@ -2,16 +2,16 @@
 
 #include <fstream>
 
-#include "core/Asserts.h"
-#include "core/Component.h"
-#include "core/Graph.h"
+#include "tools/core/Asserts.h"
+#include "tools/core/Component.h"
+#include "tools/gui/Action_Manager.h"
+#include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/language/Nodlang.h"
-
-#include "Graph_View.h"
-#include "File_View.h"
-#include "History.h"
-#include "Node_View.h"
+#include "ndbl/gui/Graph_View.h"
+#include "ndbl/gui/File_View.h"
+#include "ndbl/gui/History.h"
+#include "ndbl/gui/Node_View.h"
 
 using namespace ndbl;
 using namespace tools;
