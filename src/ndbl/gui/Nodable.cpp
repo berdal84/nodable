@@ -36,7 +36,6 @@ using namespace tools;
 #include "commands/Cmd_Group.h"
 
 #include "Node_Slot_View.h"
-#include "Condition.h"
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
