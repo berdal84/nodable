@@ -190,13 +190,13 @@ void ndbl::nodable_update(App_State* app)
         fileview_update(&app->current_file->view, dt);
 
     // 1. delete flagged files
-    for( File* file : app->flagged_to_delete_file )
+    for( File* file : app->files_to_delete )
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file_filename(file).c_str());
         file_deinit(file);
         delete file;
     }
-    app->flagged_to_delete_file.clear();
+    app->files_to_delete.clear();
 
     // 2. Update current file
     if (app->current_file)
@@ -549,7 +549,7 @@ void ndbl::nodable_deinit(App_State* app)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_deinit ...\n");
 
-    for( File* each_file : app->loaded_files )
+    for( File* each_file : app->files )
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::App", "Delete file %s ...\n", each_file->path.c_str());
         file_deinit(each_file);
@@ -608,7 +608,7 @@ File* ndbl::nodable_open_file(App_State* app, const tools::Path& _path)
 File* ndbl::nodable_add_file(App_State* app, File* _file)
 {
     VERIFY(_file, "File is nullptr");
-    app->loaded_files.push_back( _file );
+    app->files.push_back( _file );
     app->current_file = _file;
     get_event_manager()->dispatch( Event_ID_FILE_OPENED );
     return _file;
@@ -646,13 +646,13 @@ void ndbl::nodable_close_file(App_State* app, File* _file)
 {
     // Find and delete the file
     VERIFY(_file, "Cannot close a nullptr File!");
-    auto it = std::find(app->loaded_files.begin(), app->loaded_files.end(), _file);
-    VERIFY(it != app->loaded_files.end(), "Unable to find the file in the loaded_files");
-    it = app->loaded_files.erase(it);
-    app->flagged_to_delete_file.push_back(_file);
+    auto it = std::find(app->files.begin(), app->files.end(), _file);
+    VERIFY(it != app->files.end(), "Unable to find the file in the loaded_files");
+    it = app->files.erase(it);
+    app->files_to_delete.push_back(_file);
 
     // Switch to the next file if possible
-    if ( it != app->loaded_files.end() )
+    if ( it != app->files.end() )
     {
         app->current_file = *it;
     }
@@ -983,7 +983,7 @@ void ndbl::nodable_draw(App_State* app)
     // All draw_xxx_window() are ImGui windows docked to a dockspace (defined in signal_reset_layout() )
 
     ImGuiID ds_root = app->view->dockspaces[Dockspace_ROOT];
-    if( app->loaded_files.empty() )
+    if( app->files.empty() )
     {
         bool show_startup_window = !app->view->show_splashscreen;
         if( show_startup_window )
@@ -995,7 +995,7 @@ void ndbl::nodable_draw(App_State* app)
     {
         _nodable_draw_toolbar_window(app);
 
-        for ( File* each_file : app->loaded_files )
+        for ( File* each_file : app->files )
         {
             _nodable_draw_file_window( app, ds_root, redock_all, each_file);
         }
