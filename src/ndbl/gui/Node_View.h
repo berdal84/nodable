@@ -6,7 +6,7 @@
 #include "gui/Config.h"
 #include "gui/geometry/Spatial_Node.h"
 #include "tools/core/Component.h"// base class
-#include "tools/core/reflection/Place.h"
+#include "tools/core/reflection/GETTERS_SETTERS.h"
 #include "tools/gui/geometry/Box_2D.h"
 #include "tools/gui/View_State.h"
 #include "ndbl/core/Node_Property.h"

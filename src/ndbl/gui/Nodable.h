@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/reflection/Place.h"
+#include "core/reflection/GETTERS_SETTERS.h"
 #include "tools/gui/App.h"
 #include "Config.h"
 
@@ -17,8 +17,9 @@ namespace ndbl
     struct File;
     struct App_View_State;
 
-    struct App_State : public tools::App_State
+    struct App_State
     {
+        tools::App_State    base;
         Config*             config              = nullptr;
         File*               current_file        = nullptr;
         Nodlang*            language            = nullptr;
@@ -26,7 +27,7 @@ namespace ndbl
         std::vector<File*>  files;
         std::vector<File*>  files_to_delete;
 
-        GETTERS_reinterpret_cast(App_View_State*, view, tools::App_State::view)
+        GETTERS_reinterpret_cast(App_View_State*, view, this->base.view)
     };
 
     // common

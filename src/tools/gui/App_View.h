@@ -74,7 +74,7 @@ namespace tools
     void        appview_draw_splashscreen(App_View_State*); // If needed, use begin/end_splashscreen static methods to override this. Ex: if ( AppView::begin_splashscreen(m_app->config) ) { /* your code here */; AppView::end_splashscreen(); }
     ImGuiID     appview_get_dockspace(App_View_State*, Dockspace);
     int         appview_fps(App_View_State*);      // get the current frame per second (un-smoothed)
-    void        appview_save_screenshot(const App_View_State*, tools::Path); // Save an LCT_RGBA PNG image to path
+    void        appview_save_screenshot(const App_View_State*, const tools::Path& ); // Save an LCT_RGBA PNG image to path
     bool        appview_is_fullscreen(const App_View_State*);
     void        appview_set_fullscreen(App_View_State*, bool b );
     void        appview_set_title(App_View_State*, const char* string );

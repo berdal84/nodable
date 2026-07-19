@@ -30,11 +30,11 @@ namespace ndbl
 void ndbl::nodableview_init(App_View_State* view, App_State* app)
 {
      // Init base (tools::App_View)
-    tools::appview_init(view, app);
+    tools::appview_init(&view->base, &app->base);
 
     // Connects to the base class signals
-    view->signal_reset_layout.connect<_nodableview_on_reset_layout>(view);
-    view->signal_draw_splashscreen_content.connect<_nodableview_on_draw_splashscreen_content>(view);
+    view->base.signal_reset_layout.connect<_nodableview_on_reset_layout>(view);
+    view->base.signal_draw_splashscreen_content.connect<_nodableview_on_draw_splashscreen_content>(view);
 
     // Load splashscreen image
     Config* cfg         = get_config();
@@ -45,11 +45,11 @@ void ndbl::nodableview_init(App_View_State* view, App_State* app)
 void ndbl::nodableview_deinit(App_View_State* view)
 {
     // Disconnects from the base class signals
-    view->signal_reset_layout.disconnect();
-    view->signal_draw_splashscreen_content.disconnect();
+    view->base.signal_reset_layout.disconnect();
+    view->base.signal_draw_splashscreen_content.disconnect();
 
     // Deinit base (tools::App_View)
-    tools::appview_deinit(view); // will release all textures
+    tools::appview_deinit(&view->base); // will release all textures
 }
 
 void ndbl::nodableview_update(App_View_State* view)
@@ -58,7 +58,7 @@ void ndbl::nodableview_update(App_View_State* view)
 
     if( current_file != nullptr )
     {
-        fileview_update(&current_file->view, view->dt_in_s);
+        fileview_update(&current_file->view, view->base.dt_in_s);
     }
 }
 
@@ -68,10 +68,10 @@ void ndbl::nodableview_draw(App_View_State* view)
 
     VERIFY(view->logo != nullptr, "Logo is nullptr, did you call init_ex() ?");
 
-    const float dt = view->dt_in_s;
+    const float dt = view->base.dt_in_s;
 
     // note: we draw this view nested in base view's begin/end (similar to ImGui API).
-    tools::appview_begin(view);
+    tools::appview_begin(&view->base);
 
     Event_Manager*  event_manager   = get_event_manager();
     Config*         cfg             = get_config();
@@ -160,16 +160,16 @@ void ndbl::nodableview_draw(App_View_State* view)
 
             ImGui::Separator();
 
-            const bool is_fullscreen = appview_is_fullscreen(view);
+            const bool is_fullscreen = appview_is_fullscreen(&view->base);
             if (ImGui::MenuItem("Fullscreen", "", is_fullscreen ))
             {
-                appview_set_fullscreen(view, !is_fullscreen);
+                appview_set_fullscreen(&view->base, !is_fullscreen);
             }
             ImGui::Separator();
 
             if (ImGui::MenuItem("Reset Layout", ""))
             {
-                view->should_reset_layout = true;
+                view->base.should_reset_layout = true;
             }
             ImGui::EndMenu();
         }
@@ -276,7 +276,7 @@ void ndbl::nodableview_draw(App_View_State* view)
         {
             if (ImGui::MenuItem("Show Splash Screen", "F1"))
             {
-                view->show_splashscreen = true;
+                view->base.show_splashscreen = true;
             }
 
             if (ImGui::MenuItem("Browse source code"))
@@ -298,10 +298,10 @@ void ndbl::nodableview_draw(App_View_State* view)
     // 2. Draw windows
     // All draw_xxx_window() are ImGui windows docked to a dockspace (defined in signal_reset_layout() )
 
-    ImGuiID ds_root = view->dockspaces[Dockspace_ROOT];
+    ImGuiID ds_root = view->base.dockspaces[Dockspace_ROOT];
     if( view->app()->files.empty() )
     {
-        bool show_startup_window = !view->show_splashscreen;
+        bool show_startup_window = !view->base.show_splashscreen;
         if( show_startup_window )
         {
             _nodableview_draw_startup_window(view, ds_root);
@@ -327,7 +327,7 @@ void ndbl::nodableview_draw(App_View_State* view)
         _nodableview_draw_help_window(view);
     }
     
-    appview_end(view); // end the drawing
+    appview_end(&view->base); // end the drawing
 }
 
 void ndbl::_nodableview_draw_help_window(App_View_State* view)
@@ -539,7 +539,7 @@ void ndbl::_nodableview_draw_file_window( App_View_State* view, ImGuiID dockspac
                 nodable_set_current_file(view->app(), file);
 
         // Draw content
-        fileview_draw( &file->view, view->dt_in_s );
+        fileview_draw( &file->view, view->base.dt_in_s );
     }
     ImGui::End();
 
@@ -740,7 +740,7 @@ void ndbl::_nodableview_on_draw_splashscreen_content(App_View_State* view)
     // close on left/rightmouse btn click
     if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
     {
-        view->show_splashscreen = false;
+        view->base.show_splashscreen = false;
     }
     ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
 }
@@ -752,11 +752,22 @@ void ndbl::_nodableview_on_reset_layout(App_View_State* view)
     Config* cfg = get_config();
 
     // Dock windows to specific dockspace
-    appview_dock_window( view, cfg->ui_help_window_label             , Dockspace_RIGHT );
-    appview_dock_window( view, cfg->ui_config_window_label           , Dockspace_RIGHT );
-    appview_dock_window( view, cfg->ui_file_info_window_label        , Dockspace_RIGHT );
-    appview_dock_window( view, cfg->ui_node_properties_window_label  , Dockspace_RIGHT );
-    appview_dock_window( view, cfg->ui_interpreter_window_label      , Dockspace_RIGHT );
-    appview_dock_window( view, cfg->ui_imgui_config_window_label     , Dockspace_RIGHT );
-    appview_dock_window( view, cfg->ui_toolbar_window_label          , Dockspace_TOP   );
+    appview_dock_window( &view->base, cfg->ui_help_window_label             , Dockspace_RIGHT );
+    appview_dock_window( &view->base, cfg->ui_config_window_label           , Dockspace_RIGHT );
+    appview_dock_window( &view->base, cfg->ui_file_info_window_label        , Dockspace_RIGHT );
+    appview_dock_window( &view->base, cfg->ui_node_properties_window_label  , Dockspace_RIGHT );
+    appview_dock_window( &view->base, cfg->ui_interpreter_window_label      , Dockspace_RIGHT );
+    appview_dock_window( &view->base, cfg->ui_imgui_config_window_label     , Dockspace_RIGHT );
+    appview_dock_window( &view->base, cfg->ui_toolbar_window_label          , Dockspace_TOP   );
 };
+
+void ndbl::nodableview_save_screenshot(const App_View_State* view, const char* relative_path)
+{
+    TOOLS_LOG(tools::Verbosity_Message, "Test", "Taking screenshot ...\n");
+    auto path = tools::Path::get_executable_path().parent_path() / "screenshots" / relative_path;
+    if (!tools::Path::exists(path.parent_path()))
+    {
+        tools::Path::create_directories(path.parent_path());
+    }
+    appview_save_screenshot(&view->base, path);
+}

@@ -661,7 +661,7 @@ void tools::appview_set_fullscreen(App_View_State* view, bool b)
     SDL_SetWindowFullscreen(view->sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
-void tools::appview_save_screenshot(const App_View_State* view, tools::Path path)
+void tools::appview_save_screenshot(const App_View_State* view, const tools::Path& path)
 {
     std::vector<unsigned char> out = appview_take_screenshot(view);
     TOOLS_LOG(tools::Verbosity_Message, "tools::App", "Save screenshot ...\n");

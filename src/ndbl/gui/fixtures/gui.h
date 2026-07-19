@@ -57,16 +57,5 @@ namespace testing
                 ++iteration;
             }
         }
-
-        void save_screenshot(const ndbl::App_State* app, const char* relative_path)
-        {
-            TOOLS_LOG(tools::Verbosity_Message, "Test", "Taking screenshot ...\n");
-            auto path = tools::Path::get_executable_path().parent_path() / "screenshots" / relative_path;
-            if (!tools::Path::exists(path.parent_path()))
-            {
-                tools::Path::create_directories(path.parent_path());
-            }
-            tools::appview_save_screenshot(app->view(), path);
-        }
     };
 }

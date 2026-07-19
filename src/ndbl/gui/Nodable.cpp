@@ -70,7 +70,7 @@ void ndbl::nodable_init(App_State* app)
     nodableview_init(view, app);    
 
     // Init App
-    app_init_ex(app, view, cfg->tools_cfg ); // the pointers are owned by this class, base app just use them.
+    app_init_ex(&app->base, &view->base, cfg->tools_cfg ); // the pointers are owned by this class, base app just use them.
     app->language   = init_language();
     app->config     = cfg;
 
@@ -133,7 +133,7 @@ void ndbl::nodable_deinit(App_State* app)
     // Shutdown managers & co.
     shutdown_language(app->language);
     nodableview_deinit(app->view()); delete app->view();
-    tools::app_deinit(app);
+    tools::app_deinit(&app->base);
     ndbl::shutdown_config(app->config);
 
 #if __EMSCRIPTEN__
@@ -174,7 +174,7 @@ void ndbl::nodable_run(App_State* app)
 
 void ndbl::nodable_update(App_State* app)
 {
-    tools::app_update(app);
+    tools::app_update(&app->base);
 
     nodableview_update(app->view());
 
@@ -230,7 +230,7 @@ void ndbl::nodable_update(App_State* app)
 
             case Event_ID_REQUEST_EXIT:
             {
-                tools::app_request_stop(app);
+                tools::app_request_stop(&app->base);
                 break;
             }
 
@@ -307,7 +307,7 @@ void ndbl::nodable_update(App_State* app)
                 auto _event = reinterpret_cast<Event_ShowWindow*>(event);
                 if ( _event->data.window_id == "splashscreen" )
                 {
-                    app->view()->show_splashscreen = _event->data.visible;
+                    app->view()->base.show_splashscreen = _event->data.visible;
                 }
                 break;
             }
@@ -652,7 +652,7 @@ File*ndbl::nodable_new_file(App_State* app)
 
 bool ndbl::nodable_should_stop(const App_State* app)
 {
-    return tools::app_should_stop(app);
+    return app_should_stop(&app->base);
 }
 
 void ndbl::nodable_set_current_file(App_State* app, File* file)

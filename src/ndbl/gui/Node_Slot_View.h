@@ -2,7 +2,7 @@
 
 #include "tools/gui/geometry/Box_2D.h"
 #include "tools/core/reflection/Type_Descriptor.h"
-#include "tools/core/reflection/Place.h"
+#include "tools/core/reflection/GETTERS_SETTERS.h"
 #include "tools/gui/geometry/Vec2.h"
 #include "tools/gui/View_State.h"
 
