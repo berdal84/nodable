@@ -389,7 +389,7 @@ void ndbl::graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                 break;
             }
             default:
-                TOOLS_UNREACHABLE();// This connection type is not yet implemented
+                TOOLS_UNREACHABLE("This connection type is not yet implemented");
         }
     }
 
@@ -507,7 +507,7 @@ Node* ndbl::graph_create_literal(Graph* graph, const Type_Descriptor* _type, Sco
     return node;
 }
 
-Node* ndbl::graph_create_node(Graph* graph, Create_Node_Type_ type, const Function_Descriptor* func_desc, Scope* scope)
+Node* ndbl::graph_create_node(Graph* graph, Create_Node_Type type, const Function_Descriptor* func_desc, Scope* scope)
 {
     switch ( type )
     {
@@ -515,23 +515,23 @@ Node* ndbl::graph_create_node(Graph* graph, Create_Node_Type_ type, const Functi
          * TODO: We could consider narowing the enum to few cases (BLOCK, VARIABLE, LITERAL, OPERATOR, FUNCTION)
          *       and rely more on _signature (ex: a bool variable could be simply "bool" or "bool bool(bool)")
          */
-        case Create_Node_Type__BLOCK_CONDITION:  return graph_create_cond_struct(graph, scope);
-        case Create_Node_Type__BLOCK_FOR_LOOP:   return graph_create_for_loop(graph, scope);
-        case Create_Node_Type__BLOCK_WHILE_LOOP: return graph_create_while_loop(graph, scope);
-        case Create_Node_Type__ROOT:             graph_reset(graph);
+        case Create_Node_Type_BLOCK_CONDITION:  return graph_create_cond_struct(graph, scope);
+        case Create_Node_Type_BLOCK_FOR_LOOP:   return graph_create_for_loop(graph, scope);
+        case Create_Node_Type_BLOCK_WHILE_LOOP: return graph_create_while_loop(graph, scope);
+        case Create_Node_Type_ROOT:             graph_reset(graph);
                                                  return graph_root(graph);
 
-        case Create_Node_Type__VARIABLE_BOOLEAN: return graph_create_variable_decl<bool>(graph, "b", scope);
-        case Create_Node_Type__VARIABLE_DOUBLE:  return graph_create_variable_decl<double>(graph, "d", scope);
-        case Create_Node_Type__VARIABLE_INTEGER: return graph_create_variable_decl<int>(graph, "i", scope);
-        case Create_Node_Type__VARIABLE_STRING:  return graph_create_variable_decl<std::string>(graph, "str", scope);
+        case Create_Node_Type_VARIABLE_BOOLEAN: return graph_create_variable_decl<bool>(graph, "b", scope);
+        case Create_Node_Type_VARIABLE_DOUBLE:  return graph_create_variable_decl<double>(graph, "d", scope);
+        case Create_Node_Type_VARIABLE_INTEGER: return graph_create_variable_decl<int>(graph, "i", scope);
+        case Create_Node_Type_VARIABLE_STRING:  return graph_create_variable_decl<std::string>(graph, "str", scope);
 
-        case Create_Node_Type__LITERAL_BOOLEAN:  return graph_create_literal<bool>(graph, scope);
-        case Create_Node_Type__LITERAL_DOUBLE:   return graph_create_literal<double>(graph, scope);
-        case Create_Node_Type__LITERAL_INTEGER:  return graph_create_literal<int>(graph, scope);
-        case Create_Node_Type__LITERAL_STRING:   return graph_create_literal<std::string>(graph, scope);
+        case Create_Node_Type_LITERAL_BOOLEAN:  return graph_create_literal<bool>(graph, scope);
+        case Create_Node_Type_LITERAL_DOUBLE:   return graph_create_literal<double>(graph, scope);
+        case Create_Node_Type_LITERAL_INTEGER:  return graph_create_literal<int>(graph, scope);
+        case Create_Node_Type_LITERAL_STRING:   return graph_create_literal<std::string>(graph, scope);
 
-        case Create_Node_Type__FUNCTION:
+        case Create_Node_Type_FUNCTION:
         {
             VERIFY(func_desc != nullptr, "_signature is expected when dealing with functions or operators");
             if ( get_language()->is_operator( func_desc ) )
@@ -539,7 +539,7 @@ Node* ndbl::graph_create_node(Graph* graph, Create_Node_Type_ type, const Functi
             return graph_create_function( graph, *func_desc, scope );
         }
         default:
-            TOOLS_UNREACHABLE();
+            TOOLS_UNREACHABLE("Unexpected Create_Node_Type_: %i\n", type);
             return nullptr;
     }
 }

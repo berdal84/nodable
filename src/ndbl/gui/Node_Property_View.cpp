@@ -1,5 +1,6 @@
 #include "Node_Property_View.h"
 
+#include "core/Asserts.h"
 #include "gui/ImGuiEx.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/Node.h"
@@ -63,34 +64,43 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
     /*
      * Handle input visibility
      */
-    if ( _detail == View_Detail::MINIMALIST )
+    switch (_detail)
     {
-        view->show = false;
-        view->show |= node_type == Node_Type_VARIABLE;
-        view->show |= node_type == Node_Type_VARIABLE_REF;
-    }
-    else
-    {
-        // When untouched, it depends...
+        case View_Detail_COMPACT:
+        {
+            view->show = false;
+            view->show |= node_type == Node_Type_VARIABLE;
+            view->show |= node_type == Node_Type_VARIABLE_REF;
+            break;
+        }
 
-        view->show |= node_type == Node_Type_LITERAL;
-        view->show |= node_type == Node_Type_VARIABLE;
-        view->show |= node_type == Node_Type_VARIABLE_REF;
+        case View_Detail_NORMAL:
+        {
+            // When untouched, it depends...
 
-        // Always show when connected to a variable
-        if ( const Node_Slot* slot = view->connected_slot() )
-            switch ( slot->node->type )
-            {
-                case Node_Type_VARIABLE:
-                case Node_Type_VARIABLE_REF:
-                    view->show |= true;
-            }
+            view->show |= node_type == Node_Type_LITERAL;
+            view->show |= node_type == Node_Type_VARIABLE;
+            view->show |= node_type == Node_Type_VARIABLE_REF;
 
-        // Always show properties that have an input slot free
-        if (auto* slot = node_find_slot_by_property(view->node(), view->property, Node_Slot::Flag_INPUT))
-            view->show |= !slot->is_full();
+            // Always show when connected to a variable
+            if ( const Node_Slot* slot = view->connected_slot() )
+                switch ( slot->node->type )
+                {
+                    case Node_Type_VARIABLE:
+                    case Node_Type_VARIABLE_REF:
+                        view->show |= true;
+                }
 
-        view->show |= view->touched;
+            // Always show properties that have an input slot free
+            if (auto* slot = node_find_slot_by_property(view->node(), view->property, Node_Slot::Flag_INPUT))
+                view->show |= !slot->is_full();
+
+            view->show |= view->touched;
+            break;
+        }
+
+        default:
+            TOOLS_UNREACHABLE("Unexpected View_Detail_ case (value: %i)\n", _detail);
     }
 
     // input
@@ -111,7 +121,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 
         if ( ImGui::IsItemClicked(0) )
         {
-            get_config()->ui_node_detail = View_Detail::NORMAL;
+            get_config()->ui_node_detail = View_Detail_NORMAL;
             view->touched = true;
             view->show    = true;
         }

@@ -36,7 +36,6 @@ using namespace tools;
 #include "commands/Cmd_Group.h"
 
 #include "Node_Slot_View.h"
-#include "Node_View.h"
 #include "Condition.h"
 #include "Config.h"
 #include "Event.h"
@@ -125,24 +124,24 @@ void ndbl::nodable_init(App_State* app)
     action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNode_Views{Frame_Mode::Selected_Node_Views }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL }, EventPayload_FrameNode_Views{Frame_Mode::Root_Node_View} );
     // (to create block nodes)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__BLOCK_CONDITION } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__BLOCK_FOR_LOOP } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__BLOCK_WHILE_LOOP } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__BLOCK_SCOPE } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__ROOT } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_CONDITION } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_FOR_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_WHILE_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_SCOPE } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_ROOT } );
     // (to create variables)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__VARIABLE_INTEGER, create_variable_node_signature<int>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__VARIABLE_STRING, create_variable_node_signature<std::string>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
     //(to create literals)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__LITERAL_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__LITERAL_INTEGER, create_variable_node_signature<int>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type__LITERAL_STRING, create_variable_node_signature<std::string>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_LITERAL_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_LITERAL_STRING, create_variable_node_signature<std::string>() } );
     // (to create functions/operators from the API)
     // TODO: add a list of preset to create operators/functions
-    // action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{Create_Node_Type__FUNCTION, invokable->get_sig() } );
+    // action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{Create_Node_Type_FUNCTION, invokable->get_sig() } );
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::NodableView", "init_ex " TOOLS_OK "\n");
 
@@ -471,24 +470,24 @@ void ndbl::nodable_update(App_State* app)
                 // Insert an end of line and end of instruction
                 switch ( _event->data.node_type )
                 {
-                    case Create_Node_Type__BLOCK_CONDITION:
-                    case Create_Node_Type__BLOCK_FOR_LOOP:
-                    case Create_Node_Type__BLOCK_WHILE_LOOP:
-                    case Create_Node_Type__BLOCK_SCOPE:
-                    case Create_Node_Type__ROOT:
+                    case Create_Node_Type_BLOCK_CONDITION:
+                    case Create_Node_Type_BLOCK_FOR_LOOP:
+                    case Create_Node_Type_BLOCK_WHILE_LOOP:
+                    case Create_Node_Type_BLOCK_SCOPE:
+                    case Create_Node_Type_ROOT:
                         new_node->suffix = Token::s_end_of_line;
                         break;
-                    case Create_Node_Type__VARIABLE_BOOLEAN:
-                    case Create_Node_Type__VARIABLE_DOUBLE:
-                    case Create_Node_Type__VARIABLE_INTEGER:
-                    case Create_Node_Type__VARIABLE_STRING:
+                    case Create_Node_Type_VARIABLE_BOOLEAN:
+                    case Create_Node_Type_VARIABLE_DOUBLE:
+                    case Create_Node_Type_VARIABLE_INTEGER:
+                    case Create_Node_Type_VARIABLE_STRING:
                         new_node->suffix = Token::s_end_of_instruction;
                         break;
-                    case Create_Node_Type__LITERAL_BOOLEAN:
-                    case Create_Node_Type__LITERAL_DOUBLE:
-                    case Create_Node_Type__LITERAL_INTEGER:
-                    case Create_Node_Type__LITERAL_STRING:
-                    case Create_Node_Type__FUNCTION:
+                    case Create_Node_Type_LITERAL_BOOLEAN:
+                    case Create_Node_Type_LITERAL_DOUBLE:
+                    case Create_Node_Type_LITERAL_INTEGER:
+                    case Create_Node_Type_LITERAL_STRING:
+                    case Create_Node_Type_FUNCTION:
                         break;
                 }
 
@@ -836,8 +835,8 @@ void ndbl::nodable_draw(App_State* app)
 
             ImGui::Text("View Detail:");
             ImGui::Indent();
-            menu_item_node_view_detail(View_Detail::MINIMALIST, "Minimalist");
-            menu_item_node_view_detail(View_Detail::NORMAL,     "Normal");
+            menu_item_node_view_detail(View_Detail_COMPACT  , "Compact");
+            menu_item_node_view_detail(View_Detail_NORMAL   , "Normal");
             ImGui::Unindent();
 
             ImGui::Separator();

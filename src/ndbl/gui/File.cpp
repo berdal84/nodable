@@ -210,6 +210,6 @@ void ndbl::file_handle_file_view_change(File* file, File_View_Event_Type type)
             break;
         
         default:
-            TOOLS_UNREACHABLE();
+            TOOLS_UNREACHABLE("Unhandled File_View_Event_Type (value: %i)\n", type);
     }
 }

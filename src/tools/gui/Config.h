@@ -1,7 +1,5 @@
 #pragma once
 
-#include <string>
-
 #include "Color.h"
 #include "geometry/Vec2.h"
 #include "geometry/Vec4.h"

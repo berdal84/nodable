@@ -46,9 +46,10 @@
 
 #endif // TOOLS_ASSERTIONS_ENABLE -----------------------------------------------------------------------
 
-#define TOOLS_UNREACHABLE() \
+#define TOOLS_UNREACHABLE( ... ) \
 do { \
-    tools::log( tools::Verbosity_Error, "Unreachable code %s L%s\n", __FILE__, __LINE__ ); \
+    tools::log( tools::Verbosity_Error, "unreachable", __VA_ARGS__ ); \
+    tools::log( tools::Verbosity_Error, "unreachable", "Unreachable code in %s at line %s\n", __FILE__, __LINE__ ); \
     tools::flush(); \
     assert(false); \
 } while(0)

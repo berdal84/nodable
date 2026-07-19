@@ -20,22 +20,23 @@ namespace ndbl
         Graph_Flag_ALLOW_SIDE_EFFECTS = 1 << 0,
     };
 
-    enum Create_Node_Type_
+    typedef int Create_Node_Type;
+    enum Create_Node_Type_ : int
     {
-        Create_Node_Type__ROOT,
-        Create_Node_Type__BLOCK_CONDITION,
-        Create_Node_Type__BLOCK_FOR_LOOP,
-        Create_Node_Type__BLOCK_WHILE_LOOP,
-        Create_Node_Type__BLOCK_SCOPE,
-        Create_Node_Type__VARIABLE_BOOLEAN,
-        Create_Node_Type__VARIABLE_DOUBLE,
-        Create_Node_Type__VARIABLE_INTEGER,
-        Create_Node_Type__VARIABLE_STRING,
-        Create_Node_Type__LITERAL_BOOLEAN,
-        Create_Node_Type__LITERAL_DOUBLE,
-        Create_Node_Type__LITERAL_INTEGER,
-        Create_Node_Type__LITERAL_STRING,
-        Create_Node_Type__FUNCTION,
+        Create_Node_Type_ROOT,
+        Create_Node_Type_BLOCK_CONDITION,
+        Create_Node_Type_BLOCK_FOR_LOOP,
+        Create_Node_Type_BLOCK_WHILE_LOOP,
+        Create_Node_Type_BLOCK_SCOPE,
+        Create_Node_Type_VARIABLE_BOOLEAN,
+        Create_Node_Type_VARIABLE_DOUBLE,
+        Create_Node_Type_VARIABLE_INTEGER,
+        Create_Node_Type_VARIABLE_STRING,
+        Create_Node_Type_LITERAL_BOOLEAN,
+        Create_Node_Type_LITERAL_DOUBLE,
+        Create_Node_Type_LITERAL_INTEGER,
+        Create_Node_Type_LITERAL_STRING,
+        Create_Node_Type_FUNCTION,
     };
 
 	struct Graph
@@ -77,7 +78,7 @@ namespace ndbl
     void                    graph_transfer_children(Scope* /* from */, Scope* /* to */);
     void                    graph_change_scope(Node*, Scope* /*desired_scope*/);
     Node*                   graph_create_node(Graph*, Scope* = nullptr);
-    Node*                   graph_create_node(Graph*, Create_Node_Type_, const tools::Function_Descriptor*, Scope* = nullptr);
+    Node*                   graph_create_node(Graph*, Create_Node_Type, const tools::Function_Descriptor*, Scope* = nullptr);
     Node*                   graph_create_variable(Graph*, const tools::Type_Descriptor* type, const std::string& name, Scope* scope  = nullptr);
     Node*                   graph_create_variable_ref(Graph*, Scope* = nullptr);
     Node*                   graph_create_variable_decl(Graph*, const tools::Type_Descriptor* _type, const char* _name, Scope* = nullptr);

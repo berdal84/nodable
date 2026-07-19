@@ -82,7 +82,7 @@ void ndbl::node_init(Node* node, Node_Type type, const std::string& label)
 
         default:
             // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            TOOLS_UNREACHABLE();
+            TOOLS_UNREACHABLE("Unhandled Node_Type (value: %i)\n", type);
     }
 
     componentbag_init(&node->component_bag, node);
@@ -151,8 +151,7 @@ void ndbl::node_deinit(Node* node)
             break;
 
         default:
-            // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            TOOLS_UNREACHABLE();
+            TOOLS_UNREACHABLE("Unhandled Node_Type (value: %i)\n", node->type);
     }
 
     // delete component_bag content

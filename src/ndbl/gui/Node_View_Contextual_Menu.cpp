@@ -26,11 +26,11 @@ void Node_View_Contextual_Menu::update_cache_based_on_signature(Node_Slot_View* 
 
         switch ( action->event_data.node_type )
         {
-            case Create_Node_Type__BLOCK_CONDITION:
-            case Create_Node_Type__BLOCK_FOR_LOOP:
-            case Create_Node_Type__BLOCK_WHILE_LOOP:
-            case Create_Node_Type__BLOCK_SCOPE:
-            case Create_Node_Type__ROOT:
+            case Create_Node_Type_BLOCK_CONDITION:
+            case Create_Node_Type_BLOCK_FOR_LOOP:
+            case Create_Node_Type_BLOCK_WHILE_LOOP:
+            case Create_Node_Type_BLOCK_SCOPE:
+            case Create_Node_Type_ROOT:
                 // Blocks are only for code flow slots
                 if ( !dragged_slot->allows(Node_Slot::Flag_TYPE_FLOW) )
                     continue;

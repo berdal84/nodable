@@ -77,20 +77,20 @@ namespace ndbl
 
     struct EventPayload_CreateNode
     {
-        Create_Node_Type_           node_type;          // The note type to create
+        Create_Node_Type           node_type;          // The note type to create
         const Function_Descriptor*  node_signature;     // The signature of the node that must be created
         Node_Slot_View*             active_slotview;    // The slot view being dragged.
         Graph*                      graph;              // The graph to create the node into
         Vec2                        desired_screen_pos; // The desired position for the new node view
 
-        explicit EventPayload_CreateNode(Create_Node_Type_ node_type )
+        explicit EventPayload_CreateNode(Create_Node_Type node_type )
         : node_type(node_type)
         , node_signature(nullptr)
         , active_slotview(nullptr)
         , graph(nullptr)
         {}
 
-        EventPayload_CreateNode(Create_Node_Type_ node_type, const tools::Function_Descriptor* signature )
+        EventPayload_CreateNode(Create_Node_Type node_type, const tools::Function_Descriptor* signature )
         : node_type(node_type)
         , node_signature(signature)
         {}

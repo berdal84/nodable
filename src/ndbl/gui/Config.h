@@ -9,22 +9,27 @@
 #include "ndbl/core/Node.h"
 #include "ndbl/core/Node_Slot.h"
 
-#include "View_Detail.h"
-
 namespace ndbl
 {
     using tools::Vec2;
     using tools::Vec4;
     using tools::Color;
 
-    typedef int Config_Flags;
-    enum Config_Flag_
+    typedef u8_t Config_Flags;
+    enum Config_Flag_ : u8_t
     {
         Config_Flag_NONE                              = 0,
         Config_Flag_ISOLATION_ON                      = 1 << 0,
         Config_Flag_DRAW_DEBUG_LINES                  = 1 << 1,
         Config_Flag_EXPERIMENTAL_HYBRID_HISTORY       = 1 << 2,
         Config_Flag_EXPERIMENTAL_MULTI_SELECTION      = 1 << 3,
+    };
+
+    typedef u8_t View_Detail;
+    enum View_Detail_: u8_t
+    {
+        View_Detail_NORMAL  = 0,
+        View_Detail_COMPACT
     };
 
     struct Config

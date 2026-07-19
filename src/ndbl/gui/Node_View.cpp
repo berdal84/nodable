@@ -253,7 +253,7 @@ std::string ndbl::nodeview_get_label(const Node_View* node_view)
 {
     Config* cfg = get_config();
 
-    bool minimalist = cfg->ui_node_detail == View_Detail::MINIMALIST;
+    bool minimalist = cfg->ui_node_detail == View_Detail_COMPACT;
 
     switch (node_view->node()->type )
     {
@@ -441,7 +441,7 @@ bool ndbl::nodeview_draw(Node_View* node_view)
             pre_label = nodeview_get_label(node_view);
             post_label = "";
 
-            if ( cfg->ui_node_detail != View_Detail::MINIMALIST)
+            if ( cfg->ui_node_detail != View_Detail_COMPACT)
             {
                 pre_label.push_back('(');
                 post_label.push_back(')');

@@ -2,7 +2,7 @@
 
 #include "gui/geometry/Box_2D.h"
 #include "tools/gui/View_State.h"
-#include "View_Detail.h"
+#include "Config.h"
 
 namespace ndbl
 {
