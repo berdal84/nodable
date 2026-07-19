@@ -65,30 +65,6 @@ namespace ndbl
     void    graphview_reset(Graph_View*); // unfold and frame the whole graph
     bool    graphview_has_an_active_tool(const Graph_View*);
     void    graphview_reset_all_properties(Graph_View*);
-    void    graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *from, const Vec2 &end_pos);
-    void    graphview_handle_init(Graph_View*);
-    void    graphview_handle_deinit(Graph_View*);
-    void    graphview_handle_add_node(Graph_View*, Node*);
-    void    graphview_handle_remove_node(Graph_View*, Node* node);
-    void    graphview_handle_change_scope(Graph_View*, Graph::Scope_Change);
-    void    graphview_handle_hover(Graph_View*, Scope_View*);
-    void    graphview_update_until_unfold(Graph_View*);
-    void    graphview_update_once(Graph_View*, float dt);
-    void    graphview_on_graph_change(Graph_View*);
-    void    graphview_on_selection_change(Graph_View*, Selection::Event_Type, Selection::Element );
-    void    graphview_draw_context_menu(Graph_View*, Node_Slot_View* dragged_slotview = nullptr );
-    void    graphview_create_constraints__align_top_recursively(Graph_View*, const std::vector<Node*>& follower, ndbl::Node *leader);
-    void    graphview_create_constraints__align_down(Graph_View*, Node* follower, const std::vector<Node*>& leader);
-    void    graphview_create_constraints(Graph_View*, Scope *scope);
-    void    graphview_cursor_state_tick(Graph_View*);
-    void    graphview_roi_state_enter(Graph_View*);
-    void    graphview_roi_state_tick(Graph_View*);
-    void    graphview_drag_state_enter(Graph_View*);
-    void    graphview_drag_state_tick(Graph_View*);
-    void    graphview_view_pan_state_tick(Graph_View*);
-    void    graphview_line_state_enter(Graph_View*);
-    void    graphview_line_state_tick(Graph_View*);
-    void    graphview_line_state_leave(Graph_View*);
     
     // Set of data and rules to apply constraints to 1 or more views
     // See each rule in rule_xxx(ViewConstraint* constraint, float dt) functions.
