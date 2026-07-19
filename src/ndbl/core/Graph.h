@@ -4,6 +4,7 @@
 #include <vector>
 #include <set>
 
+#include "core/Types.h"
 #include "tools/core/Component.h" // for Component_Bag<T>
 #include "Node.h"
 #include "Scope.h"
@@ -13,16 +14,17 @@ namespace ndbl
     // forward decl
     class Scope;
 
-    typedef int Graph_Flags;
+    typedef u8_t Graph_Flags;
     enum Graph_Flag_
     {
         Graph_Flag_NONE               = 0,
         Graph_Flag_ALLOW_SIDE_EFFECTS = 1 << 0,
     };
 
-    typedef int Create_Node_Type;
-    enum Create_Node_Type_ : int
+    typedef u8_t Create_Node_Type;
+    enum Create_Node_Type_ : u8_t
     {
+        Create_Node_Type_NULL = 0,
         Create_Node_Type_ROOT,
         Create_Node_Type_BLOCK_CONDITION,
         Create_Node_Type_BLOCK_FOR_LOOP,

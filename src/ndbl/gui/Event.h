@@ -1,7 +1,7 @@
 #pragma once
-#include <utility>
 
 #include "core/Event.h"
+#include "core/Node.h"
 #include "ndbl/core/Graph.h"
 #include "Frame_Mode.h"
 #include "Node_Slot_View.h"
@@ -9,7 +9,7 @@
 namespace ndbl
 {
     // forward declaration
-    class Node_View;
+    struct Node_View;
     using tools::Vec2;
     using tools::Function_Descriptor;
 
@@ -34,24 +34,18 @@ namespace ndbl
     using Event_ToggleIsolationFlags = tools::Event<Event_ID_TOGGLE_ISOLATION_FLAGS>;
     using Event_MoveSelection        = tools::Event<Event_ID_MOVE_SELECTION>;
 
-    class Graph_View;
     struct EventPayload_FrameNode_Views
     {
-        Frame_Mode  mode;
-        EventPayload_FrameNode_Views(Frame_Mode mode)
-        : mode(mode)
-        {}
+        Frame_Mode mode = Frame_Mode::Root_Node_View;
     };
     using Event_FrameSelection = tools::Event<Event_ID_REQUEST_FRAME_SELECTION, EventPayload_FrameNode_Views>;
 
-    struct EventPayload_Node_SlotPair {
-        Node_Slot* first;
-        Node_Slot* second;
-        EventPayload_Node_SlotPair(Node_Slot* first = {}, Node_Slot* second = {})
-        : first(first)
-        , second(second)
-        {}
+    struct EventPayload_Node_SlotPair
+    {
+        Node_Slot* first    = nullptr;
+        Node_Slot* second   = nullptr;
     };
+
     using Event_Node_SlotDisconnectAll = tools::Event<Event_ID_SLOT_DISCONNECT_ALL, EventPayload_Node_SlotPair>;
     using Event_Node_SlotDropped       = tools::Event<Event_ID_SLOT_DROPPED, EventPayload_Node_SlotPair>;
 
@@ -59,10 +53,10 @@ namespace ndbl
     {
         Node* node;
     };
-    using Event_DeleteEdge  = tools::Event<Event_ID_DELETE_EDGE, EventPayload_Node_SlotPair>;
-    using Event_DeleteSelection  = tools::Event<Event_ID_DELETE_NODE, EventPayload_Node>;
-    using Event_ArrangeSelection     = tools::Event<Event_ID_ARRANGE_NODE>;
-    using Event_SelectNext  = tools::Event<Event_ID_SELECT_NEXT, EventPayload_Node>;
+    using Event_DeleteEdge          = tools::Event<Event_ID_DELETE_EDGE, EventPayload_Node_SlotPair>;
+    using Event_DeleteSelection     = tools::Event<Event_ID_DELETE_NODE, EventPayload_Node>;
+    using Event_ArrangeSelection    = tools::Event<Event_ID_ARRANGE_NODE>;
+    using Event_SelectNext          = tools::Event<Event_ID_SELECT_NEXT, EventPayload_Node>;
 
     enum ToggleFoldingMode
     {
@@ -77,24 +71,12 @@ namespace ndbl
 
     struct EventPayload_CreateNode
     {
-        Create_Node_Type           node_type;          // The note type to create
-        const Function_Descriptor*  node_signature;     // The signature of the node that must be created
-        Node_Slot_View*             active_slotview;    // The slot view being dragged.
-        Graph*                      graph;              // The graph to create the node into
-        Vec2                        desired_screen_pos; // The desired position for the new node view
-
-        explicit EventPayload_CreateNode(Create_Node_Type node_type )
-        : node_type(node_type)
-        , node_signature(nullptr)
-        , active_slotview(nullptr)
-        , graph(nullptr)
-        {}
-
-        EventPayload_CreateNode(Create_Node_Type node_type, const tools::Function_Descriptor* signature )
-        : node_type(node_type)
-        , node_signature(signature)
-        {}
+        Create_Node_Type            node_type           = Create_Node_Type_NULL;    // The note type to create
+        const Function_Descriptor*  node_signature      = nullptr;                  // The signature of the node that must be created
+        Node_Slot_View*             active_slotview     = nullptr;                  // The slot view being dragged.
+        Graph*                      graph               = nullptr;                  // The graph to create the node into
+        Vec2                        desired_screen_pos  = {};                       // The desired position for the new node view
     };
-    using Event_CreateNode  = tools::Event<Event_ID_REQUEST_CREATE_NODE, EventPayload_CreateNode>;
+    using Event_CreateNode = tools::Event<Event_ID_REQUEST_CREATE_NODE, EventPayload_CreateNode>;
 
 }// namespace ndbl
