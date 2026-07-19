@@ -76,8 +76,8 @@ namespace ndbl
         Node_View();
 		~Node_View() override;
         
-        PLACE(Node*               , node        , entity);
-        PLACE(tools::Spatial_Node&, spatial_node, shape.spatial_node);
+        GETTER(Node*               , node        , entity);
+        GETTER(tools::Spatial_Node&, spatial_node, shape.spatial_node);
     };
 
     std::vector<Node_View*> nodeview_get_adjacent(const Node_View*, Node_Slot::Flags);

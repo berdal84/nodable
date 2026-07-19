@@ -16,7 +16,7 @@ namespace ndbl
         bool                    show_advanced_node_properties   = false;
         bool                    scroll_to_curr_instr            = true;
         
-        PLACE_CAST(App_State*, app, reinterpret_cast, tools::App_View_State::app )
+        GETTERS_reinterpret_cast(App_State*, app, tools::App_View_State::app )
     };
     
     void nodableview_init(App_View_State*, App_State* app);

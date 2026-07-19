@@ -56,7 +56,7 @@ namespace ndbl
         tools::Vec2                         state_roi_start_pos;
         tools::Vec2                         state_roi_end_pos;   
         
-        PLACE(Graph*, graph, entity);
+        GETTER(Graph*, graph, entity);
     };
 
     void    graphview_update(Graph_View*, float dt);

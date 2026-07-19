@@ -26,7 +26,7 @@ namespace ndbl
         std::vector<File*>  files;
         std::vector<File*>  files_to_delete;
 
-        PLACE_CAST(App_View_State*, view, reinterpret_cast, tools::App_State::view)
+        GETTERS_reinterpret_cast(App_View_State*, view, tools::App_State::view)
     };
 
     // common

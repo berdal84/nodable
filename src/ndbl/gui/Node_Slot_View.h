@@ -40,8 +40,8 @@ namespace ndbl
         tools::View_State               state;
         tools::Box_2D                   shape;
 
-        PLACE( Node*            , node      , slot->node )
-        PLACE( Node_Property*   , property  , slot->property )
+        GETTER( Node*            , node      , slot->node )
+        GETTER( Node_Property*   , property  , slot->property )
 
         bool                            allows(Node_Slot::Flag flags) const { return slot->has_flags(flags); }
         const tools::Type_Descriptor*   property_type()const { return property() ? property()->type : nullptr; }
