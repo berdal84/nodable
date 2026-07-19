@@ -92,7 +92,6 @@ namespace ndbl
     static void                     fileview_set_cursor_position(File_View* file_view, const TextEditor::Coordinates& _cursorPosition) { file_view->text_editor.SetCursorPosition(_cursorPosition); }
     static TextEditor::Coordinates  fileview_get_cursor_position(const File_View* file_view) { return file_view->text_editor.GetCursorPosition(); }
     void	                        fileview_set_undo_buffer(File_View*, TextEditor::IExternalUndoBuffer*);
-    void                            fileview_draw_info_panel(const File_View*);
     void                            fileview_set_experimental_clipboard_auto_paste(File_View*, bool /* enable*/);
     void                            fileview_clear_overlay(File_View*);
     void                            fileview_push_overlay(File_View*, File_View_Overlay_Data, File_View_Overlay_Type) ;

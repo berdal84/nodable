@@ -310,29 +310,6 @@ void ndbl::fileview_set_undo_buffer(File_View* file_view, TextEditor::IExternalU
 	file_view->text_editor.SetExternalUndoBuffer(_buffer);
 }
 
-void ndbl::fileview_draw_info_panel(const File_View* file_view)
-{
-    // Basic inFormation
-    ImGui::Text("Current file:");
-    ImGui::Indent();
-    ImGui::TextWrapped("path: %s", file_view->file->path.string().c_str());
-    ImGui::TextWrapped("set_size: %0.3f KiB", float(file_size(file_view->file)) / 1000.0f );
-    ImGui::Unindent();
-    ImGui::NewLine();
-
-    // Statistics
-    ImGui::Text("Graph statistics:");
-    ImGui::Indent();
-    ImGui::Text("Node count: %zu", file_view->file->graph->nodes.size());
-    ImGui::Unindent();
-    ImGui::NewLine();
-
-    // Hierarchy
-    Scope* scope = graph_root_scope(file_view->file->graph);
-    VERIFY(scope, "An Scope root is required to draw the AST as an ImGui tree");
-    TreeNode_Scope("Graph's Root Scope", scope);
-}
-
 void ndbl::fileview_set_experimental_clipboard_auto_paste(File_View* file_view, bool enable)
 {
     file_view->experimental_clipboard_auto_paste = enable;
