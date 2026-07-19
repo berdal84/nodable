@@ -18,7 +18,7 @@ namespace ndbl
     void            _nodableview_draw_file_window(App_View_State*, ImGuiID dockspace_id, bool redock_all, File*);
     void            _nodableview_draw_help_window(const App_View_State*);
     void            _nodableview_draw_imgui_config_window(App_View_State*);
-    bool            _nodableview_draw_node_properties_window(App_View_State*);
+    void            _nodableview_draw_node_properties_window(App_View_State*, bool* changed);
     void            _nodableview_draw_config_window(App_View_State*);
     void            _nodableview_draw_startup_window(App_View_State*, ImGuiID dockspace_id);
     void            _nodableview_draw_toolbar_window(App_View_State*);
@@ -320,7 +320,10 @@ void ndbl::nodableview_draw(App_View_State* view)
         _nodableview_draw_config_window(view);
         _nodableview_draw_imgui_config_window(view);
 
-        if ( _nodableview_draw_node_properties_window(view) )
+        bool node_properties_changed = false;
+        _nodableview_draw_node_properties_window(view, &node_properties_changed);
+
+        if ( node_properties_changed )
         {
             view->app()->current_file->set_flags(File_Flag_TEXT_IS_DIRTY);
         }
@@ -405,9 +408,8 @@ void ndbl::_nodableview_draw_file_info_window(App_View_State* view)
     ImGui::End();
 }
 
-bool ndbl::_nodableview_draw_node_properties_window(App_View_State* view)
+void ndbl::_nodableview_draw_node_properties_window(App_View_State* view, bool* changed)
 {
-    bool changed = false;
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_node_properties_window_label))
     {
@@ -422,7 +424,7 @@ bool ndbl::_nodableview_draw_node_properties_window(App_View_State* view)
                 {
                     ImGui::Indent(10.0f);
                     auto* first_nodeview = graph_view->selection.first_of<Node_View*>();
-                    changed |= nodeview_draw_as_properties_panel(first_nodeview, &view->show_advanced_node_properties);
+                    *changed |= nodeview_draw_as_properties_panel(first_nodeview, &view->show_advanced_node_properties);
                     break;
                 }
                 default:
@@ -432,7 +434,6 @@ bool ndbl::_nodableview_draw_node_properties_window(App_View_State* view)
         }
     }
     ImGui::End();
-    return changed;
 }
 
 void ndbl::_nodableview_draw_startup_window(App_View_State* view, ImGuiID dockspace_id)
