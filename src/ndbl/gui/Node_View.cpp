@@ -142,12 +142,12 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
     };
 
     std::unordered_map<Node_Slot::Flags, u8_t> count_per_type
-            {
-                    {Node_Slot::Flag_FLOW_OUT, 0 },
-                    {Node_Slot::Flag_FLOW_IN , 0 },
-                    {Node_Slot::Flag_INPUT   , 0 },
-                    {Node_Slot::Flag_OUTPUT  , 0 }
-            };
+    {
+        {Node_Slot::Flag_FLOW_OUT, 0 },
+        {Node_Slot::Flag_FLOW_IN , 0 },
+        {Node_Slot::Flag_INPUT   , 0 },
+        {Node_Slot::Flag_OUTPUT  , 0 }
+    };
 
     // Create a view per slot
     for( Node_Slot* slot : node_view->node()->slots )
@@ -184,7 +184,7 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
             {
                 if (Node_Slot_View *view = decl_out->view)
                 {
-                    view->alignment = LEFT;
+                    view->alignment_pivot = LEFT;
                     nodeslotview_update_direction_from_alignment(view);
                     view->alignment_ref = &node_view->shape;
                 }
@@ -463,7 +463,7 @@ bool ndbl::nodeview_draw(Node_View* node_view)
                 if (Node_Slot_View *slot_view_out = slot_out->view)
                 {
                     const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
-                    const float y = node_view->shape.pivot(BOTTOM, WORLD_SPACE).y;
+                    const float y = node_view->shape.pivot_position(BOTTOM, WORLD_SPACE).y;
                     spatialnode_set_position(&slot_view_out->shape.spatial_node, {x, y}, WORLD_SPACE);
                     slot_view_out->direction = BOTTOM;
                 }

@@ -2,6 +2,9 @@
 
 #include "core/Asserts.h"
 #include "gui/ImGuiEx.h"
+#include "gui/geometry/Rect.h"
+#include "gui/geometry/Space.h"
+#include "gui/geometry/Vec2.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/Node.h"
 #include "Node_View.h"
@@ -143,12 +146,17 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
         ImGuiEx::EndTooltip();
     }
 
-    // Memorize new size and position fo this property
-    const Vec2 new_size = ImGui::GetItemRectSize();
-    const Vec2 new_pos  = ImGui::GetItemRectMin() + ImGui::GetItemRectSize() * 0.5f;
-    view->shape.set_position(new_pos, WORLD_SPACE); // GetItemRectMin is in SCREEN_SPACE
+    // Update position and size
+    // We want the rectangle to fit the Node_View in height,
+    // but we resize it to fit the property input field in width.
     auto* nodeview = componentbag_get<Node_View>(&view->node()->component_bag);
-    view->shape.set_size({new_size.x, nodeview->shape.size().y}); // We always want the box to fit with the node, it's easier to align things on it
+
+    Rect new_rect  = nodeview->shape.rect(WORLD_SPACE);
+    new_rect.min.x = ImGui::GetItemRectMin().x;
+    new_rect.max.x = ImGui::GetItemRectMax().x;
+
+    view->shape.set_position(new_rect.top_left(), WORLD_SPACE);
+    view->shape.set_size(new_rect.size());
 
 #if DEBUG_DRAW
     ImGuiEx::DebugCircle( spatial_node()->position(), 2.5f, ImColor(0,0,0));

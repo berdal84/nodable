@@ -8,7 +8,6 @@
 #include "Texture.h"
 #include "Color.h"
 #include "tools/gui/geometry/Line_Segment_2D.h"
-#include "tools/gui/geometry/Axis.h"
 
 #define DEBUG_BEZIER_ENABLE 0
 
@@ -295,15 +294,15 @@ void ImGuiEx::Grid(const Rect& region, float grid_size, int subdiv_count, ImU32 
         if ( axis == AXIS_HORIZONTAL )
         {
             line_len         = region.width();
-            line_dir         = AXIS_X;
-            line_distrib_dir = AXIS_Y;
+            line_dir         = Vec2(1.f, 0.f);
+            line_distrib_dir = Vec2(0.f, 1.f);
             line_count       = (int)(region.height() / subdiv_size);
         }
         else
         {
             line_len         = region.height();
-            line_dir         = AXIS_Y;
-            line_distrib_dir = AXIS_X;
+            line_dir         = Vec2(0.f, 1.f);
+            line_distrib_dir = Vec2(1.f, 0.f);
             line_count       = (int) (region.width() / subdiv_size);
         }
 

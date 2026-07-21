@@ -1,7 +1,7 @@
 #include "Box_2D.h"
+#include "core/Asserts.h"
 #include "gui/geometry/Spatial_Node.h"
 #include "tools/gui/ImGuiEx.h"
-#include "Pivots.h"
 
 #ifdef TOOLS_DEBUG
 #define DEBUG_draw_debug_info 1
@@ -10,22 +10,22 @@
 
 using namespace tools;
 
-Box_2D::Box_2D(const Vec2 & size)
-: _half_size( size * 0.5f )
+Box_2D::Box_2D(const Vec2& _size)
 {
+    set_size(_size);
 }
 
 Box_2D::Box_2D(const Rect& rect)
-: _half_size( rect.size() * 0.5f  )
 {
-    spatialnode_set_position(&spatial_node, rect.center());
+    set_size(rect.size());
+    spatialnode_set_position(&spatial_node, rect.min);
 }
 
-Vec2 Box_2D::pivot(const Vec2& pivot, Space space) const
+Vec2 Box_2D::pivot_position(const Vec2& pivot, Space space) const
 {
     if ( space == LOCAL_SPACE )
-        return _half_size * pivot;
-    return position(space) + _half_size * pivot;
+        return size * pivot;
+    return position(space) + size * pivot;
 }
 
 Vec2 Box_2D::position(Space space) const
@@ -35,27 +35,32 @@ Vec2 Box_2D::position(Space space) const
 
 Rect Box_2D::rect(Space space) const
 {
-    return {pivot(TOP_LEFT, space), pivot(BOTTOM_RIGHT, space)};
+    Vec2 pos = spatialnode_position(&spatial_node, space);
+
+    Rect r;
+    r.min = pos;
+    r.max = pos + size;
+    return r;
 }
 
-void Box_2D::set_size(const Vec2& size)
+void Box_2D::set_size(const Vec2& _size)
 {
-    ASSERT(size.x >= 0); // Area cannot be zero
-    ASSERT(size.y >= 0); //
-    _half_size = size * 0.5f;
+    ASSERT(_size.x >= 0); // Area cannot be zero
+    ASSERT(_size.y >= 0); //
+    size = _size;
 }
 
-Vec2 tools::box2d_diff(
+Vec2 tools::box2d_distance(
     const Box_2D&   leader,
     const Vec2&     leader_pivot,
     const Box_2D&   follower,
     const Vec2&     follower_pivot,
-    const Vec2&     axis
+    const Vec2&     axis_mask
     )
 {
-    Vec2 follower_pos = follower.pivot(follower_pivot, WORLD_SPACE);
-    Vec2 leader_pos   = leader.pivot(leader_pivot, WORLD_SPACE);
-    Vec2 delta        = (leader_pos - follower_pos) * axis;
+    Vec2 follower_pos = follower.pivot_position(follower_pivot, WORLD_SPACE);
+    Vec2 leader_pos   = leader.pivot_position(leader_pivot, WORLD_SPACE);
+    Vec2 delta        = (leader_pos - follower_pos) * axis_mask;
 
 #if DEBUG_diff
     ImColor color = ImColor(255, 0, 0, 127); // red to symbolize the constraint

@@ -3,6 +3,7 @@
 #include "Event.h"
 #include "gui/ImGuiEx.h"
 #include "gui/View_State.h"
+#include "gui/geometry/Vec2.h"
 #include "ndbl/core/Node.h"
 
 using namespace ndbl;
@@ -16,7 +17,7 @@ Node_Slot_View::Node_Slot_View(
     const Box_2D*   alignment_ref
 )
 : slot(slot)
-, alignment(align)
+, alignment_pivot(align)
 , shape_type(shape_type)
 , index(index)
 , alignment_ref(alignment_ref)
@@ -31,7 +32,7 @@ Node_Slot_View::Node_Slot_View(
     // Update size from shape
     Config* config = get_config();
     Vec2 size = shape_type == Shape_Type_CIRCLE
-            ? Vec2{ config->ui_slot_circle_radius() }
+            ? Vec2{ config->ui_slot_circle_radius() * 2.f}
             : config->ui_slot_rectangle_size;
     shape.set_size( size );
 }
@@ -92,9 +93,9 @@ bool ndbl::nodeslotview_draw(Node_Slot_View* view)
     {
         case Shape_Type_CIRCLE:
         {
-            float r = view->shape.size().x;
-            draw_list->AddCircleFilled( rect.center(), r, ImColor(fill_color));
-            draw_list->AddCircle( rect.center(), r, ImColor(border_color) );
+            const float radius = view->shape.size.x / 2.f;
+            draw_list->AddCircleFilled( rect.center(), radius, ImColor(fill_color));
+            draw_list->AddCircle( rect.center(), radius, ImColor(border_color) );
             break;
         }
         case Shape_Type_RECTANGLE:
@@ -154,20 +155,23 @@ void ndbl::nodeslotview_update(Node_Slot_View* view, float dt)
         // |  Box              |
         // ---------------------
         //
-        const Vec2  size  = view->shape.size();
+        const Vec2  size  = view->shape.size;
         const float gap   = cfg->ui_slot_gap;
-        const float dir_x = -view->alignment.x;
+        const float dir_x = 1.f;
 
-        const Vec2 pos = view->alignment_ref->pivot(view->alignment, WORLD_SPACE ) // Starts from the right corner
+        const Vec2 pos = view->alignment_ref->pivot_position(view->alignment_pivot, WORLD_SPACE )
                        + Vec2( dir_x * gap * float(view->index + 2), 0.f) // horizontal gaps (2 initial, then 1 per slot)
                        + Vec2( dir_x * size.x * float(view->index), 0.f) // jump to index
-                       + Vec2(0.f, view->alignment.y * size.y * 0.5f); // align edge vertically
+                       + Vec2(0.f, view->alignment_pivot.y * size.y * 0.5f) // align edge vertically
+                       - size / 2.0f;
 
         spatialnode_set_position(&view->shape.spatial_node, pos, WORLD_SPACE); // relative to Node_View's
     }
     else if (view->alignment_ref != nullptr )
     {
-        const Vec2 pos  = view->alignment_ref->pivot( view->alignment, WORLD_SPACE);
+        const float radius = view->shape.size.x / 2.0f;
+        const Vec2 pos  = view->alignment_ref->pivot_position( view->alignment_pivot, WORLD_SPACE)
+                        - Vec2(radius);
         spatialnode_set_position(&view->shape.spatial_node, pos, WORLD_SPACE);
     }
     else
@@ -178,5 +182,5 @@ void ndbl::nodeslotview_update(Node_Slot_View* view, float dt)
 
 void ndbl::nodeslotview_update_direction_from_alignment(Node_Slot_View* view)
 {
-    view->direction = Vec2::normalize( view->alignment );
+    view->direction = Vec2::normalize( view->alignment_pivot - 0.5f );
 }

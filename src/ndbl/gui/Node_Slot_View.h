@@ -35,7 +35,7 @@ namespace ndbl
         const Shape_Type                shape_type;
         tools::Vec2                     direction; // cached
         Node_Slot* const                slot;
-        tools::Vec2                     alignment;
+        tools::Vec2                     alignment_pivot;
         const tools::Box_2D*            alignment_ref;
         tools::View_State               state;
         tools::Box_2D                   shape;

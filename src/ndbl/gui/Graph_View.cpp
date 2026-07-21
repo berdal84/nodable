@@ -2,8 +2,10 @@
 
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cstddef>
 #include <cstdio>
+#include <stack>
 #include <vector>
 #include "core/Component.h"
 #include "core/Log.h"
@@ -42,7 +44,8 @@ namespace ndbl
     void    _graphview_handle_remove_node(Graph_View*, Node* node);
     void    _graphview_handle_change_scope(Graph_View*, Graph::Scope_Change);
     void    _graphview_handle_hover(Graph_View*, Scope_View*);
-    void    _graphview_update_until_unfold(Graph_View*);
+    void    _graphview_handle_reset(Graph_View*);
+    void    _graphview_update_until_unfold(Graph_View*, float dt);
     void    _graphview_update_once(Graph_View*, float dt);
     void    _graphview_on_graph_change(Graph_View*);
     void    _graphview_on_selection_change(Graph_View*, Selection::Event_Type, Selection::Element );
@@ -121,8 +124,8 @@ void ndbl::_graphview_handle_init(Graph_View* graph_view)
     graph_view->graph()->signal_add_node.connect<&_graphview_handle_add_node>(graph_view);
     graph_view->graph()->signal_remove_node.connect<&_graphview_handle_remove_node>(graph_view);
     graph_view->graph()->signal_change_scope.connect<&_graphview_handle_change_scope>(graph_view);
-    graph_view->graph()->signal_reset.connect<&graphview_reset>(graph_view);
-    graph_view->graph()->signal_is_complete.connect<&graphview_reset>(graph_view);
+    graph_view->graph()->signal_reset.connect<&_graphview_handle_reset>(graph_view);
+    graph_view->graph()->signal_is_complete.connect<&_graphview_handle_reset>(graph_view);
 
     graph_view->state_machine.start();
 }
@@ -233,7 +236,7 @@ void ndbl::_graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *fr
     // Draw
 
     ImGuiID id = make_wire_id(from->slot, nullptr);
-    Vec2 start_pos = spatialnode_position(&from->shape.spatial_node, WORLD_SPACE);
+    Vec2 start_pos = from->shape.pivot_position(CENTER, WORLD_SPACE);
 
     Bezier_Curve_Segment_2D segment{
             start_pos, start_pos,
@@ -251,7 +254,7 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
     // (n.b. we could also implement a struct RootView_State wrapping View_State)
     Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE);
     graph_view->shape.set_size( region.size() );
-    graph_view->shape.set_position(region.center()); // children will be relative to the center
+    graph_view->shape.set_position(region.top_left()); // children will be relative to the center
     box2d_draw_debug_info(&graph_view->shape);
 
     graph_view->hovered = {};
@@ -324,11 +327,11 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                 Node_Slot_View* head = adjacent_slot->view;
 
                 ImGuiID id = make_wire_id(slot, adjacent_slot);
-                Vec2 tail_pos = spatialnode_position(&tail->shape.spatial_node, WORLD_SPACE);
-                Vec2 head_pos = spatialnode_position(&head->shape.spatial_node, WORLD_SPACE);
+                Vec2 tail_pos = tail->shape.pivot_position(CENTER, WORLD_SPACE);
+                Vec2 head_pos = head->shape.pivot_position(CENTER,  WORLD_SPACE);
                 Bezier_Curve_Segment_2D segment{
                         tail_pos,
-                        tail_pos,
+                        tail_pos, 
                         head_pos,
                         head_pos,
                 };
@@ -372,8 +375,8 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                 Node_Slot_View* slot_view_out = slot_out->view;
                 Node_Slot_View* slot_view_in  = slot_in->view;
 
-                p1 = spatialnode_position(&slot_view_out->shape.spatial_node, WORLD_SPACE);
-                p2 = spatialnode_position(&slot_view_in->shape.spatial_node, WORLD_SPACE);
+                p1 = slot_view_out->shape.pivot_position(CENTER, WORLD_SPACE);
+                p2 = slot_view_in->shape.pivot_position(CENTER, WORLD_SPACE);
 
                 const Vec2  signed_dist = Vec2::distance(p1, p2);
                 const float lensqr_dist = signed_dist.lensqr();
@@ -476,13 +479,29 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 
 namespace tools
 {
-    struct Element
+    typedef int Element_Type;
+    enum Element_Type_
     {
-        float width     = 0;
-        float height    = 0;
+        Element_Type_Element      = 0,
+        Element_Type_Flex_Element = 1,
     };
 
-    constexpr static size_t ROW_ELEMS_MAX = 20;
+    struct Flex_Data;
+
+    struct Element
+    {
+        Element_Type    type        = 0;
+        float           x           = 0;
+        float           y           = 0;
+        float           width       = 0; // top-left corner is origin
+        float           height      = 0;
+        Element*        next        = nullptr;
+
+        union {
+            Flex_Data* flex;
+        };
+        void*           userdata    = nullptr;
+    };
 
     enum Axis
     {
@@ -490,65 +509,192 @@ namespace tools
         Column
     };
 
+    struct Flex_Data
+    {
+        std::vector<Element*> children;
+        float   gap         = 0.f;
+        Axis    main_axis   = Row;
+    };
+    
+    void flex_push(Flex_Data* flex, Element* new_child)
+    {
+        flex->children.push_back(new_child);
+    }
+
+    void flex_print(Flex_Data* flex)
+    {
+        printf("State elements:\n");
+        for(size_t i = 0; i < flex->children.size(); i++)
+        {
+            const Element* elem = flex->children[i];
+            printf("Element %lu: %f x %f px.\n", i, elem->width, elem->height );
+        }
+        printf("--\n");
+    }
+
     struct Layout_State
     {
-        std::array<Element, ROW_ELEMS_MAX> elems;
-        
-        Vec2    cursor              = {0,0};
-        size_t  elem_count          = 0;
-        float   elem_width_max      = 0.f;
-        float   elem_height_max     = 0.f;
-        float   width               = 0.f;
-        float   height              = 0.f;
-        float   gap                 = 0.f;
-        Axis    main_axis           = Row;
-
-        inline void push(const Element& element)
-        {
-            assert(elem_count + 1 < ROW_ELEMS_MAX);
-            elems[elem_count] = element;
-            elem_count++;
-
-            elem_width_max   = glm::max(elem_width_max, element.width);
-            elem_height_max  = glm::max(elem_height_max, element.height);
-            width  += element.width;
-            height += element.height;
-
-            if ( main_axis == Column )
-                cursor.y += element.height;
-            else
-                cursor.x += element.width;
-        }
-
-        inline void print()
-        {
-            printf("State elements:\n");
-            for(size_t i = 0; i < elem_count; i++)
-            {
-                const Element& elem = elems[i];
-                printf("Element %lu: %f x %f px.\n", i, elem.width, elem.height );
-            }
-            printf("width: %f, height: %f, width_max: %f, height_max: %f\n", width, height, elem_width_max,  elem_height_max );
-            printf("--\n");
-        }
+        Vec2                   cursor;
+        std::vector<Flex_Data> flex_data;
+        std::vector<Element>   elements;
+        std::stack<Flex_Data*> stack;
     };
 
     static Layout_State layout_state;
 
-#define LAYOUT_BEGIN( AXIS )        assert(tools::layout_state.elem_count == 0); tools::layout_state.main_axis = AXIS
-#define LAYOUT_END()                tools::layout_state.print(); tools::layout_state = {}
-#define LAYOUT_PUSH( ELEM )         tools::layout_state.push( ELEM )        
-#define LAYOUT_SET_CURSOR( POS )    tools::layout_state.cursor = POS            
-#define LAYOUT_GET_CURSOR()         tools::layout_state.cursor
-#define LAYOUT_MOVE_CURSOR( X, Y ) tools::layout_state.cursor += {X, Y}
+    void layout_init(Layout_State* layout)
+    {
+        layout->cursor = {0,0};
+
+        // We want to limit to X containers and Y elements
+        layout->elements.reserve(4096); 
+        layout->flex_data.reserve(128);
+    }
+
+    void layout_deinit(Layout_State* layout)
+    {
+        layout->flex_data.clear();
+        layout->elements.clear();
+
+        while(!layout->stack.empty())   
+        {
+            layout->stack.pop();
+        }
+    }
+
+    void layout_begin(Layout_State* layout)
+    {
+        assert(layout->stack.size() == 0 && "LAYOUT_BEGIN/END mismatch!");
+        auto* root = &layout->flex_data.emplace_back();
+        layout->stack.emplace( root );
+    };
+
+    void layout_end(Layout_State* layout)
+    {
+        assert(layout->stack.size() > 0 && "LAYOUT_BEGIN/END mismatch!");
+        auto* current = layout->stack.top();
+        layout->stack.pop();     
+    };
+
+    void layout_begin_flex(Layout_State* layout, Axis axis)
+    {
+        Flex_Data* current = layout->stack.top();
+        
+        assert(layout->elements.size() < layout->elements.capacity() && "Buffer overflow!");
+        
+        auto* flex_data = &layout->flex_data.emplace_back();
+        layout->stack.push(flex_data);
+        flex_data->main_axis = axis;
+
+        auto* flex_elem = &layout->elements.emplace_back();
+        flex_elem->type = Element_Type_Flex_Element;
+        flex_elem->flex = flex_data;
+        flex_elem->x    = layout->cursor.x;
+        flex_elem->y    = layout->cursor.y;
+    }
+
+    void layout_compute_sizes_and_positions(Layout_State* layout)
+    {
+        // For now we do something very simple.
+        // We consider there is only one level (no nested flex)
+
+        for(Element& parent_elem : layout->elements)
+        {
+            if (parent_elem.type != Element_Type_Flex_Element || parent_elem.flex->children.empty())
+                continue;
+
+            Element* first_elem = parent_elem.flex->children.front();     
+
+            first_elem->x = parent_elem.x;
+            first_elem->y = parent_elem.y;
+
+            float width_sum  = 0.f;
+            float height_sum = 0.f;
+
+            Element* previous_elem = nullptr;
+            Element* current_elem = first_elem;
+            while(current_elem != nullptr)
+            {
+                width_sum   += current_elem->width;
+                height_sum  += current_elem->height;
+
+                if( previous_elem != nullptr )
+                {
+                    if(parent_elem.flex->main_axis == Row)
+                    {
+                        current_elem->x = previous_elem->x + previous_elem->width + parent_elem.flex->gap;
+                        current_elem->y = previous_elem->y;
+                    }
+                    else
+                    {
+                        current_elem->x = previous_elem->x;
+                        current_elem->y = previous_elem->y + previous_elem->height + parent_elem.flex->gap;
+                    }
+                }
+
+                previous_elem = current_elem;
+                current_elem = current_elem->next;
+            }
+
+            if( parent_elem.flex->main_axis == Row )
+            {
+                parent_elem.width  = width_sum  + parent_elem.flex->gap * ( parent_elem.flex->children.size() - 1);
+            }
+            else
+            {
+                parent_elem.height = height_sum + parent_elem.flex->gap * ( parent_elem.flex->children.size() - 1);
+            }
+        }
+    }
+
+    void layout_set_cursor(Layout_State* layout, Vec2 pos)
+    {
+        layout->cursor = pos;
+    }
+
+    const Vec2& layout_get_cursor(Layout_State* layout)
+    {
+        return layout->cursor;
+    }
+
+    void layout_set_gap(Layout_State* layout, float gap)
+    {
+        layout->stack.top()->gap = gap;
+    }
+
+    void layout_push(Layout_State* layout, Element* elem)
+    {
+        assert(layout->elements.size() < layout->elements.capacity() && "Buffer overflow!");
+        Element* previous = nullptr;
+        if (!layout->stack.top()->children.empty())
+            previous = layout->stack.top()->children.back();
+        Element& new_element = layout->elements.emplace_back(*elem);
+        if (previous)
+            previous->next = &new_element;
+        flex_push(layout->stack.top(), &new_element);
+    }
+
+#define LAYOUT_INIT()               tools::layout_init(&tools::layout_state)
+#define LAYOUT_DEINIT()             tools::layout_deinit(&tools::layout_state)
+#define LAYOUT_BEGIN()              tools::layout_begin(&tools::layout_state)
+#define LAYOUT_END()                tools::layout_end(&tools::layout_state)
+#define LAYOUT_FLEX_BEGIN(axis)     tools::layout_begin_flex(&tools::layout_state, axis)
+#define LAYOUT_PUSH(elem)           tools::layout_push(&tools::layout_state, &elem)        
+#define LAYOUT_SET_CURSOR( pos )    tools::layout_set_cursor(&tools::layout_state, pos)            
+#define LAYOUT_GET_CURSOR()         tools::layout_get_cursor(&tools::layout_state)
+#define LAYOUT_GAP( size )          tools::layout_set_gap(&tools::layout_state, size)
+#define LAYOUT_COMPUTE()            tools::layout_compute_sizes_and_positions(&tools::layout_state);
+#define LAYOUT_FOR( symbol )        for(auto& symbol : tools::layout_state.elements)
 }
 
 void ndbl::_graphview_update_scopes_and_nodes_layout_recursively(Graph_View* graph_view, Node* node )
 {
+    Config* cfg = get_config();
+
     auto node_view = node_component<Node_View>(node);
     if ( node == graph_root(graph_view->graph()))
     {
-        LAYOUT_SET_CURSOR( nodeview_get_rect(node_view).top_left() );
+        LAYOUT_SET_CURSOR( node_view->shape.pivot_position(TOP_LEFT) );
     }
 
     //--------------
@@ -577,27 +723,26 @@ void ndbl::_graphview_update_scopes_and_nodes_layout_recursively(Graph_View* gra
 
 
         Rect rect = nodeview_get_rect(node_view);
-        LAYOUT_SET_CURSOR( rect.top_right() );
-        LAYOUT_BEGIN( Row );
+        LAYOUT_SET_CURSOR( rect.top_right() + cfg->ui_node_gap() * Vec2(1.f, -1.f));
+        LAYOUT_FLEX_BEGIN( Row );
+        LAYOUT_GAP( cfg->ui_node_gap().x );
 
         for( Node* input_node : node->inputs() )
         {
-            Node_View* input_node_view = node_component<Node_View>(input_node);
-            LAYOUT_MOVE_CURSOR(0.f, -50.f);
+            Node_View* input_nodeview = node_component<Node_View>(input_node);
 
-            if(input_node_view->state.has_flags(View_Flag_PINNED))
+            if(input_nodeview->state.has_flags(View_Flag_PINNED))
                 continue;
 
-
-            // Snap to cursor
-            spatialnode_set_position(&input_node_view->spatial_node(), LAYOUT_GET_CURSOR(), WORLD_SPACE);
-
             // Push Element
-            Rect rect = nodeview_get_rect(input_node_view);
+            Rect rect = nodeview_get_rect(input_nodeview);
 
             Element elem;
-            elem.height = rect.height();
-            elem.width  = rect.width();
+            elem.x          = rect.min.x;
+            elem.y          = rect.min.y;
+            elem.height     = rect.height();
+            elem.width      = rect.width();
+            elem.userdata   = input_nodeview;
 
             LAYOUT_PUSH(elem);
         }
@@ -611,28 +756,25 @@ void ndbl::_graphview_update_scopes_and_nodes_layout_recursively(Graph_View* gra
             _graphview_update_scopes_and_nodes_layout_recursively(graph_view, backbone_node);
 
 
-        Rect rect = nodeview_get_rect(node_view);
-        LAYOUT_SET_CURSOR( rect.center() );
-        LAYOUT_BEGIN( Column );
+        Rect parent_rect = nodeview_get_rect(node_view);
+        LAYOUT_SET_CURSOR( parent_rect.bottom_left() + cfg->ui_node_gap() * Vec2(0.f, 1.f) );
+        LAYOUT_FLEX_BEGIN( Column );
+        LAYOUT_GAP( cfg->ui_node_gap().y );
 
         for( Node* backbone_node : scope_get_backbone(node->internal_scope) )
         {
-            LAYOUT_MOVE_CURSOR(0.f, 100.f);
-
             // Snap to cursor
             Node_View* backbone_node_view = node_component<Node_View>(backbone_node);
-
-            if(backbone_node_view->state.has_flags(View_Flag_PINNED))
-                continue;
-
-
-            spatialnode_set_position(&backbone_node_view->spatial_node(), LAYOUT_GET_CURSOR(), WORLD_SPACE);
-
-            Rect rect = nodeview_get_rect(backbone_node_view);
+//            Rect rect = nodeview_get_rect_ex(backbone_node_view, WORLD_SPACE, Node_View_Flag_WITH_RECURSION);
+            Rect rect = nodeview_get_rect(backbone_node_view, WORLD_SPACE);
 
             Element elem;
-            elem.height = rect.height();
-            elem.width  = rect.width();
+
+            elem.x          = rect.min.x;
+            elem.y          = rect.min.y;
+            elem.height     = rect.height();
+            elem.width      = rect.width();
+            elem.userdata   = backbone_node_view;
 
             LAYOUT_PUSH(elem);
         }
@@ -643,15 +785,15 @@ void ndbl::_graphview_update_scopes_and_nodes_layout_recursively(Graph_View* gra
 void ndbl::graphview_update(Graph_View* graph_view, float dt)
 {
     // Determines how many times update should be called
-    ASSERT( dt >= 0.f);
-    u16_t sample_count = (u16_t)(dt * get_config()->ui_node_physics_frequency);
-    if ( sample_count == 0 ) // When frame rate is too slow
-        sample_count = 1;
-    const float sample_dt = dt / float(sample_count);
+    // ASSERT( dt >= 0.f);
+    // u16_t sample_count = (u16_t)(dt * get_config()->ui_node_physics_frequency);
+    // if ( sample_count == 0 ) // When frame rate is too slow
+    //     sample_count = 1;
+    // const float sample_dt = dt / float(sample_count);
 
     // Do the update(s)
-    for(size_t i = 0; i < sample_count; ++i)
-        _graphview_update_once(graph_view, sample_dt);
+    //for(size_t i = 0; i < sample_count; ++i)
+        _graphview_update_once(graph_view, dt);
 }
 
 void ndbl::_graphview_update_once(Graph_View* graph_view, float dt)
@@ -659,8 +801,29 @@ void ndbl::_graphview_update_once(Graph_View* graph_view, float dt)
     ASSERT( graph_view->graph() );
 
     // Layout
-    Node* root_node = graph_root(graph_view->graph());
-    _graphview_update_scopes_and_nodes_layout_recursively(graph_view, root_node);
+    LAYOUT_INIT();
+    LAYOUT_BEGIN();
+    {
+        Node* root_node = graph_root(graph_view->graph());
+        _graphview_update_scopes_and_nodes_layout_recursively(graph_view, root_node);
+    }
+    LAYOUT_END();
+    LAYOUT_COMPUTE();
+    LAYOUT_FOR(elem)
+    {
+        if( elem.type == Element_Type_Element)
+        {
+            auto nodeview = static_cast<Node_View*>(elem.userdata);
+
+            if( nodeview->state.has_flags(View_Flag_PINNED))
+            {
+                continue;
+            }
+
+            spatialnode_set_position(&nodeview->spatial_node(), Vec2{elem.x, elem.y}, WORLD_SPACE);
+        }
+    }
+    LAYOUT_DEINIT();
 
     // Node_Views
     for (Node* node : graph_view->graph()->nodes )
@@ -673,17 +836,16 @@ void ndbl::_graphview_update_once(Graph_View* graph_view, float dt)
             scopeview_update( root->view, dt, Scope_View_Flag_RECURSE );
 }
 
-void ndbl::_graphview_update_until_unfold(Graph_View* graph_view)
+void ndbl::_graphview_update_until_unfold(Graph_View* graph_view, float dt_in_sec)
 {
     const Config* cfg = get_config();
 
     // Compute the number of update necessary to simulate unfolding for dt seconds
-    const u32_t dt      = cfg->graph_view_unfold_duration;
-    const u32_t samples = 1000 * dt / cfg->tools_cfg->dt_cap;
+    const u32_t samples = 1000 * u32_t(dt_in_sec) / cfg->tools_cfg->dt_cap;
 
     // Run the updates
     ASSERT(samples != 0 );
-    auto sample_dt = float(dt) / samples;
+    auto sample_dt = float(dt_in_sec) / samples;
     ASSERT(sample_dt > 0.f );
 
     for(u32_t i = 0; i < samples; ++i)
@@ -698,17 +860,17 @@ void ndbl::graphview_frame_content(Graph_View* graph_view, Frame_Mode mode )
         // Get root node view
         Scope* root_scope = graph_root_scope(graph_view->graph());
         if ( !root_scope ) return;
-        auto root_node_view = componentbag_get<Node_View>(&root_scope->node()->component_bag);
-        ASSERT(root_node_view);
+        auto root_nodeview = node_component<Node_View>(root_scope->node());
+        ASSERT(root_nodeview);
 
         // compute the delta to apply
         const Vec2 margin(40.f);
-        const Vec2 target   = margin + graph_view->shape.pivot( tools::TOP_LEFT, WORLD_SPACE);
-        const Vec2 origin   = root_node_view->shape.pivot( tools::TOP_LEFT, WORLD_SPACE);
+        const Vec2 target   = margin + graph_view->shape.pivot_position( tools::TOP_LEFT, WORLD_SPACE);
+        const Vec2 origin   = root_scope->view->content_rect.top_left();
         const Vec2 delta    = target - origin;
 
         // apply the delta
-        spatialnode_translate(&root_node_view->shape.spatial_node, delta );
+        spatialnode_translate(&root_nodeview->shape.spatial_node, delta );
         
         return;
     }
@@ -720,8 +882,8 @@ void ndbl::graphview_frame_content(Graph_View* graph_view, Frame_Mode mode )
     const Rect rect = nodeview_bounding_rect( selected_nodeviews, tools::WORLD_SPACE);
 
     // compute the delta to apply
-    const Vec2 target = graph_view->shape.pivot( tools::CENTER, tools::WORLD_SPACE);
-    const Vec2 source = Box_2D(rect).pivot(tools::CENTER, WORLD_SPACE);
+    const Vec2 target = graph_view->shape.pivot_position( tools::CENTER, tools::WORLD_SPACE);
+    const Vec2 source = Box_2D(rect).pivot_position(tools::CENTER, WORLD_SPACE);
     const Vec2 delta =  target - source;
 
     // apply the delta to all node views
@@ -762,20 +924,13 @@ void ndbl::_graphview_on_selection_change(Graph_View* graph_view, Selection::Eve
     }
 }
 
-void ndbl::graphview_reset(Graph_View* graph_view)
+void ndbl::_graphview_handle_reset(Graph_View* graph_view)
 {
     if ( graph_is_empty(graph_view->graph() ) )
         return;
-
-    Vec2 initial_pos = Vec2(-0.f, -0.0f);
-
-    for( Node* node : graph_view->graph()->nodes )
-        if ( auto* view = componentbag_get<Node_View>(&node->component_bag) )
-            spatialnode_translate( &view->shape.spatial_node, initial_pos );
-
-    //   Note: Instead of waiting an arbitrary period of time, we should rather be able to unfold the graph instantly
-    const size_t dispatch_delay_ms = 100;
-    get_event_manager()->dispatch_delayed<Event_FrameSelection>( dispatch_delay_ms, { Frame_Mode::Root_Node_View } );
+    
+    _graphview_update_until_unfold(graph_view, get_config()->graph_view_unfold_duration);
+    graphview_frame_content(graph_view, Frame_Mode::Root_Node_View );
 }
 
 bool ndbl::graphview_has_an_active_tool(const Graph_View* graph_view)
@@ -856,8 +1011,8 @@ void ndbl::_graphview_view_pan_state_tick(Graph_View* graph_view)
     ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
 
     Vec2 delta = ImGui::GetMouseDragDelta();
-    for( Node* node : graph_view->graph()->nodes )
-        if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
+    for( Scope* scope : graph_collect_root_scopes(graph_view->graph()) )
+        if ( auto nodeview = componentbag_get<Node_View>(&scope->node()->component_bag) )
             spatialnode_translate(&nodeview->shape.spatial_node, delta);
 
     ImGui::ResetMouseDragDelta();

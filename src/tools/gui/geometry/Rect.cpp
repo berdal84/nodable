@@ -1,6 +1,5 @@
 #include "Rect.h"
 #include "tools/core/Asserts.h"
-#include "Axis.h"
 
 using namespace tools;
 

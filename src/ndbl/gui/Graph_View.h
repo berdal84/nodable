@@ -55,7 +55,6 @@ namespace ndbl
     void    graphview_update(Graph_View*, float dt);
     bool    graphview_draw(Graph_View*, float dt);
     void    graphview_frame_content(Graph_View*, Frame_Mode);
-    void    graphview_reset(Graph_View*); // unfold and frame the whole graph
     bool    graphview_has_an_active_tool(const Graph_View*);
     void    graphview_reset_all_properties(Graph_View*);
 }
