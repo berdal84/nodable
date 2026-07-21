@@ -57,6 +57,7 @@ namespace ndbl
     void    graphview_frame_content(Graph_View*, Frame_Mode);
     bool    graphview_has_an_active_tool(const Graph_View*);
     void    graphview_reset_all_properties(Graph_View*);
+    void    graphview_reset(Graph_View*);
 }
 
 // Custom hash provided to work in std::hash<std::Variant<Node_Slot_Link_View, ...>>

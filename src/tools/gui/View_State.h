@@ -12,6 +12,7 @@ namespace tools
         View_Flag_VISIBLE       = 1 << 2, // TODO: mirror this to View_Flag_HIDDEN
         View_Flag_HOVERED       = 1 << 3,
 
+        View_Flag_DEFAULTS      = View_Flag_VISIBLE
         // MAX!        = 1 << 7,
     };
 
@@ -21,7 +22,7 @@ namespace tools
      */
 	struct View_State
 	{
-        View_Flags flags = View_Flag_VISIBLE;
+        View_Flags flags = View_Flag_DEFAULTS;
 
         bool    has_flags(View_Flags _flag) const           { return (flags & _flag) == _flag; }
         void    set_flags(View_Flags _flag, bool on = true) { flags = (flags & ~_flag) | ( on * _flag   ) ;}

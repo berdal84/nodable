@@ -98,6 +98,9 @@ namespace ndbl
     void                    graph_flag_node_to_delete(Node*, Graph_Flags = Graph_Flag_NONE);
     bool                    graph_contains(const Graph*, Node*);
 
+    template<typename Component_Type>
+    inline Component_Type*  graph_component(Graph* graph) { return tools::componentbag_get<Component_Type>(&graph->component_bag); }
+
     template<typename T>
     Node* graph_create_variable_decl(Graph* graph, const char* name = "var", Scope* scope = nullptr)
     { return graph_create_variable_decl( graph, tools::type::get<T>(), name, scope); }
