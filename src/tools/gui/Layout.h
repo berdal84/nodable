@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Asserts.h"
 #include "gui/geometry/Vec2.h"
 #include <cassert>
 #include <cstddef>
@@ -19,19 +20,24 @@ namespace tools
 
     struct Sizing
     {
-        float width  = 0.f;
-        float height = 0.f;
+        union {
+            struct {
+                float width  = 0.f;
+                float height = 0.f;
+            };
+            Vec2 vec;
+        };
+    };
+
+    enum Axis
+    {
+        AXIS_NONE = 0,
+        AXIS_LEFT_TO_RIGHT,
+        AXIS_TOP_TO_BOTTOM
     };
 
     struct Container_Config
-    {
-        enum Axis
-        {
-            AXIS_NONE = 0,
-            AXIS_LEFT_TO_RIGHT,
-            AXIS_TOP_TO_BOTTOM
-        };
-        
+    {        
         float   gap         = 0.f;
         Axis    main_axis   = AXIS_LEFT_TO_RIGHT;
     };    
@@ -63,6 +69,16 @@ namespace tools
         Element*            last_child  = nullptr;
         void*               userdata    = nullptr;
     };
+
+    inline Vec2 element_rect_min(const Element* el)
+    {
+        return el->position + Vec2{ el->padding.left, el->padding.top };
+    }
+    
+    inline Vec2 element_rect_max(const Element* el)
+    {
+        return el->position + el->dimension.vec - Vec2{ el->padding.right, el->padding.bottom };
+    }
 
     struct Layout_State
     {
@@ -150,7 +166,7 @@ namespace tools
         return &layout()->elements.emplace_back(elem);
     }
 
-    inline Element* layout_new_container(Container_Config::Axis axis)
+    inline Element* layout_new_container(Axis axis)
     {
         Element elem;
         elem.type = Element::Type_CONTAINER;
@@ -160,7 +176,7 @@ namespace tools
 
     inline void layout_begin()
     {
-        Element* elem = layout_new_container(Container_Config::AXIS_NONE);
+        Element* elem = layout_new_container(AXIS_NONE);
         layout()->stack.push( elem );
     };
 
@@ -181,7 +197,7 @@ namespace tools
         return &layout()->elements.back();
     }
 
-    inline void layout_begin(Container_Config::Axis axis)
+    inline void layout__begin(Axis axis)
     {
         assert(layout()->elements.size() < layout()->elements.capacity() && "Buffer overflow!");
         
@@ -192,51 +208,61 @@ namespace tools
         elem_push_back(parent, elem);
     }
 
+    inline void layout_begin_row()
+    {
+        return layout__begin(AXIS_LEFT_TO_RIGHT);
+    }
+
+    inline void layout_begin_column()
+    {
+        return layout__begin(AXIS_TOP_TO_BOTTOM);
+    }
+
     inline void layout_compute_sizes_and_positions()
     {
         // I compute sizes and positions from last to first Element
         // This way I am sure I start from leaf and end with root.
 
-        // PASS 1: compute sizes, and local positions
+        // PASS 1: compute sizes
         for(auto it = layout()->elements.rbegin(); it != layout()->elements.rend(); ++it)
         {
             Element& parent = *it;
 
-            if (parent.type != Element::Type_CONTAINER) continue;
-            if (elem_is_empty(&parent))            continue;
+            if ( parent.type != Element::Type_CONTAINER || elem_is_empty(&parent) )
+            {
+                continue;
+            }
 
             Sizing   content;
             size_t   elem_count = 0;
-            Element* elem  = parent.first_child;
+            Element* elem       = parent.first_child;
 
             while(elem != nullptr)
             {
-                if(elem->position_mode == Position_Mode_STATIC)
-                {
-                    elem = elem->next;
-                    continue;
-                }
-
+                // TODO:
+                // - handle 3 dimensions (outer-box, box, content-box) for padding/margins in children
+                // - handle when a node is pinned, row/column must be reset at pinned node
+                //
                 switch(parent.container.main_axis)
                 {
-                    case Container_Config::AXIS_LEFT_TO_RIGHT:
+                    case AXIS_LEFT_TO_RIGHT:
                     {
-                        content.width += elem->dimension.width;
+                        content.width += elem->dimension.width; 
                         content.height = std::max( content.height, elem->dimension.height );
                         break;
                     }
 
-                    case Container_Config::AXIS_TOP_TO_BOTTOM:
+                    case AXIS_TOP_TO_BOTTOM:
                     {
                         content.width   = std::max( content.width, elem->dimension.width );
                         content.height += elem->dimension.height;
                         break;
                     }
 
-                    case tools::Container_Config::AXIS_NONE:
+                    case AXIS_NONE:
                     {
                         content.width  = std::max( content.width, elem->position.x + elem->dimension.width );
-                        content.height = std::max( content.height, elem->position.y + elem->dimension.height );
+                        content.height = std::max( content.height, elem->position.y + elem->dimension.height ); 
                         break;
                     }
                 }
@@ -245,61 +271,125 @@ namespace tools
                 elem_count++;
             }
 
-            if( parent.container.main_axis == Container_Config::AXIS_LEFT_TO_RIGHT )
+            switch ( parent.container.main_axis)
             {
-                parent.dimension.width  = parent.padding.left + content.width  + elem_count * parent.container.gap + parent.padding.right;
-                parent.dimension.height = parent.padding.top  + content.height + parent.padding.bottom;
-            }
-            else if( parent.container.main_axis == Container_Config::AXIS_TOP_TO_BOTTOM )
-            {
-                parent.dimension.width  = parent.padding.left + content.width  + parent.padding.right;
-                parent.dimension.height = parent.padding.top  + content.height + elem_count * parent.container.gap + parent.padding.bottom ;
-            }
-            else
-            {
-                parent.dimension.width  = parent.padding.left + content.width  + parent.padding.right;
-                parent.dimension.height = parent.padding.top  + content.height + parent.padding.bottom ;
+                case AXIS_LEFT_TO_RIGHT:
+                {
+                    parent.dimension.width  = parent.padding.left + content.width  + elem_count * parent.container.gap + parent.padding.right;
+                    parent.dimension.height = parent.padding.top  + content.height + parent.padding.bottom;
+                    break;
+                }
+
+                case AXIS_TOP_TO_BOTTOM:
+                {
+                    parent.dimension.width  = parent.padding.left + content.width  + parent.padding.right;
+                    parent.dimension.height = parent.padding.top  + content.height + elem_count * parent.container.gap + parent.padding.bottom ;
+                    break;
+                }
+
+                case AXIS_NONE:
+                {
+                    parent.dimension.width  = parent.padding.left + content.width  + parent.padding.right;
+                    parent.dimension.height = parent.padding.top  + content.height + parent.padding.bottom ;
+                    break;
+                }
+
+                default:
+                {
+                    TOOLS_UNREACHABLE("Unexpected Axis: %i", parent.container.main_axis );
+                }
             }
         }
 
-        // PASS 2: compute positions to make sure any non-floating element has a world positions and not a relative one
+        // PASS 2: compute positions
+        //         Before this step, positions are relative to parent (by default) or world-space (when Position_Mode_STATIC is set).
         for(auto it = layout()->elements.begin(); it != layout()->elements.end(); ++it)
         {
             Element& element = *it;
 
-            if (element.type != Element::Type_CONTAINER)  continue;
-            if (elem_is_empty(&element))            continue;
+            if (element.type != Element::Type_CONTAINER)
+            {
+                // A non-container should already have its position at this step.
+                // Indeed, we update its container first, and each container set its children's positions.
+                continue;
+            }
+
+            if (elem_is_empty(&element))
+            {
+                // An empty container can be considered as a LEAF, nothing to do here.
+                continue;
+            }
 
             assert(element.dimension.width != -1);
             assert(element.dimension.height != -1);
 
-            Vec2 cursor;
-            cursor.x = element.padding.left;
-            cursor.y = element.padding.top;
+            Vec2 cursor = element.position;
 
+            // Set initial cursor position
+            switch ( element.container.main_axis)
+            {
+                case AXIS_LEFT_TO_RIGHT:
+                {
+                    cursor.x += element.padding.left;
+                    cursor.y += element.padding.top;
+                    break;
+                }
+
+                case AXIS_TOP_TO_BOTTOM:
+                {
+                    cursor.x += element.padding.left;
+                    cursor.y += element.padding.top;
+                    break;
+                }
+
+                case AXIS_NONE:
+                {
+                    break;
+                }
+
+                default:
+                {
+                    TOOLS_UNREACHABLE("Unexpected Axis: %i", element.container.main_axis );
+                }
+            }
+            
+
+            // Set each child element's position
             Element* child = element.first_child;
             while(child != nullptr)
             {  
-                if(child->position_mode == Position_Mode_STATIC)
+                if( child->position_mode != Position_Mode_STATIC )
                 {
-                    // no need to update position since it is already in world space
-                    child = child->next;
-                    continue;
+                    child->position = cursor;
                 }
-                
-                if( element.container.main_axis == Container_Config::AXIS_LEFT_TO_RIGHT)
-                {
-                    child->position = element.position + cursor;
-                    cursor.x += child->dimension.width + element.container.gap;
-                }
-                else if( element.container.main_axis == Container_Config::AXIS_TOP_TO_BOTTOM)
-                {
-                    child->position = element.position + cursor;
-                    cursor.y += child->dimension.height + element.container.gap;
-                }
-                else if( element.container.main_axis == Container_Config::AXIS_NONE)
-                {
-                    child->position += element.position;
+
+                switch ( element.container.main_axis )
+                {                
+                    case AXIS_LEFT_TO_RIGHT:
+                    {
+                        if( child != element.first_child->first_child)
+                        {
+                            cursor.x += element.container.gap;
+                        }
+                        cursor.x += child->dimension.width;
+                        break;
+                    }
+
+                    case AXIS_NONE:
+                    case AXIS_TOP_TO_BOTTOM:
+                    {
+                        if( child != element.first_child->first_child)
+                        {
+                            cursor.y += element.container.gap;
+                        }
+                        cursor.y += child->dimension.height;
+                        break;
+                    }
+
+                    default:
+                    {
+                        TOOLS_UNREACHABLE("Unexpected Container_Config: %i", element.container.main_axis );
+                    }
                 }
 
                 child = child->next;
@@ -363,7 +453,7 @@ namespace tools
         layout_push(elem);
     }
 
-    inline void layout_set_padding(float left, float top = 0, float right = 0, float bottom = 0)
+    inline void layout_set_padding(float left, float top, float right, float bottom)
     {
         Element* elem = layout_current_element();
         elem->padding = { left, top, right, bottom };

@@ -156,17 +156,12 @@ void ndbl::_graphview_handle_add_node(Graph_View* graph_view, Node* node)
     componentbag_add(& node->component_bag, nodeview);
 
     if (Scope_View* scopeview = nodeview->internal_scopeview )
+    {
         scopeview->signal_hover.connect<&_graphview_handle_hover>(graph_view); // I'm not sure if this is a good approach...
+    }
 
-    if( node == graph_root(graph_view->graph()) )
-    {
-        // root must be parented to the graph view itself
-        spatialnode_add_child(&graph_view->shape.spatial_node, &nodeview->shape.spatial_node );
-    }
-    else
-    {
-        spatialnode_add_child(&node->scope->view->spatial_node, &nodeview->shape.spatial_node );
-    }
+    // All Node_Views are parented to the Graph_View
+    spatialnode_add_child(&graph_view->shape.spatial_node, &nodeview->shape.spatial_node );
 }
 
 void ndbl::_graphview_handle_remove_node(Graph_View* graph_view, Node* node)
@@ -476,10 +471,23 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
     // debug layout
     if( cfg->has_flags(Config_Flag_DRAW_DEBUG_LINES))
     {
-        for(auto& el : layout_elements())
+        auto list = ImGui::GetForegroundDrawList();
+        for(Element& el : layout_elements())
         {
-            auto list = ImGui::GetForegroundDrawList();
-            list->AddRect(el.position, el.position + Vec2{el.dimension.width, el.dimension.height}, ImColor(255,0,0));
+            switch ( el.type)
+            {
+                case tools::Element::Type_CONTAINER:
+                {
+                    list->AddRect(element_rect_min(&el), element_rect_max(&el), ImColor(0,255,0), 0.0f, 0, 2.f);
+                    break;
+                }
+
+                case tools::Element::Type_LEAF:
+                {
+                    list->AddRect(element_rect_min(&el), element_rect_max(&el), ImColor(255,255,255));
+                    break;
+                }            
+            }            
         }
     }
 
@@ -488,21 +496,14 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 
 void ndbl::_graphview_do_layout_element(Graph_View* graph_view, Node_View* nodeview )
 {
-    Config* cfg = get_config();
-
-    Node*   node = nodeview->node();
-    Rect    rect = nodeview_get_rect(nodeview, WORLD_SPACE);
+    Config* cfg  = get_config();
+    Rect    rect = nodeview_get_rect(nodeview, tools::PARENT_SPACE);
 
     layout_append_element(rect.width(), rect.height(), nodeview);
 
     if( nodeview->state.has_flags(View_Flag_PINNED) )
     {
         layout_pin_element_at_position(rect.top_left());
-    }
-
-    if( graph_root( node->graph ) == node)
-    {
-        layout_pin_element();
     }
 }
 
@@ -518,22 +519,25 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
         return _graphview_do_layout_element(graph_view, nodeview);
     }
 
-    layout_begin( Container_Config::AXIS_TOP_TO_BOTTOM );
+    layout_begin_column();
     {
         layout_set_gap( cfg->ui_node_gap(Size_SM).y );
-        layout_begin( Container_Config::AXIS_LEFT_TO_RIGHT );
+        layout_begin_row();
         {
-            layout_set_gap( cfg->ui_node_gap(tools::Size_LG).x );            
+            layout_set_gap( cfg->ui_node_gap(Size_SM).x );            
             if( node_is_connected_to_codeflow(node) )
             {
-                layout_set_padding( rect.width() );
+                layout_set_padding( rect.width(), 0, 0, 0 );
             }   
 
             for( Node* input_node : node->inputs() )
             {
                 Node_View* input_nodeview = node_component<Node_View>(input_node);
 
-                if (node_is_connected_to_codeflow(input_node)) continue;
+                if (node_is_connected_to_codeflow(input_node))
+                {
+                    continue;
+                }
 
                 _graphview_do_layout_recursively_on_expressions_only(graph_view, input_nodeview);
             }
@@ -555,8 +559,13 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graph_view, Node_View* n
         return _graphview_do_layout_recursively_on_expressions_only(graph_view, nodeview);
     }
 
-    layout_begin(tools::Container_Config::AXIS_TOP_TO_BOTTOM);
+    layout_begin_column();
     {
+        if( nodeview->node() == graph_root( graph_view->graph() ) )
+        {
+            layout_pin_element_at_position(nodeview->shape.position());
+        }
+
         _graphview_do_layout_recursively_on_expressions_only(graph_view, nodeview);
 
         for( Node* backbone_node : scope_get_backbone(node->internal_scope) )
@@ -595,13 +604,19 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
 {
     ASSERT( graph_view->graph() );
 
+    if( graph_view->flags & Graph_View_Flag_NEEDS_TO_BE_RESET)
+    {
+        graphview_reset(graph_view);
+        graph_view->flags &= ~Graph_View_Flag_NEEDS_TO_BE_RESET;
+    }
+
     // Define a Layout
     layout_begin_frame();
     layout_begin();
     {
-        layout_pin_element();
         Node* root_node = graph_root(graph_view->graph());
         auto* root_nodeview = node_component<Node_View>(root_node);
+        layout_pin_element_at_position(root_nodeview->shape.position(tools::WORLD_SPACE) + get_config()->ui_textview_padding );
         _graphview_do_layout_recursively(graph_view, root_nodeview);
     }
     layout_end();
@@ -610,21 +625,26 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
     // Update the layout
     layout_compute_sizes_and_positions();
 
-    // Update our views according to new sizes/positions
-    for(auto it = layout_elements().begin(); it != layout_elements().end(); ++it )
+    // Update our views according to the layout (positions/sizes)
+    for(const Element& elem : layout_elements() )
     {
-        Element& elem = *it;
-
-        if (elem.userdata == nullptr) continue;
+        if (elem.userdata == nullptr)
+        {
+            // where no userdata is set we have nothing to do with this element
+            continue;
+        }
 
         auto nodeview = static_cast<Node_View*>(elem.userdata);
         
-        if (nodeview->state.has_flags(View_Flag_PINNED)) continue;
+        if (nodeview->state.has_flags(View_Flag_PINNED))
+        {
+            // pinned views are positionned by the user and should not be moved
+            continue;
+        }
         
-        spatialnode_set_position(&nodeview->spatial_node(), elem.position, tools::PARENT_SPACE);
+        spatialnode_set_position(&nodeview->spatial_node(), graph_view->shape.position() + elem.position, tools::WORLD_SPACE);
     }
     
-
     // Node_Views
     for (Node* node : graph_view->graph()->nodes )
         if ( auto* view = componentbag_get<Node_View>(&node->component_bag) )
@@ -634,6 +654,13 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
     if( Scope* root = graph_root_scope(graph_view->graph()) )
         if ( root->view != nullptr )
             scopeview_update( root->view, dt, Scope_View_Flag_RECURSE );
+
+    
+    if( graph_view->flags & Graph_View_Flag_NEEDS_TO_FRAME_CONTENT)
+    {
+        graphview_frame_content(graph_view, Frame_Mode::Root_Node_View );
+        graph_view->flags &= ~Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
+    }    
 }
 
 void ndbl::graphview_frame_content(Graph_View* graph_view, Frame_Mode mode )
@@ -641,40 +668,33 @@ void ndbl::graphview_frame_content(Graph_View* graph_view, Frame_Mode mode )
     // Frame_Mode::Root_Node_View
     if ( mode ==  Frame_Mode::Root_Node_View || graph_view->selection.collect<Node_View*>().empty() )
     {
-        // Get root node view
+        // Move the main Scope_View to the top-left corner of the Graph_View
         Scope* root_scope = graph_root_scope(graph_view->graph());
-        auto root_nodeview = node_component<Node_View>(root_scope->node());
-        ASSERT(root_nodeview);
-
-        // compute the delta to apply
-        const Vec2 target   = get_config()->ui_textview_padding + root_nodeview->shape.position();
+        auto root_scopeview = root_scope->view;
+        ASSERT(root_scopeview);
+        const Vec2 target   = spatialnode_position( &root_scopeview->spatial_node, WORLD_SPACE ) + get_config()->ui_textview_padding;
         const Vec2 origin   = root_scope->view->content_rect.top_left();
         const Vec2 delta    = target - origin;
-
-        // apply the delta
-        spatialnode_translate(&root_nodeview->shape.spatial_node, delta );
-
-        // make sure it won't be moved by automaticl layout
-        root_nodeview->state.set_flags(View_Flag_PINNED);
-        
+        spatialnode_translate( &root_scopeview->spatial_node, delta );
         return;
     }
-
     // Frame_Mode::Selected_Node_Views
+    else
+    {   
+        // Get selected node views rectangle
+        std::vector<Node_View*> selected_nodeviews = graph_view->selection.collect<Node_View*>();
+        const Rect rect = nodeview_bounding_rect( selected_nodeviews, WORLD_SPACE);
 
-    // Get selected node views rectangle
-    std::vector<Node_View*> selected_nodeviews = graph_view->selection.collect<Node_View*>();
-    const Rect rect = nodeview_bounding_rect( selected_nodeviews, tools::WORLD_SPACE);
+        // compute the delta to apply
+        const Vec2 target = graph_view->shape.pivot_position( tools::CENTER, WORLD_SPACE);
+        const Vec2 source = rect.min;
+        const Vec2 delta =  target - source;
 
-    // compute the delta to apply
-    const Vec2 target = graph_view->shape.pivot_position( tools::CENTER, tools::WORLD_SPACE);
-    const Vec2 source = Box_2D(rect).pivot_position(tools::CENTER, WORLD_SPACE);
-    const Vec2 delta =  target - source;
-
-    // apply the delta to all node views
-    for (Node* node : graph_view->graph()->nodes )
-        if ( Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag) )
-            spatialnode_translate( &nodeview->shape.spatial_node, delta );
+        // apply the delta to all node views
+        for (Node* node : graph_view->graph()->nodes )
+            if ( Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag) )
+                spatialnode_translate( &nodeview->shape.spatial_node, delta );
+    }
 }
 
 void ndbl::_graphview_on_graph_change(Graph_View* graph_view)
@@ -730,9 +750,6 @@ void ndbl::graphview_reset(Graph_View* graph_view)
             nodeview_reset_all_properties(each_node_view);
         }
     }
-
-    graphview_update(graph_view, 1.f/60.f);
-    graphview_frame_content(graph_view, Frame_Mode::Root_Node_View );
 }
 
 bool ndbl::graphview_has_an_active_tool(const Graph_View* graph_view)
@@ -792,7 +809,7 @@ void ndbl::_graphview_drag_state_tick(Graph_View* graph_view)
         }
         else if ( auto* scopeview = elem.get_if<Scope_View*>() )
         {
-            nodeview = componentbag_get<Node_View>(&scopeview->scope->entity->component_bag);
+            nodeview = node_component<Node_View>(scopeview->scope->entity);
             spatialnode_translate(&nodeview->shape.spatial_node, delta);
             nodeview->state.set_flags(View_Flag_PINNED);
         }

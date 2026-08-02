@@ -2,6 +2,7 @@
 
 #include <functional>
 
+#include "core/Types.h"
 #include "tools/core/reflection/GETTERS_SETTERS.h"
 #include "tools/core/Component.h"  // base class
 #include "tools/core/Variant.h"
@@ -34,11 +35,20 @@ namespace ndbl
     using Selectable = tools::VariantT<Node_View*, Scope_View*, Node_Slot_View*, Node_Slot_Link_View> ;
     using Selection  = tools::Unique_Variant_List<Selectable> ;
 
+    typedef u8_t Graph_View_Flags;
+    enum Graph_View_Flag: u8_t
+    {
+        Graph_View_Flag_NONE                    = 0,
+        Graph_View_Flag_NEEDS_TO_BE_RESET       = 1 << 0,
+        Graph_View_Flag_NEEDS_TO_FRAME_CONTENT  = 1 << 1
+    };
+
     struct Graph_View : public tools::Component<Graph>
     {
 	    Graph_View();
 		~Graph_View();
 
+        Graph_View_Flags                    flags = 0;
         tools::Simple_Signal                signal_change;
         Node_View_Contextual_Menu           contextual_menu;
         Selectable                          hovered;

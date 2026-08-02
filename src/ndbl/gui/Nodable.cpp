@@ -216,8 +216,7 @@ void ndbl::nodable_update(App_State* app)
             {
                 app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
                 Graph_View* graph_view = graph_component<Graph_View>(app->current_file->graph);
-                graphview_reset(graph_view);
-
+                graph_view->flags |= Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
                 break;
             }
 
