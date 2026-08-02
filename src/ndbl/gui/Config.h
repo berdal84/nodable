@@ -77,7 +77,7 @@ namespace ndbl
         float          ui_history_btn_height;
         float          ui_history_btn_width_max;
         const char*    ui_splashscreen_imagePath;
-        float          ui_overlay_margin;
+        float          ui_textview_padding;
         float          ui_overlay_indent;
         Vec4           ui_overlay_window_bg_golor;
         Vec4           ui_overlay_border_color;

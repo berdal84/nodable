@@ -119,7 +119,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_history_size_max                   = 200;
 
     // overlay
-    ui_overlay_margin                     = 10.0f;
+    ui_textview_padding                     = 10.0f;
     ui_overlay_indent                     = 5.0f;
     ui_overlay_window_bg_golor            = Vec4(0.9f,0.9f,0.9f,0.2f);
     ui_overlay_border_color               = Vec4(0,0,0,0);

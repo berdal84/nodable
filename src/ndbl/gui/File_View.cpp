@@ -183,7 +183,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
 
             // overlay
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
-            overlay_rect.expand( Vec2( -2.f * cfg->ui_overlay_margin ) ); // margin
+            overlay_rect.expand( Vec2( -2.f * cfg->ui_textview_padding ) ); // margin
             fileview_draw_overlay(file_view->text_overlay_window_name.c_str(), file_view->overlay_data[File_View_Overlay_Type_TEXT], overlay_rect, Vec2(0, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
@@ -221,14 +221,14 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
 
             // Draw overlay: shortcuts
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
-            overlay_rect.expand( Vec2( -2.0f * cfg->ui_overlay_margin ) ); // margin
+            overlay_rect.expand( Vec2( -2.0f * cfg->ui_textview_padding ) ); // margin
             fileview_draw_overlay(file_view->graph_overlay_window_name.c_str(), file_view->overlay_data[File_View_Overlay_Type_GRAPH], overlay_rect, Vec2(1, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
             if( cfg->has_flags(Config_Flag_ISOLATION_ON) )
             {
-                Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( cfg->ui_overlay_margin);
+                Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( cfg->ui_textview_padding);
                 ImGui::SetCursorPos(cursor_pos);
                 ImGui::Text("Isolation mode ON");
             }

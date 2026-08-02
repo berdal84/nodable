@@ -43,7 +43,6 @@ namespace ndbl
     void    _graphview_handle_remove_node(Graph_View*, Node* node);
     void    _graphview_handle_change_scope(Graph_View*, Graph::Scope_Change);
     void    _graphview_handle_hover(Graph_View*, Scope_View*);
-    void    _graphview_update_until_unfold(Graph_View*, float dt);
     void    _graphview_on_graph_change(Graph_View*);
     void    _graphview_on_selection_change(Graph_View*, Selection::Event_Type, Selection::Element );
     void    _graphview_draw_context_menu(Graph_View*, Node_Slot_View* dragged_slotview = nullptr );
@@ -637,22 +636,6 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
             scopeview_update( root->view, dt, Scope_View_Flag_RECURSE );
 }
 
-void ndbl::_graphview_update_until_unfold(Graph_View* graph_view, float dt_in_sec)
-{
-    const Config* cfg = get_config();
-
-    // Compute the number of update necessary to simulate unfolding for dt seconds
-    const u32_t samples = 1000 * u32_t(dt_in_sec) / cfg->tools_cfg->dt_cap;
-
-    // Run the updates
-    ASSERT(samples != 0 );
-    auto sample_dt = float(dt_in_sec) / samples;
-    ASSERT(sample_dt > 0.f );
-
-    for(u32_t i = 0; i < samples; ++i)
-        graphview_update(graph_view, sample_dt );
-}
-
 void ndbl::graphview_frame_content(Graph_View* graph_view, Frame_Mode mode )
 {
     // Frame_Mode::Root_Node_View
@@ -660,18 +643,19 @@ void ndbl::graphview_frame_content(Graph_View* graph_view, Frame_Mode mode )
     {
         // Get root node view
         Scope* root_scope = graph_root_scope(graph_view->graph());
-        if ( !root_scope ) return;
         auto root_nodeview = node_component<Node_View>(root_scope->node());
         ASSERT(root_nodeview);
 
         // compute the delta to apply
-        const Vec2 margin(40.f);
-        const Vec2 target   = margin + graph_view->shape.pivot_position( tools::TOP_LEFT, WORLD_SPACE);
+        const Vec2 target   = get_config()->ui_textview_padding + root_nodeview->shape.position();
         const Vec2 origin   = root_scope->view->content_rect.top_left();
         const Vec2 delta    = target - origin;
 
         // apply the delta
         spatialnode_translate(&root_nodeview->shape.spatial_node, delta );
+
+        // make sure it won't be moved by automaticl layout
+        root_nodeview->state.set_flags(View_Flag_PINNED);
         
         return;
     }
