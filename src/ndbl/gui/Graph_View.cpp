@@ -47,7 +47,9 @@ namespace ndbl
     void    _graphview_on_graph_change(Graph_View*);
     void    _graphview_on_selection_change(Graph_View*, Selection::Event_Type, Selection::Element );
     void    _graphview_draw_context_menu(Graph_View*, Node_Slot_View* dragged_slotview = nullptr );
-    void    _graphview_update_scopes_and_nodes_layout_recursively(Graph_View*, Node* /* root_node */);
+    void    _graphview_do_layout_recursively(Graph_View*, Node_View*);
+    void    _graphview_do_layout_recursively_on_expressions_only(Graph_View*, Node_View*);
+    void    _graphview_do_layout_element(Graph_View*, Node_View* );
     void    _graphview_cursor_state_tick(Graph_View*);
     void    _graphview_roi_state_enter(Graph_View*);
     void    _graphview_roi_state_tick(Graph_View*);
@@ -150,7 +152,7 @@ void ndbl::_graphview_handle_add_node(Graph_View* graph_view, Node* node)
     // view
     auto* nodeview = new Node_View();
     component_init(nodeview, node);
-    nodeview->shape.set_size({20.f, 35.f});
+    nodeview->shape.set_size({80.f, 35.f});
 
     componentbag_add(& node->component_bag, nodeview);
 
@@ -471,127 +473,123 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
     if ( changed )
         graph_view->signal_change.emit();
 
+
+    // debug layout
+    if( cfg->has_flags(Config_Flag_DRAW_DEBUG_LINES))
+    {
+        for(auto& el : layout_elements())
+        {
+            auto list = ImGui::GetForegroundDrawList();
+            list->AddRect(el.position, el.position + Vec2{el.dimension.width, el.dimension.height}, ImColor(255,0,0));
+        }
+    }
+
 	return changed;
 }
 
-void ndbl::_graphview_update_scopes_and_nodes_layout_recursively(Graph_View* graph_view, Node* node )
+void ndbl::_graphview_do_layout_element(Graph_View* graph_view, Node_View* nodeview )
 {
     Config* cfg = get_config();
 
-    auto node_view = node_component<Node_View>(node);
-    if ( node == graph_root(graph_view->graph()))
+    Node*   node = nodeview->node();
+    Rect    rect = nodeview_get_rect(nodeview, WORLD_SPACE);
+
+    layout_append_element(rect.width(), rect.height(), nodeview);
+
+    if( nodeview->state.has_flags(View_Flag_PINNED) )
     {
-        layout_set_cursor( node_view->shape.pivot_position(TOP_LEFT) );
+        layout_pin_element_at_position(rect.top_left());
     }
 
-    // Now we can align inputs/children since they have their layout.
-    if( !node->inputs().empty() )
+    if( graph_root( node->graph ) == node)
     {
-        // TODO: call this inside LAYOUT_BEGIN/END to have nested structures
-        for( Node* input_node : node->inputs() )
+        layout_pin_element();
+    }
+}
+
+void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* graph_view, Node_View* nodeview )
+{
+    Config* cfg = get_config();
+
+    Node*   node = nodeview->node();
+    Rect    rect = nodeview_get_rect(nodeview, WORLD_SPACE);
+
+    if( node->inputs().empty() )
+    {
+        return _graphview_do_layout_element(graph_view, nodeview);
+    }
+
+    layout_begin( Container_Config::AXIS_TOP_TO_BOTTOM );
+    {
+        layout_set_gap( cfg->ui_node_gap(Size_SM).y );
+        layout_begin( Container_Config::AXIS_LEFT_TO_RIGHT );
         {
-            _graphview_update_scopes_and_nodes_layout_recursively(graph_view, input_node);
+            layout_set_gap( cfg->ui_node_gap(tools::Size_LG).x );            
+            if( node_is_connected_to_codeflow(node) )
+            {
+                layout_set_padding( rect.width() );
+            }   
+
+            for( Node* input_node : node->inputs() )
+            {
+                Node_View* input_nodeview = node_component<Node_View>(input_node);
+
+                if (node_is_connected_to_codeflow(input_node)) continue;
+
+                _graphview_do_layout_recursively_on_expressions_only(graph_view, input_nodeview);
+            }
         }
-
-        Rect rect = nodeview_get_rect(node_view);
-
-        layout_set_cursor( rect.top_left() + cfg->ui_node_gap(tools::Size_LG) * Vec2(0.f, -1.f));
-        layout_begin_flex( Style::Row );
-        layout_set_gap( cfg->ui_node_gap(tools::Size_LG).x );
-        
-        if( node_is_connected_to_codeflow(node) )
-        {
-            layout_set_left_padding( rect.width() );
-        }   
-
-        for( Node* input_node : node->inputs() )
-        {
-            Node_View* input_nodeview = node_component<Node_View>(input_node);
-
-            if (node_is_connected_to_codeflow(input_node))          continue;
-            if (input_nodeview->state.has_flags(View_Flag_PINNED) ) continue; // TODO: when pinned, we should create a new column
-
-            Rect input_rect = nodeview_get_rect_ex(input_nodeview, WORLD_SPACE, Node_View_Flag_WITH_RECURSION);
-
-            Element elem;
-            elem.x          = input_rect.min.x;
-            elem.y          = input_rect.min.y;
-            elem.height     = input_rect.height();
-            elem.width      = input_rect.width();
-            elem.userdata   = input_nodeview;
-
-            layout_push(elem);
-        }
-
         layout_end();
+
+        _graphview_do_layout_element(graph_view, nodeview);
+    }
+    layout_end();
+}
+
+void ndbl::_graphview_do_layout_recursively(Graph_View* graph_view, Node_View* nodeview )
+{
+    Config* cfg  = get_config();
+    Node*   node = nodeview->node();
+
+    if( node->internal_scope == nullptr)
+    {
+        return _graphview_do_layout_recursively_on_expressions_only(graph_view, nodeview);
     }
 
-
-    // Create a column with each backbone node
-    if( node->internal_scope != nullptr)
+    layout_begin(tools::Container_Config::AXIS_TOP_TO_BOTTOM);
     {
-        // TODO: call this inside LAYOUT_BEGIN/END to have nested structures
-        for( Node* backbone_node : scope_get_backbone(node->internal_scope) )
-            _graphview_update_scopes_and_nodes_layout_recursively(graph_view, backbone_node);
-
-        Rect parent_rect = nodeview_get_rect_ex(node_view, WORLD_SPACE, Node_View_Flag_WITH_RECURSION);
-        layout_set_cursor( parent_rect.bottom_left() + cfg->ui_node_gap() * Vec2(0.f, 1.f) );
-        layout_begin_flex( Style::Column );
-        layout_set_gap( cfg->ui_node_gap().y );
+        _graphview_do_layout_recursively_on_expressions_only(graph_view, nodeview);
 
         for( Node* backbone_node : scope_get_backbone(node->internal_scope) )
         {
             Node_View* backbone_nodeview = node_component<Node_View>(backbone_node);
-
-            Rect backbone_rect;
-            
-            if( backbone_node->internal_scope != nullptr)
-                backbone_rect = backbone_node->internal_scope->view->content_rect;
-            else
-                backbone_rect = nodeview_get_rect_ex(backbone_nodeview, WORLD_SPACE, Node_View_Flag_WITH_RECURSION);
-
-            Element elem;
-            elem.x          = backbone_rect.min.x;
-            elem.y          = backbone_rect.min.y;
-            elem.height     = backbone_rect.height();
-            elem.width      = backbone_rect.width();
-            elem.userdata   = backbone_nodeview;
-
-            layout_push(elem);
-        }
-        layout_end();
-    }
-
-
-    // Create a row with each branch
-    if( node_has_switch_behavior(node))
-    {
-        if( node->switch_data.branch_count > 1)
-        {
-            Rect parent_rect = nodeview_get_rect(node_view);
-            layout_set_cursor( parent_rect.bottom_left() + cfg->ui_node_gap() * Vec2(1.f, 1.f) );
-            layout_begin_flex( Style::Row );
-            layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x );
-
-            for( Scope* partition : node->internal_scope->partition )
-            {
-                Node*       partition_node     = partition->node();
-                Node_View*  partition_nodeview = node_component<Node_View>(partition->node());
-
-                Rect partition_rect = partition_nodeview->shape.rect(WORLD_SPACE);
-
-                Element elem;
-                elem.x          = partition_rect.min.x;
-                elem.y          = partition_rect.min.y;
-                elem.height     = partition_rect.height();
-                elem.width      = partition_rect.width();
-                elem.userdata   = partition_nodeview;
-
-                layout_push(elem);
-            }
-            layout_end();
+            _graphview_do_layout_recursively_on_expressions_only(graph_view, backbone_nodeview);
         }
     }
+    layout_end();
+
+    // // Create a row with each branch
+    // if( node_has_switch_behavior(node))
+    // {
+    //     if( node->switch_data.branch_count > 1)
+    //     {
+    //         Rect parent_rect = nodeview_get_rect(node_view);
+    //         layout_set_cursor( parent_rect.bottom_left() + cfg->ui_node_gap() * Vec2(1.f, 1.f) );
+    //         layout_begin( Container_Config::Row );
+    //         layout_set_container_gap( cfg->ui_node_gap(tools::Size_SM).x );
+
+    //         for( Scope* partition : node->internal_scope->partition )
+    //         {
+    //             Node*       partition_node     = partition->node();
+    //             Node_View*  partition_nodeview = node_component<Node_View>(partition->node());
+
+    //             Rect partition_rect = partition_nodeview->shape.rect(WORLD_SPACE);
+
+    //             layout_push(partition_rect.width(), partition_rect.height(), partition_nodeview);
+    //         }
+    //         layout_end();
+    //     }
+    // }
 };
 
 void ndbl::graphview_update(Graph_View* graph_view, float dt)
@@ -599,30 +597,34 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
     ASSERT( graph_view->graph() );
 
     // Define a Layout
-    layout_init();
+    layout_begin_frame();
     layout_begin();
     {
+        layout_pin_element();
         Node* root_node = graph_root(graph_view->graph());
-        _graphview_update_scopes_and_nodes_layout_recursively(graph_view, root_node);
+        auto* root_nodeview = node_component<Node_View>(root_node);
+        _graphview_do_layout_recursively(graph_view, root_nodeview);
     }
     layout_end();
+    layout_end_frame();
 
     // Update the layout
     layout_compute_sizes_and_positions();
 
     // Update our views according to new sizes/positions
-    for(auto& elem : layout_elements() )
+    for(auto it = layout_elements().begin(); it != layout_elements().end(); ++it )
     {
-        if( elem.type != Element_Type_Element) continue;
-        
+        Element& elem = *it;
+
+        if (elem.userdata == nullptr) continue;
+
         auto nodeview = static_cast<Node_View*>(elem.userdata);
-
-        if (nodeview == nullptr) continue;
+        
         if (nodeview->state.has_flags(View_Flag_PINNED)) continue;
-
-        spatialnode_set_position(&nodeview->spatial_node(), Vec2{elem.x, elem.y}, WORLD_SPACE);
+        
+        spatialnode_set_position(&nodeview->spatial_node(), elem.position, tools::PARENT_SPACE);
     }
-    layout_deinit();
+    
 
     // Node_Views
     for (Node* node : graph_view->graph()->nodes )
@@ -745,7 +747,7 @@ void ndbl::graphview_reset(Graph_View* graph_view)
         }
     }
 
-    _graphview_update_until_unfold(graph_view, get_config()->graph_view_unfold_duration);
+    graphview_update(graph_view, 1.f/60.f);
     graphview_frame_content(graph_view, Frame_Mode::Root_Node_View );
 }
 
@@ -945,6 +947,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                 if ( ImGui::MenuItem(ICON_FA_WINDOW_RESTORE " Arrange Node") )
                 {
                     nodeview_arrange_recursively(nodeview);
+                    graphview_reset(graph_view);
                 }
 
                 break;
