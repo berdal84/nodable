@@ -579,29 +579,28 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graph_view, Node_View* n
             {
                 Rect parent_rect = nodeview_get_rect(nodeview);
                 layout_begin_row();
-                layout_set_padding(500.f,0,0,0);
+                layout_set_padding( parent_rect.width(), 0,0,0);
                 layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x );
 
-                // TODO: There is an issue with Scope, its partition is never set and therefore is empty.
-                //       In the past, I've been implemented partitions to represent nested Scopes. But,
-                //       I don't know if this is the right method. I guess it could be also interested
-                //       to get special links to go from parent to child nodes.
-                for( Scope* partition : node->internal_scope->partition )
+                for( Node_Slot* branch_slot : node->switch_data.branch_slots )
                 {
-                    Node*       partition_node     = partition->node();
-                    Node_View*  partition_nodeview = node_component<Node_View>(partition->node());
-
-                    _graphview_do_layout_recursively(graph_view, partition_nodeview);
+                    if ( Node* adjacent_node = branch_slot->first_adjacent_node() )
+                    {
+                        Node_View* adjacent_nodeview = node_component<Node_View>(adjacent_node);
+                        _graphview_do_layout_recursively(graph_view, adjacent_nodeview);
+                    }
                 }
                 layout_end();
             }
         }
-
-        // propagate on internal scope backbone
-        for( Node* backbone_node : scope_get_backbone(node->internal_scope) )
+        else
         {
-            Node_View* backbone_nodeview = node_component<Node_View>(backbone_node);
-            _graphview_do_layout_recursively(graph_view, backbone_nodeview);
+            // propagate on internal scope backbone
+            for( Node* backbone_node : scope_get_backbone(node->internal_scope) )
+            {
+                Node_View* backbone_nodeview = node_component<Node_View>(backbone_node);
+                _graphview_do_layout_recursively(graph_view, backbone_nodeview);
+            }
         }
     }
     layout_end();
