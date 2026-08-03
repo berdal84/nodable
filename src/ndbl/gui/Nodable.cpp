@@ -93,8 +93,8 @@ void ndbl::nodable_init(App_State* app)
     action_manager->new_action<Event_Redo>("Redo", Shortcut{SDLK_y, KMOD_CTRL } );
     action_manager->new_action<Event_ToggleIsolationFlags>("Isolation", Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
     action_manager->new_action<Event_MoveSelection>("Drag whole graph", Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNode_Views{Frame_Mode::Selected_Node_Views }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL }, EventPayload_FrameNode_Views{Frame_Mode::Root_Node_View} );
+    action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL });
     // (to create block nodes)
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_CONDITION } );
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_FOR_LOOP } );
@@ -212,9 +212,8 @@ void ndbl::nodable_update(App_State* app)
     {
         switch ( event->id )
         {
-            case Event_ID_RESET_GRAPH:
+            case Event_ID_RESET_GRAPH_VIEW:
             {
-                app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
                 Graph_View* graph_view = graph_component<Graph_View>(app->current_file->graph);
                 graph_view->flags |= Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
                 break;
@@ -318,7 +317,7 @@ void ndbl::nodable_update(App_State* app)
             {
                 auto _event = reinterpret_cast<Event_FrameSelection*>( event );
                 VERIFY(graph_view, "a graph_view is required");
-                graphview_frame_content(graph_view, _event->data.mode);
+                graph_view->flags |= Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
                 break;
             }
 

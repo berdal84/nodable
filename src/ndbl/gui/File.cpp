@@ -129,6 +129,9 @@ void ndbl::file_update_graph_from_text(File* file, bool isolation_on)
     // note: File owns the parsed text buffer
     file->parsed_text = fileview_get_text(&file->view, isolation_on );
     get_language()->parse(file->graph, file->parsed_text);
+
+    auto* graphview = graph_component<Graph_View>(file->graph);
+    graphview->flags |= Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
 }
 
 size_t ndbl::file_size(const File* file)

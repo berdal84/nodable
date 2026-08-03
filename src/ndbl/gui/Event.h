@@ -28,17 +28,12 @@ namespace ndbl
         Event_ID_SLOT_DISCONNECT_ALL,
         Event_ID_SELECTION_CHANGE,
         Event_ID_DELETE_EDGE,
-        Event_ID_RESET_GRAPH,
+        Event_ID_RESET_GRAPH_VIEW,
     };
 
     using Event_ToggleIsolationFlags = tools::Event<Event_ID_TOGGLE_ISOLATION_FLAGS>;
     using Event_MoveSelection        = tools::Event<Event_ID_MOVE_SELECTION>;
-
-    struct EventPayload_FrameNode_Views
-    {
-        Frame_Mode mode = Frame_Mode::Root_Node_View;
-    };
-    using Event_FrameSelection = tools::Event<Event_ID_REQUEST_FRAME_SELECTION, EventPayload_FrameNode_Views>;
+    using Event_FrameSelection       = tools::Event<Event_ID_REQUEST_FRAME_SELECTION>;
 
     struct EventPayload_Node_SlotPair
     {

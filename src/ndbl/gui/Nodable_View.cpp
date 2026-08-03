@@ -177,8 +177,8 @@ void ndbl::nodableview_draw(App_View_State* view)
         if (ImGui::BeginMenu("Graph"))
         {
 
-            if (ImGui::MenuItem("Reset"))
-                event_manager->dispatch( Event_ID_RESET_GRAPH );
+            if (ImGui::MenuItem("Reset View"))
+                event_manager->dispatch( Event_ID_RESET_GRAPH_VIEW );
 
             ImGuiEx::MenuItem_EventTrigger<Event_ArrangeSelection>(false, has_selection);
             ImGuiEx::MenuItem_EventTrigger<Event_ToggleFolding>(false, has_selection);
@@ -316,8 +316,8 @@ void ndbl::nodableview_draw(App_View_State* view)
             ImGui::BeginGroup();
 
             // reset
-            if (ImGui::Button(ICON_FA_UNDO " regen. graph", button_size)) {
-                event_manager->dispatch( Event_ID_RESET_GRAPH );
+            if (ImGui::Button(ICON_FA_UNDO " Reset Graph View", button_size)) {
+                event_manager->dispatch( Event_ID_RESET_GRAPH_VIEW );
             }
             ImGui::SameLine();
 
