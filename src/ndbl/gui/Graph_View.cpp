@@ -474,19 +474,20 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
     if( cfg->has_flags(Config_Flag_DRAW_DEBUG_LINES))
     {
         auto list = ImGui::GetForegroundDrawList();
+        Vec2 origin = graph_view->shape.position();
         for(Element& el : layout_elements())
         {
             switch ( el.type)
             {
                 case tools::Element::Type_CONTAINER:
                 {
-                    list->AddRect(element_rect_min(&el), element_rect_max(&el), ImColor(0,255,0), 0.0f, 0, 2.f);
+                    list->AddRect(origin + element_rect_min(&el), origin + element_rect_max(&el), ImColor(0,255,0), 0.0f, 0, 2.f);
                     break;
                 }
 
                 case tools::Element::Type_LEAF:
                 {
-                    list->AddRect(element_rect_min(&el), element_rect_max(&el), ImColor(255,255,255));
+                    list->AddRect(origin + element_rect_min(&el), origin + element_rect_max(&el), ImColor(255,255,255));
                     break;
                 }            
             }            
@@ -620,9 +621,10 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
     layout_begin_frame();
     layout_begin();
     {
+        layout_set_floating();
+        
         Node* root_node = graph_root(graph_view->graph());
         auto* root_nodeview = node_component<Node_View>(root_node);
-        layout_set_floating_at_position(root_nodeview->shape.position(tools::WORLD_SPACE) + get_config()->ui_textview_padding );
         _graphview_do_layout_recursively(graph_view, root_nodeview);
     }
     layout_end();
