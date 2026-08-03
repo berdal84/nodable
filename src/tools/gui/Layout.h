@@ -45,7 +45,7 @@ namespace tools
     typedef int Position_Mode;
     enum Relative_To_ {
         Position_Mode_RELATIVE = 0,
-        Position_Mode_STATIC = 1,
+        Position_Mode_FLOATING = 1,
     };
 
     struct Element
@@ -358,7 +358,7 @@ namespace tools
             Element* child = element.first_child;
             while(child != nullptr)
             {  
-                if( child->position_mode != Position_Mode_STATIC )
+                if( child->position_mode != Position_Mode_FLOATING )
                 {
                     child->position = cursor;
                 }
@@ -371,7 +371,7 @@ namespace tools
                         {
                             cursor.x += element.container.gap;
                         }
-                        cursor.x += child->dimension.width;
+                        cursor.x += child->dimension.width + child->padding.left;
                         break;
                     }
 
@@ -415,17 +415,17 @@ namespace tools
         elem_push_back(parent, new_element);
     }
 
-    inline void layout_pin_element()
+    inline void layout_set_floating()
     {
         Element* elem = layout_current_element();
-        elem->position_mode = Position_Mode_STATIC;
+        elem->position_mode = Position_Mode_FLOATING;
     }
 
-    inline void layout_pin_element_at_position(Vec2 position)
+    inline void layout_set_floating_at_position(Vec2 position)
     {
         Element* elem = layout_current_element();
         elem->position      = position;
-        elem->position_mode = Position_Mode_STATIC;
+        elem->position_mode = Position_Mode_FLOATING;
     }
 
     inline void layout_append_element(float width, float height, void* userdata)

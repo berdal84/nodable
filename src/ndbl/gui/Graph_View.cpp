@@ -505,7 +505,7 @@ void ndbl::_graphview_do_layout_element(Graph_View* graph_view, Node_View* nodev
 
     if( nodeview->state.has_flags(View_Flag_PINNED) )
     {
-        layout_pin_element_at_position(rect.top_left());
+        layout_set_floating_at_position(rect.top_left());
     }
 }
 
@@ -565,41 +565,45 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graph_view, Node_View* n
     {
         if( nodeview->node() == graph_root( graph_view->graph() ) )
         {
-            layout_pin_element_at_position(nodeview->shape.position());
+            layout_set_floating_at_position(nodeview->shape.position());
         }
 
         _graphview_do_layout_recursively_on_expressions_only(graph_view, nodeview);
 
+        // propagate on switch branches
+        // TODO: the container must be centered horizontally, we cannot do that currently with layout
+        if( node_has_switch_behavior(node))
+        {
+            if( node->switch_data.branch_count > 1)
+            {
+                Rect parent_rect = nodeview_get_rect(nodeview);
+                layout_begin_row();
+                layout_set_padding(500.f,0,0,0);
+                layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x );
+
+                // TODO: There is an issue with Scope, its partition is never set and therefore is empty.
+                //       In the past, I've been implemented partitions to represent nested Scopes. But,
+                //       I don't know if this is the right method. I guess it could be also interested
+                //       to get special links to go from parent to child nodes.
+                for( Scope* partition : node->internal_scope->partition )
+                {
+                    Node*       partition_node     = partition->node();
+                    Node_View*  partition_nodeview = node_component<Node_View>(partition->node());
+
+                    _graphview_do_layout_recursively(graph_view, partition_nodeview);
+                }
+                layout_end();
+            }
+        }
+
+        // propagate on internal scope backbone
         for( Node* backbone_node : scope_get_backbone(node->internal_scope) )
         {
             Node_View* backbone_nodeview = node_component<Node_View>(backbone_node);
-            _graphview_do_layout_recursively_on_expressions_only(graph_view, backbone_nodeview);
+            _graphview_do_layout_recursively(graph_view, backbone_nodeview);
         }
     }
     layout_end();
-
-    // // Create a row with each branch
-    // if( node_has_switch_behavior(node))
-    // {
-    //     if( node->switch_data.branch_count > 1)
-    //     {
-    //         Rect parent_rect = nodeview_get_rect(node_view);
-    //         layout_set_cursor( parent_rect.bottom_left() + cfg->ui_node_gap() * Vec2(1.f, 1.f) );
-    //         layout_begin( Container_Config::Row );
-    //         layout_set_container_gap( cfg->ui_node_gap(tools::Size_SM).x );
-
-    //         for( Scope* partition : node->internal_scope->partition )
-    //         {
-    //             Node*       partition_node     = partition->node();
-    //             Node_View*  partition_nodeview = node_component<Node_View>(partition->node());
-
-    //             Rect partition_rect = partition_nodeview->shape.rect(WORLD_SPACE);
-
-    //             layout_push(partition_rect.width(), partition_rect.height(), partition_nodeview);
-    //         }
-    //         layout_end();
-    //     }
-    // }
 };
 
 void ndbl::graphview_update(Graph_View* graph_view, float dt)
@@ -618,7 +622,7 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
     {
         Node* root_node = graph_root(graph_view->graph());
         auto* root_nodeview = node_component<Node_View>(root_node);
-        layout_pin_element_at_position(root_nodeview->shape.position(tools::WORLD_SPACE) + get_config()->ui_textview_padding );
+        layout_set_floating_at_position(root_nodeview->shape.position(tools::WORLD_SPACE) + get_config()->ui_textview_padding );
         _graphview_do_layout_recursively(graph_view, root_nodeview);
     }
     layout_end();
