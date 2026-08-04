@@ -985,10 +985,17 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
     if (first_char == '"')
     {
         auto cursor = start_pos + 1;
+
         while (cursor != buffer_size && (buffer[cursor] != '"' || buffer[cursor - 1] == '\\'))
         {
             ++cursor;
         }
+
+        if( buffer[cursor] != '"' )
+        {
+            return Token_Type::none;
+        }
+        
         ++cursor;
         global_cursor = cursor;
         return Token{Token_Type::literal_string, const_cast<char*>(buffer), start_pos, cursor - start_pos};
