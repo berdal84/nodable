@@ -661,54 +661,50 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
         spatialnode_set_position(&nodeview->spatial_node(), graph_view->shape.position() + elem.position, tools::WORLD_SPACE);
     }
     
-    // Node_Views
+    // Update Node_Views
     for (Node* node : graph_view->graph()->nodes )
-        if ( auto* view = componentbag_get<Node_View>(&node->component_bag) )
+        if ( auto* view = node_component<Node_View>(node) )
             nodeview_update(view, dt);
 
-    // Scope_Views
+    // Update Scope_Views
     if( Scope* root = graph_root_scope(graph_view->graph()) )
         if ( root->view != nullptr )
             scopeview_update( root->view, dt, Scope_View_Flag_RECURSE );
 
-    
+    // Frame Content or Selection    
     if( graph_view->flags & Graph_View_Flag_NEEDS_TO_FRAME_CONTENT)
     {
-        _graphview_frame_content(graph_view);
-        graph_view->flags &= ~Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
-    }    
-}
+        std::vector<Node_View*> selected_nodeviews = graph_view->selection.collect<Node_View*>();
 
-void ndbl::_graphview_frame_content(Graph_View* graph_view)
-{
-    std::vector<Node_View*> selected_nodeviews = graph_view->selection.collect<Node_View*>();
+        bool has_selection = !selected_nodeviews.empty();
+        if ( !has_selection )
+            for (Node* node : graph_view->graph()->nodes )
+                if ( Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag) )
+                    selected_nodeviews.push_back(nodeview);
 
-    bool has_selection = !selected_nodeviews.empty();
-    if ( !has_selection )
+        // Get selected node views rectangle
+        const Rect selected_rect = nodeview_bounding_rect( selected_nodeviews, WORLD_SPACE);
+
+        // Compute the delta to apply to each node
+        // We have two different targets depending on if something is selected or not.
+        Vec2 delta;
+
+        if( has_selection )
+        {
+            delta =  graph_view->shape.pivot_position( CENTER, WORLD_SPACE) - selected_rect.center();
+        }
+        else
+        {
+            delta =  graph_view->shape.pivot_position( TOP_LEFT, WORLD_SPACE) - selected_rect.top_left() + get_config()->ui_textview_padding + get_config()->ui_scope_content_rect_margin.top_left();
+        }
+
+        // Apply the delta to all node views
         for (Node* node : graph_view->graph()->nodes )
             if ( Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag) )
-                selected_nodeviews.push_back(nodeview);
+                spatialnode_translate( &nodeview->shape.spatial_node, delta );
 
-    // Get selected node views rectangle
-    const Rect selected_rect = nodeview_bounding_rect( selected_nodeviews, WORLD_SPACE);
-
-    // Compute the delta to apply to each node
-    // We have two different targets depending on if something is selected or not.
-    Vec2 delta;
-
-    if( has_selection )
-    {
-        delta =  graph_view->shape.pivot_position( CENTER, WORLD_SPACE) - selected_rect.center();
-    }
-    else
-    {
-        delta =  graph_view->shape.pivot_position( TOP_LEFT, WORLD_SPACE) - selected_rect.top_left() + get_config()->ui_textview_padding + get_config()->ui_scope_content_rect_margin.top_left();
-    }
-
-    // Apply the delta to all node views
-    for (Node* node : graph_view->graph()->nodes )
-        if ( Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag) )
-            spatialnode_translate( &nodeview->shape.spatial_node, delta );
+        graph_view->flags &= ~Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
+    }    
 }
 
 void ndbl::_graphview_on_graph_change(Graph_View* graph_view)
