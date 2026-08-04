@@ -537,7 +537,16 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
             {
                 Node_View* input_nodeview = node_component<Node_View>(input_node);
 
+                // When the input_node is connected to the code flow, it means it is part of
+                // a Scope's backbone, which is handled by _graphview_do_layout_recursively already.
                 if (node_is_connected_to_codeflow(input_node))
+                {
+                    continue;
+                }
+
+                // When the input_node is from a different scope, we don't constrain it here
+                // it is handled by the parent node from the same scope somewhere else in the code.
+                if ( input_node->type == Node_Type_VARIABLE && input_node->scope != node->scope )
                 {
                     continue;
                 }
