@@ -67,6 +67,7 @@ namespace tools
         Element*            next        = nullptr;
         Element*            first_child = nullptr; // first/last are children (as double linked list)
         Element*            last_child  = nullptr;
+        u8_t                depth       = 0;
         void*               userdata    = nullptr;
     };
 
@@ -354,10 +355,12 @@ namespace tools
             }
             
 
-            // Set each child element's position
+            // Set each child element's position and depth
             Element* child = element.first_child;
             while(child != nullptr)
             {  
+                child->depth = element.depth + 1;
+                
                 if( child->position_mode != Position_Mode_FLOATING )
                 {
                     child->position = cursor;

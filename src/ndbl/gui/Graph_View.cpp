@@ -5,6 +5,9 @@
 #include <cstddef>
 #include <cstdio>
 #include <vector>
+#include "core/Asserts.h"
+#include "gui/Color.h"
+#include "gui/geometry/Vec4.h"
 #include "imgui.h"
 
 #include "tools/core/Component.h"
@@ -477,20 +480,46 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
         Vec2 origin = graph_view->shape.position();
         for(Element& el : layout_elements())
         {
-            switch ( el.type)
+            Vec2    min, max;
+            ImColor color;
+
+            switch ( el.type )
             {
                 case tools::Element::Type_CONTAINER:
                 {
-                    list->AddRect(origin + element_rect_min(&el), origin + element_rect_max(&el), ImColor(0,255,0), 0.0f, 0, 2.f);
+                    min     = origin + element_rect_min(&el);
+                    max     = origin + element_rect_max(&el);
+                    if( el.depth % 2 == 0)
+                        color   = ImColor(100,255,100);
+                    else
+                        color   = ImColor(255,100,100);
                     break;
                 }
 
                 case tools::Element::Type_LEAF:
                 {
-                    list->AddRect(origin + element_rect_min(&el), origin + element_rect_max(&el), ImColor(255,255,255));
+                    min     = origin + element_rect_min(&el);
+                    max     = origin + element_rect_max(&el);
+                    color   = ImColor(255,255,255);
                     break;
-                }            
-            }            
+                }
+                
+                default:
+                {
+                    TOOLS_UNREACHABLE("Unexpected Element_Type: %i\n", el.type);
+                }
+            } 
+            
+            // fill
+            ImColor fill_color = color;
+            fill_color.Value.w = 0.05f;
+            list->AddRectFilled(min, max, fill_color, 0.0f);
+            list->AddRectFilled(min, max, fill_color);
+
+            // border
+            const float half_thickness = 1.f;
+            list->AddRect(min+half_thickness, max-half_thickness, color, 0.0f, 0, half_thickness*2);
+            list->AddRect(min+half_thickness, max-half_thickness, color);
         }
     }
 
@@ -524,7 +553,8 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
 
     layout_begin_column();
     {
-        layout_set_gap( cfg->ui_node_gap(Size_SM).y );
+        layout_set_gap( cfg->ui_node_gap(tools::Size_SM).y );
+
         layout_begin_row();
         {
             layout_set_gap( cfg->ui_node_gap(Size_SM).x );            
