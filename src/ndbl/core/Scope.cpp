@@ -29,7 +29,6 @@ Scope::~Scope()
     assert(head == nullptr);
     assert(children.empty());
     assert(variables.empty());
-    assert(partition.empty());
 }
 
 void ndbl::_scope_update_backbone_cache(const Scope* scope)
@@ -55,14 +54,6 @@ void ndbl::_scope_update_backbone_cache(const Scope* scope)
 void ndbl::scope_on_deinit(Scope* scope)
 {
     VERIFY(scope->parent == nullptr, "Remove this scope from parent first");
-
-    // reset partitions (they will be shutdown individually by the Component_Bag)
-    for(Scope* partition : scope->partition )
-    {
-        scope_reset_parent(partition);
-    }
-    scope->partition.clear();
-
     VERIFY( scope->children.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
     scope_reset_head(scope);
 }
@@ -133,13 +124,6 @@ std::vector<Node*> ndbl::scope_get_leaves(Scope* scope)
 
 std::vector<Node*>& ndbl::scope_get_leaves_ex(std::vector<Node*>& out, Scope* scope)
 {
-    if ( !scope->partition.empty() )
-    {
-        for( Scope* partition : scope->partition )
-            scope_get_leaves_ex(out, partition);
-        return out; // when a scope as sub scopes, we do not consider its node as potential leaves since they are usually secondary nodes, so we return early.
-    }
-
     Node* node = scope->head;
     while( node != nullptr )
     {
@@ -195,13 +179,7 @@ void ndbl::scope_remove(Scope* scope, ndbl::Node *node)
 
 bool ndbl::scope_is_empty(const Scope* scope, Scope_Flags flags)
 {
-    bool is_empty = scope->children.empty();
-
-    if (flags & Scope_Flag_RECURSE_CHILD_PARTITION )
-        for( const Scope* partition : scope->partition )
-            is_empty &= scope_is_empty(partition, flags);
-
-    return is_empty;
+    return scope->children.empty();
 }
 
 std::stack<Scope*> get_path(Scope* s)
@@ -256,12 +234,6 @@ std::set<Scope*>& ndbl::scope_get_descendent_ex(std::set<Scope*>& out, Scope* sc
 
     if ( level_max-1 == 0 )
         return out;
-
-    for ( Scope* partition : scope->partition )
-    {
-        out.insert( partition );
-        scope_get_descendent_ex(out, partition, level_max - 1 );
-    }
 
     Node* node = scope->head;
     while( node != nullptr )

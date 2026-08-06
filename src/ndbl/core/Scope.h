@@ -17,7 +17,6 @@ namespace ndbl
     {
         Scope_Flag_NONE                    = 0,
         Scope_Flag_RECURSE_PARENT_SCOPES   = 1 << 0,
-        Scope_Flag_RECURSE_CHILD_PARTITION = 1 << 1,
         Scope_Flag_INCLUDE_SELF            = 1 << 2,
     };
 
@@ -28,7 +27,6 @@ namespace ndbl
 
         std::set<Node*>                 children                = {};
         std::set<Node*>                 variables               = {};
-        std::vector<Scope*>             partition               = {};
         mutable std::vector<Node*>      _cached_backbone        = {};
         Token                           token_begin             = {Token_Type::ignore};
         Token                           token_end               = {Token_Type::ignore};

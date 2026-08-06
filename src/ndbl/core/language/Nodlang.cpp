@@ -162,7 +162,7 @@ bool Nodlang::parse(Graph* graph_out, const std::string& code)
 
     Scope* scope = parse_program();
 
-    if ( scope_is_empty(scope, Scope_Flag_RECURSE_CHILD_PARTITION) )
+    if ( scope_is_empty(scope) )
     {
         return false;
     }
