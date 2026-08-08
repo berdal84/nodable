@@ -585,7 +585,7 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
             layout_set_gap( cfg->ui_node_gap(Size_SM).x );            
             if( node_is_connected_to_codeflow(node) )
             {
-                layout_set_padding( rect.width(), 0, 0, 0 );
+                layout_set_padding( cfg->ui_node_gap(tools::Size_SM).x, 0, 0, 0 );
             }   
 
             
@@ -645,8 +645,8 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graph_view, Node_View* n
             {
                 Rect parent_rect = nodeview_get_rect(nodeview);
                 layout_begin_row();
-                layout_set_padding( parent_rect.width(), 0,0,0); // TODO: the container must be centered horizontally, we cannot do that currently with layout
-                layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x );
+                layout_set_padding( cfg->ui_node_gap(tools::Size_SM).x, 0,0,0); // TODO: the container must be centered horizontally, we cannot do that currently with layout
+                layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x * 2.f );
 
                 for( Node_Slot* branch_slot : node->switch_data.branch_slots )
                 {
