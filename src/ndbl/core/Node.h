@@ -178,7 +178,7 @@ namespace ndbl
         Node_Flags                              flags               = Node_Flag_IS_DIRTY;
             
         bool                                    has_flags(Node_Flags _flags)const { return (flags & _flags) == _flags; };
-        void                                    set_flags(Node_Flags _flags) { flags |= flags; }
+        void                                    set_flags(Node_Flags _flags) { flags |= _flags; }
         void                                    clear_flags(Node_Flags _flags = Node_Flag_ALL) { flags &= ~_flags; }
         
         Node_Slot*                              value_in();
