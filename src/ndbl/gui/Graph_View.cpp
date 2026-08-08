@@ -546,11 +546,36 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
     Node*   node = nodeview->node();
     Rect    rect = nodeview_get_rect(nodeview, WORLD_SPACE);
 
-    if( node->inputs().empty() )
+    // Gather all the Node_View(s) that needs to be displayed as a row
+    // Since there are some conditions, we have to do this before starting any
+    // layout.
+    std::vector<Node_View*> input_nodeviews;
+    for( Node* input_node : node->inputs() )
+    {
+        Node_View* input_nodeview = node_component<Node_View>(input_node);
+
+        // When the input_node is connected to the code flow, it means it is part of
+        // a Scope's backbone, which is handled by _graphview_do_layout_recursively already.
+        if (node_is_connected_to_codeflow(input_node))
+        {
+            continue;
+        }
+
+        // When the input_node is from a different scope, we don't constrain it here
+        // it is handled by the parent node from the same scope somewhere else in the code.
+        if ( input_node->type == Node_Type_VARIABLE && input_node->scope != node->scope )
+        {
+            continue;
+        }
+
+        input_nodeviews.push_back(input_nodeview);
+    }
+
+    if( input_nodeviews.empty() )
     {
         return _graphview_do_layout_element(graph_view, nodeview);
     }
-
+    
     layout_begin_column();
     {
         layout_set_gap( cfg->ui_node_gap(tools::Size_SM).y );
@@ -563,6 +588,7 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
                 layout_set_padding( rect.width(), 0, 0, 0 );
             }   
 
+            
             for( Node* input_node : node->inputs() )
             {
                 Node_View* input_nodeview = node_component<Node_View>(input_node);
@@ -630,6 +656,10 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graph_view, Node_View* n
                     }
                 }
                 layout_end();
+            }
+            else
+            {
+                TOOLS_UNREACHABLE("Not implemented yet");
             }
         }
         else
