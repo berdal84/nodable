@@ -35,7 +35,7 @@ namespace ndbl
         Token               eat_if(Token_Type); // Only if next token has a given type: returns it and increment cursor
         bool                empty()const { return m_tokens.empty(); }
         const Token&        get_eaten()const { ASSERT(m_cursor > 0); return m_tokens[m_cursor - 1];}
-        bool                peek(Token_Type t)const { return m_tokens[m_cursor].m_type == t; }
+        bool                peek(Token_Type t) const { return m_cursor < m_tokens.size() && m_tokens[m_cursor].m_type == t; }
         const Token&        peek()const { return m_tokens[m_cursor]; }
         Token&              push(Token&);
         Token&              global_token() { return m_global_token; }
