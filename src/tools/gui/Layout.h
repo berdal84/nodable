@@ -276,7 +276,7 @@ namespace tools
             {
                 case AXIS_LEFT_TO_RIGHT:
                 {
-                    parent.dimension.width  = parent.padding.left + content.width  + elem_count * parent.container.gap + parent.padding.right;
+                    parent.dimension.width  = parent.padding.left + content.width  + (elem_count-1) * parent.container.gap + parent.padding.right;
                     parent.dimension.height = parent.padding.top  + content.height + parent.padding.bottom;
                     break;
                 }
@@ -284,7 +284,7 @@ namespace tools
                 case AXIS_TOP_TO_BOTTOM:
                 {
                     parent.dimension.width  = parent.padding.left + content.width  + parent.padding.right;
-                    parent.dimension.height = parent.padding.top  + content.height + elem_count * parent.container.gap + parent.padding.bottom ;
+                    parent.dimension.height = parent.padding.top  + content.height + (elem_count-1) * parent.container.gap + parent.padding.bottom ;
                     break;
                 }
 
