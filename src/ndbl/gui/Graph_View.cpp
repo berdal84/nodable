@@ -575,7 +575,7 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
     {
         return _graphview_do_layout_element(graph_view, nodeview);
     }
-    
+
     layout_begin_column();
     {
         layout_set_gap( cfg->ui_node_gap(tools::Size_SM).y );
@@ -629,6 +629,8 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graph_view, Node_View* n
 
     layout_begin_column();
     {
+        layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x );
+
         if( nodeview->node() == graph_root( graph_view->graph() ) )
         {
             layout_set_floating_at_position(nodeview->shape.position());
@@ -637,14 +639,13 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graph_view, Node_View* n
         _graphview_do_layout_recursively_on_expressions_only(graph_view, nodeview);
 
         // propagate on switch branches
-        // TODO: the container must be centered horizontally, we cannot do that currently with layout
         if( node_has_switch_behavior(node))
         {
             if( node->switch_data.branch_count > 1)
             {
                 Rect parent_rect = nodeview_get_rect(nodeview);
                 layout_begin_row();
-                layout_set_padding( parent_rect.width(), 0,0,0);
+                layout_set_padding( parent_rect.width(), 0,0,0); // TODO: the container must be centered horizontally, we cannot do that currently with layout
                 layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x );
 
                 for( Node_Slot* branch_slot : node->switch_data.branch_slots )
