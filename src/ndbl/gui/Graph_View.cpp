@@ -295,11 +295,10 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
     };
     for (Node* each_node: graph_view->graph()->nodes )
     {
-        Node_View *each_view = nodeview_substitute_with_parent_if_not_visible( componentbag_get<Node_View>(&each_node->component_bag) );
+        Node_View *each_view = node_component<Node_View>(each_node);
 
-        if (!each_view) {
+        if ( each_view == nullptr || !each_view->state.has_flags(View_Flag_VISIBLE) )
             continue;
-        }
 
         std::vector<Node_Slot *> slots = node_filter_slots(each_node, Node_Slot::Flag_FLOW_OUT);
         for (size_t slot_index = 0; slot_index < slots.size(); ++slot_index)
@@ -313,15 +312,12 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 
             for (const auto &adjacent_slot: slot->adjacent)
             {
-                Node*       each_successor_node     = adjacent_slot->node;
-                Node_View*  possibly_hidden_view    = componentbag_get<Node_View>(&each_successor_node->component_bag);
-                Node_View*  each_successor_view     = nodeview_substitute_with_parent_if_not_visible(possibly_hidden_view);
+                Node*       successor_node     = adjacent_slot->node;
+                Node_View*  successor_nodeview = node_component<Node_View>(successor_node);
 
-                if ( each_successor_view == nullptr )
+                if ( successor_nodeview == nullptr )
                     continue;
-                if ( !each_view->state.has_flags(View_Flag_VISIBLE) )
-                    continue;
-                if ( !each_successor_view->state.has_flags(View_Flag_VISIBLE) )
+                if ( !successor_nodeview->state.has_flags(View_Flag_VISIBLE) )
                     continue;
 
                 Node_Slot_View* tail = slot->view;
