@@ -20,6 +20,7 @@ namespace ndbl {
         keyword_for,
         keyword_while,
         keyword_operator,
+        keyword_return,
         //----- types -------
         keyword_string,
         keyword_double,

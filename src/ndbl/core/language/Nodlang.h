@@ -47,6 +47,7 @@ namespace ndbl
         Node*                        parse_for_block(Scope* parent_scope, Node_Slot* flow_out);
         Node*                        parse_while_block(Scope* parent_scope, Node_Slot* flow_out);
         Node*                        parse_empty_block(Scope* parent_scope, Node_Slot* flow_out);
+        Node*                        parse_return(Scope* parent_scope, Node_Slot* flow_out);
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         Node_Slot*                    parse_variable_declaration(Scope* parent_scope);
         Node_Slot*                    parse_function_call(Scope* parent_scope);
@@ -127,6 +128,7 @@ namespace ndbl
         std::string& serialize_variable_ref(std::string &_out, const Node *_node) const;
         std::string& serialize_empty_instruction(std::string &_out, const Node *_node) const;
         std::string& serialize_property(std::string &_out, const Node_Property*) const;
+        std::string& serialize_return(std::string& out, const Node*) const;
 
         // Language definition -------------------------------------------------------------------------
 

@@ -36,6 +36,7 @@ namespace ndbl
         Node_Type_FUNCTION              =  9,
         Node_Type_OPERATOR              = 10,
         Node_Type_EMPTY_INSTRUCTION     = 11,
+        Node_Type_RETURN                = 12,
 
         Node_Type_COUNT,
     };
@@ -206,9 +207,10 @@ namespace ndbl
     void                    node_init_as_scope(Node*);              // TODO:  (same)
     void                    node_init_as_root_scope(Node*);         // TODO:  (same)
     void                    node_init_as_variable_ref(Node*);       // TODO:  (same)
+    void                    node_init_as_return(Node* node, const tools::Type_Descriptor* = nullptr);
     void                    node_init_as_invokable(Node*, const tools::Function_Descriptor&, Node_Type = Node_Type_FUNCTION);
-    void                    node_init_as_variable(Node*, const tools::Type_Descriptor* type, const char* identifier);
-    void                    node_init_as_literal(Node*, const tools::Type_Descriptor* _type);
+    void                    node_init_as_variable(Node*, const tools::Type_Descriptor*, const char* identifier);
+    void                    node_init_as_literal(Node*, const tools::Type_Descriptor*);
     void                    node_init_internal_scope(Node*);
     void                    node_init_branches(Node*, size_t branch_count);
     void                    node_deinit(Node*);

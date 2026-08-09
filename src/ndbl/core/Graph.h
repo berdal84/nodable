@@ -39,6 +39,7 @@ namespace ndbl
         Create_Node_Type_LITERAL_INTEGER,
         Create_Node_Type_LITERAL_STRING,
         Create_Node_Type_FUNCTION,
+        Create_Node_Type_RETURN,
     };
 
 	struct Graph
@@ -92,6 +93,7 @@ namespace ndbl
     Node*                   graph_create_while_loop(Graph*, Scope* = nullptr);
     Node*                   graph_create_empty_instruction(Graph*, Scope* = nullptr);
     Node*                   graph_create_scope(Graph*, Scope* scope = nullptr);
+    Node*                   graph_create_return(Graph*, const tools::Type_Descriptor*, Scope* = nullptr);
     void                    graph_find_and_destroy(Graph*, Node* node);
     std::vector<Scope *>    graph_collect_scopes(const Graph*);
     std::set<Scope *>       graph_collect_root_scopes(const Graph*);

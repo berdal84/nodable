@@ -1,6 +1,7 @@
 #include "Nodable.h"
 #include "IconsFontAwesome5.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
+#include "core/Graph.h"
 #include "gui/App.h"
 #include "gui/Nodable_View.h"
 
@@ -100,7 +101,9 @@ void ndbl::nodable_init(App_State* app)
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_FOR_LOOP } );
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_WHILE_LOOP } );
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_SCOPE } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_ROOT } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_ROOT} );
+    // (misc)
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Return Statement", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_RETURN } );
     // (to create variables)
     action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
     action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
@@ -472,6 +475,7 @@ void ndbl::nodable_update(App_State* app)
                     case Create_Node_Type_VARIABLE_DOUBLE:
                     case Create_Node_Type_VARIABLE_INTEGER:
                     case Create_Node_Type_VARIABLE_STRING:
+                    case Create_Node_Type_RETURN:
                         new_node->suffix = Token::s_end_of_instruction;
                         break;
                     case Create_Node_Type_LITERAL_BOOLEAN:
@@ -480,6 +484,8 @@ void ndbl::nodable_update(App_State* app)
                     case Create_Node_Type_LITERAL_STRING:
                     case Create_Node_Type_FUNCTION:
                         break;
+                    default:
+                        TOOLS_UNREACHABLE("Unexpected node_type: %i\n", _event->data.node_type);
                 }
 
                 // 2) handle connections

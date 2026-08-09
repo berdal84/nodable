@@ -175,6 +175,14 @@ void ndbl::graph_clean_node(Node* node)
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name.c_str() );
 }
 
+Node* ndbl::graph_create_return(Graph* graph, const tools::Type_Descriptor* type_descriptor, Scope* parent_scope)
+{
+    Node* node = new Node();
+    node_init_as_return(node, type_descriptor);
+    graph_insert(graph, node, parent_scope);
+    return node;
+}
+
 Node* ndbl::graph_create_scope(Graph* graph, Scope* parent_scope)
 {
     Node* node = new Node();
@@ -532,6 +540,8 @@ Node* ndbl::graph_create_node(Graph* graph, Create_Node_Type type, const Functio
         case Create_Node_Type_LITERAL_INTEGER:  return graph_create_literal<int>(graph, scope);
         case Create_Node_Type_LITERAL_STRING:   return graph_create_literal<std::string>(graph, scope);
 
+        case Create_Node_Type_RETURN:           return graph_create_return(graph, nullptr, scope);
+
         case Create_Node_Type_FUNCTION:
         {
             VERIFY(func_desc != nullptr, "_signature is expected when dealing with functions or operators");
@@ -540,7 +550,7 @@ Node* ndbl::graph_create_node(Graph* graph, Create_Node_Type type, const Functio
             return graph_create_function( graph, *func_desc, scope );
         }
         default:
-            TOOLS_UNREACHABLE("Unexpected Create_Node_Type_: %i\n", type);
+            TOOLS_UNREACHABLE("Unexpected Create_Node_Type: %i\n", type);
             return nullptr;
     }
 }

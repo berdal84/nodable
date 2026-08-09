@@ -78,3 +78,13 @@ TEST_F(Language_tokenize, add_pow2of2_and_integer )
     EXPECT_EQ(ribbon.at(7).string(), "1");
 
 }
+
+TEST_F(Language_tokenize, return_integer )
+{
+    std::string code = "return 42";
+    get_language()->tokenize(code);
+    Token_Ribbon& ribbon = get_language()->_state.tokens();
+    EXPECT_EQ(ribbon.at(0).word_to_string(), "return");
+    EXPECT_EQ(ribbon.at(1).word_to_string(), "42");
+
+}

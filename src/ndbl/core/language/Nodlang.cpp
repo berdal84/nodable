@@ -14,6 +14,8 @@
 #include <cctype> // isdigit, isalpha, and isalnum.
 
 #include "core/Constants.h"
+#include "core/Node_Slot.h"
+#include "core/Token_Type.h"
 #include "core/reflection/Invokable.h"
 #include "core/reflection/Operator.h"
 #include "tools/core/Format.h"
@@ -62,6 +64,7 @@ Nodlang::Nodlang(bool _strict)
          { "true",     Token_Type::literal_bool },
          { "false",    Token_Type::literal_bool },
          { "operator", Token_Type::keyword_operator },
+         { "return",   Token_Type::keyword_return }
     };
 
     m_definition.types =
@@ -1261,7 +1264,7 @@ Node* Nodlang::parse_for_block(Scope* parent_scope, Node_Slot* flow_out)
     return {};
 }
 
-Node* Nodlang::parse_while_block(Scope* parent_scope,  Node_Slot* flow_out)
+Node* Nodlang::parse_while_block(Scope* parent_scope, Node_Slot* flow_out)
 {
     bool        success     = false;
     Node*    while_node  = nullptr;
@@ -1321,6 +1324,40 @@ Node* Nodlang::parse_while_block(Scope* parent_scope,  Node_Slot* flow_out)
     graph_find_and_destroy(_state.graph(), block);
 
     return {};
+}
+
+Node* Nodlang::parse_return(Scope* parent_scope, Node_Slot* flow_out)
+{
+    if (!_state.tokens().can_eat(2))
+    {
+        return nullptr;
+    }
+
+    _state.start_transaction();
+
+    if ( Token return_token = _state.tokens().eat_if(Token_Type::keyword_return) )
+    {
+        // Parse the expression at the right side of the return
+        if ( Node_Slot* expression_out = parse_expression(parent_scope) )
+        {
+            const Type_Descriptor* type = expression_out->property->type;
+            Node* return_node = graph_create_return( _state.graph(), type, parent_scope );
+            return_node->value->token = return_token;
+
+            // TODO: assign prefix and suffix to return Node
+
+            // Connect the expression to the return Node
+            graph_connect(expression_out, return_node->value_in());
+            // and to the flow
+            graph_connect(flow_out, return_node->flow_in());
+
+            _state.commit();
+            return return_node;
+        }
+    }
+
+    _state.rollback();
+    return nullptr;
 }
 
 Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
@@ -1546,6 +1583,28 @@ std::string& Nodlang::serialize_variable(std::string &_out, const Node *_node) c
     return _out;
 }
 
+std::string& Nodlang::serialize_return(std::string& out, const Node* node) const
+{
+    ASSERT(node->type == Node_Type_RETURN);
+
+    if( node->value->token )
+    {
+        serialize_token( out, node->value->token );
+    }
+    else
+    {
+        out.append( m_keyword_by_token_t.at(Token_Type::keyword_return) );
+        out.append(" ");
+    }
+
+    if ( const Node_Slot* input_slot = node->value_in() )
+    {
+        serialize_input( out, input_slot, Serialization_Flag_RECURSE );
+    }
+
+    return out;
+}
+
 std::string &Nodlang::serialize_input(std::string& _out, const Node_Slot* slot, Serialization_Flags _flags ) const
 {
     ASSERT( slot->has_flags( Node_Slot::Flag_INPUT ) );
@@ -1608,6 +1667,7 @@ std::string& Nodlang::serialize_node(std::string &_out, const Node* node, Serial
 
     switch ( node->type )
     {
+        case Node_Type_RETURN:            serialize_return(_out, node ); break;
         case Node_Type_IF_ELSE:           serialize_cond_struct(_out, node );             break;
         case Node_Type_FOR_LOOP:          serialize_for_loop(_out, node );                break;
         case Node_Type_WHILE_LOOP:        serialize_while_loop(_out, node );              break;
@@ -1619,7 +1679,7 @@ std::string& Nodlang::serialize_node(std::string &_out, const Node* node, Serial
         case Node_Type_EMPTY_INSTRUCTION: serialize_empty_instruction(_out, node);        break;
         case Node_Type_ROOT:              [[fallthrough]];
         case Node_Type_SCOPE:             serialize_scope(_out, node->internal_scope ); break;
-        default:                            VERIFY(false, "Unhandled NodeType, can't serialize");
+        default:                          VERIFY(false, "Unhandled NodeType, can't serialize");
     }
     serialize_token(_out, node->suffix );
 
@@ -1871,6 +1931,7 @@ Node* Nodlang::parse_atomic_code_block(Scope* parent_scope, Node_Slot* flow_out)
     // most common case
     Node* block = nullptr;
          if ( (block = parse_scoped_block(parent_scope, flow_out)) );
+    else if ( (block = parse_return(parent_scope, flow_out)));
     else if ( (block = parse_expression_block(parent_scope, flow_out)) );
     else if ( (block = parse_if_block(parent_scope, flow_out)) );
     else if ( (block = parse_for_block(parent_scope, flow_out)) );

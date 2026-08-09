@@ -9,6 +9,7 @@
 #include "Scope.h"
 #include "Graph.h"
 #include "core/Node_Property.h"
+#include "core/reflection/Type_Descriptor.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -73,6 +74,7 @@ void ndbl::node_init(Node* node, Node_Type type, const std::string& label)
             break;
         }
 
+        case Node_Type_RETURN:            [[fallthrough]];
         case Node_Type_ROOT:              [[fallthrough]];
         case Node_Type_SCOPE:             [[fallthrough]];
         case Node_Type_EMPTY_INSTRUCTION: [[fallthrough]];
@@ -143,6 +145,7 @@ void ndbl::node_deinit(Node* node)
             break;
         }
 
+        case Node_Type_RETURN:            [[fallthrough]];
         case Node_Type_ROOT:              [[fallthrough]];
         case Node_Type_SCOPE:             [[fallthrough]];
         case Node_Type_EMPTY_INSTRUCTION: [[fallthrough]];
@@ -703,6 +706,23 @@ void ndbl::node_init_as_while_loop(Node* node)
     node_init_internal_scope(node);
     node_init_branches(node, 2);
     node->switch_data.branch_prefix = {Token_Type::keyword_while};
+}
+
+void ndbl::node_init_as_return(Node* node, const tools::Type_Descriptor* type_descriptor)
+{
+    node_init(node, Node_Type_RETURN, "Return");
+
+    if ( type_descriptor == nullptr)
+    {
+        type_descriptor = type::get<void>();
+    }
+    
+    property_set_type(node->value, type_descriptor);
+    node_add_slot(node, node->value, Node_Slot::Flag_INPUT, 1);
+
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1); // nothing prevents for writing something after a return, at runtime it would not be executed, but in Nodable we do not care about that, we focus the code.
+    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+    // node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT   , 1); // we CANNOT use return's value in an expression! Of course!
 }
 
 void ndbl::node_init_as_scope(Node* node)

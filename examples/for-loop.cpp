@@ -8,4 +8,4 @@ for(int i = 1; i <= count; i = i+1 )
 {
     sum = sum + i;
 }
-return(sum == 15);
+return sum == 15;

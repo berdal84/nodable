@@ -1,5 +1,5 @@
 #pragma once
-#include "Log.h"
+#include "tools/core/Log.h"
 
 #ifndef TOOLS_ASSERTIONS_ENABLE
 #define TOOLS_ASSERTIONS_ENABLE true // When false, any ASSERT/VERIFY macros are disable
@@ -48,8 +48,10 @@
 
 #define TOOLS_UNREACHABLE( ... ) \
 do { \
-    tools::log( tools::Verbosity_Error, "unreachable", __VA_ARGS__ ); \
-    tools::log( tools::Verbosity_Error, "unreachable", "Unreachable code in %s at line %s\n", __FILE__, __LINE__ ); \
+    char message[500];\
+    message[sizeof(message)-1]; \
+    snprintf(message, 500-1, __VA_ARGS__); \
+    printf( "ERR: Unreachable code in %s at line %i\n -- Reason: %s\n", __FILE__, __LINE__, message ); \
     tools::flush(); \
     assert(false); \
 } while(0)
