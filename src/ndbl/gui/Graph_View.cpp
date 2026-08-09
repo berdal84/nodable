@@ -977,7 +977,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
 
                 if ( ImGui::MenuItem( nodeview->is_expanded ? "Collapse" : "Expand" ) )
                 {
-                    nodeview_expand_toggle_rec(nodeview);
+                    nodeview_expand_toggle(nodeview);
                 }
 
                 if ( ImGui::MenuItem("Delete") )

@@ -4,6 +4,7 @@
 #include <glm/trigonometric.hpp> // for sinus
 #include <vector>
 
+#include "core/Asserts.h"
 #include "gui/ImGuiEx.h"
 #include "gui/View_State.h"
 #include "gui/geometry/Pivots.h"
@@ -802,31 +803,21 @@ Rect ndbl::nodeview_bounding_rect(
     return Rect::bounding_rect(rect);
 }
 
-void ndbl::nodeview_set_expanded_rec(Node_View* node_view, bool _expanded)
-{
-    nodeview_set_expanded(node_view, _expanded);
-
-    if ( Scope* _internal_scope = node_view->node()->internal_scope )
-        for( Node* _node : scope_get_backbone(_internal_scope) )
-            if ( auto* view = componentbag_get<Node_View>(&_node->component_bag) )
-                nodeview_set_expanded_rec(view, _expanded);
-}
-
 void ndbl::nodeview_set_expanded(Node_View* node_view, bool expand)
 {
     node_view->is_expanded = expand;
-    nodeview_set_inputs_visible(node_view, expand, true);
-    nodeview_set_children_visible(node_view, expand, true);
-}
 
-void ndbl::nodeview_set_inputs_visible(Node_View* node_view, bool _visible, bool _recursive)
-{
-    nodeview_set_adjacent_visible(node_view, Node_Slot::Flag_INPUT, _visible, Node_View_Flag_WITH_RECURSION * _recursive);
-}
+    for( Node_View* each_child_view : nodeview_get_adjacent(node_view, Node_Slot::Flag_INPUT ) )
+    {
+        if( each_child_view->node()->scope == node_view->node()->scope ||  each_child_view->node()->scope == node_view->node()->internal_scope )
+        {
+            nodeview_set_expanded(each_child_view, expand);
+            each_child_view->state.set_flags(View_Flag_VISIBLE, expand );
+        }
+    }
 
-void ndbl::nodeview_set_children_visible(Node_View* node_view, bool visible, bool recursively)
-{
     if ( node_view->node()->internal_scope == nullptr )
+    
         return;
 
     std::set<Scope*> scopes;
@@ -835,25 +826,7 @@ void ndbl::nodeview_set_children_visible(Node_View* node_view, bool visible, boo
     for(Scope* each_scope : scopes)
         for (Node* each_child_node: scope_get_backbone(each_scope))
             if ( auto* view = componentbag_get<Node_View>(&each_child_node->component_bag) )
-                view->state.set_flags(View_Flag_VISIBLE, visible );
-}
-
-void ndbl::nodeview_set_adjacent_visible(Node_View* node_view, Node_Slot::Flags slot_flags, bool _visible, Node_View_Flags node_flags)
-{
-    bool has_not_output = node_view->node()->outputs().empty();
-    for( Node_View* each_child_view : nodeview_get_adjacent(node_view, slot_flags) )
-    {
-        if(_visible || has_not_output || node_is_output_node_in_expression(each_child_view->node(),
-                                                                                node_view->node()) )
-        {
-            if ( (node_flags & Node_View_Flag_WITH_RECURSION) && each_child_view->is_expanded ) // propagate only if expanded
-            {
-                nodeview_set_children_visible(each_child_view,_visible, true);
-                nodeview_set_inputs_visible(each_child_view, _visible, true);
-            }
-            each_child_view->state.set_flags(View_Flag_VISIBLE,_visible );
-        }
-    }
+                view->state.set_flags(View_Flag_VISIBLE, expand );
 }
 
 Node_View* ndbl::nodeview_substitute_with_parent_if_not_visible(Node_View* _view, bool _recursive)
