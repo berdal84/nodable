@@ -386,7 +386,7 @@ void ndbl::nodable_update(App_State* app)
                 for( Node_View* each_node_view : graph_view->selection.collect<Node_View*>() )
                 {
                     auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
-                    nodeview_expand_toggle(each_node_view);
+                    nodeview_toggle_expandcollapse(each_node_view);
                 }
                 break;
             }

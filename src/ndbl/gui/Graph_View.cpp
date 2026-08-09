@@ -969,18 +969,18 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             {
                 auto* scopeview = graph_view->focused.get<Scope_View*>();
                 auto* nodeview = componentbag_get<Node_View>(&scopeview->scope->node()->component_bag);
+
+                if ( ImGui::MenuItem( "Collapse / Expand Scope") )
+                {
+                    nodeview_toggle_expandcollapse(nodeview);
+                }
                 
-                if ( ImGui::MenuItem("Select Content") )
+                if ( ImGui::MenuItem("Select Scope Content") )
                 {
                     _graphview_select_scope(graph_view, scopeview);
                 }
 
-                if ( ImGui::MenuItem( nodeview->is_expanded ? "Collapse" : "Expand" ) )
-                {
-                    nodeview_expand_toggle(nodeview);
-                }
-
-                if ( ImGui::MenuItem("Delete") )
+                if ( ImGui::MenuItem("Delete Scope") )
                 {
                     auto event = new Event_DeleteSelection({scopeview->scope->node()});
                     get_event_manager()->dispatch(event);
@@ -996,7 +996,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             case Selectable::index_of<Node_Slot_Link_View>():
             {
                 auto edge = graph_view->focused.get<Node_Slot_Link_View>();
-                if ( ImGui::MenuItem(ICON_FA_TRASH " Delete Edge") )
+                if ( ImGui::MenuItem("Delete Edge") )
                 {
                     auto* event = new Event_DeleteEdge();
                     event->data.first  = edge.head->slot;
@@ -1009,7 +1009,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
 
             case Selectable::index_of<Node_Slot_View*>():
             {
-                if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect Edges") )
+                if ( ImGui::MenuItem("Disconnect Slot") )
                 {
                     auto* event = new Event_Node_SlotDisconnectAll();
                     event->data.first = graph_view->focused.get<Node_Slot_View*>()->slot;
@@ -1023,23 +1023,28 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             {
                 auto nodeview = graph_view->focused.get<Node_View*>();
 
-                if ( ImGui::MenuItem(ICON_FA_TRASH " Delete Node") )
+                if ( ImGui::MenuItem( "Collapse / Expand Node") )
                 {
-                    auto* event = new Event_DeleteSelection ();
-                    event->data.node = nodeview->node();
-                    get_event_manager()->dispatch( event );
+                    nodeview_toggle_expandcollapse(nodeview);
                 }
 
-                if ( ImGui::MenuItem(ICON_FA_MAP_PIN " Pin/Unpin Node") )
+                if ( ImGui::MenuItem("Pin / Unpin Node") )
                 {
                     const bool pinned = nodeview->state.has_flags(View_Flag_PINNED);
                     nodeview->state.set_flags(View_Flag_PINNED, !pinned );
                 }
 
-                if ( ImGui::MenuItem(ICON_FA_WINDOW_RESTORE " Arrange Node") )
+                if ( ImGui::MenuItem("Reset Node Layout") )
                 {
                     nodeview_arrange_recursively(nodeview);
                     _graphview_reset(graph_view);
+                }
+
+                if ( ImGui::MenuItem("Delete Node") )
+                {
+                    auto* event = new Event_DeleteSelection ();
+                    event->data.node = nodeview->node();
+                    get_event_manager()->dispatch( event );
                 }
 
                 break;

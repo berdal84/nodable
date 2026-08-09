@@ -185,7 +185,7 @@ void ndbl::nodableview_draw(App_View_State* view)
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
             {
-                event_manager->dispatch<Event_ToggleFolding>( { RECURSIVELY } );
+                event_manager->dispatch<Event_ToggleFolding>({});
             }
 
             ImGui::Separator();

@@ -803,30 +803,45 @@ Rect ndbl::nodeview_bounding_rect(
     return Rect::bounding_rect(rect);
 }
 
-void ndbl::nodeview_set_expanded(Node_View* node_view, bool expand)
+void ndbl::nodeview_toggle_expandcollapse(Node_View* nodeview)
 {
-    node_view->is_expanded = expand;
+    nodeview->is_expanded = !nodeview->is_expanded;
+    nodeview_set_visible_recursively(nodeview, nodeview->is_expanded);
+    nodeview->state.set_flags(tools::View_Flag_VISIBLE, true);
+}
 
-    for( Node_View* each_child_view : nodeview_get_adjacent(node_view, Node_Slot::Flag_INPUT ) )
+void ndbl::nodeview_set_visible_recursively(Node_View* nodeview, bool visible)
+{
+    nodeview->state.set_flags(View_Flag_VISIBLE, visible );
+
+    // Propagate on inputs unless we reach a different scope
+    for( Node_View* input_nodeview : nodeview_get_adjacent(nodeview, Node_Slot::Flag_INPUT ) )
     {
-        if( each_child_view->node()->scope == node_view->node()->scope ||  each_child_view->node()->scope == node_view->node()->internal_scope )
+        if( nodeview->node()->internal_scope)
         {
-            nodeview_set_expanded(each_child_view, expand);
-            each_child_view->state.set_flags(View_Flag_VISIBLE, expand );
+            if (nodeview->node()->internal_scope == input_nodeview->node()->scope || nodeview->node()->scope == input_nodeview->node()->scope)
+                nodeview_set_visible_recursively(input_nodeview, visible);
+        }
+        else if (nodeview->node()->scope == input_nodeview->node()->scope && !node_is_connected_to_codeflow(input_nodeview->node()) )
+        {
+            nodeview_set_visible_recursively(input_nodeview, visible);
         }
     }
-
-    if ( node_view->node()->internal_scope == nullptr )
     
+    if ( nodeview->node()->internal_scope == nullptr )    
         return;
 
-    std::set<Scope*> scopes;
-    scope_get_descendent(scopes, node_view->node()->internal_scope, 1 );
+    // Propagate on scope children
+    for (Node* backbone_node: scope_get_backbone(nodeview->node()->internal_scope ))
+        if ( auto* backbone_nodeview = node_component<Node_View>(backbone_node))
+            nodeview_set_visible_recursively(backbone_nodeview, visible );
 
-    for(Scope* each_scope : scopes)
-        for (Node* each_child_node: scope_get_backbone(each_scope))
-            if ( auto* view = componentbag_get<Node_View>(&each_child_node->component_bag) )
-                view->state.set_flags(View_Flag_VISIBLE, expand );
+    // Propagate on branches
+    std::set<Scope*> scopes;
+    scope_get_descendent(scopes, nodeview->node()->internal_scope, 1 );
+    for(Node* outputflow_node :  nodeview->node()->flow_outputs() )
+        if (auto outputflow_nodeview = node_component<Node_View>(outputflow_node) )
+                nodeview_set_visible_recursively(outputflow_nodeview, visible );
 }
 
 Node_View* ndbl::nodeview_substitute_with_parent_if_not_visible(Node_View* _view, bool _recursive)

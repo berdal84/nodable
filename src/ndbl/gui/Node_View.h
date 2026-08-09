@@ -71,7 +71,7 @@ namespace ndbl
         Node_Slot_View*                             hovered_slotview        = nullptr;
         Scope_View*                                 internal_scopeview      = nullptr;
         float                                       opacity                 = 1.f;
-        bool                                        is_expanded                = true;
+        bool                                        is_expanded             = true;
 
         Node_View();
 		~Node_View() override;
@@ -87,8 +87,8 @@ namespace ndbl
     std::string             nodeview_get_label(const Node_View*);
     inline tools::Rect      nodeview_get_rect(const Node_View* node_view, tools::Space space = tools::WORLD_SPACE) { return node_view->shape.rect(space); }
     tools::Rect             nodeview_get_rect_ex(const Node_View*, tools::Space, Node_View_Flags);
-    void                    nodeview_set_expanded(Node_View*, bool);
-    inline void             nodeview_expand_toggle( Node_View* node_view ) { nodeview_set_expanded(node_view, !node_view->is_expanded); }
+    void                    nodeview_set_visible_recursively(Node_View*, bool);
+    void                    nodeview_toggle_expandcollapse(Node_View*);
     void                    nodeview_reset_all_properties(Node_View*);
     tools::Rect             nodeview_bounding_rect(const std::vector<Node_View *>&, tools::Space = tools::WORLD_SPACE, Node_View_Flags = Node_View_Flag_NONE);
     bool                    nodeview_draw_as_properties_panel(Node_View*, bool* show_advanced );

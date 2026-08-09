@@ -3,7 +3,6 @@
 #include "core/Event.h"
 #include "core/Node.h"
 #include "ndbl/core/Graph.h"
-#include "Frame_Mode.h"
 #include "Node_Slot_View.h"
 
 namespace ndbl
@@ -52,17 +51,7 @@ namespace ndbl
     using Event_DeleteSelection     = tools::Event<Event_ID_DELETE_NODE, EventPayload_Node>;
     using Event_ArrangeSelection    = tools::Event<Event_ID_ARRANGE_NODE>;
     using Event_SelectNext          = tools::Event<Event_ID_SELECT_NEXT, EventPayload_Node>;
-
-    enum ToggleFoldingMode
-    {
-        NON_RECURSIVELY = 0,
-        RECURSIVELY     = 1,
-    };
-    struct EventPayload_ToggleFoldingEvent
-    {
-        ToggleFoldingMode mode;
-    };
-    using Event_ToggleFolding = tools::Event<Event_ID_TOGGLE_FOLDING, EventPayload_ToggleFoldingEvent>;
+    using Event_ToggleFolding       = tools::Event<Event_ID_TOGGLE_FOLDING>;
 
     struct EventPayload_CreateNode
     {
