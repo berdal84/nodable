@@ -227,33 +227,29 @@ Scope* ndbl::scope_lowest_common_ancestor(Scope* s1, Scope* s2)
 
 std::set<Scope*>& ndbl::scope_get_descendent_ex(std::set<Scope*>& out, Scope* scope, size_t level_max, Scope_Flags flags)
 {
+    ASSERT(scope != nullptr);
+
     if ( flags & Scope_Flag_INCLUDE_SELF )
     {
         out.insert( scope );
     }
 
     if ( level_max-1 == 0 )
-        return out;
-
-    Node* node = scope->head;
-    while( node != nullptr )
     {
-        if ( node->internal_scope != nullptr )
+        return out;
+    }
+
+    std::vector<Node*> backbone = scope_get_backbone(scope);
+    for(Node* backbone_node : backbone )
+    {
+        if ( backbone_node->internal_scope != nullptr )
         {
-            out.insert( node->internal_scope );
-            scope_get_descendent_ex(out, node->internal_scope, level_max - 1, Scope_Flag_INCLUDE_SELF );
+            scope_get_descendent_ex(out, backbone_node->internal_scope, level_max - 1, Scope_Flag_INCLUDE_SELF );
         }
 
-        auto& outputs = node->flow_outputs();
-        if ( !outputs.empty() )
-        {
-            ASSERT(outputs.size() == 1);
-            node = outputs.front();
-        }
-        else
-        {
-            node = nullptr;
-        }
+        for(auto* output_node: backbone_node->flow_outputs())
+            if ( output_node->internal_scope != nullptr )
+                scope_get_descendent_ex(out, output_node->internal_scope, level_max - 1, Scope_Flag_INCLUDE_SELF );
     }
 
     return out;

@@ -1,4 +1,5 @@
 #include "Config.h"
+#include "gui/Layout.h"
 #include "tools/gui/Config.h"
 
 using namespace tools;
@@ -136,8 +137,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_interpreter_window_label           = "VM";
 
     // Scopes
-    ui_scope_content_rect_margin                       = {{10.f, 15.f}, {10.f, 15.f}};
-    ui_scope_child_margin                 = ui_scope_content_rect_margin.min.x;
+    ui_scope_padding                      = padding(10.f);
     ui_scope_border_radius                = 7.f;
     ui_scope_border_thickness             = 3.f;
     ui_scope_gap_base                     = 10.f;

@@ -1,4 +1,5 @@
 #include "Scope_View.h"
+#include "gui/Layout.h"
 #include "gui/View_State.h"
 #include "tools/core/Asserts.h"
 #include "ndbl/core/Scope.h"
@@ -75,9 +76,9 @@ void ndbl::scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags f
 
     if ( scopeview_must_be_draw(scope_view) )
     {
-        // Add margins to see clearly nested scopes
-        scope_view->content_rect.min -= config->ui_scope_content_rect_margin.min;
-        scope_view->content_rect.max += config->ui_scope_content_rect_margin.max;
+        // Add padding to clearly see nested scopes
+        const Padding& pad = config->ui_scope_padding;
+        scope_view->content_rect.expand( pad.left, pad.top, pad.right, pad.bottom );
 
         // pixel perfect
         scope_view->content_rect.min.round();

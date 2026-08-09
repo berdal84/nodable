@@ -1,5 +1,6 @@
 #pragma once
 
+#include "gui/Layout.h"
 #include "gui/geometry/Rect.h"
 #include "tools/core/Types.h"
 #include "tools/gui/Config.h"
@@ -94,8 +95,7 @@ namespace ndbl
         const char*    ui_startup_window_label;
         const char*    ui_toolbar_window_label ;
         const char*    ui_interpreter_window_label;
-        tools::Rect    ui_scope_content_rect_margin;
-        float          ui_scope_child_margin;
+        tools::Padding ui_scope_padding;
         Vec4           ui_scope_fill_col_light;
         Vec4           ui_scope_fill_col_dark;
         Vec4           ui_scope_border_col;

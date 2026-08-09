@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/Asserts.h"
+#include "gui/geometry/Rect.h"
 #include "gui/geometry/Vec2.h"
 #include <cassert>
 #include <cstddef>
@@ -15,8 +16,18 @@ namespace tools
         float left    = 0.f;
         float top     = 0.f;
         float right   = 0.f;
-        float bottom  = 0.f;  
+        float bottom  = 0.f;
     };
+
+    inline Padding padding(float size)
+    {
+        return {size, size, size, size};
+    }
+
+    inline Padding padding(float horizontal, float vertical)
+    {
+        return { horizontal, vertical, horizontal, vertical };
+    }
 
     struct Sizing
     {
@@ -25,7 +36,7 @@ namespace tools
                 float width  = 0.f;
                 float height = 0.f;
             };
-            Vec2 vec;
+            Vec2 as_vec2;
         };
     };
 
@@ -61,7 +72,7 @@ namespace tools
         Vec2                position    = {};
         Position_Mode       position_mode = 0;
         Padding             padding     = {};
-        Sizing              dimension   = {-1, -1}; 
+        Sizing              dimension   = {-1, -1}; // Size of the element (includes the padding, use element_inner_dimension for inner block size)
         Container_Config    container   = {};
         Element*            prev        = nullptr;
         Element*            next        = nullptr;
@@ -71,14 +82,37 @@ namespace tools
         void*               userdata    = nullptr;
     };
 
-    inline Vec2 element_rect_min(const Element* el)
+    inline Vec2 element_inner_dimension(const Element* el)
     {
-        return el->position + Vec2{ el->padding.left, el->padding.top };
+        Vec2 result;
+        
+        result += Vec2{ el->padding.left, el->padding.top };
+        result += el->dimension.as_vec2;
+        result += Vec2{ el->padding.right, el->padding.bottom };
+
+        return result;
     }
-    
-    inline Vec2 element_rect_max(const Element* el)
+
+    inline Rect element_rect(const Element* el)
     {
-        return el->position + el->dimension.vec - Vec2{ el->padding.right, el->padding.bottom };
+        Rect result;
+
+        result.min = el->position;
+        result.max = el->position + el->dimension.as_vec2;
+
+        return result;
+    }
+
+    inline Rect element_inner_rect(const Element* el)
+    {
+        Rect result;
+
+        result.min = Vec2{ el->padding.left, el->padding.top };
+        result.max = el->dimension.as_vec2 - Vec2{ el->padding.right, el->padding.bottom } ;
+
+        result.translate(el->position);
+        
+        return result;
     }
 
     struct Layout_State
@@ -454,6 +488,12 @@ namespace tools
         elem.dimension.height = 1.f;
         elem.dimension.width  = size;
         layout_push(elem);
+    }
+
+    inline void layout_set_padding(const Padding& padding)
+    {
+        Element* elem = layout_current_element();
+        elem->padding = padding;
     }
 
     inline void layout_set_padding(float left, float top, float right, float bottom)

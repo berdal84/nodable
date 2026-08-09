@@ -511,8 +511,7 @@ void ndbl::nodableview_draw(App_View_State* view)
 
             if (ImGui::CollapsingHeader("Scope", flags ))
             {
-                ImGui::SliderFloat4("margins", &cfg->ui_scope_content_rect_margin.min.x, 2, 25);
-                ImGui::SliderFloat4("primary_child margin", &cfg->ui_scope_child_margin, 2, 25);
+                ImGui::SliderFloat4("padding (left, top, right, bottom)", &cfg->ui_scope_padding.left, 2, 25);
                 ImGui::SliderFloat("border radius", &cfg->ui_scope_border_radius, 0, 20);
                 ImGui::SliderFloat("border thickness", &cfg->ui_scope_border_thickness, 0, 4);
                 ImGui::ColorEdit4("fill color (light)", &cfg->ui_scope_fill_col_light.x);

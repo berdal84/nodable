@@ -1,6 +1,5 @@
 #pragma once
 #include "Vec2.h"
-#include "imgui.h"
 #include <vector>
 
 namespace tools
@@ -88,10 +87,33 @@ namespace tools
             return *this;
         }
 
-        Rect& expand(const Vec2&  offset) // Expand rectangle on both x and y axis
+        Rect& expand(float  offset)
         {
-            min -= offset;
-            max += offset;
+            min.x -= offset;
+            min.y -= offset;
+            max.x += offset;
+            max.y += offset;
+
+            return *this;
+        }
+
+        Rect& expand(float x_offset, float y_offset)
+        {
+            min.x -= x_offset;
+            min.y -= y_offset;
+            max.x += x_offset;
+            max.y += y_offset;
+
+            return *this;
+        }
+
+        Rect& expand(float left, float top, float right, float bottom)
+        {
+            min.x -= left;
+            min.y -= top;
+            max.x += right;
+            max.y += bottom;
+
             return *this;
         }
 

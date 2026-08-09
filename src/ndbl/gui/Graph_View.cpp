@@ -6,12 +6,11 @@
 #include <cstdio>
 #include <vector>
 #include "core/Asserts.h"
-#include "gui/Color.h"
+#include "gui/geometry/Rect.h"
 #include "gui/geometry/Vec4.h"
 #include "imgui.h"
 
 #include "tools/core/Component.h"
-#include "tools/core/Types.h"
 #include "tools/core/Math.h"
 #include "tools/core/State_Machine.h"
 #include "tools/gui/Size.h"
@@ -53,6 +52,7 @@ namespace ndbl
     void    _graphview_draw_context_menu(Graph_View*, Node_Slot_View* dragged_slotview = nullptr );
     void    _graphview_do_layout_recursively(Graph_View*, Node_View*);
     void    _graphview_do_layout_recursively_on_expressions_only(Graph_View*, Node_View*);
+    void    _graphview_select_scope(Graph_View*, Scope_View*);
     void    _graphview_do_layout_element(Graph_View*, Node_View* );
     void    _graphview_cursor_state_tick(Graph_View*);
     void    _graphview_roi_state_enter(Graph_View*);
@@ -192,16 +192,19 @@ void ndbl::_graphview_handle_remove_node(Graph_View* graph_view, Node* node)
 
 void ndbl::_graphview_handle_change_scope(Graph_View* graph_view, Graph::Scope_Change change)
 {
-    auto* nodeview = componentbag_get<Node_View>(&change.node->component_bag);
-    VERIFY(nodeview, "a nodeview must be present since we are in a Graph_View");
+    // Note: we were previously remove/add_child from/to parent, but now we want all Node_View
+    //       to be child of the Graph_View instead.
 
-    // Un-parent from old scope's spatial node
-    if( auto _parent = nodeview->shape.spatial_node.parent )
-        spatialnode_remove_child( _parent, &nodeview->shape.spatial_node );
+    // auto* nodeview = componentbag_get<Node_View>(&change.node->component_bag);
+    // VERIFY(nodeview, "a nodeview must be present since we are in a Graph_View");
 
-    // Parent to new scope or default to graph's spatial node
-    if( Scope_View* _scopeview = change.new_scope->view )
-        spatialnode_add_child(&_scopeview->spatial_node, &nodeview->shape.spatial_node );
+    // // Un-parent from old scope's spatial node
+    // if( auto _parent = nodeview->shape.spatial_node.parent )
+    //     spatialnode_remove_child( _parent, &nodeview->shape.spatial_node );
+
+    // // Parent to new scope or default to graph's spatial node
+    // if( Scope_View* _scopeview = change.new_scope->view )
+    //     spatialnode_add_child(&_scopeview->spatial_node, &nodeview->shape.spatial_node );
 }
 
 ImGuiID make_wire_id(const Node_Slot *ptr1, const Node_Slot *ptr2)
@@ -480,26 +483,23 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
         Vec2 origin = graph_view->shape.position();
         for(Element& el : layout_elements())
         {
-            Vec2    min, max;
-            ImColor color;
+            Rect    rect       = element_rect(&el);
+            Rect    inner_rect = element_inner_rect(&el);
+            ImColor color, padding_color;
 
             switch ( el.type )
             {
                 case tools::Element::Type_CONTAINER:
                 {
-                    min     = origin + element_rect_min(&el);
-                    max     = origin + element_rect_max(&el);
                     if( el.depth % 2 == 0)
-                        color   = ImColor(100,255,100);
+                        color = ImColor(100,255,100);
                     else
-                        color   = ImColor(255,100,100);
+                        color = ImColor(255,100,100);
                     break;
                 }
 
                 case tools::Element::Type_LEAF:
                 {
-                    min     = origin + element_rect_min(&el);
-                    max     = origin + element_rect_max(&el);
                     color   = ImColor(255,255,255);
                     break;
                 }
@@ -510,16 +510,23 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                 }
             } 
             
-            // fill
+            // Translate to align with origin
+            // We do not use the layout system for the whole UI yet, that's why it's origin is not (0,0)
+            rect.translate(origin);
+            inner_rect.translate(origin);
+
+            // block fill
             ImColor fill_color = color;
             fill_color.Value.w = 0.05f;
-            list->AddRectFilled(min, max, fill_color, 0.0f);
-            list->AddRectFilled(min, max, fill_color);
+            list->AddRectFilled(rect.min, rect.max, fill_color, 0.0f);
 
-            // border
+            // inner block fill
+            padding_color = ImColor(0.f, 0.f, 1.f, 0.1f);
+            list->AddRectFilled(inner_rect.min, inner_rect.max, padding_color, 0.0f, 0);
+
+            // block border
             const float half_thickness = 1.f;
-            list->AddRect(min+half_thickness, max-half_thickness, color, 0.0f, 0, half_thickness*2);
-            list->AddRect(min+half_thickness, max-half_thickness, color);
+            list->AddRect(rect.min+half_thickness, rect.max-half_thickness, color, 0.0f, 0, half_thickness*2);
         }
     }
 
@@ -629,11 +636,14 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graph_view, Node_View* n
 
     layout_begin_column();
     {
+        // Add a padding to the container, we want each scope to have a little space around to see well the visual feedback (rounded rectangle)
+        // of the scope.
+        layout_set_padding(cfg->ui_scope_padding);
         layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x );
 
         if( nodeview->node() == graph_root( graph_view->graph() ) )
         {
-            layout_set_floating_at_position(nodeview->shape.position());
+            layout_set_floating_at_position(nodeview->shape.position() - Vec2{cfg->ui_scope_padding.left, cfg->ui_scope_padding.top} );
         }
 
         _graphview_do_layout_recursively_on_expressions_only(graph_view, nodeview);
@@ -756,7 +766,8 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
         }
         else
         {
-            delta =  graph_view->shape.pivot_position( TOP_LEFT, WORLD_SPACE) - selected_rect.top_left() + get_config()->ui_textview_padding + get_config()->ui_scope_content_rect_margin.top_left();
+            Vec2 offset = get_config()->ui_textview_padding + Vec2{ get_config()->ui_scope_padding.left, get_config()->ui_scope_padding.top };
+            delta =  graph_view->shape.pivot_position( TOP_LEFT, WORLD_SPACE) - selected_rect.top_left() + offset;
         }
 
         // Apply the delta to all node views
@@ -913,6 +924,32 @@ void ndbl::_graphview_view_pan_state_tick(Graph_View* graph_view)
 
 //-----------------------------------------------------------------------------
 
+void ndbl::_graphview_select_scope(Graph_View* graph_view, Scope_View* scopeview)
+{
+    ASSERT(scopeview);
+
+    // Get descendent scopes
+    std::set<Scope*> scopes;
+    scope_get_descendent(scopes, scopeview->scope, Scope_Flag_INCLUDE_SELF );
+
+    // Extract node views from each descendent
+    std::vector<Node_View*> nodeviews;
+    for(Scope* each_scope : scopes)
+    {
+        // Include scope owner's view too
+        if ( auto* nodeview = componentbag_get<Node_View>(&each_scope->node()->component_bag))
+            nodeviews.push_back( nodeview );
+
+        // and every other child's
+        for( Node* child_node : each_scope->children )
+            if ( auto* nodeview = componentbag_get<Node_View>(&child_node->component_bag))
+                nodeviews.push_back(nodeview);
+    }
+    // Replace selection
+    graph_view->selection.clear();
+    graph_view->selection.append( nodeviews.begin(), nodeviews.end() ) ;
+}
+
 void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
 {
     if ( ImGui::BeginPopup(CONTEXT_POPUP) )
@@ -932,40 +969,23 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             {
                 auto* scopeview = graph_view->focused.get<Scope_View*>();
                 auto* nodeview = componentbag_get<Node_View>(&scopeview->scope->node()->component_bag);
-                if ( ImGui::MenuItem( nodeview->is_expanded ? "Collapse Scope" : "Expand Scope" ) )
+                
+                if ( ImGui::MenuItem("Select Content") )
+                {
+                    _graphview_select_scope(graph_view, scopeview);
+                }
+
+                if ( ImGui::MenuItem( nodeview->is_expanded ? "Collapse" : "Expand" ) )
                 {
                     nodeview_expand_toggle_rec(nodeview);
                 }
 
-                if ( ImGui::MenuItem("Delete Scope") )
+                if ( ImGui::MenuItem("Delete") )
                 {
                     auto event = new Event_DeleteSelection({scopeview->scope->node()});
                     get_event_manager()->dispatch(event);
                 }
 
-                if ( ImGui::MenuItem("Select Scope") )
-                {
-                    // Get descendent scopes
-                    std::set<Scope*> children;
-                    scope_get_descendent(children, scopeview->scope, Scope_Flag_INCLUDE_SELF );
-
-                    // Extract node views from each descendent
-                    std::vector<Node_View*> views;
-                    for(Scope* child : children)
-                    {
-                        // Include scope owner's view too
-                        if ( auto* nodeview = componentbag_get<Node_View>(&child->node()->component_bag))
-                            views.push_back( nodeview );
-
-                        // and every other child's
-                        for( Node* child_node : scope_get_backbone(child ))
-                            if ( auto* nodeview = componentbag_get<Node_View>(&child_node->component_bag))
-                                views.push_back(nodeview);
-                    }
-                    // Replace selection
-                    graph_view->selection.clear();
-                    graph_view->selection.append( views.begin(), views.end() ) ;
-                }
 
                 ImGui::Separator();
                 _graphview_draw_context_menu(graph_view);
@@ -1064,8 +1084,22 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             break;
         }
 
-        case Selectable::index_of<Node_View*>():
         case Selectable::index_of<Scope_View*>():
+        {
+            if ( ImGui::IsMouseDoubleClicked(0) )
+            {
+                if ( auto scopeview = graph_view->hovered.get_if<Scope_View*>() )
+                    _graphview_select_scope(graph_view, scopeview);
+            }
+            else if (ImGui::IsMouseClicked(1))
+            {
+                graph_view->focused = graph_view->hovered;
+                ImGui::OpenPopup(CONTEXT_POPUP);
+            }
+            break;
+        }
+
+        case Selectable::index_of<Node_View*>():
         {
             const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
 
@@ -1210,8 +1244,8 @@ void ndbl::_graphview_roi_state_tick(Graph_View* graph_view)
     Rect roi = Rect::normalize({graph_view->state_roi_start_pos, graph_view->state_roi_end_pos});
 
     // Expand to avoid null area
-    const int roi_border_width = 2;
-    roi.expand(Vec2{roi_border_width*0.5f});
+    const int roi_border_width = 1;
+    roi.expand(roi_border_width);
 
     // Draw the ROI rectangle
     float time = ImGui::GetTime();

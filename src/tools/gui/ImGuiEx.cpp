@@ -246,7 +246,7 @@ void ImGuiEx::MultiSegmentLineBehavior(
     if ( path->size() == 1) return;
 
     const float hover_min_distance = ImGuiEx::CalcSegmentHoverMinDist(thickness);
-    bbox.expand(Vec2{hover_min_distance});
+    bbox.expand(hover_min_distance);
     const Vec2 mouse_pos = ImGui::GetMousePos();
 
 #if DEBUG_BEZIER_ENABLE
