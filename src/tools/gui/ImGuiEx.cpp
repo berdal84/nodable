@@ -103,10 +103,10 @@ void ImGuiEx::ColoredShadowedText(const Vec2& _offset, const Vec4& _textColor, c
 }
 
 void ImGuiEx::DrawWire(
-        ImGuiID id,
         ImDrawList *draw_list,
         const Bezier_Curve_Segment_2D& curve,
-        const WireStyle& style
+        const WireStyle& style,
+        bool* hovered
      )
 {
     if ( style.color.z == 0)
@@ -139,11 +139,10 @@ void ImGuiEx::DrawWire(
     // 3) draw the curve
 
     // Mouse behavior
-    MultiSegmentLineBehavior(id, &fill_path, beziercurve_bbox(&curve), style.thickness );
+    if( hovered != nullptr)
+        MultiSegmentLineBehavior(&fill_path, beziercurve_bbox(&curve), style.thickness + 6.f, hovered );
 
     // Draw the path
-    if ( ImGui::GetHoveredID() == id )
-        DrawPath(draw_list, &fill_path, style.hover_color, CalcSegmentHoverMinDist(style.thickness) * 2.0f); // outline on hover
     DrawPath(draw_list, &fill_path, style.color, style.thickness);
 }
 
@@ -238,10 +237,10 @@ float ImGuiEx::CalcSegmentHoverMinDist(float line_thickness )
 }
 
 void ImGuiEx::MultiSegmentLineBehavior(
-    ImGuiID id,
     const std::vector<Vec2>* path,
     Rect bbox,
-    float thickness)
+    float thickness,
+    bool* hovered)
 {
     if ( path->size() == 1) return;
 
@@ -257,17 +256,11 @@ void ImGuiEx::MultiSegmentLineBehavior(
 
     // test each segment
     int i = 0;
-    bool hovered = false;
-    while( hovered == false && i < path->size() - 1 )
+    while( !*hovered && i < path->size() - 1 )
     {
         const float mouse_distance = Line_Segment_2D::point_minimum_distance(Line_Segment_2D{(*path)[i], (*path)[i + 1]}, mouse_pos );
-        hovered = mouse_distance < hover_min_distance;
+        *hovered = mouse_distance < hover_min_distance;
         ++i;
-    }
-
-    if( hovered )
-    {
-        ImGui::SetHoveredID(id);
     }
 }
 

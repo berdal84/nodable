@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <vector>
 #include "core/Asserts.h"
+#include "core/Event_Manager.h"
 #include "gui/geometry/Rect.h"
 #include "gui/geometry/Vec4.h"
 #include "imgui.h"
@@ -38,7 +39,7 @@
 // private
 namespace ndbl
 {   
-    void    _graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *from, const Vec2 &end_pos);
+    void    _graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *from, const Vec2 &end_pos, bool* hovered = nullptr);
     void    _graphview_handle_init(Graph_View*);
     void    _graphview_handle_deinit(Graph_View*);
     void    _graphview_handle_add_node(Graph_View*, Node*);
@@ -214,7 +215,7 @@ ImGuiID make_wire_id(const Node_Slot *ptr1, const Node_Slot *ptr2)
     return ImGui::GetID(id.c_str());
 }
 
-void ndbl::_graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *from, const Vec2 &end_pos)
+void ndbl::_graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *from, const Vec2 &end_pos, bool* hovered)
 {
     VERIFY(from != nullptr, "from slot can't be nullptr");
 
@@ -236,7 +237,6 @@ void ndbl::_graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *fr
 
     // Draw
 
-    ImGuiID id = make_wire_id(from->slot, nullptr);
     Vec2 start_pos = from->shape.pivot_position(CENTER, WORLD_SPACE);
 
     Bezier_Curve_Segment_2D segment{
@@ -244,7 +244,7 @@ void ndbl::_graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *fr
             end_pos, end_pos
     }; // straight line
 
-    ImGuiEx::DrawWire(id, ImGui::GetWindowDrawList(), segment, style);
+    ImGuiEx::DrawWire(ImGui::GetWindowDrawList(), segment, style, hovered);
 }
 
 bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
@@ -258,6 +258,7 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
     graph_view->shape.set_position(region.top_left()); // children will be relative to the center
     box2d_draw_debug_info(&graph_view->shape);
 
+    auto lastframe_hovered_linkview = graph_view->hovered.get_if<Node_Slot_Link_View>();
     graph_view->hovered = {};
 
     Config*         cfg       = get_config();
@@ -286,12 +287,12 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
             ImGui::GetColorU32(cfg->ui_graph_grid_color_minor));
 
     // Draw Wires (code flow ONLY)
-    const ImGuiEx::WireStyle code_flow_style{
-            cfg->ui_codeflow_color,
-            cfg->ui_codeflow_color, // hover
-            cfg->ui_codeflow_shadowColor,
-            cfg->ui_codeflow_thickness(),
-            0.0f
+    ImGuiEx::WireStyle style {
+        cfg->ui_codeflow_color,
+        cfg->ui_codeflow_color, // hover
+        cfg->ui_codeflow_shadowColor,
+        cfg->ui_codeflow_thickness(),
+        0.0f
     };
     for (Node* each_node: graph_view->graph()->nodes )
     {
@@ -323,7 +324,6 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                 Node_Slot_View* tail = slot->view;
                 Node_Slot_View* head = adjacent_slot->view;
 
-                ImGuiID id = make_wire_id(slot, adjacent_slot);
                 Vec2 tail_pos = tail->shape.pivot_position(CENTER, WORLD_SPACE);
                 Vec2 head_pos = head->shape.pivot_position(CENTER,  WORLD_SPACE);
                 Bezier_Curve_Segment_2D segment{
@@ -332,11 +332,18 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                         head_pos,
                         head_pos,
                 };
-                ImGuiEx::DrawWire(id, draw_list, segment, code_flow_style);
-                if (ImGui::GetHoveredID() == id )
+                Node_Slot_Link_View linkview{tail, head};
+                if( lastframe_hovered_linkview == linkview)
                 {
-                    graph_view->hovered = Node_Slot_Link_View{tail, head};
+                    float time = ImGui::GetTime();
+                    float expansion = wave(1.f, 2.0f, time, 10.f);
+                    style.thickness += expansion;
                 }
+
+                bool hovered = false;
+                ImGuiEx::DrawWire( draw_list, segment, style, &hovered);
+                if (hovered)
+                    graph_view->hovered = linkview;
             }
         }
     }
@@ -369,20 +376,23 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 
                 Vec2 p1, cp1, cp2, p2; // BezierCurveSegment's points
 
-                Node_Slot_View* slot_view_out = slot_out->view;
-                Node_Slot_View* slot_view_in  = slot_in->view;
+                Node_Slot_Link_View linkview{slot_out->view, slot_in->view};
 
-                p1 = slot_view_out->shape.pivot_position(CENTER, WORLD_SPACE);
-                p2 = slot_view_in->shape.pivot_position(CENTER, WORLD_SPACE);
+                p1 = linkview.tail->shape.pivot_position(CENTER, WORLD_SPACE);
+                p2 = linkview.head->shape.pivot_position(CENTER, WORLD_SPACE);
 
                 const Vec2  signed_dist = Vec2::distance(p1, p2);
                 const float lensqr_dist = signed_dist.lensqr();
 
                 // Animate style
                 ImGuiEx::WireStyle style = default_wire_style;
-                if ( graph_view->selection.contains( node_view_out ) || graph_view->selection.contains( node_view_in ) )
+                if ( (lastframe_hovered_linkview == linkview) || graph_view->selection.contains( node_view_out ) || graph_view->selection.contains( node_view_in ) )
                 {
                     style.color.w *= wave(0.5f, 1.f, time, 10.f);
+
+                    float time = ImGui::GetTime();
+                    float expansion = wave(1.f, 2.0f, time, 10.f);
+                    style.thickness += expansion;
                 }
                 else if (lensqr_dist > cfg->ui_wire_bezier_fade_lensqr_range.x)
                 {
@@ -407,17 +417,18 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                     // Determine control points
                     float roundness = tools::clamped_lerp(0.f, 10.f, lensqr_dist / 100.f);
                     cp1 = p1;
-                    cp2 = p2 + slot_view_in->direction * roundness;
-                    if ( slot_view_out->direction.y > 0.f ) // round out when direction is bottom
-                        cp1 += slot_view_out->direction * roundness;
+                    cp2 = p2 + linkview.head->direction * roundness;
+                    if ( linkview.tail->direction.y > 0.f ) // round out when direction is bottom
+                        cp1 += linkview.tail->direction * roundness;
 
                     Bezier_Curve_Segment_2D segment{p1, cp1, cp2, p2};
 
-                    ImGuiID id = make_wire_id(slot_view_out->slot, slot_in);
-                    ImGuiEx::DrawWire(id, draw_list, segment, style);
-                    if (ImGui::GetHoveredID() == id)
+                    bool hovered = false;
+                    ImGuiEx::DrawWire(draw_list, segment, style, &hovered);
+
+                    if (hovered)
                     {
-                        graph_view->hovered = Node_Slot_Link_View{slot_view_out, slot_view_in};
+                        graph_view->hovered = linkview;
                     }
                 }
             }
