@@ -1,6 +1,8 @@
 #include "Nodable_View.h"
+#include "core/Graph.h"
 #include "gui/Action_Manager_View.h"
 #include "gui/App_View.h"
+#include "gui/Event.h"
 #include "gui/Nodable.h"
 #include "gui/Texture_Manager.h"
 #include "tools/core/Event_Manager.h"

@@ -5,15 +5,16 @@
 #include <cstddef>
 #include <cstdio>
 #include <vector>
-#include "core/Asserts.h"
-#include "core/Event_Manager.h"
-#include "gui/geometry/Rect.h"
-#include "gui/geometry/Vec4.h"
 #include "imgui.h"
 
+
+#include "tools/core/Asserts.h"
+#include "tools/core/Event_Manager.h"
 #include "tools/core/Component.h"
 #include "tools/core/Math.h"
 #include "tools/core/State_Machine.h"
+#include "tools/gui/geometry/Rect.h"
+#include "tools/gui/geometry/Vec4.h"
 #include "tools/gui/Size.h"
 #include "tools/gui/View_State.h"
 #include "tools/gui/geometry/Box_2D.h"
@@ -30,6 +31,7 @@
 #include "ndbl/core/Node.h"
 #include "ndbl/core/Node_Slot.h"
 
+#include "ndbl/gui/Node_Search_Input.h"
 #include "ndbl/gui/Config.h"
 #include "ndbl/gui/Event.h"
 #include "ndbl/gui/Node_View.h"
@@ -857,7 +859,7 @@ void ndbl::graphview_reset_all_properties(Graph_View* graph_view)
 
 void ndbl::_graphview_draw_context_menu(Graph_View* graph_view, Node_Slot_View* dragged_slotview)
 {
-    if (Action_CreateNode* triggered_action = graph_view->contextual_menu.draw_search_input( dragged_slotview, 10))
+    if (Action_CreateNode* triggered_action = nodeview_contextmenu_draw_search_input( &graph_view->node_search_input, dragged_slotview, 10))
     {
         // Generate an event from this action, add some info to the state and dispatch it.
         auto event                     = triggered_action->make_event();
@@ -962,7 +964,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
     if ( ImGui::BeginPopup(CONTEXT_POPUP) )
     {
         if ( ImGui::IsWindowAppearing())
-            graph_view->contextual_menu.flag_to_be_reset();
+            graph_view->node_search_input.must_be_reset_flag = true;
 
         switch ( graph_view->focused.index() )
         {
@@ -1202,7 +1204,7 @@ void ndbl::_graphview_line_state_tick(Graph_View* graph_view)
         mouse_pos_snapped = ImGui::GetMousePosOnOpeningCurrentPopup();
 
         if ( ImGui::IsWindowAppearing() )
-            graph_view->contextual_menu.flag_to_be_reset();
+            graph_view->node_search_input.must_be_reset_flag = true;
 
         if ( graph_view->hovered.empty() )
             _graphview_draw_context_menu(graph_view, graph_view->focused.get<Node_Slot_View*>() );

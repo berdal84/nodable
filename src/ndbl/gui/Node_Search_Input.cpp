@@ -1,11 +1,17 @@
-#include "Node_View_Contextual_Menu.h"
+#include "Node_Search_Input.h"
+#include "tools/gui/Action.h"
+#include "imgui.h"
 
-using namespace ndbl;
-using namespace tools;
-
-void Node_View_Contextual_Menu::update_cache_based_on_signature(Node_Slot_View* dragged_slot)
+namespace ndbl
 {
-    items_with_compatible_signature.clear();
+    // private
+    void _nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Input*, Node_Slot_View* dragged_slot);;
+    void _nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_Input*, Node_Slot_View* dragged_slot, size_t limit );
+}
+
+void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot)
+{
+    context_menu->items_with_compatible_signature.clear();
 
     // 1) When NO slot is dragged
     //---------------------------
@@ -13,14 +19,14 @@ void Node_View_Contextual_Menu::update_cache_based_on_signature(Node_Slot_View* 
     if ( !dragged_slot )
     {
         // When no slot is dragged, user can create any node
-        items_with_compatible_signature = items;
+        context_menu->items_with_compatible_signature = context_menu->items;
         return;
     }
 
     // 2) When a slot is dragged
     //--------------------------
 
-    for (auto& action: items )
+    for (Action_CreateNode* action : context_menu->items )
     {
         const Type_Descriptor* dragged_property_type = dragged_slot->property_type();
 
@@ -60,7 +66,7 @@ void Node_View_Contextual_Menu::update_cache_based_on_signature(Node_Slot_View* 
 
                 }
         }
-        items_with_compatible_signature.push_back( action );
+        context_menu->items_with_compatible_signature.push_back( action );
     }
 }
 
@@ -82,68 +88,57 @@ bool CaseInsensitiveFind(const T& str1, const T& str2, const std::locale& loc = 
                        CaseInsensitiveEqual<typename T::value_type>{loc}) != str1.end();
 }
 
-void Node_View_Contextual_Menu::update_cache_based_on_user_input(Node_Slot_View* _dragged_slot, size_t _limit )
+void ndbl::_nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_Input* context_menu, Node_Slot_View* _dragged_slot, size_t _limit )
 {
-    std::string search{search_input}; // FindCaseInsensitive takes a std::string
-    items_matching_search.clear();
-    for ( auto& menu_item : items_with_compatible_signature )
+    std::string search{context_menu->search_input_value}; // FindCaseInsensitive takes a std::string
+    context_menu->items_matching_search.clear();
+    for ( auto& menu_item : context_menu->items_with_compatible_signature )
     {
         if( !CaseInsensitiveFind(menu_item->label, search) )
             continue;
 
-        items_matching_search.push_back(menu_item);
-        if ( items_matching_search.size() == _limit )
+        context_menu->items_matching_search.push_back(menu_item);
+        if ( context_menu->items_matching_search.size() == _limit )
             break;
     }
 }
 
-void Node_View_Contextual_Menu::flag_to_be_reset()
+ndbl::Action_CreateNode* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot, size_t _result_max_count )
 {
-    must_be_reset_flag   = true;
-}
-
-void Node_View_Contextual_Menu::add_action(Action_CreateNode* action)
-{
-    items.push_back(action);
-}
-
-
-Action_CreateNode* Node_View_Contextual_Menu::draw_search_input(Node_Slot_View* dragged_slot, size_t _result_max_count )
-{
-    if ( must_be_reset_flag )
+    if ( context_menu->must_be_reset_flag )
     {
-        search_input[0]      = '\0';
-        items_matching_search.clear();
-        items_with_compatible_signature.clear();
+        context_menu->search_input_value[0] = '\0';
+        context_menu->items_matching_search.clear();
+        context_menu->items_with_compatible_signature.clear();
 
         ImGui::SetKeyboardFocusHere();
 
         //
-        update_cache_based_on_signature(dragged_slot);
+        _nodeview_contextmenu_update_cache_based_on_signature(context_menu, dragged_slot);
 
         // Initial search
-        update_cache_based_on_user_input(dragged_slot, 100 );
+        _nodeview_contextmenu_update_cache_based_on_user_input(context_menu, dragged_slot, 100 );
 
         // Ensure we reset once
-        must_be_reset_flag = false;
+        context_menu->must_be_reset_flag = false;
     }
 
     // Draw search input and update_cache_based_on_user_input on input change
     ImGui::BeginGroup();
     ImGui::Text("Create Node:");
     ImGui::SameLine();
-    if ( ImGui::InputText("###Search", search_input, 255, ImGuiInputTextFlags_EscapeClearsAll ))
+    if ( ImGui::InputText("###Search", context_menu->search_input_value, 255, ImGuiInputTextFlags_EscapeClearsAll ))
     {
-        update_cache_based_on_user_input(dragged_slot, 100 );
+        _nodeview_contextmenu_update_cache_based_on_user_input(context_menu, dragged_slot, 100 );
     }
     ImGui::EndGroup();
 
-    if ( !items_matching_search.empty() )
+    if ( !context_menu->items_matching_search.empty() )
     {
         // When a single item is filtered, pressing enter will press the item's button.
-        if ( items_matching_search.size() == 1)
+        if ( context_menu->items_matching_search.size() == 1)
         {
-            auto action = items_matching_search.front();
+            auto action = context_menu->items_matching_search.front();
             if ( ImGui::SmallButton( action->label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
             {
                 return action;
@@ -151,14 +146,14 @@ Action_CreateNode* Node_View_Contextual_Menu::draw_search_input(Node_Slot_View* 
         }
         else
         {
-            size_t more = items_matching_search.size() > _result_max_count ? items_matching_search.size() : 0;
+            size_t more = context_menu->items_matching_search.size() > _result_max_count ? context_menu->items_matching_search.size() : 0;
             if ( more )
             {
-                ImGui::Text("Found %zu result(s)", items_matching_search.size() );
+                ImGui::Text("Found %zu result(s)", context_menu->items_matching_search.size() );
             }
             // Otherwise, user has to move with arrow keys and press enter to trigger the highlighted button.
-            auto it = items_matching_search.begin();
-            while( it != items_matching_search.end() && std::distance(items_matching_search.begin(), it) != _result_max_count)
+            auto it = context_menu->items_matching_search.begin();
+            while( it != context_menu->items_matching_search.end() && std::distance(context_menu->items_matching_search.begin(), it) != _result_max_count)
             {
                 auto* action = *it;
 

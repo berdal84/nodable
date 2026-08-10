@@ -223,7 +223,7 @@ common.sources = FileList[
     "src/ndbl/gui/Node_Property_View.cpp",
     "src/ndbl/gui/Node_Slot_View.cpp",
     "src/ndbl/gui/Node_View.cpp",
-    "src/ndbl/gui/Node_View_Contextual_Menu.cpp",
+    "src/ndbl/gui/Node_Search_Input.cpp",
     "src/ndbl/gui/Scope_View.cpp",
     "src/ndbl/gui/Config.cpp",
     "src/ndbl/gui/File.cpp",

@@ -44,7 +44,7 @@ void ndbl::file_init(File* file)
     // Fill the "create node" context menu
     for( IAction* action : get_action_manager()->get_actions() )
         if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
-            graph_view->contextual_menu.add_action(create_node_action);
+            graph_view->node_search_input.items.push_back(create_node_action);
 
     // File_View
     fileview_init(&file->view, file);

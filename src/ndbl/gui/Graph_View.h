@@ -12,7 +12,7 @@
 #include "Node_View.h"
 #include "Node_Slot_View.h"
 #include "tools/core/State_Machine.h"
-#include "Node_View_Contextual_Menu.h"
+#include "Node_Search_Input.h"
 #include "Scope_View.h"
 
 namespace ndbl
@@ -50,7 +50,7 @@ namespace ndbl
 
         Graph_View_Flags                    flags = 0;
         tools::Simple_Signal                signal_change;
-        Node_View_Contextual_Menu           contextual_menu;
+        Node_Search_Input                   node_search_input;
         Selectable                          hovered;
         Selectable                          focused;
         Selection                           selection;
