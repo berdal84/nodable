@@ -4,6 +4,8 @@
 #include "core/Graph.h"
 #include "gui/App.h"
 #include "gui/Nodable_View.h"
+#include "gui/Scope_View.h"
+#include "ndbl/gui/View.h"
 
 #include <utility>
 #include <algorithm>
@@ -331,16 +333,17 @@ void ndbl::nodable_update(App_State* app)
                 fileview_refresh_overlay(&app->current_file->view, Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
             }
+
             case Event_DeleteSelection::id:
             {
-                if ( graph_view )
+                auto _event = reinterpret_cast<Event_DeleteSelection*>(event);
+
+                for( const View& selected_item : _event->data.selected_items )
                 {
-                    for( const Selectable& elem : graph_view->selection )
+                    switch ( selected_item.type )
                     {
-                        if ( auto nodeview = elem.get_if<Node_View*>() )
-                            graph_flag_node_to_delete(nodeview->node(), Graph_Flag_NONE);
-                        else if ( auto scopeview = elem.get_if<Scope_View*>() )
-                            graph_flag_node_to_delete(scopeview->scope->node(), Graph_Flag_ALLOW_SIDE_EFFECTS);
+                        case View_Type_NODE:    { graph_flag_node_to_delete(selected_item.nodeview->node(), Graph_Flag_NONE);                       break; }
+                        case View_Type_SCOPE:   { graph_flag_node_to_delete(selected_item.scopeview->scope->node(), Graph_Flag_ALLOW_SIDE_EFFECTS); break; }
                     }
                 }
 
@@ -351,16 +354,12 @@ void ndbl::nodable_update(App_State* app)
             {
                 if ( graph_view )
                 {
-                    for( const Selectable& elem : graph_view->selection )
+                    for( const View& selected_item : graph_view->selection )
                     {
-                        switch ( elem.index() )
+                        switch ( selected_item.type )
                         {
-                            case Selectable::index_of<Node_View*>():
-                                nodeview_arrange_recursively(elem.get<Node_View*>());
-                                break;
-                            case Selectable::index_of<Scope_View*>():
-                                scopeview_arrange_content(elem.get<Scope_View*>());
-                                break;
+                            case View_Type_NODE:    { nodeview_arrange_recursively(selected_item.nodeview);   break; }
+                            case View_Type_SCOPE:   { scopeview_arrange_content(selected_item.scopeview);     break; }
                         }
                     }
                 }
@@ -370,27 +369,30 @@ void ndbl::nodable_update(App_State* app)
 
             case Event_SelectNext::id:
             {
-                if ( graph_view && graph_view->selection.contains<Node_View*>() )
+                if ( !graph_view )
                 {
-                    graph_view->selection.clear();
-                    for(auto* _view : graph_view->selection.collect<Node_View*>() )
-                        for (auto* _successor : _view->node()->flow_outputs() ) // TODO: component<Node> is wrong!
-                            if (auto* _successor_view = componentbag_get<Node_View>(&_successor->component_bag) )
-                                graph_view->selection.append( _successor_view );
+                    break;
                 }
+
+                graph_view->selection.clear();
+
+                // Append all the successors to the selection
+                auto _event = reinterpret_cast<Event_SelectNext*>(event);
+                for(View& selected_item : _event->data.selected_items)
+                    if (selected_item.type == View_Type_NODE)
+                        for (Node* _successor : selected_item.nodeview->node()->flow_outputs() )
+                            if (Node_View* _successor_view = node_component<Node_View>(_successor) )
+                                graph_view->selection.push_back( _successor_view );
+
                 break;
             }
 
             case Event_ToggleFolding::id:
             {
-                if ( graph_view )
-                    break;
-
-                for( Node_View* each_node_view : graph_view->selection.collect<Node_View*>() )
-                {
-                    auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
-                    nodeview_toggle_expandcollapse(each_node_view);
-                }
+                auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
+                for(View& selected_item : _event->data.selected_items)
+                    if (selected_item.type == View_Type_NODE)
+                        nodeview_toggle_expandcollapse( selected_item.nodeview );
                 break;
             }
 
@@ -521,11 +523,11 @@ void ndbl::nodable_update(App_State* app)
                 }
 
                 // set new_node's view position, select it
-                if ( auto view = componentbag_get<Node_View>(&new_node->component_bag) )
+                if ( auto view = node_component<Node_View>(new_node) )
                 {
                     spatialnode_set_position(&view->shape.spatial_node, _event->data.desired_screen_pos, WORLD_SPACE);
                     graph_view->selection.clear();
-                    graph_view->selection.append(view);
+                    graph_view->selection.push_back(view);
                 }
                 break;
             }

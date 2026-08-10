@@ -1,14 +1,18 @@
 #pragma once
 
-#include "core/Event.h"
-#include "core/Node.h"
-#include "ndbl/core/Graph.h"
-#include "Node_Slot_View.h"
+#include "core/Graph.h"
+#include "ndbl/gui/View.h"
+#include "tools/core/reflection/Type_Descriptor.h"
+#include "tools/core/Event.h"
+#include "tools/gui/geometry/Vec2.h"
 
 namespace ndbl
 {
     // forward declaration
     struct Node_View;
+    struct Node_Slot;
+    struct Node;
+    struct Graph;
     using tools::Vec2;
     using tools::Function_Descriptor;
 
@@ -48,10 +52,15 @@ namespace ndbl
         Node* node;
     };
     using Event_DeleteEdge          = tools::Event<Event_ID_DELETE_EDGE, EventPayload_Node_SlotPair>;
-    using Event_DeleteSelection     = tools::Event<Event_ID_DELETE_NODE, EventPayload_Node>;
-    using Event_ArrangeSelection    = tools::Event<Event_ID_ARRANGE_NODE>;
-    using Event_SelectNext          = tools::Event<Event_ID_SELECT_NEXT, EventPayload_Node>;
-    using Event_ToggleFolding       = tools::Event<Event_ID_TOGGLE_FOLDING>;
+
+    struct EventPayload_Selection
+    {
+        View_Selection selected_items = {};
+    };
+    using Event_DeleteSelection     = tools::Event<Event_ID_DELETE_NODE     , EventPayload_Selection>;
+    using Event_ArrangeSelection    = tools::Event<Event_ID_ARRANGE_NODE    , EventPayload_Selection>;
+    using Event_SelectNext          = tools::Event<Event_ID_SELECT_NEXT     , EventPayload_Selection>;
+    using Event_ToggleFolding       = tools::Event<Event_ID_TOGGLE_FOLDING  , EventPayload_Selection>;
 
     struct EventPayload_CreateNode
     {

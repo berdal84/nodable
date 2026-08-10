@@ -90,7 +90,6 @@ namespace ndbl
     void                    nodeview_set_visible_recursively(Node_View*, bool);
     void                    nodeview_toggle_expandcollapse(Node_View*);
     void                    nodeview_reset_all_properties(Node_View*);
-    tools::Rect             nodeview_bounding_rect(const std::vector<Node_View *>&, tools::Space = tools::WORLD_SPACE, Node_View_Flags = Node_View_Flag_NONE);
     bool                    nodeview_draw_as_properties_panel(Node_View*, bool* show_advanced );
     Node_View*              nodeview_substitute_with_parent_if_not_visible(Node_View*, bool _recursive = true);
     void                    nodeview_handle_init(Node_View*);

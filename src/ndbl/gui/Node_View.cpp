@@ -6,6 +6,7 @@
 
 #include "core/Asserts.h"
 #include "gui/ImGuiEx.h"
+#include "gui/Scope_View.h"
 #include "gui/View_State.h"
 #include "gui/geometry/Pivots.h"
 #include "gui/geometry/Space.h"
@@ -220,7 +221,7 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
         auto* scopeview = new Scope_View();
         scopeview_init(scopeview, internal_scope);
 
-        spatialnode_add_child   (&node_view->shape.spatial_node, &scopeview->spatial_node);
+        spatialnode_add_child   (&node_view->spatial_node(), &scopeview->spatial_node);
         spatialnode_set_position(&scopeview->spatial_node, {0.f, 0.f}, tools::PARENT_SPACE);
 
         node_view->internal_scopeview = scopeview;
@@ -244,8 +245,10 @@ void ndbl::nodeview_handle_deinit(Node_View* node_view)
     node_view->slot_views.clear();
 
     if( node_view->internal_scopeview != nullptr )
+    {
         scopeview_deinit(node_view->internal_scopeview);
-
+        spatialnode_remove_child(&node_view->spatial_node(), &node_view->internal_scopeview->spatial_node);
+    }
     node_view->hovered_slotview = nullptr;
 }
 
@@ -700,7 +703,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* node_view, bool* _show_a
                     Graph_View* graph_view = componentbag_get<Graph_View>(&node->graph->component_bag);
                     ASSERT(graph_view);
                     graph_view->selection.clear();
-                    graph_view->selection.append(componentbag_get<Node_View>(&scope->entity->component_bag) );
+                    graph_view->selection.push_back(node_component<Node_View>(scope->entity));
                 }
             }
             else
@@ -782,25 +785,6 @@ Rect ndbl::nodeview_get_rect_ex(const Node_View* node_view, tools::Space space, 
 #endif
 
     return result;
-}
-
-Rect ndbl::nodeview_bounding_rect(
-    const std::vector<Node_View *>& view,
-    Space space,
-    Node_View_Flags flags
-)
-{
-    // collect rectangles
-    // note: we could save 1 allocation by computing the bbox of each rectangle instead of building this vector,
-    //       but I prefer to keep responsibilities separated.
-    std::vector<Rect> rect;
-    rect.reserve(view.size());
-    for (size_t i = 0; i < view.size(); ++i)
-    {
-        rect.emplace_back( nodeview_get_rect_ex(view[i], space, flags) ) ;
-    }
-    // compute bbox
-    return Rect::bounding_rect(rect);
 }
 
 void ndbl::nodeview_toggle_expandcollapse(Node_View* nodeview)

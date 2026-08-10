@@ -4,7 +4,9 @@
 #include "gui/App_View.h"
 #include "gui/Event.h"
 #include "gui/Nodable.h"
+#include "gui/Scope_View.h"
 #include "gui/Texture_Manager.h"
+#include "gui/View.h"
 #include "tools/core/Event_Manager.h"
 #include "tools/core/System.h"
 #include "tools/gui/Config.h"
@@ -551,15 +553,15 @@ void ndbl::nodableview_draw(App_View_State* view)
             {
                 bool node_properties_changed = false;
                 const Graph_View* graph_view = componentbag_get<Graph_View>(&view->app()->current_file->graph->component_bag); // Graph can't be null
-                switch ( graph_view->selection.count<Node_View*>() )
+                switch ( graph_view->selection.count(View_Type_NODE) )
                 {
                     case 0:
                         break;
                     case 1:
                     {
                         ImGui::Indent(10.0f);
-                        auto* first_nodeview = graph_view->selection.first_of<Node_View*>();
-                        node_properties_changed |= nodeview_draw_as_properties_panel(first_nodeview, &view->show_advanced_node_properties);
+                        View first = graph_view->selection.first_of(View_Type_NODE);
+                        node_properties_changed |= nodeview_draw_as_properties_panel(first.nodeview, &view->show_advanced_node_properties);
                         break;
                     }
                     default:

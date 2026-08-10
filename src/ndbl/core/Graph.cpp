@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstddef>
 #include <imgui/imgui_internal.h>
+#include <vector>
 
 #include "core/Asserts.h"
 #include "core/Node_Slot.h"
@@ -87,28 +88,32 @@ bool ndbl::graph_update(Graph* graph)
     bool changed = false;
 
     // Update nodes
-    std::stack<Node*> node_to_delete; // store pointers to delete all later (avoids to allocate or move data in graph->nodes)
+    std::vector<size_t> node_pos_to_delete; // store location to delete all later (avoids to allocate or move data in graph->nodes)
+    size_t i = 0;
     for(Node* node : graph->nodes)
     {
         if ( node->has_flags(Node_Flag_MUST_BE_DELETED))
         {
-            node_to_delete.push(node);
+            node_pos_to_delete.push_back(i);
         }
         else if ( node->has_flags(Node_Flag_IS_DIRTY) )
         {
             changed |= node_update(node);
         }
+        ++i;
     }
 
     // Delete flagged nodes
-    while( !node_to_delete.empty() )
+    // Note: it is important to delete from the end to the begin of the list to avoid invalidating the positions
+    for( auto it = node_pos_to_delete.rbegin(); it != node_pos_to_delete.rend(); ++it)
     {
         changed |= true;
-        Node* node = node_to_delete.top();
+        Node* node = graph->nodes[*it];
         graph_clean_node(node);
+        graph->signal_remove_node.emit(node);
         node_deinit(node);
         delete node;
-        node_to_delete.pop();
+        graph->nodes.erase( graph->nodes.begin() + *it );
     }
 
     if ( changed )
