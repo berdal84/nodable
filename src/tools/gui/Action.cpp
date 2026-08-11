@@ -1,17 +1,14 @@
 #include "Action.h"
-#include "tools/core/Event_Manager.h"
-#include "tools/core/Asserts.h"
+#include "SDL_keyboard.h"
 
-using namespace tools;
-
-void IAction::trigger() const
+std::string tools::Shortcut::to_string() const
 {
-    Event_Manager* event_manager = get_event_manager();
-    ASSERT(event_manager != nullptr);
-    event_manager->dispatch( make_event() );
-}
+    std::string result;
 
-IEvent* IAction::make_event() const
-{
-    return new IEvent(event_id);
+    if (mod & KMOD_CTRL) result += "Ctrl + ";
+    if (mod & KMOD_ALT)  result += "Alt + ";
+    if (key)             result += SDL_GetKeyName(key);
+    if (!description.empty()) result += description;
+
+    return result;
 }

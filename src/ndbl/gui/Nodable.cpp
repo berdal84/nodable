@@ -1,13 +1,13 @@
 #include "Nodable.h"
 #include "IconsFontAwesome5.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
+#include "core/Event.h"
 #include "core/Graph.h"
+#include "gui/Action_Manager.h"
 #include "gui/App.h"
 #include "gui/Nodable_View.h"
 #include "gui/Scope_View.h"
-#include "ndbl/gui/View.h"
 
-#include <utility>
 #include <algorithm>
 
 using namespace ndbl;
@@ -78,47 +78,47 @@ void ndbl::nodable_init(App_State* app)
     app->config     = cfg;
 
     // Add a bunch of new actions
-    tools::Action_Manager* action_manager = get_action_manager();
+    tools::Action_Manager* action_manager = action_manager_get();
     ASSERT(action_manager != nullptr); // Should have been initialized by tools::App_View
     // (With shortcut)
-    action_manager->new_action<Event_DeleteSelection>("Delete", Shortcut{SDLK_DELETE, KMOD_NONE } );
-    action_manager->new_action<Event_ArrangeSelection>("Arrange", Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager->new_action<Event_ToggleFolding>("Fold", Shortcut{SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager->new_action<Event_SelectNext>("Next", Shortcut{SDLK_n, KMOD_NONE } );
-    action_manager->new_action<Event_FileSave>(ICON_FA_SAVE " Save", Shortcut{SDLK_s, KMOD_CTRL } );
-    action_manager->new_action<Event_FileSaveAs>(ICON_FA_SAVE " Save as", Shortcut{SDLK_s, KMOD_CTRL } );
-    action_manager->new_action<Event_FileClose>(ICON_FA_TIMES "  Close", Shortcut{SDLK_w, KMOD_CTRL } );
-    action_manager->new_action<Event_FileBrowse>(ICON_FA_FOLDER_OPEN " Open", Shortcut{SDLK_o, KMOD_CTRL } );
-    action_manager->new_action<Event_FileNew>(ICON_FA_FILE " New", Shortcut{SDLK_n, KMOD_CTRL } );
-    action_manager->new_action<Event_ShowWindow>("Splashscreen", Shortcut{SDLK_F1 }, Event_Payload__Show_Window{"splashscreen" } );
-    action_manager->new_action<Event_Exit>(ICON_FA_SIGN_OUT_ALT " Exit", Shortcut{SDLK_F4, KMOD_ALT } );
-    action_manager->new_action<Event_Undo>("Undo", Shortcut{SDLK_z, KMOD_CTRL } );
-    action_manager->new_action<Event_Redo>("Redo", Shortcut{SDLK_y, KMOD_CTRL } );
-    action_manager->new_action<Event_ToggleIsolationFlags>("Isolation", Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
-    action_manager->new_action<Event_MoveSelection>("Drag whole graph", Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL });
+    action_manager_add_action( action_manager, "Delete", Event_Data__User{Event_Code_DELETE}, Shortcut{SDLK_DELETE, KMOD_NONE } );
+    action_manager_add_action( action_manager, "Arrange", Event_Data__User{ Event_Code_ARRANGE_SELECTION }, Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager_add_action( action_manager, "Fold", Event_Data__User{ Event_Code_ARRANGE_SELECTION }, Shortcut{SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager_add_action( action_manager, "Next", Event_Data__User{ Event_Code_SELECT_NEXT }, Shortcut{SDLK_n, KMOD_NONE } );
+    action_manager_add_action( action_manager, ICON_FA_SAVE " Save", Event_Type_FILE_SAVE,  Shortcut{SDLK_s, KMOD_CTRL } );
+    action_manager_add_action( action_manager, ICON_FA_SAVE " Save as", Event_Type_FILE_SAVE_AS, Shortcut{SDLK_s, KMOD_CTRL } );
+    action_manager_add_action( action_manager, ICON_FA_TIMES "  Close", Event_Type_FILE_CLOSE, Shortcut{SDLK_w, KMOD_CTRL } );
+    action_manager_add_action( action_manager, ICON_FA_FOLDER_OPEN " Open", Event_Type_FILE_BROWSE, Shortcut{SDLK_o, KMOD_CTRL } );
+    action_manager_add_action( action_manager, ICON_FA_FILE " New", Event_Type_FILE_NEW, Shortcut{SDLK_n, KMOD_CTRL } );
+    action_manager_add_action( action_manager, "Splashscreen", Event{Event_Type_WINDOW, Event_Data__Window{"splashscreen" }}, Shortcut{SDLK_F1 } );
+    action_manager_add_action( action_manager, ICON_FA_SIGN_OUT_ALT " Exit", Event_Type_REQUEST_EXIT, Shortcut{SDLK_F4, KMOD_ALT } );
+    action_manager_add_action( action_manager, "Undo", Event_Type_UNDO, Shortcut{SDLK_z, KMOD_CTRL } );
+    action_manager_add_action( action_manager, "Redo"               , Event_Type_REDO, Shortcut{SDLK_y, KMOD_CTRL } );
+    action_manager_add_action( action_manager, "Isolation"          , Event_Data__User{Event_Code_TOGGLE_ISOLATION_FLAGS}, Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
+    action_manager_add_action( action_manager, "Drag whole graph"   , Event_Data__User{Event_Code_MOVE_SELECTION}, Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager_add_action( action_manager, "Frame Selection"    , Event_Data__User{Event_Code_REQUEST_FRAME_SELECTION}, Shortcut{SDLK_f, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager_add_action( action_manager, "Frame All"          , Event_Data__User{Event_Code_REQUEST_FRAME_SELECTION}, Shortcut{SDLK_f, KMOD_LCTRL });
     // (to create block nodes)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_CONDITION } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_FOR_LOOP } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_WHILE_LOOP } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_BLOCK_SCOPE } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_ROOT} );
+    action_manager_add_action( action_manager, ICON_FA_CODE " Condition"    , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_BLOCK_CONDITION }} );
+    action_manager_add_action( action_manager, ICON_FA_CODE " For Loop"     , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_BLOCK_FOR_LOOP }} );
+    action_manager_add_action( action_manager, ICON_FA_CODE " While Loop"   , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_BLOCK_WHILE_LOOP }} );
+    action_manager_add_action( action_manager, ICON_FA_CODE " Scope"        , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_BLOCK_SCOPE }} );
+    action_manager_add_action( action_manager, ICON_FA_CODE " Entry Point"  , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_ROOT}} );
     // (misc)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Return Statement", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_RETURN } );
+    action_manager_add_action( action_manager, ICON_FA_CODE " Return Statement", Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_RETURN }});
     // (to create variables)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
+    action_manager_add_action( action_manager, ICON_FA_DATABASE " Boolean Variable" , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() }} );
+    action_manager_add_action( action_manager, ICON_FA_DATABASE " Double Variable"  , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_VARIABLE_DOUBLE, create_variable_node_signature<double>() }} );
+    action_manager_add_action( action_manager, ICON_FA_DATABASE " Integer Variable" , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_VARIABLE_INTEGER, create_variable_node_signature<int>() } });
+    action_manager_add_action( action_manager, ICON_FA_DATABASE " String Variable"  , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_VARIABLE_STRING, create_variable_node_signature<std::string>() }} );
     //(to create literals)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_LITERAL_INTEGER, create_variable_node_signature<int>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{Create_Node_Type_LITERAL_STRING, create_variable_node_signature<std::string>() } );
+    action_manager_add_action( action_manager, ICON_FA_FILE " Boolean Literal"  , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_LITERAL_BOOLEAN, create_variable_node_signature<bool>() }} );
+    action_manager_add_action( action_manager, ICON_FA_FILE " Double Literal"   , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_LITERAL_DOUBLE, create_variable_node_signature<double>() } });
+    action_manager_add_action( action_manager, ICON_FA_FILE " Integer Literal"  , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_LITERAL_INTEGER, create_variable_node_signature<int>() }} );
+    action_manager_add_action( action_manager, ICON_FA_FILE " String Literal"   , Event_Data__User{ Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node{Create_Node_Type_LITERAL_STRING, create_variable_node_signature<std::string>() } });
     // (to create functions/operators from the API)
     // TODO: add a list of preset to create operators/functions
-    // action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{Create_Node_Type_FUNCTION, invokable->get_sig() } );
+    // action_manager_add_action( action_manager, label.c_str(), Shortcut{}, EventPayload_CreateNode{Create_Node_Type_FUNCTION, invokable->get_sig() } );
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "init " TOOLS_OK "\n");
 }
@@ -202,8 +202,8 @@ void ndbl::nodable_update(App_State* app)
     //--------------
     
     // Nodable events
-    IEvent*         event               = nullptr;
-    Event_Manager*  event_manager       = get_event_manager();
+    Event           event = {};
+    Event_Manager*  event_manager       = event_manager_get();
     Graph_View*     graph_view          = nullptr; 
     History*        curr_file_history   = nullptr;
 
@@ -213,51 +213,34 @@ void ndbl::nodable_update(App_State* app)
         curr_file_history = &app->current_file->history; // TODO: should be included in the event?
     } 
 
-    while( (event = event_manager->poll_event()) )
+    while( (event = event_manager_poll_event(event_manager)) )
     {
-        switch ( event->id )
+        switch ( event.type )
         {
-            case Event_ID_RESET_GRAPH_VIEW:
-            {
-                Graph_View* graph_view = graph_component<Graph_View>(app->current_file->graph);
-                graph_view->flags |= Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
-                break;
-            }
-
-            case Event_ID_TOGGLE_ISOLATION_FLAGS:
-            {
-                app->config->flags ^= Config_Flag_ISOLATION_ON;
-                if(app->current_file)
-                {
-                    app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
-                }
-                break;
-            }
-
-            case Event_ID_REQUEST_EXIT:
+            case Event_Type_REQUEST_EXIT:
             {
                 tools::app_request_stop(&app->base);
                 break;
             }
 
-            case Event_ID_FILE_CLOSE:
+            case Event_Type_FILE_CLOSE:
             {
                 nodable_close_file(app);
                 break;
             }
-            case Event_ID_UNDO:
+            case Event_Type_UNDO:
             {
                 if(curr_file_history) curr_file_history->undo();
                 break;
             }
 
-            case Event_ID_REDO:
+            case Event_Type_REDO:
             {
                 if(curr_file_history) curr_file_history->redo();
                 break;
             }
 
-            case Event_ID_FILE_BROWSE:
+            case Event_Type_FILE_BROWSE:
             {
                 Path path;
                 if( pick_file_path(path, Dialog_Type_Browse) )
@@ -270,13 +253,13 @@ void ndbl::nodable_update(App_State* app)
 
             }
 
-            case Event_ID_FILE_NEW:
+            case Event_Type_FILE_NEW:
             {
                 nodable_new_file(app);
                 break;
             }
 
-            case Event_ID_FILE_SAVE_AS:
+            case Event_Type_FILE_SAVE_AS:
             {
                 if (app->current_file != nullptr)
                 {
@@ -290,7 +273,7 @@ void ndbl::nodable_update(App_State* app)
                 break;
             }
 
-            case Event_ID_FILE_SAVE:
+            case Event_Type_FILE_SAVE:
             {
                 if (!app->current_file) break;
                 if( !app->current_file->path.empty())
@@ -308,25 +291,16 @@ void ndbl::nodable_update(App_State* app)
                 break;
             }
 
-            case Event_ShowWindow::id:
+            case Event_Type_WINDOW:
             {
-                auto _event = reinterpret_cast<Event_ShowWindow*>(event);
-                if ( _event->data.window_id == "splashscreen" )
+                if ( strcmp(event.window.window_id, "splashscreen") == 0 )
                 {
-                    app->view()->base.show_splashscreen = _event->data.visible;
+                    app->view()->base.show_splashscreen = event.window.visible;
                 }
                 break;
             }
 
-            case Event_FrameSelection::id:
-            {
-                auto _event = reinterpret_cast<Event_FrameSelection*>( event );
-                VERIFY(graph_view, "a graph_view is required");
-                graph_view->flags |= Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
-                break;
-            }
-
-            case Event_ID_FILE_OPENED:
+            case Event_Type_FILE_OPENED:
             {
                 ASSERT(app->current_file != nullptr );
                 fileview_clear_overlay(&app->current_file->view);
@@ -334,202 +308,221 @@ void ndbl::nodable_update(App_State* app)
                 break;
             }
 
-            case Event_DeleteSelection::id:
+            case Event_Type_USER:
             {
-                auto _event = reinterpret_cast<Event_DeleteSelection*>(event);
+                // Note: these events might require some memory management
 
-                for( const View& selected_item : _event->data.selected_items )
+                switch( event.user.code )
                 {
-                    switch ( selected_item.type )
+                    case Event_Code_RESET_GRAPH_VIEW:
                     {
-                        case View_Type_NODE:    { graph_flag_node_to_delete(selected_item.nodeview->node(), Graph_Flag_NONE);                       break; }
-                        case View_Type_SCOPE:   { graph_flag_node_to_delete(selected_item.scopeview->scope->node(), Graph_Flag_ALLOW_SIDE_EFFECTS); break; }
+                        Graph_View* graph_view = graph_component<Graph_View>(app->current_file->graph);
+                        graph_view->flags |= Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
+                        break;
                     }
-                }
 
-                break;
-            }
-
-            case Event_ArrangeSelection::id:
-            {
-                if ( graph_view )
-                {
-                    for( const View& selected_item : graph_view->selection )
+                    case Event_Code_TOGGLE_ISOLATION_FLAGS:
                     {
-                        switch ( selected_item.type )
+                        app->config->flags ^= Config_Flag_ISOLATION_ON;
+                        if(app->current_file)
                         {
-                            case View_Type_NODE:    { nodeview_arrange_recursively(selected_item.nodeview);   break; }
-                            case View_Type_SCOPE:   { scopeview_arrange_content(selected_item.scopeview);     break; }
+                            app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
                         }
-                    }
-                }
-
-                break;
-            }
-
-            case Event_SelectNext::id:
-            {
-                if ( !graph_view )
-                {
-                    break;
-                }
-
-                graph_view->selection.clear();
-
-                // Append all the successors to the selection
-                auto _event = reinterpret_cast<Event_SelectNext*>(event);
-                for(View& selected_item : _event->data.selected_items)
-                    if (selected_item.type == View_Type_NODE)
-                        for (Node* _successor : selected_item.nodeview->node()->flow_outputs() )
-                            if (Node_View* _successor_view = node_component<Node_View>(_successor) )
-                                graph_view->selection.push_back( _successor_view );
-
-                break;
-            }
-
-            case Event_ToggleFolding::id:
-            {
-                auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
-                for(View& selected_item : _event->data.selected_items)
-                    if (selected_item.type == View_Type_NODE)
-                        nodeview_toggle_expandcollapse( selected_item.nodeview );
-                break;
-            }
-
-            case Event_Node_SlotDropped::id:
-            {
-                ASSERT(curr_file_history != nullptr);
-                auto _event = reinterpret_cast<Event_Node_SlotDropped*>(event);
-                Node_Slot* tail = _event->data.first;
-                Node_Slot* head = _event->data.second;
-                ASSERT(head != tail);
-                if ( tail->order() == Node_Slot::Flag_ORDER_2ND )
-                {
-                    if ( head->order() == Node_Slot::Flag_ORDER_2ND )
-                    {
-                        TOOLS_LOG(tools::Verbosity_Error, "Nodable", "Unable to connect incompatible edges\n");
-                        break; // but if it still the case, that's because edges are incompatible
-                    }
-                    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Nodable", "Swapping edges to try to connect them\n");
-                    std::swap(tail, head);
-                }
-                auto cmd = std::make_shared<Cmd_Connect>(tail, head);
-                curr_file_history->push_command(cmd);
-
-                break;
-            }
-
-            case Event_DeleteEdge::id:
-            {
-                ASSERT(curr_file_history != nullptr);
-                auto _event = reinterpret_cast<Event_DeleteEdge*>(event);
-                Node_Slot* tail = _event->data.first;
-                Node_Slot* head = _event->data.second;
-                auto command = std::make_shared<Cmd_DeleteEdge>(tail, head);
-                curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(command));
-                break;
-            }
-
-            case Event_Node_SlotDisconnectAll::id:
-            {
-                ASSERT(curr_file_history != nullptr);
-                auto _event = static_cast<Event_Node_SlotDisconnectAll*>(event);
-                Node_Slot* slot = _event->data.first;
-
-                auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
-                for(Node_Slot* adjacent_slot : slot->adjacent )
-                {
-                    auto each_cmd = std::make_shared<Cmd_DeleteEdge>(slot, adjacent_slot );
-                    cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
-                }
-                curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));
-                break;
-            }
-
-            case Event_CreateNode::id:
-            {
-                auto _event = reinterpret_cast<Event_CreateNode*>(event);
-                Graph* graph = _event->data.graph;
-
-                // 1) create the node
-                if ( !graph_root(graph) )
-                {
-                    TOOLS_LOG(tools::Verbosity_Error, "Nodable", "Unable to create_new primary_child, no root found on this graph.\n");
-                    continue;
-                }
-
-                Node* new_node  = graph_create_node(graph,
-                                                    _event->data.node_type,
-                                                    _event->data.node_signature,
-                                                    graph_root_scope(graph) );
-
-                // Insert an end of line and end of instruction
-                switch ( _event->data.node_type )
-                {
-                    case Create_Node_Type_BLOCK_CONDITION:
-                    case Create_Node_Type_BLOCK_FOR_LOOP:
-                    case Create_Node_Type_BLOCK_WHILE_LOOP:
-                    case Create_Node_Type_BLOCK_SCOPE:
-                    case Create_Node_Type_ROOT:
-                        new_node->suffix = Token::s_end_of_line;
                         break;
-                    case Create_Node_Type_VARIABLE_BOOLEAN:
-                    case Create_Node_Type_VARIABLE_DOUBLE:
-                    case Create_Node_Type_VARIABLE_INTEGER:
-                    case Create_Node_Type_VARIABLE_STRING:
-                    case Create_Node_Type_RETURN:
-                        new_node->suffix = Token::s_end_of_instruction;
-                        break;
-                    case Create_Node_Type_LITERAL_BOOLEAN:
-                    case Create_Node_Type_LITERAL_DOUBLE:
-                    case Create_Node_Type_LITERAL_INTEGER:
-                    case Create_Node_Type_LITERAL_STRING:
-                    case Create_Node_Type_FUNCTION:
-                        break;
-                    default:
-                        TOOLS_UNREACHABLE("Unexpected node_type: %i\n", _event->data.node_type);
-                }
-
-                // 2) handle connections
-                if ( Node_Slot_View* slot_view = _event->data.active_slotview )
-                {
-                    Node_Slot::Flags         complementary_flags = node_slot_flags_toggle_order(slot_view->slot->type_and_order());
-                    const Type_Descriptor*  type                = slot_view->property()->type;
-                    Node_Slot*              complementary_slot  = node_find_slot_by_property_type(new_node, complementary_flags, type);
-
-                    if ( !complementary_slot )
-                    {
-                        // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
-                        TOOLS_LOG(tools::Verbosity_Error,  "Graph_View", "unable to connect this primary_child" );
                     }
-                    else
+
+                    case Event_Code_REQUEST_FRAME_SELECTION:
                     {
-                        Node_Slot* out = slot_view->slot;
-                        Node_Slot* in  = complementary_slot;
+                        VERIFY(graph_view, "a graph_view is required");
+                        graph_view->flags |= Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
+                        break;
+                    }
 
-                        if ( out->has_flags( Node_Slot::Flag_ORDER_2ND ) )
-                            std::swap( out, in );
-
-                        graph_connect(out, in, Graph_Flag_ALLOW_SIDE_EFFECTS );
-
-                        // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
-                        if (node_is_instruction(out->node ) && out->type() == Node_Slot::Flag_TYPE_FLOW )
+                    case Event_Code_DELETE:
+                    {
+                        for( const View& selected_item : graph_view->selection )
                         {
-                            std::string buffer = out->node->suffix.string();
-                            if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
-                                out->node->suffix.suffix_push_back("\n");
+                            switch ( selected_item.type )
+                            {
+                                case View_Type_NODE:    { graph_flag_node_to_delete(selected_item.nodeview->node(), Graph_Flag_NONE);                       break; }
+                                case View_Type_SCOPE:   { graph_flag_node_to_delete(selected_item.scopeview->scope->node(), Graph_Flag_ALLOW_SIDE_EFFECTS); break; }
+                            }
                         }
+                        break;
+                    }
+
+                    case Event_Code_ARRANGE_SELECTION:
+                    {
+                        for( const View& selected_item : graph_view->selection )
+                        {
+                            switch ( selected_item.type )
+                            {
+                                case View_Type_NODE:    { nodeview_arrange_recursively(selected_item.nodeview);   break; }
+                                case View_Type_SCOPE:   { scopeview_arrange_content(selected_item.scopeview);     break; }
+                            }
+                        }
+                        break;
+                    }
+
+                    case Event_Code_SELECT_NEXT:
+                    {
+                        ASSERT(graph_view);
+                        graph_view->selection.clear();
+
+                        // Append all the successors to the selection
+                        for(View& selected_item : graph_view->selection )
+                            if (selected_item.type == View_Type_NODE)
+                                for (Node* _successor : selected_item.nodeview->node()->flow_outputs() )
+                                    if (Node_View* _successor_view = node_component<Node_View>(_successor) )
+                                        graph_view->selection.push_back( _successor_view );
+                        break;
+                    }
+
+                    case Event_Code_TOGGLE_FOLDING:
+                    {
+                        for(View& selected_item : graph_view->selection)
+                            if (selected_item.type == View_Type_NODE)
+                                nodeview_toggle_expandcollapse( selected_item.nodeview );
+                        break;
+                    }
+
+                    case Event_Code_SLOT_DROPPED:
+                    {
+                        ASSERT(curr_file_history != nullptr);
+                        auto tail = static_cast<Node_Slot*>(event.user.data1);
+                        auto head = static_cast<Node_Slot*>(event.user.data2);
+                        ASSERT(head != tail);
+                        if ( tail->order() == Node_Slot::Flag_ORDER_2ND )
+                        {
+                            if ( head->order() == Node_Slot::Flag_ORDER_2ND )
+                            {
+                                TOOLS_LOG(tools::Verbosity_Error, "Nodable", "Unable to connect incompatible edges\n");
+                                break; // but if it still the case, that's because edges are incompatible
+                            }
+                            TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Nodable", "Swapping edges to try to connect them\n");
+                            std::swap(tail, head);
+                        }
+                        auto cmd = std::make_shared<Cmd_Connect>(tail, head);
+                        curr_file_history->push_command(cmd);
+
+                        break;
+                    }
+
+                    case Event_Code_DELETE_LINK:
+                    {
+                        ASSERT(curr_file_history != nullptr);
+                        auto tail = static_cast<Node_Slot*>(event.user.data1);
+                        auto head = static_cast<Node_Slot*>(event.user.data2);
+                        auto command = std::make_shared<Cmd_DeleteEdge>(tail, head);
+                        curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(command));
+                        break;
+                    }
+
+                    case Event_Code_DELETE_ALL_LINKS:
+                    {
+                        ASSERT(curr_file_history != nullptr);
+                        auto slot = static_cast<Node_Slot*>(event.user.data1);
+
+                        auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
+                        for(Node_Slot* adjacent_slot : slot->adjacent )
+                        {
+                            auto each_cmd = std::make_shared<Cmd_DeleteEdge>(slot, adjacent_slot );
+                            cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
+                        }
+                        curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));
+                        break;
+                    }
+
+                    case Event_Code_REQUEST_CREATE_NODE:
+                    {
+                        auto event_data = static_cast<Event_Data__Create_Node*>(event.user.data1);
+
+                        Graph* graph = graph_view->graph();
+                        
+                        // 1) create the node
+                        if ( !graph_root(graph) )
+                        {
+                            TOOLS_LOG(tools::Verbosity_Error, "Nodable", "Unable to create_new primary_child, no root found on this graph.\n");
+                            continue;
+                        }
+
+                        Node* new_node  = graph_create_node(graph,
+                                                            event_data->node_type,
+                                                            event_data->node_signature,
+                                                            graph_root_scope(graph) );
+
+                        // Insert an end of line and end of instruction
+                        switch ( event_data->node_type )
+                        {
+                            case Create_Node_Type_BLOCK_CONDITION:
+                            case Create_Node_Type_BLOCK_FOR_LOOP:
+                            case Create_Node_Type_BLOCK_WHILE_LOOP:
+                            case Create_Node_Type_BLOCK_SCOPE:
+                            case Create_Node_Type_ROOT:
+                                new_node->suffix = Token::s_end_of_line;
+                                break;
+                            case Create_Node_Type_VARIABLE_BOOLEAN:
+                            case Create_Node_Type_VARIABLE_DOUBLE:
+                            case Create_Node_Type_VARIABLE_INTEGER:
+                            case Create_Node_Type_VARIABLE_STRING:
+                            case Create_Node_Type_RETURN:
+                                new_node->suffix = Token::s_end_of_instruction;
+                                break;
+                            case Create_Node_Type_LITERAL_BOOLEAN:
+                            case Create_Node_Type_LITERAL_DOUBLE:
+                            case Create_Node_Type_LITERAL_INTEGER:
+                            case Create_Node_Type_LITERAL_STRING:
+                            case Create_Node_Type_FUNCTION:
+                                break;
+                            default:
+                                TOOLS_UNREACHABLE("Unexpected node_type: %i\n", event_data->node_type);
+                        }
+
+                        // 2) handle connections
+                        if ( Node_Slot_View* slot_view = event_data->active_slotview )
+                        {
+                            Node_Slot::Flags        complementary_flags = node_slot_flags_toggle_order(slot_view->slot->type_and_order());
+                            const Type_Descriptor*  type                = slot_view->property()->type;
+                            Node_Slot*              complementary_slot  = node_find_slot_by_property_type(new_node, complementary_flags, type);
+
+                            if ( !complementary_slot )
+                            {
+                                // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
+                                TOOLS_LOG(tools::Verbosity_Error,  "Graph_View", "unable to connect this primary_child" );
+                            }
+                            else
+                            {
+                                Node_Slot* out = slot_view->slot;
+                                Node_Slot* in  = complementary_slot;
+
+                                if ( out->has_flags( Node_Slot::Flag_ORDER_2ND ) )
+                                    std::swap( out, in );
+
+                                graph_connect(out, in, Graph_Flag_ALLOW_SIDE_EFFECTS );
+
+                                // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
+                                if (node_is_instruction(out->node ) && out->type() == Node_Slot::Flag_TYPE_FLOW )
+                                {
+                                    std::string buffer = out->node->suffix.string();
+                                    if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
+                                        out->node->suffix.suffix_push_back("\n");
+                                }
+                            }
+                        }
+
+                        // set new_node's view position, select it
+                        if ( auto view = node_component<Node_View>(new_node) )
+                        {
+                            spatialnode_set_position(&view->shape.spatial_node, event_data->desired_screen_pos, WORLD_SPACE);
+                            graph_view->selection.clear();
+                            graph_view->selection.push_back(view);
+                        }
+
+                        delete event_data; // TODO: event data should be allocated in a dedicated buffer (cleared after each frame)
+                        break;
                     }
                 }
 
-                // set new_node's view position, select it
-                if ( auto view = node_component<Node_View>(new_node) )
-                {
-                    spatialnode_set_position(&view->shape.spatial_node, _event->data.desired_screen_pos, WORLD_SPACE);
-                    graph_view->selection.clear();
-                    graph_view->selection.push_back(view);
-                }
-                break;
             }
 
             default:
@@ -537,9 +530,6 @@ void ndbl::nodable_update(App_State* app)
                 TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "App", "Ignoring and event, this case is not handled\n");
             }
         }
-
-        // clean memory
-        delete event;
     }
 }
 
@@ -585,7 +575,7 @@ File* ndbl::nodable_add_file(App_State* app, File* _file)
     VERIFY(_file, "File is nullptr");
     app->files.push_back( _file );
     app->current_file = _file;
-    get_event_manager()->dispatch( Event_ID_FILE_OPENED );
+    event_manager_dispatch( event_manager_get(), Event_Type_FILE_OPENED );
     return _file;
 }
 

@@ -1,5 +1,8 @@
 #include "ImGuiEx.h"
 
+#include "core/Event.h"
+#include "gui/Action.h"
+#include "gui/Action_Manager.h"
 #include "gui/geometry/Bezier_Curve_Segment_2D.h"
 #include "tools/core/Log.h"
 #include "tools/core/Asserts.h"
@@ -313,3 +316,38 @@ void ImGuiEx::Grid(const Rect& region, float grid_size, int subdiv_count, ImU32 
         }
     }
 }
+
+const Action* ImGuiEx::MenuItem_for_event_user_code(Event_User_Code code, bool selected, bool enable)
+{
+    // TODO: we do not index actions based on Event_User_Code
+    //       we only do it for Event_Type
+    //       perhaps we should have an additionnal index, OR Event_User_Code should be a subset of Event_Type!
+    const Action* action = nullptr;
+    for(const Action& each_action : action_manager_get()->actions)
+    {
+        if( each_action.event.type == Event_Type_USER && each_action.event.user.code == code )
+        {
+            action = &each_action;
+        }
+    }
+
+    ASSERT(action != nullptr);
+
+    if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
+    {
+        return action;
+    }
+
+    return nullptr;
+}
+
+const Action* ImGuiEx::MenuItem_for_event_type(Event_Type event_type, bool selected, bool enable)
+{
+    const Action* action = action_manager_get_action_with_event_type(action_manager_get(), event_type);
+
+    if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
+    {
+        return action;
+    }
+    return nullptr;
+};

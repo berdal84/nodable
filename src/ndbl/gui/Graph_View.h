@@ -33,9 +33,9 @@ namespace ndbl
         Graph_View_Flags                    flags = 0;
         tools::Simple_Signal                signal_change;
         Node_Search_Input                   node_search_input;
-        View                          hovered;
-        View                          focused;
-        View_Selection             selection;
+        View                                hovered;
+        View                                focused;
+        View_Selection                      selection;
         tools::Box_2D                       shape;
         tools::State_Machine                state_machine;
         tools::Vec2                         state_roi_start_pos;

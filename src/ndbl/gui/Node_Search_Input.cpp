@@ -1,6 +1,9 @@
 #include "Node_Search_Input.h"
+#include "gui/Event.h"
+#include "gui/Node_Slot_View.h"
 #include "tools/gui/Action.h"
 #include "imgui.h"
+#include <cstddef>
 
 namespace ndbl
 {
@@ -11,6 +14,8 @@ namespace ndbl
 
 void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot)
 {
+    using namespace tools;
+
     context_menu->items_with_compatible_signature.clear();
 
     // 1) When NO slot is dragged
@@ -19,18 +24,23 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Inp
     if ( !dragged_slot )
     {
         // When no slot is dragged, user can create any node
-        context_menu->items_with_compatible_signature = context_menu->items;
+        context_menu->items_with_compatible_signature.resize( context_menu->items.size() );
+        for(size_t i = 0; i < context_menu->items_with_compatible_signature.size(); i++)
+            context_menu->items_with_compatible_signature[i] = i;
+
         return;
     }
 
     // 2) When a slot is dragged
     //--------------------------
 
-    for (Action_CreateNode* action : context_menu->items )
+    size_t i = 0;
+    for (const Action& action : context_menu->items )
     {
         const Type_Descriptor* dragged_property_type = dragged_slot->property_type();
 
-        switch ( action->event_data.node_type )
+        auto event_data = static_cast<Event_Data__Create_Node*>(action.event.user.data1);
+        switch ( event_data->node_type )
         {
             case Create_Node_Type_BLOCK_CONDITION:
             case Create_Node_Type_BLOCK_FOR_LOOP:
@@ -52,21 +62,22 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Inp
                 {
                     // we can connect anything to a Node ref input
                 }
-                else if ( action->event_data.node_signature )
+                else if ( event_data->node_signature )
                 {
                     // discard incompatible signatures
 
                     if ( dragged_slot->allows(Node_Slot::Flag_ORDER_1ST ) &&
-                        !action->event_data.node_signature->has_arg_with_type(dragged_property_type)
+                        !event_data->node_signature->has_arg_with_type(dragged_property_type)
                             )
                         continue;
 
-                    if ( !action->event_data.node_signature->return_type()->equals(dragged_property_type) )
+                    if ( !event_data->node_signature->return_type()->equals(dragged_property_type) )
                         continue;
 
                 }
         }
-        context_menu->items_with_compatible_signature.push_back( action );
+        context_menu->items_with_compatible_signature.push_back(i);
+        i++;
     }
 }
 
@@ -92,18 +103,18 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_In
 {
     std::string search{context_menu->search_input_value}; // FindCaseInsensitive takes a std::string
     context_menu->items_matching_search.clear();
-    for ( auto& menu_item : context_menu->items_with_compatible_signature )
+    for ( size_t i : context_menu->items_with_compatible_signature )
     {
-        if( !CaseInsensitiveFind(menu_item->label, search) )
+        if( !CaseInsensitiveFind(context_menu->items[i].label, search) )
             continue;
 
-        context_menu->items_matching_search.push_back(menu_item);
+        context_menu->items_matching_search.push_back(i);
         if ( context_menu->items_matching_search.size() == _limit )
             break;
     }
 }
 
-ndbl::Action_CreateNode* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot, size_t _result_max_count )
+ndbl::Action* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot, size_t _result_max_count )
 {
     if ( context_menu->must_be_reset_flag )
     {
@@ -138,10 +149,10 @@ ndbl::Action_CreateNode* ndbl::nodeview_contextmenu_draw_search_input(Node_Searc
         // When a single item is filtered, pressing enter will press the item's button.
         if ( context_menu->items_matching_search.size() == 1)
         {
-            auto action = context_menu->items_matching_search.front();
-            if ( ImGui::SmallButton( action->label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
+            auto action_index = context_menu->items_matching_search.front();
+            if ( ImGui::SmallButton( context_menu->items[action_index].label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
             {
-                return action;
+                return &context_menu->items[action_index];
             }
         }
         else
@@ -155,7 +166,7 @@ ndbl::Action_CreateNode* ndbl::nodeview_contextmenu_draw_search_input(Node_Searc
             auto it = context_menu->items_matching_search.begin();
             while( it != context_menu->items_matching_search.end() && std::distance(context_menu->items_matching_search.begin(), it) != _result_max_count)
             {
-                auto* action = *it;
+                Action* action = &context_menu->items[*it];
 
                 // User can click on the button...
                 ImGui::Button( action->label.c_str());

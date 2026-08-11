@@ -1,57 +1,57 @@
 #include "Event_Manager.h"
+#include <queue>
 #include "Asserts.h"
 #include "Task_Manager.h"
 
-using namespace tools;
+tools::Event_Manager* g_event_manager = nullptr;
 
-Event_Manager* g_event_manager = nullptr;
-
-Event_Manager* tools::init_event_manager()
+tools::Event_Manager* tools::event_manager_init()
 {
     VERIFY(g_event_manager == nullptr, "Cannot be called twice"); // singleton
     g_event_manager = new Event_Manager();
     return g_event_manager;
 }
 
-Event_Manager* tools::get_event_manager()
+tools::Event_Manager* tools::event_manager_get()
 {
     VERIFY(g_event_manager != nullptr, "event manager can't be found. Did you call init_ex ?");
     return g_event_manager;
 }
 
-void  tools::shutdown_event_manager(Event_Manager* _event_manager)
+void  tools::event_manager_shutdown(Event_Manager* manager)
 {
-    ASSERT(_event_manager == g_event_manager);  // singleton
+    ASSERT(manager == g_event_manager);  // singleton
     ASSERT(g_event_manager != nullptr);
     delete g_event_manager;
     g_event_manager = nullptr;
 }
 
-void Event_Manager::dispatch(IEvent* _event)
+void tools::event_manager_dispatch(Event_Manager* manager, Event _event)
 {
-    m_events.push(_event);
+    manager->m_events.push(_event);
 }
 
-IEvent* Event_Manager::poll_event()
+tools::Event tools::event_manager_poll_event(Event_Manager* manager)
 {
-    if ( m_events.empty() )
+    if ( manager->m_events.empty() )
     {
-        return nullptr;
+        return {};
     }
 
-    IEvent* next_event = m_events.front();
-    m_events.pop();
+    Event next_event = manager->m_events.front();
+    manager->m_events.pop();
     return next_event;
 }
 
-IEvent* Event_Manager::dispatch( Event_ID _event_id )
+void tools::event_manager_dispatch( Event_Manager* manager, Event_Type type )
 {
-    auto new_event = new IEvent{ _event_id };
-    dispatch(new_event );
-    return new_event;
+    event_manager_dispatch(manager, Event{ type });
 }
 
-void Event_Manager::dispatch_delayed(u64_t delay, IEvent* event)
+void tools::event_manager_dispatch_delayed( Event_Manager* manager, Event event, u64_t delay_in_ms)
 {
-    get_task_manager()->schedule_task([this, event]() -> void { this->dispatch(event); }, delay);
+    get_task_manager()->schedule_task(
+        [manager, event]() -> void { event_manager_dispatch(event_manager_get(), event); }
+        , delay_in_ms
+    );
 }

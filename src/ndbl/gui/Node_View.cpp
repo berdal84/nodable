@@ -4,21 +4,22 @@
 #include <glm/trigonometric.hpp> // for sinus
 #include <vector>
 
-#include "core/Asserts.h"
-#include "gui/ImGuiEx.h"
-#include "gui/Scope_View.h"
-#include "gui/View_State.h"
-#include "gui/geometry/Pivots.h"
-#include "gui/geometry/Space.h"
+#include "tools/core/Asserts.h"
+#include "tools/gui/ImGuiEx.h"
+#include "tools/gui/View_State.h"
+#include "tools/gui/geometry/Pivots.h"
+#include "tools/gui/geometry/Space.h"
 #include "tools/core/Math.h"
 
+#include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/Scope.h"
 
-#include "Config.h"
-#include "Node_Property_View.h"
-#include "Node_Slot_View.h"
-#include "Graph_View.h"
+#include "ndbl/gui/Scope_View.h"
+#include "ndbl/gui/Config.h"
+#include "ndbl/gui/Node_Property_View.h"
+#include "ndbl/gui/Node_Slot_View.h"
+#include "ndbl/gui/Graph_View.h"
 
 #ifdef NDBL_DEBUG
 #define NDBL_ASTNODEVIEW_DEBUG_DRAW 0

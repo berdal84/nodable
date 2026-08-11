@@ -1,5 +1,7 @@
 #include "Nodable_View.h"
+#include "core/Event.h"
 #include "core/Graph.h"
+#include "gui/Action_Manager.h"
 #include "gui/Action_Manager_View.h"
 #include "gui/App_View.h"
 #include "gui/Event.h"
@@ -68,7 +70,7 @@ void ndbl::nodableview_draw(App_View_State* view)
     // note: we draw this view nested in base view's begin/end (similar to ImGui API).
     tools::appview_begin(&view->base);
 
-    Event_Manager*  event_manager   = get_event_manager();
+    Event_Manager*  event_manager   = event_manager_get();
     Config*         cfg             = get_config();
     tools::Config*  tools_cfg       = tools::get_config();
     bool            redock_all      = true;
@@ -81,25 +83,36 @@ void ndbl::nodableview_draw(App_View_State* view)
     if (ImGui::BeginMenuBar())
     {
         History* current_file_history = current_file ? &current_file->history : nullptr;
-        bool has_selection = false;
+        View_Selection selection;
         
         if ( current_file != nullptr )
         {
             auto* graph_view = componentbag_get<Graph_View>(&current_file->graph->component_bag);
-            has_selection = !graph_view->selection.empty();
+            selection = graph_view->selection;
         }
 
         if (ImGui::BeginMenu("File"))
         {
             bool has_file = current_file != nullptr;
             bool is_current_file_content_dirty = current_file != nullptr && current_file->has_flags(File_Flag_NEEDS_TO_BE_SAVED);
-            ImGuiEx::MenuItem_EventTrigger<Event_FileNew>();
-            ImGuiEx::MenuItem_EventTrigger<Event_FileBrowse>();
+
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_NEW))
+                event_manager_dispatch( event_manager, action->event);
+
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_BROWSE))
+                event_manager_dispatch( event_manager, action->event);
+
             ImGui::Separator();
-            ImGuiEx::MenuItem_EventTrigger<Event_FileSaveAs>(false, has_file);
-            ImGuiEx::MenuItem_EventTrigger<Event_FileSave>(false, has_file && is_current_file_content_dirty);
+
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_SAVE_AS, false, has_file))
+                event_manager_dispatch( event_manager, action->event);
+
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_SAVE, false, has_file && is_current_file_content_dirty))
+                event_manager_dispatch( event_manager, action->event);
             ImGui::Separator();
-            ImGuiEx::MenuItem_EventTrigger<Event_FileClose>(false, has_file);
+
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_CLOSE, false, has_file))
+                event_manager_dispatch( event_manager, action->event);
 
             auto auto_paste = has_file && current_file->view.experimental_clipboard_auto_paste;
 
@@ -107,8 +120,9 @@ void ndbl::nodableview_draw(App_View_State* view)
             {
                 fileview_set_experimental_clipboard_auto_paste(&current_file->view, !auto_paste);
             }
-
-            ImGuiEx::MenuItem_EventTrigger<Event_Exit>();
+            
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_REQUEST_EXIT))
+                event_manager_dispatch( event_manager, action->event);
 
             ImGui::EndMenu();
         }
@@ -117,12 +131,24 @@ void ndbl::nodableview_draw(App_View_State* view)
         {
             if (current_file_history)
             {
-                ImGuiEx::MenuItem_EventTrigger<Event_Undo>();
-                ImGuiEx::MenuItem_EventTrigger<Event_Redo>();
+                if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_UNDO))
+                    event_manager_dispatch( event_manager, action->event);
+
+                if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_REDO))
+                    event_manager_dispatch( event_manager, action->event);
+
                 ImGui::Separator();
             }
-            if (ImGui::MenuItem("Delete Node", "Del.", false, has_selection ))
-                event_manager->dispatch( Event_ID_DELETE_NODE );
+            if (ImGui::MenuItem("Delete", "Del.", false, !selection.empty() ))
+            {
+                auto user_data = new Event_Data__Selection();
+                user_data->selected_items = selection;
+                
+                Event event{Event_Type_USER};
+                event.user.code  = Event_Code_DELETE;
+                event.user.data1 = user_data;
+                event_manager_dispatch( event_manager, event );
+            }
 
             ImGui::EndMenu();
         }
@@ -174,27 +200,46 @@ void ndbl::nodableview_draw(App_View_State* view)
 
         if (ImGui::BeginMenu("Code"))
         {
-            ImGuiEx::MenuItem_EventTrigger<Event_ToggleIsolationFlags>(cfg->has_flags(Config_Flag_ISOLATION_ON));
+            if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Code_TOGGLE_ISOLATION_FLAGS, cfg->has_flags(Config_Flag_ISOLATION_ON)))
+            {
+                event_manager_dispatch( event_manager, action->event);
+            }
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Graph"))
         {
 
-            if (ImGui::MenuItem("Reset View"))
-                event_manager->dispatch( Event_ID_RESET_GRAPH_VIEW );
-
-            ImGuiEx::MenuItem_EventTrigger<Event_ArrangeSelection>(false, has_selection);
-            ImGuiEx::MenuItem_EventTrigger<Event_ToggleFolding>(false, has_selection);
-
-            if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
+            if(const Action* action = ImGuiEx::MenuItem_for_event_user_code( Event_Code_RESET_GRAPH_VIEW) )
             {
-                event_manager->dispatch<Event_ToggleFolding>({});
+                event_manager_dispatch(event_manager, action->event);
+            }
+
+            if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Code_ARRANGE_SELECTION,false, !selection.empty() ) )
+            {
+                event_manager_dispatch( event_manager, action->event);
+            }
+
+            if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Code_TOGGLE_FOLDING, false, !selection.empty() ) )
+            {
+                event_manager_dispatch( event_manager, action->event);
+            }
+
+            if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, !selection.empty() ))
+            {
+                if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Code_TOGGLE_FOLDING,false, !selection.empty() ))
+                {
+                    event_manager_dispatch( event_manager, action->event);
+                }
             }
 
             ImGui::Separator();
-
-            ImGuiEx::MenuItem_EventTrigger<Event_ToggleIsolationFlags>(cfg->has_flags(Config_Flag_ISOLATION_ON));
+            {
+                if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Code_TOGGLE_ISOLATION_FLAGS, cfg->has_flags(Config_Flag_ISOLATION_ON)))
+                {
+                    event_manager_dispatch( event_manager, action->event);
+                }
+            }
 
             ImGui::EndMenu();
         }
@@ -312,7 +357,7 @@ void ndbl::nodableview_draw(App_View_State* view)
         if ( ImGui::Begin( cfg->ui_toolbar_window_label, NULL, flags ) )
         {
             Font_Manager*  font_manager  = get_font_manager();
-            Event_Manager* event_manager = get_event_manager();
+            Event_Manager* event_manager = event_manager_get();
             const Vec2&   button_size   = cfg->ui_toolButton_size;
 
             ImGui::PopStyleVar();
@@ -321,14 +366,14 @@ void ndbl::nodableview_draw(App_View_State* view)
 
             // reset
             if (ImGui::Button(ICON_FA_UNDO " Reset Graph View", button_size)) {
-                event_manager->dispatch( Event_ID_RESET_GRAPH_VIEW );
+                event_manager_dispatch( event_manager, Event_Code_RESET_GRAPH_VIEW );
             }
             ImGui::SameLine();
 
             // enter isolation mode
             if (ImGui::Button(cfg->has_flags(Config_Flag_ISOLATION_ON) ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF", button_size))
             {
-                event_manager->dispatch( Event_ID_TOGGLE_ISOLATION_FLAGS );
+                event_manager_dispatch( event_manager, Event_Code_TOGGLE_ISOLATION_FLAGS );
             }
             ImGui::SameLine();
             ImGui::EndGroup();
@@ -525,8 +570,7 @@ void ndbl::nodableview_draw(App_View_State* view)
 
             if (ImGui::CollapsingHeader("Shortcuts", flags ))
             {
-                Action_Manager*  action_manager = get_action_manager();
-                action_manager_view_draw(action_manager);
+                action_manager_view_draw(action_manager_get());
             }
 
         #if TOOLS_POOL_ENABLE
@@ -628,7 +672,7 @@ void ndbl::nodableview_draw(App_View_State* view)
 
         ImGui::Begin( cfg->ui_startup_window_label);
         {
-            Event_Manager* event_manager = get_event_manager();
+            Event_Manager* event_manager = event_manager_get();
             Font_Manager*  font_manager  = get_font_manager();
 
             ImGui::PopStyleColor();
@@ -648,10 +692,10 @@ void ndbl::nodableview_draw(App_View_State* view)
 
                 ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
                 if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                    event_manager->dispatch( Event_ID_FILE_NEW );
+                    event_manager_dispatch( event_manager, Event_Type_FILE_NEW );
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                    event_manager->dispatch( Event_ID_FILE_BROWSE );
+                    event_manager_dispatch( event_manager, Event_Type_FILE_BROWSE );
 
                 ImGui::NewLine();
                 ImGui::Separator();

@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <cstdio>
 #include <vector>
+#include "core/Event.h"
+#include "gui/Action_Manager.h"
 #include "imgui.h"
 
 
@@ -866,14 +868,16 @@ void ndbl::graphview_reset_all_properties(Graph_View* graph_view)
 
 void ndbl::_graphview_draw_context_menu(Graph_View* graph_view, Node_Slot_View* dragged_slotview)
 {
-    if (Action_CreateNode* triggered_action = nodeview_contextmenu_draw_search_input( &graph_view->node_search_input, dragged_slotview, 10))
+    if (Action* triggered_action = nodeview_contextmenu_draw_search_input( &graph_view->node_search_input, dragged_slotview, 10))
     {
+        ASSERT(triggered_action->event.type == Event_Type_USER);
+
         // Generate an event from this action, add some info to the state and dispatch it.
-        auto event                     = triggered_action->make_event();
-        event->data.graph              = graph_view->graph();
-        event->data.active_slotview    = dragged_slotview;
-        event->data.desired_screen_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
-        get_event_manager()->dispatch(event);
+        Event event = triggered_action->event;
+        auto event_data = static_cast<Event_Data__Create_Node*>(event.user.data1);
+        event_data->active_slotview    = dragged_slotview;
+        event_data->desired_screen_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
+        event_manager_dispatch( event_manager_get(), event);
         ImGui::CloseCurrentPopup();
     }
 }
@@ -990,21 +994,25 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                 auto* scopeview = graph_view->focused.scopeview;
                 auto* nodeview = componentbag_get<Node_View>(&scopeview->scope->node()->component_bag);
 
-                if ( ImGui::MenuItem( "Collapse / Expand Scope") )
+                if ( ImGui::MenuItem( "Collapse / Expand") )
                 {
                     nodeview_toggle_expandcollapse(nodeview);
                 }
                 
-                if ( ImGui::MenuItem("Select Scope Content") )
+                if ( ImGui::MenuItem("Select Content") )
                 {
                     _graphview_select_scope(graph_view, scopeview);
                 }
 
-                if ( ImGui::MenuItem("Delete Scope") )
+                if ( ImGui::MenuItem("Delete") )
                 {
-                    auto event = new Event_DeleteSelection();
-                    event->data.selected_items.push_back(scopeview);
-                    get_event_manager()->dispatch(event);
+                    graph_view->selection.clear();
+                    graph_view->selection.push_back(scopeview);
+
+                    Event event{Event_Type_USER};
+                    event.user.code  = Event_Code_DELETE;
+
+                    event_manager_dispatch(event_manager_get(), event);
                 }
 
 
@@ -1017,12 +1025,13 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             case View_Type_LINK:
             {
                 auto edge = graph_view->focused.linkview;
-                if ( ImGui::MenuItem("Delete Edge") )
+                if ( ImGui::MenuItem("Delete") )
                 {
-                    auto* event = new Event_DeleteEdge();
-                    event->data.first  = edge.head->slot;
-                    event->data.second = edge.tail->slot;
-                    get_event_manager()->dispatch( event );
+                    Event event{Event_Type_USER};
+                    event.user.code  = Event_Code_DELETE_LINK;
+                    event.user.data1 = edge.tail->slot;
+                    event.user.data2 = edge.head->slot;
+                    event_manager_dispatch( event_manager_get(), event );
                 }
 
                 break;
@@ -1030,11 +1039,13 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
 
             case View_Type_SLOT:
             {
-                if ( ImGui::MenuItem("Disconnect Slot") )
+                if ( ImGui::MenuItem("Disconnect") )
                 {
-                    auto* event = new Event_Node_SlotDisconnectAll();
-                    event->data.first = graph_view->focused.slotview->slot;
-                    get_event_manager()->dispatch( event );
+                    Event event{Event_Type_USER};
+                    event.user.code  = Event_Code_DELETE_ALL_LINKS;
+                    event.user.data1 = graph_view->focused.slotview->slot;
+                    event.user.data2 = nullptr;
+                    event_manager_dispatch( event_manager_get(), event );
                 }
 
                 break;
@@ -1044,28 +1055,32 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             {
                 auto nodeview = graph_view->focused.nodeview;
 
-                if ( ImGui::MenuItem( "Collapse / Expand Node") )
+                if ( ImGui::MenuItem( "Collapse / Expand") )
                 {
                     nodeview_toggle_expandcollapse(nodeview);
                 }
 
-                if ( ImGui::MenuItem("Pin / Unpin Node") )
+                if ( ImGui::MenuItem("Pin / Unpin") )
                 {
                     const bool pinned = nodeview->state.has_flags(View_Flag_PINNED);
                     nodeview->state.set_flags(View_Flag_PINNED, !pinned );
                 }
 
-                if ( ImGui::MenuItem("Reset Node Layout") )
+                if ( ImGui::MenuItem("Reset Layout") )
                 {
                     nodeview_arrange_recursively(nodeview);
                     _graphview_reset(graph_view);
                 }
 
-                if ( ImGui::MenuItem("Delete Node") )
+                if ( ImGui::MenuItem("Delete") )
                 {
-                    auto* event = new Event_DeleteSelection ();
-                    event->data.selected_items.push_back( nodeview );
-                    get_event_manager()->dispatch( event );
+                    auto data = new Event_Data__Selection();
+                    data->selected_items.push_back(nodeview);
+
+                    Event event{Event_Type_USER};
+                    event.user.data1 = data;
+
+                    event_manager_dispatch(event_manager_get(), event);
                 }
 
                 break;
@@ -1231,10 +1246,10 @@ void ndbl::_graphview_line_state_tick(Graph_View* graph_view)
         {
             if ( graph_view->focused != graph_view->hovered )
             {
-                auto event = new Event_Node_SlotDropped();
-                event->data.first  = graph_view->focused.slotview->slot;
-                event->data.second = graph_view->hovered.slotview->slot;
-                get_event_manager()->dispatch(event);
+                Event event{Event_Type_USER};
+                event.user.data1 = graph_view->focused.slotview->slot;
+                event.user.data2 = graph_view->hovered.slotview->slot;
+                event_manager_dispatch(event_manager_get(), event);
                 graph_view->state_machine.exit_state();
             }
         }
@@ -1281,10 +1296,11 @@ void ndbl::_graphview_roi_state_tick(Graph_View* graph_view)
     if (ImGui::IsMouseReleased(0))
     {
         // Get the views included in the ROI
+        // Note: this might be expensive with a lots of nodes, we will need some sort of space partitionning in the future.
         std::set<Node_View*> nodeviews_inside_roi;
         for ( Node* node : graph_view->graph()->nodes )
-            if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
-                if ( Rect::contains(roi, nodeview_get_rect(nodeview)) )
+            if ( auto nodeview = node_component<Node_View>(node) )
+                if ( Rect::contains(roi, nodeview_get_rect(nodeview, tools::WORLD_SPACE)) )
                     nodeviews_inside_roi.insert( nodeview );
 
         // Select them

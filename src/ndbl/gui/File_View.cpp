@@ -1,5 +1,6 @@
 #include "File_View.h"
 
+#include "gui/Action_Manager.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/gui/Font_Manager.h"
 #include "tools/gui/ImGuiTypeConvert.h"
@@ -365,15 +366,15 @@ size_t ndbl::fileview_size(const File_View* file_view)
 
 void ndbl::fileview_refresh_overlay(File_View* file_view, Condition condition )
 {
-    for (const IAction* _action: get_action_manager()->get_actions())
+    for (const Action& action: action_manager_get()->actions )
     {
-        if( ( _action->userdata & condition) == condition && (_action->userdata & Condition_HIGHLIGHTED) )
+        if( ( action.flags & condition) == condition && (action.flags & Condition_HIGHLIGHTED) )
         {
-            std::string             label        = _action->label.substr(0, 12);
-            std::string             shortcut_str = _action->shortcut.to_string();
+            std::string             label        = action.label.substr(0, 12);
+            std::string             shortcut_str = action.shortcut.to_string();
             File_View_Overlay_Type overlay_type;
             
-            if (_action->userdata & Condition_HIGHLIGHTED_IN_TEXT_EDITOR)
+            if (action.flags & Condition_HIGHLIGHTED_IN_TEXT_EDITOR)
                 overlay_type = File_View_Overlay_Type_TEXT;
             else
                 overlay_type = File_View_Overlay_Type_GRAPH;

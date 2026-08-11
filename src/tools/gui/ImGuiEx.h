@@ -5,18 +5,18 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
+#include "core/Event.h"
 #include "tools/gui/geometry/Rect.h"
 #include "tools/gui/geometry/Vec2.h"
 #include "tools/gui/geometry/Vec4.h"
 #include "tools/gui/geometry/Space.h"
-
-#include "Action_Manager.h"
 #include "tools/gui/geometry/Bezier_Curve_Segment_2D.h"
 
 namespace tools
 {
     // forward declarations
     struct Texture;
+    struct Action;
 
     namespace ImGuiEx
     {
@@ -75,18 +75,8 @@ namespace tools
         float           CalcSegmentHoverMinDist( float line_thickness );
         void            DrawPath(ImDrawList* draw_list, const std::vector<Vec2>* path, const Vec4& color, float thickness);
         void            Grid(const Rect& screen_space_region, float grid_size, int subdiv_count, ImU32 major_color, ImU32 minor_color);
-
-        template<class EventT>
-        static void MenuItem_EventTrigger(bool selected = false, bool enable = true) // Shorthand to get a given action from the manager and draw a MenuItem from it.
-        {
-            Action_Manager* action_manager = get_action_manager();
-            const IAction* action = action_manager->get_action_with_id(EventT::id);
-
-            if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
-            {
-                action->trigger();
-            }
-        };
+        const Action*   MenuItem_for_event_type(Event_Type, bool selected = false, bool enable = true); // Shorthand to get a given action from the manager and draw a MenuItem from it.
+        const Action*   MenuItem_for_event_user_code(Event_User_Code, bool selected = false, bool enable = true); // Shorthand to get a given action from the manager and draw a MenuItem from it.
 
         template<typename ...Args>
         static void DrawHelperEx(float _alpha, const char* _Format, Args... args)

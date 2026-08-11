@@ -49,8 +49,8 @@ namespace ndbl
         View(): type(View_Type_NULL), linkview() {}
         View(Node_View* view): type(View_Type_NODE), ptr(view) {}
         View(Scope_View* view): type(View_Type_SCOPE), ptr(view) {}
-        View(Node_Slot_View* view): type(View_Type_NODE), ptr(view) {}
-        View(Node_Slot_Link_View view): type(View_Type_NODE), linkview(view) {}
+        View(Node_Slot_View* view): type(View_Type_SLOT), ptr(view) {}
+        View(Node_Slot_Link_View view): type(View_Type_LINK), linkview(view) {}
         ~View() {};
     };
 
@@ -76,15 +76,7 @@ namespace ndbl
     }
 
     static bool operator==(const View& a, const View& b)
-    {
-        if (a.type != b.type)
-            return false;
-
-        if (a.type == View_Type_LINK)
-            return a.linkview == b.linkview;
-
-        return a.ptr == b.ptr;
-    }
+    { return memcmp(&a, &b, sizeof(View)) == 0; }
 
     typedef u8_t View_Selection_Event_Type;
     enum View_Selection_Event_Type_

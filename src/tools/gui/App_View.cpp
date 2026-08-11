@@ -1,6 +1,8 @@
 #include "App_View.h"
 #include "SDL_timer.h"
 #include "core/Asserts.h"
+#include "core/Event.h"
+#include "gui/Action_Manager.h"
 #include "gui/ImGuiEx.h"
 #include <lodepng.h> // to save screenshot as PNG
 #include <imgui/backends/imgui_impl_opengl3.h>
@@ -38,8 +40,8 @@ void tools::appview_init(App_View_State* view, App_State* app)
     view->show_splashscreen     = true;
     view->app               = app;
     view->texture_manager   = init_texture_manager();
-    view->event_manager     = init_event_manager();
-    view->action_manager    = init_action_manager();
+    view->event_manager     = event_manager_init();
+    view->action_manager    = action_manager_init();
 
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
@@ -219,8 +221,8 @@ void tools::appview_deinit(App_View_State* view)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down ...\n");
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down managers ...\n");
-    shutdown_action_manager(view->action_manager);
-    shutdown_event_manager(view->event_manager);
+    action_manager_deinit(view->action_manager);
+    event_manager_shutdown(view->event_manager);
     shutdown_font_manager(view->font_manager);
     shutdown_texture_manager(view->texture_manager);
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down OpenGL3 ...\n");
@@ -253,38 +255,33 @@ void tools::appview_update(App_View_State* view)
                 if( event.window.event == SDL_WINDOWEVENT_CLOSE)
                     app_request_stop(view->app);
                 break;
+
             case SDL_KEYDOWN:
-
-
                 if( event.key.keysym.mod & (KMOD_CTRL | KMOD_ALT) )
                 {
                     // Test all the shortcuts with Ctrl or Alt modifiers
 
-                    for(const IAction* _action: view->action_manager->get_actions() )
+                    for(const Action& action: view->action_manager->actions )
                     {
                         // first, priority to shortcuts with mod
-                        if ( _action->shortcut.mod != KMOD_NONE)
-                            if ( _action->event_id )
-                                if ( _action->shortcut.mod & event.key.keysym.mod ) // same mod
-                                     if ( _action->shortcut.key == event.key.keysym.sym) // same key
-                                    {
-                                        view->event_manager->dispatch(_action->event_id );
-                                        break;
-                                    }
+                        if ( action.shortcut.mod != KMOD_NONE)
+                            if ( action.event.type != Event_Type_NULL )
+                                if ( action.shortcut.mod & event.key.keysym.mod ) // same mod
+                                    if ( action.shortcut.key == event.key.keysym.sym) // same key
+                                        { event_manager_dispatch(view->event_manager, action.event.type ); break; }
                     }
                 }
                 else
                 {
                     // Test all other shortcuts
 
-                    for(const IAction* _action: view->action_manager->get_actions() )
+                    for(const Action& action: view->action_manager->actions )
                     {
-                        if ( _action->shortcut.mod == KMOD_NONE )
-                            if ( _action->event_id )
-                                if ( _action->shortcut.key == event.key.keysym.sym)
+                        if ( action.shortcut.mod == KMOD_NONE )
+                            if ( action.event.type != Event_Type_NULL )
+                                if ( action.shortcut.key == event.key.keysym.sym)
                                 {
-                                    IEvent* event_to_dispatch = _action->make_event();
-                                    view->event_manager->dispatch( event_to_dispatch );
+                                    event_manager_dispatch(view->event_manager, action.event);
                                     break;
                                 }
                     }

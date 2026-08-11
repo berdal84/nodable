@@ -1,7 +1,6 @@
 #pragma once
 
 #include "tools/gui/Action.h"
-#include "Event.h"
 
 namespace ndbl
 {
@@ -9,18 +8,4 @@ namespace ndbl
     using tools::Event;
 
     // Actions specific to Nodable, more actions defined in framework's Action.h
-
-    // 1) Basic actions (simple events)
-
-    using Action_DeleteNode      = Action<Event_DeleteSelection>;
-    using Action_ArrangeNode     = Action<Event_ArrangeSelection>;
-    using Action_ToggleFolding   = Action<Event_ToggleFolding>;
-    using Action_SelectNext      = Action<Event_SelectNext>;
-    using Action_ToggleIsolate   = Action<Event_ToggleIsolationFlags>;
-    using Action_MoveGraph       = Action<Event_MoveSelection>;
-
-    // 2) Advanced actions (custom events)
-
-    using Action_FrameSelection  = Action<Event_FrameSelection>;
-    using Action_CreateNode      = Action<Event_CreateNode>;
 }

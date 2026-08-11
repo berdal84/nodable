@@ -1,80 +1,53 @@
 #pragma once
 #include "Types.h"
-#include <string>
 
 namespace tools
 {
-    typedef  u16_t Event_ID;
-    /**
-     * Enumerate event types
-     * Can be extended starting at Event_ID_USER_DEFINED
-     */
-    enum Event_ID_ : u16_t
+    typedef u16_t Event_Type;
+    enum Event_Type_ : u16_t
     {
-        // Declare common event types
+        Event_Type_NULL = 0,
 
-        Event_ID_NULL = 0,
+        // basic events (no data)
+        Event_Type_FILE_SAVE,
+        Event_Type_FILE_SAVE_AS,
+        Event_Type_FILE_NEW,
+        Event_Type_FILE_CLOSE,
+        Event_Type_FILE_BROWSE,
+        Event_Type_FILE_OPENED,
+        Event_Type_UNDO,
+        Event_Type_REDO,
+        Event_Type_REQUEST_EXIT,
 
-        Event_ID_FILE_SAVE,
-        Event_ID_FILE_SAVE_AS,
-        Event_ID_FILE_NEW,
-        Event_ID_FILE_CLOSE,
-        Event_ID_FILE_BROWSE,
-        Event_ID_UNDO,
-        Event_ID_REDO,
-        Event_ID_REQUEST_EXIT,
-        Event_ID_REQUEST_SHOW_WINDOW,
-
-        Event_ID_FILE_OPENED,
-
-        Event_ID_USER_DEFINED = 0xff,
+        // extended events (with data)
+        Event_Type_WINDOW,
+        Event_Type_USER,
     };
 
-    /** Basic event, can be extended via CustomEvent */
-    class IEvent
+    struct Event_Data__Window
     {
-    public:
-        const Event_ID id;
-        constexpr explicit IEvent(Event_ID id): id(id) {}
-        virtual ~IEvent() = default;
+        const char* window_id;        // ImGui identifier
+        bool        visible   = true; // desired state
     };
 
-    struct null_data_t {};
+    typedef u16_t Event_User_Code;
 
-    /** Template to extend IEvent with a specific payload */
-    template<Event_ID id_value, typename DataT = null_data_t>
-    class Event : public IEvent
+    struct Event_Data__User
     {
-    public:
-        constexpr static Event_ID id = id_value;
-        using data_t = DataT; // type required to construct this Event
-
-        DataT data;
-
-        explicit Event(DataT _data = {})
-            : IEvent(id_value)
-            , data( _data )
-        {}
+        Event_User_Code code;
+        void*           data1;
+        void*           data2;
     };
 
-    // Below, few basic events (not requiring any payload)
-
-    using Event_NULL            = Event<Event_ID_NULL>;
-    using Event_FileSave        = Event<Event_ID_FILE_SAVE>;
-    using Event_FileSaveAs      = Event<Event_ID_FILE_SAVE_AS>;
-    using Event_FileClose       = Event<Event_ID_FILE_CLOSE>;
-    using Event_FileBrowse      = Event<Event_ID_FILE_BROWSE>;
-    using Event_FileNew         = Event<Event_ID_FILE_NEW>;
-    using Event_Exit            = Event<Event_ID_REQUEST_EXIT>;
-    using Event_Undo            = Event<Event_ID_UNDO>;
-    using Event_Redo            = Event<Event_ID_REDO>;
-
-    // Here, an event requiring the following payload
-
-    struct Event_Payload__Show_Window
+    struct Event
     {
-        std::string window_id;        // String identifying a given  window (user defined)
-        bool        visible   = true; // Window visibility (desired state)
+        Event_Type type;
+        union {
+            Event_Data__Window  window;
+            Event_Data__User    user;
+        };
+
+        operator bool ()
+        { return type != Event_Type_NULL; }
     };
-    using Event_ShowWindow = Event<Event_ID_REQUEST_SHOW_WINDOW, Event_Payload__Show_Window>;
 }

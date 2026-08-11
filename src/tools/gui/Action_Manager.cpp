@@ -1,76 +1,71 @@
 #include "Action_Manager.h"
-
-#include <SDL_keyboard.h>
-#include <future>
-#include <thread>
-
-#include "tools/core/Task_Manager.h"
+#include "core/Event.h"
+#include "core/Event_Manager.h"
 #include "tools/core/Asserts.h"
 #include "tools/core/Log.h"
 
-using namespace tools;
+tools::Action_Manager* g_action_manager = nullptr;
 
-Action_Manager* g_action_manager = nullptr;
-
-Action_Manager* tools::init_action_manager()
+tools::Action_Manager* tools::action_manager_init()
 {
     VERIFY(g_action_manager == nullptr, "Cannot be called twice");
     g_action_manager = new Action_Manager();
     return g_action_manager;
 }
 
-Action_Manager* tools::get_action_manager()
+tools::Action_Manager* tools::action_manager_get()
 {
     VERIFY(g_action_manager != nullptr, "event manager can't be found. Did you call set_name ?");
     return g_action_manager;
 }
 
-void tools::shutdown_action_manager(Action_Manager* _action_manager)
+void tools::action_manager_deinit(Action_Manager* action_manager)
 {
-    ASSERT(_action_manager == g_action_manager);
+    ASSERT(action_manager == g_action_manager);
     ASSERT(g_action_manager != nullptr);
     delete g_action_manager;
     g_action_manager = nullptr;
 }
 
-Action_Manager::~Action_Manager()
+const tools::Action* tools::action_manager_get_action_with_event_type(const Action_Manager* action_manager, Event_Type id)
 {
-    for(auto* action : m_actions )
-        delete action;
-}
-
-const IAction* Action_Manager::get_action_with_id(Event_ID id) const
-{
-    auto found = m_actions_by_id.find(id);
-    if ( found == m_actions_by_id.end() )
+    auto found = action_manager->actions_index_by_event_type.find(id);
+    if ( found == action_manager->actions_index_by_event_type.end() )
     {
         String_128 str;
         str.append_fmt("Unable to find an action bound to EventId %i\n", id);
         VERIFY(false, str.c_str() );
     }
-    return found->second;
+    size_t pos = found->second;
+    return &action_manager->actions[pos];
 }
 
-const std::vector<IAction*>& Action_Manager::get_actions() const
+void tools::action_manager_add_action(Action_Manager* action_manager, const Action& action )// Add a new action (can be triggered via shortcut)
 {
-    return m_actions;
+    size_t pos = action_manager->actions.size();
+    action_manager->actions.push_back( action );
+    action_manager->actions_index_by_event_type.insert(std::pair{action.event.type, pos});
+    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Action_Manager", "Action '%s' bound to the event.type %i\n", action.label.c_str(), action.event.type);
 }
 
-void Action_Manager::add_action( IAction* _action )// Add a new action (can be triggered via shortcut)
+void tools::action_manager_add_action(Action_Manager* action_manager, const char* label, Event_Type event_type, Shortcut shortcut)
 {
-    m_actions.push_back( _action );
-    m_actions_by_id.insert(std::pair{_action->event_id, _action});
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Action_Manager", "Action '%s' bound to the event_id %i\n", _action->label.c_str(), _action->event_id);
+    Event event{event_type};
+    Action action{event, label, shortcut};
+    action_manager_add_action(action_manager, action);
 }
 
-std::string Shortcut::to_string() const
+void tools::action_manager_add_action(Action_Manager* action_manager, const char* label, const Event& event, Shortcut shortcut)
 {
-    std::string result;
+    Action action{event, label, shortcut};
+    action_manager_add_action(action_manager, action);
+}
 
-    if (mod & KMOD_CTRL) result += "Ctrl + ";
-    if (mod & KMOD_ALT)  result += "Alt + ";
-    if (key)             result += SDL_GetKeyName(key);
-    if (!description.empty()) result += description;
+void tools::action_manager_add_action(Action_Manager* action_manager, const char* label, const Event_Data__User& event_data, Shortcut shortcut, u64_t flags )
+{
+    Event event{ Event_Type_USER};
+    event.user = event_data;
 
-    return result;
+    Action action{event, label, shortcut, flags};
+    action_manager_add_action(action_manager, action);
 }

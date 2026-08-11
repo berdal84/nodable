@@ -2,6 +2,8 @@
 
 #include <fstream>
 
+#include "core/Event.h"
+#include "gui/Event.h"
 #include "tools/core/Asserts.h"
 #include "tools/core/Component.h"
 #include "tools/gui/Action_Manager.h"
@@ -42,9 +44,9 @@ void ndbl::file_init(File* file)
     graph_view->signal_change.connect<&_file_set_text_dirty>(file);
 
     // Fill the "create node" context menu
-    for( IAction* action : get_action_manager()->get_actions() )
-        if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
-            graph_view->node_search_input.items.push_back(create_node_action);
+    for( Action& action : action_manager_get()->actions )
+        if ( action.event.type == Event_Type_USER && action.event.user.code == Event_Code_REQUEST_CREATE_NODE )
+            graph_view->node_search_input.items.push_back(action );
 
     // File_View
     fileview_init(&file->view, file);

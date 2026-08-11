@@ -1,5 +1,7 @@
 #include "Action_Manager_View.h"
-#include "ImGuiEx.h"
+#include "core/Event_Manager.h"
+#include "tools/gui/Action_Manager.h"
+#include "imgui.h"
 
 void tools::action_manager_view_draw(Action_Manager* manager)
 {
@@ -9,19 +11,19 @@ void tools::action_manager_view_draw(Action_Manager* manager)
         ImGui::TableSetupColumn("Shortcut");
         ImGui::TableHeadersRow();
 
-        for( auto& action : manager->get_actions())
+        for( auto& action : manager->actions)
         {
-            ImGui::PushID(action);
+            ImGui::PushID(&action);
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             if( ImGui::SmallButton("trigger") )
             {
-                action->trigger();
+                event_manager_dispatch( event_manager_get(), action.event);
             }
             ImGui::SameLine();
-            ImGui::Text("%s", action->label.c_str());
+            ImGui::Text("%s", action.label.c_str());
             ImGui::TableNextColumn();
-            ImGui::Text("%s", action->shortcut.to_string().c_str()); // TODO: handle shortcut edition
+            ImGui::Text("%s", action.shortcut.to_string().c_str()); // TODO: handle shortcut edition
             ImGui::PopID();
         }
         ImGui::EndTable();
