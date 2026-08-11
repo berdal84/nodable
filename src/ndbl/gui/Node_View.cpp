@@ -222,10 +222,6 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
     {
         auto* scopeview = new Scope_View();
         scopeview_init(scopeview, internal_scope);
-
-        spatialnode_add_child   (&node_view->spatial_node(), &scopeview->spatial_node);
-        spatialnode_set_position(&scopeview->spatial_node, {0.f, 0.f}, tools::PARENT_SPACE);
-
         node_view->internal_scopeview = scopeview;
     }
 }
@@ -249,7 +245,6 @@ void ndbl::nodeview_handle_deinit(Node_View* node_view)
     if( node_view->internal_scopeview != nullptr )
     {
         scopeview_deinit(node_view->internal_scopeview);
-        spatialnode_remove_child(&node_view->spatial_node(), &node_view->internal_scopeview->spatial_node);
     }
     node_view->hovered_slotview = nullptr;
 }

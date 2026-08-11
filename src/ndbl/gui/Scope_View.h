@@ -27,7 +27,6 @@ namespace ndbl
     struct Scope_View
     {
         tools::Signal<void(Scope_View*)>    signal_hover        = {};
-        tools::Spatial_Node                 spatial_node        = {};
         std::vector<Node_View*>             wrapped_node_view   = {};
         tools::Rect                         content_rect        = {};
         tools::View_Flags                   flags               = tools::View_Flag_DEFAULTS;
