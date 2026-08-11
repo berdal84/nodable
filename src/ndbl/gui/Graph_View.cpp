@@ -1219,9 +1219,9 @@ void ndbl::_graphview_line_state_enter(Graph_View* graph_view)
 void ndbl::_graphview_line_state_tick(Graph_View* graph_view)
 {
     Vec2 mouse_pos_snapped = Vec2{ImGui::GetMousePos()};
-    if ( graph_view->focused.type == View_Type_SLOT )
+    if ( graph_view->hovered.type == View_Type_SLOT )
     {
-        mouse_pos_snapped = spatialnode_position(&graph_view->focused.slotview->shape.spatial_node, WORLD_SPACE);
+        mouse_pos_snapped = spatialnode_position(&graph_view->hovered.slotview->shape.spatial_node, WORLD_SPACE);
     }
 
     // Contextual menu
