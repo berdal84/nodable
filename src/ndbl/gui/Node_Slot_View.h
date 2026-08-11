@@ -4,7 +4,7 @@
 #include "tools/core/reflection/Type_Descriptor.h"
 #include "tools/core/reflection/GETTERS_SETTERS.h"
 #include "tools/gui/geometry/Vec2.h"
-#include "tools/gui/View_State.h"
+#include "tools/gui/View_Flags.h"
 
 #include "ndbl/core/Node_Property.h"
 #include "ndbl/core/Node_Slot.h"
@@ -37,7 +37,7 @@ namespace ndbl
         Node_Slot* const                slot;
         tools::Vec2                     alignment_pivot;
         const tools::Box_2D*            alignment_ref;
-        tools::View_State               state;
+        tools::View_Flags               flags = tools::View_Flag_DEFAULTS;
         tools::Box_2D                   shape;
 
         GETTER( Node*            , node      , slot->node )

@@ -1,7 +1,9 @@
 #include "Node_Property_View.h"
 
 #include "core/Asserts.h"
+#include "core/Flags.h"
 #include "gui/ImGuiEx.h"
+#include "gui/View_Flags.h"
 #include "gui/geometry/Rect.h"
 #include "gui/geometry/Space.h"
 #include "gui/geometry/Vec2.h"
@@ -21,7 +23,7 @@ Node_Property_View::Node_Property_View(Node_Property* _property )
 : property(_property)
 , show(false)
 , touched(false)
-, state()
+, flags(View_Flag_DEFAULTS)
 , shape(Vec2{10.f, 10.f})
 {
 }
@@ -58,7 +60,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 {
     box2d_draw_debug_info(&view->shape);
 
-    if ( !view->state.has_flags(View_Flag_VISIBLE) )
+    if ( !HAS_FLAGS(view->flags, View_Flag_VISIBLE) )
         return false;
 
     bool            changed            = false;

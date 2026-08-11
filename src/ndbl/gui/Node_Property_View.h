@@ -1,7 +1,7 @@
 #pragma once
 
 #include "gui/geometry/Box_2D.h"
-#include "tools/gui/View_State.h"
+#include "tools/gui/View_Flags.h"
 #include "Config.h"
 
 namespace ndbl
@@ -22,7 +22,7 @@ namespace ndbl
         bool                show;       // TODO: move this to State_View?
         bool                touched;    // TODO: move this to State_View?
         Node_Property*      property;
-        tools::View_State   state;
+        tools::View_Flags   flags = tools::View_Flag_DEFAULTS;
         tools::Box_2D       shape;
 
         Node*               node() const;

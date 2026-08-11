@@ -8,7 +8,7 @@
 #include "tools/core/Component.h"// base class
 #include "tools/core/reflection/GETTERS_SETTERS.h"
 #include "tools/gui/geometry/Box_2D.h"
-#include "tools/gui/View_State.h"
+#include "tools/gui/View_Flags.h"
 #include "ndbl/core/Node_Property.h"
 #include "Node_Property_View.h"
 #include "Node_Slot_View.h"
@@ -56,7 +56,7 @@ namespace ndbl
     struct Node_View : public tools::Component<Node>
 	{
         tools::Box_2D                               shape;
-        tools::View_State                           state;
+        tools::View_Flags                           flags  = tools::View_Flag_DEFAULTS;
         std::array<const tools::Vec4*, Color_COUNT> colors = {&tools::Config::COLOR_ERROR};
         std::vector<Node_Slot_View*>                slot_views;
         std::unordered_map<

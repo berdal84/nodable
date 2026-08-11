@@ -1,6 +1,7 @@
 #include "Scope_View.h"
+#include "core/Flags.h"
 #include "gui/Layout.h"
-#include "gui/View_State.h"
+#include "gui/View_Flags.h"
 #include "tools/core/Asserts.h"
 #include "ndbl/core/Scope.h"
 #include "Node_View.h"
@@ -48,7 +49,7 @@ void ndbl::scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags f
     auto wrap_nodeview = [&](Node_View* nodeview )
     {
         ASSERT( nodeview );
-        if ( !nodeview->state.has_flags(View_Flag_VISIBLE) )
+        if ( !HAS_FLAGS(nodeview->flags, View_Flag_VISIBLE) )
             return;
 
         const Rect r = nodeview_get_rect(nodeview, WORLD_SPACE);
@@ -132,7 +133,7 @@ void ndbl::scopeview_draw(Scope_View* scope_view, float dt)
     const Vec4& fill_col = scope_view->theme == Theme_DARK ? config->ui_scope_fill_col_light
                                                     : config->ui_scope_fill_col_dark;
     draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32(fill_col), config->ui_scope_border_radius );
-    if ( scope_view->state.has_flags(View_Flag_SELECTED) )
+    if ( HAS_FLAGS(scope_view->flags, View_Flag_SELECTED) )
     {
         draw_list->AddRect(r.min, r.max, ImGui::GetColorU32( config->ui_scope_border_col ) , config->ui_scope_border_radius, 0, config->ui_scope_border_thickness );
     }

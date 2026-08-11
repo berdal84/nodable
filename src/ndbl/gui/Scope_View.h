@@ -1,7 +1,7 @@
 #pragma once
 #include "gui/geometry/Spatial_Node.h"
 #include "tools/gui/geometry/Rect.h"
-#include "tools/gui/View_State.h"
+#include "tools/gui/View_Flags.h"
 #include "ndbl/core/Scope.h"
 
 namespace ndbl
@@ -30,7 +30,7 @@ namespace ndbl
         tools::Spatial_Node                 spatial_node        = {};
         std::vector<Node_View*>             wrapped_node_view   = {};
         tools::Rect                         content_rect        = {};
-        tools::View_State                   state               = {};
+        tools::View_Flags                   flags               = tools::View_Flag_DEFAULTS;
         Scope*                              scope               = {};
         Theme                               theme               = {};
     };    
