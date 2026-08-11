@@ -67,6 +67,8 @@ namespace ndbl
         Vec4           ui_node_highlightedColor;
         float          ui_node_speed;
         float          ui_node_physics_frequency;
+        float          ui_node_selected_rectangle_offset;
+        float          ui_node_border_radius;
         View_Detail    ui_node_detail;
         Vec4           ui_codeflow_color;
         Vec4           ui_codeflow_shadowColor;

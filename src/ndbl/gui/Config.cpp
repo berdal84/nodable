@@ -93,6 +93,8 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_node_speed                         = 20.0f;
     ui_node_physics_frequency             = 120.f;
     ui_node_detail                        = View_Detail_NORMAL;
+    ui_node_selected_rectangle_offset     = 4.f;
+    ui_node_border_radius                 = 5.f;
     ui_slot_rectangle_size                = Vec2{10.f, 10.f};
     ui_slot_gap                           = 4.0f;
     ui_slot_border_radius                 = 0.1f;

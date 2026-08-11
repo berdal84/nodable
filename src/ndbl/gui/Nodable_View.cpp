@@ -141,12 +141,8 @@ void ndbl::nodableview_draw(App_View_State* view)
             }
             if (ImGui::MenuItem("Delete", "Del.", false, !selection.empty() ))
             {
-                auto user_data = new Event_Data__Selection();
-                user_data->selected_items = selection;
-                
                 Event event{Event_Type_USER};
                 event.user.code  = Event_Code_DELETE;
-                event.user.data1 = user_data;
                 event_manager_dispatch( event_manager, event );
             }
 

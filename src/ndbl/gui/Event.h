@@ -16,7 +16,7 @@ namespace ndbl
     using tools::Vec2;
     using tools::Function_Descriptor;
 
-    typedef u16_t Event_Code;
+    typedef int Event_Code;
     enum Event_Code_
     {
         Event_Code_DELETE,
@@ -42,10 +42,18 @@ namespace ndbl
 
     struct Event_Data__Create_Node
     {
+        // TODO: Remove active_slotview and desired_screen_pos, they can be obtained from the app state
+        //       This way we can avoid to have this struct and use the Event_User_Data struct instead perhaps?
+
         Create_Node_Type            node_type           = Create_Node_Type_NULL;    // The note type to create
         const Function_Descriptor*  node_signature      = nullptr;                  // The signature of the node that must be created
         Node_Slot_View*             active_slotview     = nullptr;                  // The slot view being dragged.
         Vec2                        desired_screen_pos  = {};                       // The desired position for the new node view
+
+        Event_Data__Create_Node(Create_Node_Type _node_type, const Function_Descriptor* _node_signature = nullptr)
+        : node_type(_node_type)
+        , node_signature(_node_signature)
+        {}
     };
 
 }// namespace ndbl

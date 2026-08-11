@@ -14,32 +14,32 @@ namespace ndbl
     // forward decl
     class Scope;
 
-    typedef u8_t Graph_Flags;
+    typedef int Graph_Flags;
     enum Graph_Flag_
     {
         Graph_Flag_NONE               = 0,
         Graph_Flag_ALLOW_SIDE_EFFECTS = 1 << 0,
     };
 
-    typedef u8_t Create_Node_Type;
-    enum Create_Node_Type_ : u8_t
+    typedef int Create_Node_Type;
+    enum Create_Node_Type_ : int
     {
-        Create_Node_Type_NULL = 0,
-        Create_Node_Type_ROOT,
-        Create_Node_Type_BLOCK_CONDITION,
-        Create_Node_Type_BLOCK_FOR_LOOP,
-        Create_Node_Type_BLOCK_WHILE_LOOP,
-        Create_Node_Type_BLOCK_SCOPE,
-        Create_Node_Type_VARIABLE_BOOLEAN,
-        Create_Node_Type_VARIABLE_DOUBLE,
-        Create_Node_Type_VARIABLE_INTEGER,
-        Create_Node_Type_VARIABLE_STRING,
-        Create_Node_Type_LITERAL_BOOLEAN,
-        Create_Node_Type_LITERAL_DOUBLE,
-        Create_Node_Type_LITERAL_INTEGER,
-        Create_Node_Type_LITERAL_STRING,
-        Create_Node_Type_FUNCTION,
-        Create_Node_Type_RETURN,
+        Create_Node_Type_NULL                   = 0,
+        Create_Node_Type_ROOT                   = 1,
+        Create_Node_Type_BLOCK_CONDITION        = 2,
+        Create_Node_Type_BLOCK_FOR_LOOP         = 3,
+        Create_Node_Type_BLOCK_WHILE_LOOP       = 4,
+        Create_Node_Type_BLOCK_SCOPE            = 5,
+        Create_Node_Type_VARIABLE_BOOLEAN       = 6,
+        Create_Node_Type_VARIABLE_DOUBLE        = 7,
+        Create_Node_Type_VARIABLE_INTEGER       = 8,
+        Create_Node_Type_VARIABLE_STRING        = 9,
+        Create_Node_Type_LITERAL_BOOLEAN        = 10,
+        Create_Node_Type_LITERAL_DOUBLE         = 11,
+        Create_Node_Type_LITERAL_INTEGER        = 12,
+        Create_Node_Type_LITERAL_STRING         = 13,
+        Create_Node_Type_FUNCTION               = 14,
+        Create_Node_Type_RETURN                 = 15,
     };
 
 	struct Graph

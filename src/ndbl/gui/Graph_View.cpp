@@ -908,14 +908,12 @@ void ndbl::_graphview_drag_state_tick(Graph_View* graph_view)
             case View_Type_NODE:
             {
                 spatialnode_translate(&selected_view.nodeview->shape.spatial_node, delta);
-                SET_FLAGS(selected_view.nodeview->flags, View_Flag_PINNED, true);
                 break;
             }
             case View_Type_SCOPE:
             {
                 Node_View* nodeview = node_component<Node_View>(selected_view.scopeview->scope->entity);
                 spatialnode_translate(&nodeview->shape.spatial_node, delta);
-                SET_FLAGS(nodeview->flags, View_Flag_PINNED, true);
                 break;
             }
         }
@@ -1102,7 +1100,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                 graph_view->focused = graph_view->hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);
             }
-            else if (ImGui::IsMouseDragging(0, 0.f))
+            else if (ImGui::IsMouseClicked(0))
             {
                 graph_view->focused = graph_view->hovered;
                 graph_view->state_machine.change_state(LINE_STATE);
@@ -1168,7 +1166,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                 graph_view->focused = graph_view->hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);
             }
-            else if ( ImGui::IsMouseDragging(0) )
+            else if ( ImGui::IsMouseClicked(0) )
             {
                 if ( !graph_view->selection.contains( graph_view->hovered) )
                 {

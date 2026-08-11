@@ -38,7 +38,10 @@ namespace ndbl
 
         union
         {
-            void*               ptr;
+            struct {
+                void* data1;
+                void* data2;
+            };
             Node_View*          nodeview;
             Scope_View*         scopeview;
             Node_Slot_View*     slotview;
@@ -46,13 +49,18 @@ namespace ndbl
         };
 
 
-        View(): type(View_Type_NULL), linkview() {}
-        View(Node_View* view): type(View_Type_NODE), ptr(view) {}
-        View(Scope_View* view): type(View_Type_SCOPE), ptr(view) {}
-        View(Node_Slot_View* view): type(View_Type_SLOT), ptr(view) {}
+        View(): type(View_Type_NULL), data1(nullptr), data2(nullptr) {}
+        View(Node_View* view): type(View_Type_NODE), data1(view), data2(nullptr) {}
+        View(Scope_View* view): type(View_Type_SCOPE), data1(view), data2(nullptr)  {}
+        View(Node_Slot_View* view): type(View_Type_SLOT), data1(view), data2(nullptr)  {}
         View(Node_Slot_Link_View view): type(View_Type_LINK), linkview(view) {}
         ~View() {};
     };
+
+    static bool operator==(const View& a, const View& b)
+    {
+        return a.type == b.type && a.data1 == b.data1 && a.data2 == b.data2;
+    }
 
     inline tools::Rect view_bounding_rect(
         const std::vector<View>& views,
@@ -74,9 +82,6 @@ namespace ndbl
         // compute bbox
         return Rect::bounding_rect(rect);
     }
-
-    static bool operator==(const View& a, const View& b)
-    { return memcmp(&a, &b, sizeof(View)) == 0; }
 
     typedef u8_t View_Selection_Event_Type;
     enum View_Selection_Event_Type_
@@ -128,17 +133,17 @@ namespace ndbl
             return false;
         }
 
-        template<typename AlternativeT>
-        void push_back(AlternativeT data)
-        {
-            return items.push_back(data);
-        }
-
         void push_back(const View& elem )
         {
             items.push_back(elem);
             count_by_type[elem.type]++;
             signal_change.emit( View_Selection_Event_Type_APPEND, elem );
+        }
+
+        template<typename View_Constructor_Arg_Type>
+        void push_back(View_Constructor_Arg_Type arg)
+        {
+            return push_back(View{arg});
         }
 
         template<class Iterator> size_t push_back( Iterator begin, Iterator end )

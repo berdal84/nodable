@@ -1,4 +1,6 @@
 #include "Node_Search_Input.h"
+#include "core/Graph.h"
+#include "core/Log.h"
 #include "gui/Event.h"
 #include "gui/Node_Slot_View.h"
 #include "tools/gui/Action.h"
@@ -42,6 +44,11 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Inp
         auto event_data = static_cast<Event_Data__Create_Node*>(action.event.user.data1);
         switch ( event_data->node_type )
         {
+            case Create_Node_Type_NULL:
+            {
+                TOOLS_LOG(tools::Verbosity_Warning, "Node_View_Context_Menu", "Action is Create_Node_Type_NULL\n");
+                break;
+            }
             case Create_Node_Type_BLOCK_CONDITION:
             case Create_Node_Type_BLOCK_FOR_LOOP:
             case Create_Node_Type_BLOCK_WHILE_LOOP:

@@ -407,9 +407,23 @@ bool ndbl::nodeview_draw(Node_View* node_view)
             cfg->ui_node_borderColor,
             cfg->ui_node_shadowColor,
             border_color,
-            HAS_FLAGS(node_view->flags, View_Flag_SELECTED),
-            5.0f,
+            cfg->ui_node_border_radius,
             border_width );
+
+    if ( HAS_FLAGS(node_view->flags, View_Flag_SELECTED) )
+    {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        auto alpha   = glm::sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
+        const float offset = cfg->ui_node_selected_rectangle_offset;
+        draw_list->AddRect(
+            screen_rect.min - Vec2(offset),
+            screen_rect.max + Vec2(offset),
+            ImColor(1.f, 1.f, 1.f, float(alpha) ),
+            cfg->ui_node_border_radius + offset,
+            ~0,
+            offset / 2.0f
+        );
+    }
 
     bool is_rect_hovered = !ImGui::IsAnyItemHovered() && ImGui::IsMouseHoveringRect(screen_rect.min, screen_rect.max);
 
@@ -541,7 +555,6 @@ void ndbl::nodeview_draw_node_rect(
     Vec4 border_highlight_col,
     Vec4 shadow_col,
     Vec4 border_col,
-    bool selected,
     float border_radius,
     float border_width
 )
@@ -554,21 +567,6 @@ void ndbl::nodeview_draw_node_rect(
     draw_list->AddRectFilled(rect.min, rect.max, ImColor(color), border_radius, flags);
     draw_list->AddRect(rect.min + Vec2(1.0f), rect.max, ImColor(border_highlight_col), border_radius, flags, border_width);
     draw_list->AddRect(rect.min, rect.max, ImColor(border_col), border_radius, flags, border_width);
-
-    // Draw an additional blinking rectangle when selected
-    if (selected)
-    {
-        auto alpha   = glm::sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
-        float offset = 4.0f;
-        draw_list->AddRect(
-            rect.min - Vec2(offset),
-            rect.max + Vec2(offset),
-            ImColor(1.0f, 1.0f, 1.0f, float(alpha) ),
-            border_radius + offset,
-            ~0,
-            offset / 2.0f
-        );
-    }
 }
 
 bool ndbl::nodeview_draw_as_properties_panel(Node_View* node_view, bool* _show_advanced)

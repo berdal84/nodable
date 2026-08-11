@@ -50,22 +50,20 @@ void tools::action_manager_add_action(Action_Manager* action_manager, const Acti
 
 void tools::action_manager_add_action(Action_Manager* action_manager, const char* label, Event_Type event_type, Shortcut shortcut)
 {
-    Event event{event_type};
-    Action action{event, label, shortcut};
-    action_manager_add_action(action_manager, action);
+    action_manager_add_action(action_manager, {{event_type}, label, shortcut});
 }
 
-void tools::action_manager_add_action(Action_Manager* action_manager, const char* label, const Event& event, Shortcut shortcut)
+void tools::action_manager_add_action(Action_Manager* action_manager, const char* label, Event event, Shortcut shortcut)
 {
-    Action action{event, label, shortcut};
-    action_manager_add_action(action_manager, action);
+    ASSERT(event.type <= Event_Type_COUNT)
+    action_manager_add_action(action_manager, {event, label, shortcut});
 }
 
-void tools::action_manager_add_action(Action_Manager* action_manager, const char* label, const Event_Data__User& event_data, Shortcut shortcut, u64_t flags )
+void tools::action_manager_add_action(Action_Manager* action_manager, const char* label, Event_Data__User event_data, Shortcut shortcut, u64_t flags )
 {
     Event event{ Event_Type_USER};
     event.user = event_data;
+    ASSERT(event_data.code < 20);
 
-    Action action{event, label, shortcut, flags};
-    action_manager_add_action(action_manager, action);
+    action_manager_add_action(action_manager, {event, label, shortcut, flags});
 }

@@ -22,6 +22,6 @@ namespace tools
     const Action*   action_manager_get_action_with_event_type(const Action_Manager*, Event_Type id); // Get the actions bound to a given event id
     void            action_manager_add_action(Action_Manager*, const Action& _action);
     void            action_manager_add_action(Action_Manager*, const char* label, Event_Type, Shortcut = {});
-    void            action_manager_add_action(Action_Manager*, const char* label, const Event&, Shortcut = {});
-    void            action_manager_add_action(Action_Manager*, const char* label, const Event_Data__User&, Shortcut = {}, u64_t flags = 0 );
+    void            action_manager_add_action(Action_Manager*, const char* label, Event, Shortcut = {});
+    void            action_manager_add_action(Action_Manager*, const char* label, Event_Data__User, Shortcut = {}, u64_t flags = 0 );
 }

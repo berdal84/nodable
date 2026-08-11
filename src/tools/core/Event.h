@@ -22,6 +22,8 @@ namespace tools
         // extended events (with data)
         Event_Type_WINDOW,
         Event_Type_USER,
+
+        Event_Type_COUNT
     };
 
     struct Event_Data__Window

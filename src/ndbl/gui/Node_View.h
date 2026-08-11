@@ -98,6 +98,5 @@ namespace ndbl
     void                    nodeview_draw_slot(Node_View*, Node_Slot_View*);
     void                    nodeview_draw_node_rect(tools::Rect rect,
                                                     tools::Vec4 color, tools::Vec4 border_highlight_col, tools::Vec4 shadow_col, tools::Vec4 border_col,
-                                                    bool selected,
                                                     float border_radius, float border_width);
 }

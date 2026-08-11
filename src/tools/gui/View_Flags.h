@@ -3,7 +3,7 @@
 
 namespace tools
 {
-    typedef u8_t View_Flags;
+    typedef u16_t View_Flags;
     enum View_Flag_
     {
         View_Flag_NONE          = 0,
