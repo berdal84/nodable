@@ -16,6 +16,7 @@
 #include "tools/gui/ImGuiEx.h"
 #include "ndbl/gui/File.h"
 #include "ndbl/gui/Graph_View.h"
+#include <cstddef>
 
 namespace ndbl
 {
@@ -671,7 +672,7 @@ void ndbl::nodableview_draw(App_View_State* view)
 
             ImGui::PopStyleColor();
 
-            ImVec2 center_area(500.0f, 250.0f);
+            ImVec2 center_area(500.0f, 300.0f);
             ImVec2 avail = ImGui::GetContentRegionAvail();
 
             ImGui::SetCursorPosX((avail.x - center_area.x) / 2);
@@ -713,15 +714,26 @@ void ndbl::nodableview_draw(App_View_State* view)
                 const int columns = 2;
 
                 ImGui::NewLine();
-                for (size_t i = 0; i < examples.size(); ++i )
+                size_t i = 0;
+                for (const Example& example : examples)
                 {
                     if (i % columns != 0) ImGui::SameLine();
-                    if (ImGui::Button(examples[i].label, example_btn_size))
+                    if (ImGui::Button(example.label, example_btn_size))
                     {
-                        nodable_open_asset_file(view->app(), examples[i].path);
+                        nodable_open_asset_file(view->app(), example.path);
                     }
+                    i++;
                 }
 
+                ImGui::NewLine();
+
+                if ( ImGui::Button(ICON_FA_BOOK" Open All", example_btn_size) )
+                {
+                    for (const Example& example : examples)
+                        nodable_open_asset_file(view->app(), example.path);
+                }   
+                ImGui::NewLine();
+                
                 ImGui::PopFont();
 
                 ImGui::NewLine();
