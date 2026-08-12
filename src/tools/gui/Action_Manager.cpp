@@ -55,7 +55,7 @@ void tools::action_manager_add_action(Action_Manager* action_manager, const char
 
 void tools::action_manager_add_action(Action_Manager* action_manager, const char* label, Event event, Shortcut shortcut)
 {
-    ASSERT(event.type <= Event_Type_COUNT)
+    ASSERT(event.type <= Event_Type_COUNT);
     action_manager_add_action(action_manager, {event, label, shortcut});
 }
 
