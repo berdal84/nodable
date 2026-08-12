@@ -2,6 +2,8 @@
 #include <queue>
 #include "Asserts.h"
 #include "Task_Manager.h"
+#include "core/Event.h"
+#include "core/Types.h"
 
 tools::Event_Manager* g_event_manager = nullptr;
 
@@ -41,11 +43,6 @@ tools::Event tools::event_manager_poll_event(Event_Manager* manager)
     Event next_event = manager->m_events.front();
     manager->m_events.pop();
     return next_event;
-}
-
-void tools::event_manager_dispatch( Event_Manager* manager, Event_Type type )
-{
-    event_manager_dispatch(manager, Event{ type });
 }
 
 void tools::event_manager_dispatch_delayed( Event_Manager* manager, Event event, u64_t delay_in_ms)

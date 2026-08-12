@@ -61,9 +61,7 @@ void tools::action_manager_add_action(Action_Manager* action_manager, const char
 
 void tools::action_manager_add_action(Action_Manager* action_manager, const char* label, Event_Data__User event_data, Shortcut shortcut, u64_t flags )
 {
-    Event event{ Event_Type_USER};
-    event.user = event_data;
-    ASSERT(event_data.code < 20);
-
-    action_manager_add_action(action_manager, {event, label, shortcut, flags});
+    Event event = event_from_user_data(event_data);
+    Action action(event, label, shortcut, flags);
+    action_manager_add_action(action_manager, action);
 }

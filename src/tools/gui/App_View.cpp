@@ -264,11 +264,11 @@ void tools::appview_update(App_View_State* view)
                     for(const Action& action: view->action_manager->actions )
                     {
                         // first, priority to shortcuts with mod
-                        if ( action.shortcut.mod != KMOD_NONE)
-                            if ( action.event.type != Event_Type_NULL )
-                                if ( action.shortcut.mod & event.key.keysym.mod ) // same mod
-                                    if ( action.shortcut.key == event.key.keysym.sym) // same key
-                                        { event_manager_dispatch(view->event_manager, action.event.type ); break; }
+                        if ( action.event.type != Event_Type_NULL )
+                            if ( action.shortcut.mod != KMOD_NONE)                                
+                                    if ( action.shortcut.mod & event.key.keysym.mod ) // same mod
+                                        if ( action.shortcut.key == event.key.keysym.sym) // same key
+                                            { event_manager_dispatch(view->event_manager, action.event ); break; }
                     }
                 }
                 else
@@ -277,8 +277,8 @@ void tools::appview_update(App_View_State* view)
 
                     for(const Action& action: view->action_manager->actions )
                     {
-                        if ( action.shortcut.mod == KMOD_NONE )
-                            if ( action.event.type != Event_Type_NULL )
+                        if ( action.event.type != Event_Type_NULL )
+                            if ( action.shortcut.mod == KMOD_NONE )                            
                                 if ( action.shortcut.key == event.key.keysym.sym)
                                 {
                                     event_manager_dispatch(view->event_manager, action.event);

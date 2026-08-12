@@ -1007,10 +1007,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                     graph_view->selection.clear();
                     graph_view->selection.push_back(scopeview);
 
-                    Event event{Event_Type_USER};
-                    event.user.code  = Event_Code_DELETE;
-
-                    event_manager_dispatch(event_manager_get(), event);
+                    event_manager_dispatch(event_manager_get(), event_from_type(Event_Code_DELETE));
                 }
 
 
@@ -1025,10 +1022,11 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                 auto edge = graph_view->focused.linkview;
                 if ( ImGui::MenuItem("Delete") )
                 {
-                    Event event{Event_Type_USER};
-                    event.user.code  = Event_Code_DELETE_LINK;
-                    event.user.data1 = edge.tail->slot;
-                    event.user.data2 = edge.head->slot;
+                    Event event = event_from_user_data({ 
+                        Event_Code_DELETE_LINK, 
+                        edge.tail->slot, 
+                        edge.head->slot
+                    });
                     event_manager_dispatch( event_manager_get(), event );
                 }
 
@@ -1039,10 +1037,12 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             {
                 if ( ImGui::MenuItem("Disconnect") )
                 {
-                    Event event{Event_Type_USER};
-                    event.user.code  = Event_Code_DELETE_ALL_LINKS;
-                    event.user.data1 = graph_view->focused.slotview->slot;
-                    event.user.data2 = nullptr;
+                    Event event = event_from_user_data({ 
+                        Event_Code_DELETE_ALL_LINKS, 
+                        graph_view->focused.slotview->slot, 
+                        nullptr
+                    });
+
                     event_manager_dispatch( event_manager_get(), event );
                 }
 
@@ -1071,13 +1071,9 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
 
                 if ( ImGui::MenuItem("Delete") )
                 {
-                    auto data = new Event_Data__Selection();
-                    data->selected_items.push_back(nodeview);
-
-                    Event event{Event_Type_USER};
-                    event.user.data1 = data;
-
-                    event_manager_dispatch(event_manager_get(), event);
+                    graph_view->selection.clear();
+                    graph_view->selection.push_back(nodeview);
+                    event_manager_dispatch(event_manager_get(), event_from_user_data({Event_Code_DELETE}));
                 }
 
                 break;
@@ -1243,9 +1239,12 @@ void ndbl::_graphview_line_state_tick(Graph_View* graph_view)
         {
             if ( graph_view->focused != graph_view->hovered )
             {
-                Event event{Event_Type_USER};
-                event.user.data1 = graph_view->focused.slotview->slot;
-                event.user.data2 = graph_view->hovered.slotview->slot;
+                
+                Event event = event_from_user_data({
+                    Event_Code_SLOT_DROPPED,
+                    graph_view->focused.slotview->slot,
+                    graph_view->hovered.slotview->slot
+                });
                 event_manager_dispatch(event_manager_get(), event);
                 graph_view->state_machine.exit_state();
             }

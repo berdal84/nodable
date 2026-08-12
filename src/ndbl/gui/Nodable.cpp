@@ -90,7 +90,7 @@ void ndbl::nodable_init(App_State* app)
     action_manager_add_action( action_manager, ICON_FA_TIMES "  Close", Event_Type_FILE_CLOSE, Shortcut{SDLK_w, KMOD_CTRL } );
     action_manager_add_action( action_manager, ICON_FA_FOLDER_OPEN " Open", Event_Type_FILE_BROWSE, Shortcut{SDLK_o, KMOD_CTRL } );
     action_manager_add_action( action_manager, ICON_FA_FILE " New", Event_Type_FILE_NEW, Shortcut{SDLK_n, KMOD_CTRL } );
-    action_manager_add_action( action_manager, "Splashscreen", Event{Event_Type_WINDOW, Event_Data__Window{"splashscreen" }}, Shortcut{SDLK_F1 } );
+    action_manager_add_action( action_manager, "Splashscreen", Event{Event_Type_TOGGLE_WINDOW, "splashscreen" }, Shortcut{SDLK_F1 } );
     action_manager_add_action( action_manager, ICON_FA_SIGN_OUT_ALT " Exit", Event_Type_REQUEST_EXIT, Shortcut{SDLK_F4, KMOD_ALT } );
     action_manager_add_action( action_manager, "Undo", Event_Type_UNDO, Shortcut{SDLK_z, KMOD_CTRL } );
     action_manager_add_action( action_manager, "Redo"               , Event_Type_REDO, Shortcut{SDLK_y, KMOD_CTRL } );
@@ -291,11 +291,11 @@ void ndbl::nodable_update(App_State* app)
                 break;
             }
 
-            case Event_Type_WINDOW:
+            case Event_Type_TOGGLE_WINDOW:
             {
-                if ( strcmp(event.window.window_id, "splashscreen") == 0 )
+                if ( strcmp(event.window.imgui_id, "splashscreen") == 0 )
                 {
-                    app->view()->base.show_splashscreen = event.window.visible;
+                    app->view()->base.show_splashscreen ^= true;
                 }
                 break;
             }
@@ -581,7 +581,7 @@ File* ndbl::nodable_add_file(App_State* app, File* _file)
     VERIFY(_file, "File is nullptr");
     app->files.push_back( _file );
     app->current_file = _file;
-    event_manager_dispatch( event_manager_get(), Event_Type_FILE_OPENED );
+    event_manager_dispatch( event_manager_get(), event_from_type(Event_Type_FILE_OPENED) );
     return _file;
 }
 

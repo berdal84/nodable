@@ -44,8 +44,8 @@ namespace ndbl
         File_View_Event_Type_TEXT_CHANGED,
     };
 
-    typedef int Condition;
-    enum Condition_ : Condition
+    typedef u16_t Condition;
+    enum Condition_ : u16_t
     {
         Condition_DISABLE                          = 0,
         Condition_ENABLE_IF_HAS_SELECTION          = 1 << 0,
@@ -70,7 +70,7 @@ namespace ndbl
         std::array<std::vector<File_View_Overlay_Data>, File_View_Overlay_Type_COUNT> 
                                 overlay_data                        = {};
         tools::Signal<void(File_View_Event_Type)>
-                                signal_change                    = {};
+                                signal_change                       = {};
         File*                   file                                = nullptr;
         Graph_View*             graph_view                          = nullptr;
         std::string             text_overlay_window_name            = {};

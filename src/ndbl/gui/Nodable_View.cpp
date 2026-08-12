@@ -141,9 +141,7 @@ void ndbl::nodableview_draw(App_View_State* view)
             }
             if (ImGui::MenuItem("Delete", "Del.", false, !selection.empty() ))
             {
-                Event event{Event_Type_USER};
-                event.user.code  = Event_Code_DELETE;
-                event_manager_dispatch( event_manager, event );
+                event_manager_dispatch( event_manager, event_from_user_data({Event_Code_DELETE}) );
             }
 
             ImGui::EndMenu();
@@ -362,14 +360,14 @@ void ndbl::nodableview_draw(App_View_State* view)
 
             // reset
             if (ImGui::Button(ICON_FA_UNDO " Reset Graph View", button_size)) {
-                event_manager_dispatch( event_manager, Event_Code_RESET_GRAPH_VIEW );
+                event_manager_dispatch( event_manager, event_from_user_data({Event_Code_RESET_GRAPH_VIEW}) );
             }
             ImGui::SameLine();
 
             // enter isolation mode
             if (ImGui::Button(cfg->has_flags(Config_Flag_ISOLATION_ON) ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF", button_size))
             {
-                event_manager_dispatch( event_manager, Event_Code_TOGGLE_ISOLATION_FLAGS );
+                event_manager_dispatch( event_manager, event_from_user_data({Event_Code_TOGGLE_ISOLATION_FLAGS}));
             }
             ImGui::SameLine();
             ImGui::EndGroup();
@@ -688,10 +686,10 @@ void ndbl::nodableview_draw(App_View_State* view)
 
                 ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
                 if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                    event_manager_dispatch( event_manager, Event_Type_FILE_NEW );
+                    event_manager_dispatch( event_manager, event_from_type(Event_Type_FILE_NEW) );
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                    event_manager_dispatch( event_manager, Event_Type_FILE_BROWSE );
+                    event_manager_dispatch( event_manager, event_from_type(Event_Type_FILE_BROWSE) );
 
                 ImGui::NewLine();
                 ImGui::Separator();

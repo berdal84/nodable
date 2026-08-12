@@ -1,10 +1,11 @@
 #pragma once
 #include "Types.h"
+#include <cstring>
 
 namespace tools
 {
     typedef u16_t Event_Type;
-    enum Event_Type_ : u16_t
+    enum Event_Type_ : Event_Type
     {
         Event_Type_NULL = 0,
 
@@ -18,9 +19,9 @@ namespace tools
         Event_Type_UNDO,
         Event_Type_REDO,
         Event_Type_REQUEST_EXIT,
+        Event_Type_TOGGLE_WINDOW,
 
         // extended events (with data)
-        Event_Type_WINDOW,
         Event_Type_USER,
 
         Event_Type_COUNT
@@ -28,8 +29,7 @@ namespace tools
 
     struct Event_Data__Window
     {
-        const char* window_id;        // ImGui identifier
-        bool        visible   = true; // desired state
+        const char* imgui_id;
     };
 
     typedef u16_t Event_User_Code;
@@ -47,9 +47,24 @@ namespace tools
         union {
             Event_Data__Window  window;
             Event_Data__User    user;
+            char                data[sizeof(Event_Data__User)];
         };
 
         operator bool ()
         { return type != Event_Type_NULL; }
     };
+
+    inline Event event_from_type(Event_Type type)
+    {
+        Event event{type};
+        memset(&event.data, 0, sizeof(event.data));
+        return event;
+    }
+
+    inline Event event_from_user_data(Event_Data__User user_data)
+    {
+        Event event = event_from_type(Event_Type_USER);
+        event.user = user_data;
+        return event;
+    }
 }
