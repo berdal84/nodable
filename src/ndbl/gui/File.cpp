@@ -2,14 +2,15 @@
 
 #include <fstream>
 
-#include "core/Event.h"
-#include "gui/Event.h"
+#include "tools/core/Event.h"
+#include "tools/core/Flags.h"
 #include "tools/core/Asserts.h"
 #include "tools/core/Component.h"
 #include "tools/gui/Action_Manager.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/language/Nodlang.h"
+#include "ndbl/gui/Event.h"
 #include "ndbl/gui/Graph_View.h"
 #include "ndbl/gui/File_View.h"
 #include "ndbl/gui/History.h"
@@ -95,7 +96,7 @@ void ndbl::file_update(File* file, bool isolation_on)
     // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
     if ( file->history.is_dirty )
     {
-        if ( get_config()->has_flags(Config_Flag_EXPERIMENTAL_HYBRID_HISTORY) )
+        if ( HAS_FLAGS(get_config()->flags, Config_Flag_EXPERIMENTAL_HYBRID_HISTORY) )
         {
             ASSERT(false); // Not implemented yet
         }

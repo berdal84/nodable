@@ -1,22 +1,24 @@
 #include "Nodable_View.h"
-#include "core/Event.h"
-#include "core/Graph.h"
-#include "gui/Action_Manager.h"
-#include "gui/Action_Manager_View.h"
-#include "gui/App_View.h"
-#include "gui/Event.h"
-#include "gui/Nodable.h"
-#include "gui/Scope_View.h"
-#include "gui/Texture_Manager.h"
-#include "gui/View.h"
+#include <cstddef>
+#include "gui/Config.h"
 #include "tools/core/Event_Manager.h"
+#include "tools/core/Event.h"
+#include "tools/core/Flags.h"
 #include "tools/core/System.h"
+#include "tools/gui/Action_Manager_View.h"
+#include "tools/gui/Action_Manager.h"
+#include "tools/gui/App_View.h"
 #include "tools/gui/Config.h"
 #include "tools/gui/Font_Manager.h"
 #include "tools/gui/ImGuiEx.h"
+#include "tools/gui/Texture_Manager.h"
+#include "ndbl/core/Graph.h"
+#include "ndbl/gui/Event.h"
 #include "ndbl/gui/File.h"
 #include "ndbl/gui/Graph_View.h"
-#include <cstddef>
+#include "ndbl/gui/Nodable.h"
+#include "ndbl/gui/Scope_View.h"
+#include "ndbl/gui/View.h"
 
 namespace ndbl
 {
@@ -195,7 +197,7 @@ void ndbl::nodableview_draw(App_View_State* view)
 
         if (ImGui::BeginMenu("Code"))
         {
-            if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Code_TOGGLE_ISOLATION_FLAGS, cfg->has_flags(Config_Flag_ISOLATION_ON)))
+            if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Code_TOGGLE_ISOLATION_FLAGS, HAS_FLAGS(cfg->flags, Config_Flag_ISOLATION_ON)))
             {
                 event_manager_dispatch( event_manager, action->event);
             }
@@ -230,7 +232,7 @@ void ndbl::nodableview_draw(App_View_State* view)
 
             ImGui::Separator();
             {
-                if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Code_TOGGLE_ISOLATION_FLAGS, cfg->has_flags(Config_Flag_ISOLATION_ON)))
+                if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Code_TOGGLE_ISOLATION_FLAGS, HAS_FLAGS(cfg->flags, Config_Flag_ISOLATION_ON)))
                 {
                     event_manager_dispatch( event_manager, action->event);
                 }
@@ -241,14 +243,23 @@ void ndbl::nodableview_draw(App_View_State* view)
 
         if (ImGui::BeginMenu("Developer"))
         {
-            bool debug = cfg->flags & Config_Flag_DRAW_DEBUG_LINES;
-            if ( ImGui::MenuItem("Debug Mode", "", debug ) )
+            Debug_Flags& debug_flags = cfg->tools_cfg->debug_flags;
+
+            if ( ImGui::MenuItem("Debug Mode", "", debug_flags ) )
             {
-                cfg->tools_cfg->runtime_debug = !debug;
-                cfg->clear_flags( Config_Flag_DRAW_DEBUG_LINES );
-                cfg->set_flags( !debug * Config_Flag_DRAW_DEBUG_LINES);
-                ImGuiEx::set_debug( !debug );
+                SET_FLAGS(debug_flags, Debug_Flags_ALL);
             }
+
+            if ( debug_flags )
+            {
+                CHECKBOX_FLAG("Draw ImGuiEx Debug Lines", debug_flags, Debug_Flags_DRAW_IMGUIEX_DEBUG_LINES)
+                CHECKBOX_FLAG("Draw Layout Debug Lines",  debug_flags, Debug_Flags_DRAW_LAYOUT_DEBUG_LINES)
+                CHECKBOX_FLAG("Show ImGui Config Window", debug_flags, Debug_Flags_SHOW_IMGUI_CONFIG_WINDOW)
+            }
+
+            ImGuiEx::set_debug( (bool)HAS_FLAGS(debug_flags, Debug_Flags_DRAW_IMGUIEX_DEBUG_LINES) );
+
+            ImGui::Separator();
 
             if ( ImGui::MenuItem("Limit FPS", "", tools_cfg->fps_limit_on ) )
             {
@@ -277,19 +288,8 @@ void ndbl::nodableview_draw(App_View_State* view)
 
             if (ImGui::BeginMenu("Experimental"))
             {
-                auto checkbox_flag = [&](const char* label, Config_Flag_ flag )
-                {
-                    bool enabled = cfg->has_flags(flag);
-                    if ( ImGui::Checkbox(label, &enabled) )
-                    {
-                        if ( !enabled )
-                            cfg->clear_flags(flag);
-                        else
-                            cfg->set_flags(flag);
-                    }
-                };
-                checkbox_flag("Hybrid history"       , Config_Flag_EXPERIMENTAL_HYBRID_HISTORY);
-                checkbox_flag("Multi-Selection"      , Config_Flag_EXPERIMENTAL_MULTI_SELECTION);
+                CHECKBOX_FLAG("Hybrid history" , cfg->flags, Config_Flag_EXPERIMENTAL_HYBRID_HISTORY);
+                CHECKBOX_FLAG("Multi-Selection", cfg->flags, Config_Flag_EXPERIMENTAL_MULTI_SELECTION);
                 ImGui::EndMenu();
             }
             ImGui::EndMenu();
@@ -366,7 +366,10 @@ void ndbl::nodableview_draw(App_View_State* view)
             ImGui::SameLine();
 
             // enter isolation mode
-            if (ImGui::Button(cfg->has_flags(Config_Flag_ISOLATION_ON) ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF", button_size))
+            if (ImGui::Button(HAS_FLAGS(flags, Config_Flag_ISOLATION_ON)
+                ? ICON_FA_CROP " isolation mode: ON "
+                : ICON_FA_CROP " isolation mode: OFF",
+                button_size))
             {
                 event_manager_dispatch( event_manager, event_from_user_data({Event_Code_TOGGLE_ISOLATION_FLAGS}));
             }
@@ -449,7 +452,7 @@ void ndbl::nodableview_draw(App_View_State* view)
         // Draw ImGui configuration windows
         //----------------------------------------------------------------------------------------
 
-        if( !tools_cfg->runtime_debug )
+        if( HAS_FLAGS( tools_cfg->debug_flags, Debug_Flags_SHOW_IMGUI_CONFIG_WINDOW) )
         {
             if (ImGui::Begin( cfg->ui_imgui_config_window_label))
             {

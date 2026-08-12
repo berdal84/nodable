@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "core/Asserts.h"
+#include "core/Flags.h"
 #include "core/Node_Slot.h"
 #include "language/Nodlang.h"
 #include "Node.h"
@@ -255,9 +256,9 @@ void ndbl::graph_find_and_destroy(Graph* graph, Node* node)
 void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
 {
     // Guards
-    ASSERT(head->has_flags(Node_Slot::Flag_INPUT ) );
+    ASSERT(HAS_FLAGS(head->flags, Node_Slot::Flag_INPUT ) );
     ASSERT(!head->is_full());
-    ASSERT(tail->has_flags(Node_Slot::Flag_OUTPUT ) );
+    ASSERT(HAS_FLAGS(tail->flags, Node_Slot::Flag_OUTPUT ) );
     ASSERT(!tail->is_full());
     VERIFY(head->property, "tail property must be defined" );
     VERIFY(tail->property, "head property must be defined" );
@@ -293,7 +294,7 @@ void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
 void ndbl::graph_connect_to_variable(Node_Slot* output_slot, Node* _variable )
 {
     // Guards
-    ASSERT( output_slot->has_flags(Node_Slot::Flag_OUTPUT) );
+    ASSERT( HAS_FLAGS(output_slot->flags, Node_Slot::Flag_OUTPUT) );
     ASSERT( !output_slot->is_full() );
     return graph_connect_or_merge( output_slot, _variable->value_in() );
 }
@@ -326,7 +327,7 @@ void ndbl::graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
 
                 if ( flow_in_edge_count == 1)
                 {
-                    if ( tail->has_flags(Node_Slot::Flag_IS_INTERNAL) )
+                    if ( HAS_FLAGS(tail->flags, Node_Slot::Flag_IS_INTERNAL) )
                     {
                         Scope* target_scope = previous_node->internal_scope;
                         if ( node_is_conditional(previous_node) )
@@ -572,7 +573,7 @@ Node* ndbl::graph_create_variable_decl(Graph* graph, const Type_Descriptor* type
 {
     // Create variable
     Node* var_node = graph_create_variable(graph, type, name, scope);
-    var_node->variable_data.set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
+    SET_FLAGS(var_node->variable_data.flags, VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
 
     Token token(Token_Type::keyword_operator, " = ");
     token.word_move_begin(1);

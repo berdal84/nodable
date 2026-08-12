@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "Node_Slot.h"
+#include "core/Flags.h"
 
 using namespace ndbl;
 
@@ -54,10 +55,10 @@ TEST(Node_Slot, allows_relation)
     Node_Slot slot;
 
     // act
-    slot.set_flags( Node_Slot::Flag_INPUT );
+    SET_FLAGS(slot.flags, Node_Slot::Flag_INPUT );
 
     // verfy
-    EXPECT_TRUE( slot.has_flags( Node_Slot::Flag_TYPE_VALUE ) );
-    EXPECT_TRUE( slot.has_flags( Node_Slot::Flag_ORDER_2ND ) );
-    EXPECT_TRUE( slot.has_flags( Node_Slot::Flag_INPUT ) ); // is TYPE_VALUE + ORDER_2ND
+    EXPECT_TRUE( HAS_FLAGS(slot.flags, Node_Slot::Flag_TYPE_VALUE ) );
+    EXPECT_TRUE( HAS_FLAGS(slot.flags, Node_Slot::Flag_ORDER_2ND ) );
+    EXPECT_TRUE( HAS_FLAGS(slot.flags, Node_Slot::Flag_INPUT ) ); // is TYPE_VALUE + ORDER_2ND
 }

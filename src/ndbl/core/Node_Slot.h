@@ -1,4 +1,5 @@
 #pragma once
+#include "core/Flags.h"
 #include "tools/core/Signals.h"
 #include "tools/core/Containers.h"
 #include "tools/core/Types.h"
@@ -69,12 +70,10 @@ namespace ndbl
         
         static const Node_Slot                  null;
 
-        void                set_flags( Node_Slot::Flags _flags){ this->flags |= _flags;}
-        bool                has_flags( Node_Slot::Flags _flags ) const{return (this->flags & _flags) == _flags;}
         Node_Slot::Flags    type() const { return this->flags & Node_Slot::Flag_TYPE_MASK;}
         Node_Slot::Flags    type_and_order() const { return this->flags & (Node_Slot::Flag_TYPE_MASK | Node_Slot::Flag_ORDER_MASK); }
         Node_Slot::Flags    order() const{return this->flags & Node_Slot::Flag_ORDER_MASK;}
-        bool                is_full() const {return this->has_flags(Node_Slot::Flag_IS_FULL);}
+        bool                is_full() const {return HAS_FLAGS(this->flags, Node_Slot::Flag_IS_FULL);}
         Node*               first_adjacent_node() const { return !adjacent.empty() ? adjacent[0]->node : nullptr; }
         Node_Slot*          first_adjacent() const { return !adjacent.empty() ? adjacent[0] : nullptr; }
     };

@@ -1378,7 +1378,7 @@ Node_Slot* Nodlang::parse_variable_declaration(Scope* parent_scope)
         const Type_Descriptor* type = get_type(type_token.m_type);
         Node* variable_node = graph_create_variable( _state.graph(), type, identifier_token.word_to_string(), parent_scope );
 
-        variable_node->variable_data.set_flags(VariableFlag_DECLARED);
+        SET_FLAGS(variable_node->variable_data.flags, VariableFlag_DECLARED);
         variable_node->variable_data.type_token = type_token;
         node_set_identifier_token(variable_node, identifier_token );
 
@@ -1492,7 +1492,7 @@ std::string &Nodlang::serialize_func_call(std::string &_out, const Function_Desc
 
     for (const Node_Slot* input_slot : inputs)
     {
-        ASSERT( input_slot->has_flags(Node_Slot::Flag_INPUT) );
+        ASSERT( HAS_FLAGS(input_slot->flags, Node_Slot::Flag_INPUT) );
         if ( input_slot != inputs[0])
         {
             serialize_default_buffer(_out, Token_Type::list_separator);
@@ -1607,7 +1607,7 @@ std::string& Nodlang::serialize_return(std::string& out, const Node* node) const
 
 std::string &Nodlang::serialize_input(std::string& _out, const Node_Slot* slot, Serialization_Flags _flags ) const
 {
-    ASSERT( slot->has_flags( Node_Slot::Flag_INPUT ) );
+    ASSERT( HAS_FLAGS(slot->flags, Node_Slot::Flag_INPUT ) );
 
     const Node_Slot*     adjacent_slot     = slot->first_adjacent();
     const Node_Property* adjacent_property = adjacent_slot != nullptr ? adjacent_slot->property

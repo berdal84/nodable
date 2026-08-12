@@ -1,5 +1,6 @@
 #include "Node_Slot.h"
 #include "Node.h"
+#include "core/Flags.h"
 
 using namespace ndbl;
 
@@ -14,7 +15,8 @@ Node_Slot::Node_Slot(
 , flags(_flags)
 , position(_position)
 {
-    VERIFY(!this->has_flags(Node_Slot::Flag_IS_FULL), "Node_Slot::Flag_IS_FULL is for readonly use" );
+    VERIFY( !HAS_FLAGS(flags, Node_Slot::Flag_IS_FULL), "Node_Slot::Flag_IS_FULL is for readonly use" );
+    
     if (this->capacity == 0)
         this->capacity = this->adjacent.capacity();
     ASSERT( this->capacity <= this->adjacent.capacity() );

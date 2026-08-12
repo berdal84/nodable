@@ -105,7 +105,7 @@ bool ndbl::nodeslotview_draw(Node_Slot_View* view)
         case Shape_Type_RECTANGLE:
         {
             // draw the rectangle
-            bool bottom = view->slot->has_flags(Node_Slot::Flag_ORDER_1ST);
+            bool bottom = HAS_FLAGS(view->slot->flags, Node_Slot::Flag_ORDER_1ST);
             ImDrawFlags corner_flags = bottom ? ImDrawFlags_RoundCornersBottom
                                               : ImDrawFlags_RoundCornersTop;
             draw_list->AddRectFilled(rect.min, rect.max, ImColor(fill_color), border_radius, corner_flags );

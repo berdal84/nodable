@@ -131,10 +131,6 @@ namespace ndbl
             VariableFlags flags             = VariableFlag_NONE;
             Node_Slot*    decl_out          = nullptr;
             Node_Slot*    ref_out           = nullptr;
-
-            bool                has_flags(VariableFlags _flags) const { return (flags & _flags) == _flags; };
-            void                set_flags(VariableFlags _flags) { flags |= _flags; }
-            void                clear_flags(VariableFlags _flags = VariableFlag_ALL) { flags &= ~_flags; }
         };
 
         struct Variable_Ref_State

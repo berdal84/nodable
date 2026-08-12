@@ -9,6 +9,16 @@
 
 namespace tools
 {
+    typedef u8_t Debug_Flags;
+    enum Debug_Flags_ : int
+    {
+        Debug_Flags_NONE                        = 0,
+        Debug_Flags_DRAW_IMGUIEX_DEBUG_LINES    = 1 << 0,
+        Debug_Flags_SHOW_IMGUI_CONFIG_WINDOW    = 1 << 1,
+        Debug_Flags_DRAW_LAYOUT_DEBUG_LINES     = 1 << 2,
+        Debug_Flags_ALL                         = ~Debug_Flags_NONE
+    };
+
     // Framework configuration
     struct Config
     {
@@ -17,7 +27,7 @@ namespace tools
         Config() = default;
 
         const char*           app_default_title        = "Default App Title";
-        bool                  runtime_debug            = false;
+        Debug_Flags           debug_flags              = Debug_Flags_NONE;
         bool                  fps_limit_on             = true;
         float                 fps_limit                = 60;
         u32_t                 dt_cap                   = 1000 / 60; // in ms

@@ -43,8 +43,8 @@ namespace ndbl
         GETTER( Node*            , node      , slot->node )
         GETTER( Node_Property*   , property  , slot->property )
 
-        bool                            allows(Node_Slot::Flag flags) const { return slot->has_flags(flags); }
-        const tools::Type_Descriptor*   property_type()const { return property() ? property()->type : nullptr; }
+        inline bool                          allows(Node_Slot::Flag flags) const { return HAS_FLAGS(slot->flags, flags); }
+        inline const tools::Type_Descriptor* property_type()const                { return property() ? property()->type : nullptr; }
     };
 
     void                            nodeslotview_update(Node_Slot_View*, float dt);

@@ -7,7 +7,7 @@
 namespace ndbl
 {
     // forward declarations
-    class Node;
+    struct Node;
 
     // Property wraps a Token including extra inFormation such as: name, owner (Node), and some flags.
 	struct Node_Property
@@ -26,10 +26,6 @@ namespace ndbl
         Node*                           node    = nullptr; // owner
         const tools::Type_Descriptor*   type    = nullptr; // n.b. use setter
         Flags                           flags   = Flag_NONE;
-
-        bool has_flags      (Flags _flags)const { return (this->flags & _flags) == _flags; };
-        void set_flags      (Flags _flags) { this->flags |= flags; }
-        void clear_flags    (Flags _flags = Flag_ALL) { this->flags &= ~_flags; }
     };
 
     void property_set_type  (Node_Property*, const tools::Type_Descriptor* /* new_type */ );

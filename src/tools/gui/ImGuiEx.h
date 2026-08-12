@@ -6,6 +6,7 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include "core/Event.h"
+#include "gui/Config.h"
 #include "tools/gui/geometry/Rect.h"
 #include "tools/gui/geometry/Vec2.h"
 #include "tools/gui/geometry/Vec4.h"
@@ -95,5 +96,14 @@ namespace tools
         template<typename ...Args>
         static void DrawHelper(const char* _Format, Args... args)
         { DrawHelperEx(0.25f, _Format, args...); } // simple "?" test with a tooltip.
-    };
+    }
+}
+
+#define CHECKBOX_FLAG(label, flags, flags_to_toggle )\
+{\
+    bool checked = HAS_FLAGS( flags, flags_to_toggle);\
+    if ( ImGui::Checkbox(label, &checked) )\
+    {\
+        SET_FLAGS_VALUE( flags, flags_to_toggle, checked);\
+    }\
 }

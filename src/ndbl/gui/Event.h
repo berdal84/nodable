@@ -19,20 +19,20 @@ namespace ndbl
     typedef int Event_Code;
     enum Event_Code_
     {
-        Event_Code_DELETE,
         Event_Code_ARRANGE_SELECTION,
-        Event_Code_SELECT_NEXT,
-        Event_Code_TOGGLE_FOLDING,
-        Event_Code_REQUEST_CREATE_NODE,
-        Event_Code_REQUEST_CREATE_BLOCK,
-        Event_Code_REQUEST_FRAME_SELECTION,
-        Event_Code_MOVE_SELECTION,
-        Event_Code_TOGGLE_ISOLATION_FLAGS,
-        Event_Code_SLOT_DROPPED,
         Event_Code_DELETE_ALL_LINKS,
-        Event_Code_SELECTION_CHANGE,
         Event_Code_DELETE_LINK,
+        Event_Code_DELETE,
+        Event_Code_MOVE_SELECTION,
+        Event_Code_REQUEST_CREATE_BLOCK,
+        Event_Code_REQUEST_CREATE_NODE,
+        Event_Code_REQUEST_FRAME_SELECTION,
         Event_Code_RESET_GRAPH_VIEW,
+        Event_Code_SELECT_NEXT,
+        Event_Code_SELECTION_CHANGE,
+        Event_Code_SLOT_DROPPED,
+        Event_Code_TOGGLE_FOLDING,
+        Event_Code_TOGGLE_ISOLATION_FLAGS,
     };
 
     struct Event_Data__Selection

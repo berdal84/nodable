@@ -75,7 +75,7 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
             case Node_Type_WHILE_LOOP:
             {
                 // hide THIS property
-                if ( property->has_flags(Node_Property::Flag_IS_NODE_VALUE) )
+                if ( HAS_FLAGS(property->flags, Node_Property::Flag_IS_NODE_VALUE) )
                 {
                     SET_FLAGS(new_view->flags, View_Flag_HIDDEN);
                 }

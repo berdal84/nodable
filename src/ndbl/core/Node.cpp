@@ -8,6 +8,7 @@
 #include "core/Constants.h"
 #include "Scope.h"
 #include "Graph.h"
+#include "core/Flags.h"
 #include "core/Node_Property.h"
 #include "core/reflection/Type_Descriptor.h"
 
@@ -197,7 +198,7 @@ const Node_Slot* ndbl::node_find_slot_at(const Node* node, Node_Slot::Flags flag
 {
     for( const Node_Slot* slot : node->slots )
     {
-        if( slot->has_flags(flags) && slot->position == position && slot->property == node->value )
+        if( HAS_FLAGS(slot->flags, flags) && slot->position == position && slot->property == node->value )
         {
             return slot;
         }
@@ -269,7 +270,7 @@ const Node_Slot* ndbl::node_find_slot_by_property(const Node* node, const Node_P
     auto it = node->slots_by_prop.find(prop);
     if ( it != node->slots_by_prop.end() )
         for( Node_Slot* slot : it->second )
-            if( slot->has_flags(flags) )
+            if( HAS_FLAGS(slot->flags, flags) )
                 return slot;
     return nullptr;
 }
@@ -280,7 +281,7 @@ Node_Slot* ndbl::node_find_adjacent_at(const Node* node, Node_Slot::Flags _flags
     for (Node_Slot* slot : node->slots)
     {
         // Skip any slot not compatible with given flags
-        if( !slot->has_flags( _flags ) )
+        if( !HAS_FLAGS(slot->flags, _flags ) )
         {
             continue;
         }
@@ -302,7 +303,7 @@ std::vector<Node_Slot*> ndbl::node_filter_slots(const Node* node, Node_Slot::Fla
     const auto if_has_flags = [flags](const Node_Slot* _slot)
     {
         ASSERT_DEBUG_ONLY(_slot != nullptr);
-        return _slot->has_flags(flags);
+        return HAS_FLAGS(_slot->flags, flags);
     };
     return node_filter_slots(node, if_has_flags);
 }
@@ -347,7 +348,7 @@ const Node_Slot* Node::flow_enter() const
     {
         const auto& [_, slots] = *it;
         for( Node_Slot* slot : slots )
-            if( slot->has_flags(Node_Slot::Flag_FLOW_ENTER) )
+            if( HAS_FLAGS(slot->flags, Node_Slot::Flag_FLOW_ENTER) )
                 return slot;
     }
     return nullptr;
@@ -366,8 +367,9 @@ const Node_Slot* Node::flow_out() const
     {
         const auto& [_, slots] = *it;
         for( Node_Slot* slot : slots )
-            if( slot->has_flags(Node_Slot::Flag_FLOW_OUT) && !slot->has_flags(Node_Slot::Flag_IS_INTERNAL) ) // branches are specific flow_out, we don't want to grab them here
-                return slot;
+            if( HAS_FLAGS( slot->flags, Node_Slot::Flag_FLOW_OUT) )
+                if (!HAS_FLAGS(slot->flags, Node_Slot::Flag_IS_INTERNAL) ) // branches (internal) are specific flow_out, we don't want to grab them here
+                    return slot;
     }
     return nullptr;
 }
@@ -474,11 +476,11 @@ Node_Property* ndbl::node_add_prop(Node* node, const Type_Descriptor* type, cons
 
 const Node_Property* ndbl::node_find_first_prop(const Node* node, Node_Property::Flags _flags, const Type_Descriptor *_type)
 {
-    auto filter = [_flags, _type](const std::pair<const std::string, Node_Property*>& pair) -> bool
+    auto filter = [_flags, _type](const auto& pair) -> bool
     {
-        auto* property = pair.second;
+        Node_Property* property = pair.second;
         return type::is_implicitly_convertible(property->type, _type)
-               && ( property->has_flags( _flags ) );
+               && ( HAS_FLAGS(property->flags, _flags ) );
     };
 
     auto found = std::find_if(node->props_by_name.begin(), node->props_by_name.end(), filter );
@@ -563,8 +565,7 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& 
 
         Node_Property* property  = node_add_prop(node, arg.type, name );
 
-        if ( arg.pass_by_ref )
-            property->set_flags(Node_Property::Flag_IS_REF);
+        SET_FLAGS_VALUE(property->flags, Node_Property::Flag_IS_REF, arg.pass_by_ref);
 
         node->invokable_data.argument_slots[i]  = node_add_slot(node, property, Node_Slot::Flag_INPUT, 1);
         node->invokable_data.argument_props[i] = property;

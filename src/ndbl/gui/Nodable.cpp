@@ -1,8 +1,9 @@
 #include "Nodable.h"
 #include "IconsFontAwesome5.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
-#include "core/Event.h"
-#include "core/Graph.h"
+#include "tools/core/Event.h"
+#include "tools/core/Flags.h"
+#include "ndbl/core/Graph.h"
 #include "gui/Action_Manager.h"
 #include "gui/App.h"
 #include "gui/Nodable_View.h"
@@ -81,9 +82,10 @@ void ndbl::nodable_init(App_State* app)
     tools::Action_Manager* action_manager = action_manager_get();
     ASSERT(action_manager != nullptr); // Should have been initialized by tools::App_View
     // (With shortcut)
-    action_manager_add_action( action_manager, "Delete", Event_Data__User(Event_Code_DELETE), Shortcut{SDLK_DELETE, KMOD_NONE } );
-    action_manager_add_action( action_manager, "Arrange", Event_Data__User( Event_Code_ARRANGE_SELECTION ), Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager_add_action( action_manager, "Fold", Event_Data__User( Event_Code_ARRANGE_SELECTION ), Shortcut{SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager_add_action( action_manager, "Reset Graph", Event_Data__User(Event_Code_RESET_GRAPH_VIEW), Shortcut{SDLK_F5, KMOD_NONE } );
+    action_manager_add_action( action_manager, "Delete Selection", Event_Data__User(Event_Code_DELETE), Shortcut{SDLK_DELETE, KMOD_NONE } );
+    action_manager_add_action( action_manager, "Arrange Selection", Event_Data__User( Event_Code_ARRANGE_SELECTION ), Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager_add_action( action_manager, "Fold Selection", Event_Data__User( Event_Code_TOGGLE_FOLDING ), Shortcut{SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager_add_action( action_manager, "Next", Event_Data__User( Event_Code_SELECT_NEXT ), Shortcut{SDLK_n, KMOD_NONE } );
     action_manager_add_action( action_manager, ICON_FA_SAVE " Save", Event_Type_FILE_SAVE,  Shortcut{SDLK_s, KMOD_CTRL } );
     action_manager_add_action( action_manager, ICON_FA_SAVE " Save as", Event_Type_FILE_SAVE_AS, Shortcut{SDLK_s, KMOD_CTRL } );
@@ -195,7 +197,7 @@ void ndbl::nodable_update(App_State* app)
     // Update current file
     if (app->current_file)
     {
-        file_update(app->current_file, app->config->has_flags(Config_Flag_ISOLATION_ON));
+        file_update(app->current_file, HAS_FLAGS(app->config->flags, Config_Flag_ISOLATION_ON) );
     }
 
     // Handle events
@@ -499,8 +501,10 @@ void ndbl::nodable_update(App_State* app)
                                 Node_Slot* out = slot_view->slot;
                                 Node_Slot* in  = complementary_slot;
 
-                                if ( out->has_flags( Node_Slot::Flag_ORDER_2ND ) )
+                                if ( HAS_FLAGS(out->flags, Node_Slot::Flag_ORDER_2ND ) )
+                                {
                                     std::swap( out, in );
+                                }
 
                                 graph_connect(out, in, Graph_Flag_ALLOW_SIDE_EFFECTS );
 

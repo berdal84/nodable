@@ -1,19 +1,17 @@
 #include "File_View.h"
 
-#include "gui/Action_Manager.h"
+#include "tools/core/Flags.h"
+#include "tools/gui/Action_Manager.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/gui/Font_Manager.h"
 #include "tools/gui/ImGuiTypeConvert.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
-#include "ndbl/core/language/Nodlang.h"
-
-
-#include "Config.h"
-#include "Event.h"
-#include "File.h"
-#include "Graph_View.h"
-#include "Node_View.h"
+#include "ndbl/gui/Config.h"
+#include "ndbl/gui/Event.h"
+#include "ndbl/gui/File.h"
+#include "ndbl/gui/Graph_View.h"
+#include "ndbl/gui/Node_View.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -188,7 +186,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
             fileview_draw_overlay(file_view->text_overlay_window_name.c_str(), file_view->overlay_data[File_View_Overlay_Type_TEXT], overlay_rect, Vec2(0, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
-            if ( cfg->flags & Config_Flag_EXPERIMENTAL_MULTI_SELECTION )
+            if ( HAS_FLAGS(cfg->flags, Config_Flag_EXPERIMENTAL_MULTI_SELECTION) )
             {
                 file_view->file->history.enable_text_editor(false); // avoid recording events caused by graph serialisation
             }
@@ -203,7 +201,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
 
             text_view_changed  = is_line_text_modified;
             text_view_changed |= file_view->text_editor.IsTextChanged();
-            text_view_changed |= cfg->has_flags(Config_Flag_ISOLATION_ON) && is_selected_text_modified;
+            text_view_changed |= HAS_FLAGS(cfg->flags, Config_Flag_ISOLATION_ON) && is_selected_text_modified;
         }
         ImGui::EndChild();
 
@@ -227,7 +225,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
-            if( cfg->has_flags(Config_Flag_ISOLATION_ON) )
+            if( HAS_FLAGS(cfg->flags, Config_Flag_ISOLATION_ON) )
             {
                 Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( cfg->ui_textview_padding);
                 ImGui::SetCursorPos(cursor_pos);

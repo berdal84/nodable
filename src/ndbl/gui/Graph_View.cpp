@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <vector>
 
+#include "gui/Config.h"
 #include "imgui.h"
 
 #include "tools/core/Asserts.h"
@@ -473,7 +474,7 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
     graph_view->state_machine.tick();
 
     // Debug Infos
-    if (cfg->tools_cfg->runtime_debug)
+    if ( cfg->tools_cfg->debug_flags )
     {
         if (ImGui::Begin("Graph_ViewToolState_Machine"))
         {
@@ -494,7 +495,7 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 
 
     // debug layout
-    if( cfg->has_flags(Config_Flag_DRAW_DEBUG_LINES))
+    if( HAS_FLAGS(cfg->tools_cfg->debug_flags, Debug_Flags_DRAW_LAYOUT_DEBUG_LINES) )
     {
         auto list = ImGui::GetForegroundDrawList();
         Vec2 origin = graph_view->shape.position();
