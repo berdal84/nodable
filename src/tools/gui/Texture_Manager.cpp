@@ -1,50 +1,64 @@
 #include "Texture_Manager.h"
-#include "tools/gui/GL_Helpers.h"
+// #include "tools/gui/GL_Helpers.h"
 #include <lodepng.h>
+#include <utility>
 
 #include "Texture.h"
 #include "tools/core/Log.h"
 #include "tools/core/Asserts.h"
 
-using namespace tools;
+#define VERIFY_TEXTURE_MANAGER_IS_INITIALIZED() VERIFY( g_texture_manager != nullptr, "g_texture_manager is not initialized, did you cann texture_manager_init() ?")
 
-static Texture_Manager* g_texture_manager{ nullptr };
+// private
+namespace tools
+{
+    static Texture_Manager* g_texture_manager{ nullptr };
 
-Texture_Manager* tools::init_texture_manager()
+    Texture*    _texture_manager_load_png_to_gpu(const Path&);      // Create a texture (loaded to GPU) from a png file path
+    int         _texture_manager_load_png(const Path&, Texture*);   // Load a PNG file to Texture (RAM only)
+    int         _texture_manager_load_to_gpu(Texture*);             // Load a Texture to GPU
+}
+
+tools::Texture_Manager* tools::texture_manager_init()
 {
     ASSERT(g_texture_manager == nullptr);
     g_texture_manager = new Texture_Manager();
     return g_texture_manager;
 }
 
-Texture_Manager* tools::get_texture_manager()
+tools::Texture_Manager* tools::texture_manager()
 {
+    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
     return g_texture_manager;
 }
 
-void tools::shutdown_texture_manager(Texture_Manager* texture_manager)
+void tools::texture_manager_shutdown()
 {
-    ASSERT(g_texture_manager == texture_manager);
+    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED()
     ASSERT(g_texture_manager != nullptr);
-    g_texture_manager->release_all();
+    texture_manager_release_all();
     delete g_texture_manager;
     g_texture_manager = nullptr;
 }
 
-Texture* Texture_Manager::load(const Path& path)
+tools::Texture* tools::texture_manager_load(const Path& path)
 {
+    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
+
     // Return if already exists
-    auto tex = m_register.find(path.string());
-    if (tex != m_register.end() )
+    auto tex = g_texture_manager->texture_by_absolute_path.find(path.string());
+    if (tex != g_texture_manager->texture_by_absolute_path.end() )
         return tex->second;
 
-    return load_png_to_gpu(path);
+    return _texture_manager_load_png_to_gpu(path);
 }
 
-bool Texture_Manager::release_all()
+bool tools::texture_manager_release_all()
 {
+    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
+
     bool success = true;
-    for( const auto& [key, texture] : m_register )
+    for( const auto& [key, texture] : g_texture_manager->texture_by_absolute_path )
     {
         if( texture->gl_handler ) // is zero when texture is not loaded to GPU
         {
@@ -61,15 +75,18 @@ bool Texture_Manager::release_all()
         }
         delete texture;
     }
-    m_register.clear();
+    g_texture_manager->texture_by_absolute_path.clear();
     return success;
 }
-Texture *Texture_Manager::load_png_to_gpu(const Path &path)
+
+tools::Texture* tools::_texture_manager_load_png_to_gpu(const Path &path)
 {
+    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
+    
     auto* texture = new Texture();
 
     // 1. Load png file to Texture (RAM only)
-    int error = load_png(path, texture);
+    int error = _texture_manager_load_png(path, texture);
     if ( error )
     {
         delete texture;
@@ -78,7 +95,7 @@ Texture *Texture_Manager::load_png_to_gpu(const Path &path)
     }
 
     // 2. Load texture to GPU
-    error = load_to_gpu(texture);
+    error = _texture_manager_load_to_gpu(texture);
     if ( error )
     {
         delete texture;
@@ -86,13 +103,13 @@ Texture *Texture_Manager::load_png_to_gpu(const Path &path)
         return nullptr;
     }
 
-    m_register.emplace(path.string(), texture);
+    g_texture_manager->texture_by_absolute_path.emplace(path.string(), texture);
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Texture_Manager", "File loaded to GPU: %s\n", path.c_str());
 
     return texture;
 }
 
-int Texture_Manager::load_png(const Path& path, Texture* texture)
+int tools::_texture_manager_load_png(const Path& path, Texture* texture)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Texture_Manager", "Loading PNG from disk %s ...\n", path.c_str());
     std::vector<unsigned char> buffer;
@@ -111,7 +128,7 @@ int Texture_Manager::load_png(const Path& path, Texture* texture)
     return 0;
 }
 
-int Texture_Manager::load_to_gpu(Texture* texture)
+int tools::_texture_manager_load_to_gpu(Texture* texture)
 {
     // Create a OpenGL texture identifier
     glGenTextures(1, &texture->gl_handler);

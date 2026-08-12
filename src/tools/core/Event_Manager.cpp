@@ -5,7 +5,13 @@
 #include "core/Event.h"
 #include "core/Types.h"
 
-tools::Event_Manager* g_event_manager = nullptr;
+#define VERIFY_EVENT_MANAGER_IS_INITIALIZED() VERIFY( tools::g_event_manager != nullptr, "g_event_manager is not initialized, did you cann event_manager_init() ?")
+
+// private
+namespace tools
+{
+    static Event_Manager* g_event_manager = nullptr;
+}
 
 tools::Event_Manager* tools::event_manager_init()
 {
@@ -14,41 +20,42 @@ tools::Event_Manager* tools::event_manager_init()
     return g_event_manager;
 }
 
-tools::Event_Manager* tools::event_manager_get()
+tools::Event_Manager* tools::event_manager()
 {
-    VERIFY(g_event_manager != nullptr, "event manager can't be found. Did you call init_ex ?");
+    VERIFY_EVENT_MANAGER_IS_INITIALIZED();
     return g_event_manager;
 }
 
-void  tools::event_manager_shutdown(Event_Manager* manager)
+void  tools::event_manager_shutdown()
 {
-    ASSERT(manager == g_event_manager);  // singleton
-    ASSERT(g_event_manager != nullptr);
+    VERIFY_EVENT_MANAGER_IS_INITIALIZED();
     delete g_event_manager;
     g_event_manager = nullptr;
 }
 
-void tools::event_manager_dispatch(Event_Manager* manager, Event _event)
+void tools::event_manager_push_event(Event _event)
 {
-    manager->m_events.push(_event);
+    VERIFY_EVENT_MANAGER_IS_INITIALIZED();
+    g_event_manager->event_queue.push(_event);
 }
 
-tools::Event tools::event_manager_poll_event(Event_Manager* manager)
+tools::Event tools::event_manager_pop_event()
 {
-    if ( manager->m_events.empty() )
+    VERIFY_EVENT_MANAGER_IS_INITIALIZED();
+    if ( g_event_manager->event_queue.empty() )
     {
         return {};
     }
 
-    Event next_event = manager->m_events.front();
-    manager->m_events.pop();
+    Event next_event = g_event_manager->event_queue.front();
+    g_event_manager->event_queue.pop();
     return next_event;
 }
 
-void tools::event_manager_dispatch_delayed( Event_Manager* manager, Event event, u64_t delay_in_ms)
+void tools::event_manager_push_delayed_event( Event event, u64_t delay_in_ms)
 {
-    get_task_manager()->schedule_task(
-        [manager, event]() -> void { event_manager_dispatch(event_manager_get(), event); }
-        , delay_in_ms
-    );
+    auto task = [event]() -> void {
+        event_manager_push_event(event);
+    };
+    get_task_manager()->schedule_task(task, delay_in_ms);
 }

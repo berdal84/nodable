@@ -51,10 +51,6 @@ namespace tools
         tools::Simple_Signal signal_draw_splashscreen_content; // to insert custom code into the splashscreen window
 
         std::string         title;
-        Texture_Manager*    texture_manager  = nullptr;
-        Font_Manager*       font_manager     = nullptr;
-        Event_Manager*      event_manager    = nullptr;
-        Action_Manager*     action_manager   = nullptr;
         SDL_GLContext       sdl_gl_context   = nullptr;
         SDL_Window*         sdl_window       = nullptr;
         u32_t               dt_in_ms         = 0;

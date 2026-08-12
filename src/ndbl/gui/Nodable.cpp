@@ -79,48 +79,47 @@ void ndbl::nodable_init(App_State* app)
     app->config     = cfg;
 
     // Add a bunch of new actions
-    tools::Action_Manager* action_manager = action_manager_get();
-    ASSERT(action_manager != nullptr); // Should have been initialized by tools::App_View
+    
     // (With shortcut)
-    action_manager_add_action( action_manager, "Reset Graph", Event_Data__User(Event_Code_RESET_GRAPH_VIEW), Shortcut{SDLK_F5, KMOD_NONE } );
-    action_manager_add_action( action_manager, "Delete Selection", Event_Data__User(Event_Code_DELETE), Shortcut{SDLK_DELETE, KMOD_NONE } );
-    action_manager_add_action( action_manager, "Arrange Selection", Event_Data__User( Event_Code_ARRANGE_SELECTION ), Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager_add_action( action_manager, "Fold Selection", Event_Data__User( Event_Code_TOGGLE_FOLDING ), Shortcut{SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager_add_action( action_manager, "Next", Event_Data__User( Event_Code_SELECT_NEXT ), Shortcut{SDLK_n, KMOD_NONE } );
-    action_manager_add_action( action_manager, ICON_FA_SAVE " Save", Event_Type_FILE_SAVE,  Shortcut{SDLK_s, KMOD_CTRL } );
-    action_manager_add_action( action_manager, ICON_FA_SAVE " Save as", Event_Type_FILE_SAVE_AS, Shortcut{SDLK_s, KMOD_CTRL } );
-    action_manager_add_action( action_manager, ICON_FA_TIMES "  Close", Event_Type_FILE_CLOSE, Shortcut{SDLK_w, KMOD_CTRL } );
-    action_manager_add_action( action_manager, ICON_FA_FOLDER_OPEN " Open", Event_Type_FILE_BROWSE, Shortcut{SDLK_o, KMOD_CTRL } );
-    action_manager_add_action( action_manager, ICON_FA_FILE " New", Event_Type_FILE_NEW, Shortcut{SDLK_n, KMOD_CTRL } );
-    action_manager_add_action( action_manager, "Splashscreen", Event{Event_Type_TOGGLE_WINDOW, "splashscreen" }, Shortcut{SDLK_F1 } );
-    action_manager_add_action( action_manager, ICON_FA_SIGN_OUT_ALT " Exit", Event_Type_REQUEST_EXIT, Shortcut{SDLK_F4, KMOD_ALT } );
-    action_manager_add_action( action_manager, "Undo", Event_Type_UNDO, Shortcut{SDLK_z, KMOD_CTRL } );
-    action_manager_add_action( action_manager, "Redo"               , Event_Type_REDO, Shortcut{SDLK_y, KMOD_CTRL } );
-    action_manager_add_action( action_manager, "Isolation"          , Event_Data__User(Event_Code_TOGGLE_ISOLATION_FLAGS), Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
-    action_manager_add_action( action_manager, "Drag whole graph"   , Event_Data__User(Event_Code_MOVE_SELECTION), Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager_add_action( action_manager, "Frame Selection"    , Event_Data__User(Event_Code_REQUEST_FRAME_SELECTION), Shortcut{SDLK_f, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager_add_action( action_manager, "Frame All"          , Event_Data__User(Event_Code_REQUEST_FRAME_SELECTION), Shortcut{SDLK_f, KMOD_LCTRL });
+    action_manager_add_action( "Reset Graph", Event_Data__User(Event_Code_RESET_GRAPH_VIEW), Shortcut{SDLK_F5, KMOD_NONE } );
+    action_manager_add_action( "Delete Selection", Event_Data__User(Event_Code_DELETE), Shortcut{SDLK_DELETE, KMOD_NONE } );
+    action_manager_add_action( "Arrange Selection", Event_Data__User( Event_Code_ARRANGE_SELECTION ), Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager_add_action( "Fold Selection", Event_Data__User( Event_Code_TOGGLE_FOLDING ), Shortcut{SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager_add_action( "Next", Event_Data__User( Event_Code_SELECT_NEXT ), Shortcut{SDLK_n, KMOD_NONE } );
+    action_manager_add_action( ICON_FA_SAVE " Save", Event_Type_FILE_SAVE,  Shortcut{SDLK_s, KMOD_CTRL } );
+    action_manager_add_action( ICON_FA_SAVE " Save as", Event_Type_FILE_SAVE_AS, Shortcut{SDLK_s, KMOD_CTRL } );
+    action_manager_add_action( ICON_FA_TIMES "  Close", Event_Type_FILE_CLOSE, Shortcut{SDLK_w, KMOD_CTRL } );
+    action_manager_add_action( ICON_FA_FOLDER_OPEN " Open", Event_Type_FILE_BROWSE, Shortcut{SDLK_o, KMOD_CTRL } );
+    action_manager_add_action( ICON_FA_FILE " New", Event_Type_FILE_NEW, Shortcut{SDLK_n, KMOD_CTRL } );
+    action_manager_add_action( "Splashscreen", Event{Event_Type_TOGGLE_WINDOW, "splashscreen" }, Shortcut{SDLK_F1 } );
+    action_manager_add_action( ICON_FA_SIGN_OUT_ALT " Exit", Event_Type_REQUEST_EXIT, Shortcut{SDLK_F4, KMOD_ALT } );
+    action_manager_add_action( "Undo", Event_Type_UNDO, Shortcut{SDLK_z, KMOD_CTRL } );
+    action_manager_add_action( "Redo"               , Event_Type_REDO, Shortcut{SDLK_y, KMOD_CTRL } );
+    action_manager_add_action( "Isolation"          , Event_Data__User(Event_Code_TOGGLE_ISOLATION_FLAGS), Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
+    action_manager_add_action( "Drag whole graph"   , Event_Data__User(Event_Code_MOVE_SELECTION), Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager_add_action( "Frame Selection"    , Event_Data__User(Event_Code_REQUEST_FRAME_SELECTION), Shortcut{SDLK_f, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager_add_action( "Frame All"          , Event_Data__User(Event_Code_REQUEST_FRAME_SELECTION), Shortcut{SDLK_f, KMOD_LCTRL });
     // (to create block nodes)
-    action_manager_add_action( action_manager, ICON_FA_CODE " Condition"    , Event_Data__User(Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_BLOCK_CONDITION )) );
-    action_manager_add_action( action_manager, ICON_FA_CODE " For Loop"     , Event_Data__User(Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_BLOCK_FOR_LOOP) ));
-    action_manager_add_action( action_manager, ICON_FA_CODE " While Loop"   , Event_Data__User(Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_BLOCK_WHILE_LOOP)) );
-    action_manager_add_action( action_manager, ICON_FA_CODE " Scope"        , Event_Data__User(Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_BLOCK_SCOPE )) );
-    action_manager_add_action( action_manager, ICON_FA_CODE " Entry Point"  , Event_Data__User(Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_ROOT)) );
+    action_manager_add_action( ICON_FA_CODE " Condition"    , Event_Data__User(Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_BLOCK_CONDITION )) );
+    action_manager_add_action( ICON_FA_CODE " For Loop"     , Event_Data__User(Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_BLOCK_FOR_LOOP) ));
+    action_manager_add_action( ICON_FA_CODE " While Loop"   , Event_Data__User(Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_BLOCK_WHILE_LOOP)) );
+    action_manager_add_action( ICON_FA_CODE " Scope"        , Event_Data__User(Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_BLOCK_SCOPE )) );
+    action_manager_add_action( ICON_FA_CODE " Entry Point"  , Event_Data__User(Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_ROOT)) );
     // (misc)
-    action_manager_add_action( action_manager, ICON_FA_CODE " Return Statement", Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_RETURN )));
+    action_manager_add_action( ICON_FA_CODE " Return Statement", Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_RETURN )));
     // (to create variables)
-    action_manager_add_action( action_manager, ICON_FA_DATABASE " Boolean Variable" , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() )) );
-    action_manager_add_action( action_manager, ICON_FA_DATABASE " Double Variable"  , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_VARIABLE_DOUBLE, create_variable_node_signature<double>() )) );
-    action_manager_add_action( action_manager, ICON_FA_DATABASE " Integer Variable" , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_VARIABLE_INTEGER, create_variable_node_signature<int>() )) );
-    action_manager_add_action( action_manager, ICON_FA_DATABASE " String Variable"  , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_VARIABLE_STRING, create_variable_node_signature<std::string>() )) );
+    action_manager_add_action( ICON_FA_DATABASE " Boolean Variable" , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() )) );
+    action_manager_add_action( ICON_FA_DATABASE " Double Variable"  , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_VARIABLE_DOUBLE, create_variable_node_signature<double>() )) );
+    action_manager_add_action( ICON_FA_DATABASE " Integer Variable" , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_VARIABLE_INTEGER, create_variable_node_signature<int>() )) );
+    action_manager_add_action( ICON_FA_DATABASE " String Variable"  , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_VARIABLE_STRING, create_variable_node_signature<std::string>() )) );
     //(to create literals)
-    action_manager_add_action( action_manager, ICON_FA_FILE " Boolean Literal"  , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_LITERAL_BOOLEAN, create_variable_node_signature<bool>() )));
-    action_manager_add_action( action_manager, ICON_FA_FILE " Double Literal"   , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_LITERAL_DOUBLE, create_variable_node_signature<double>() )));
-    action_manager_add_action( action_manager, ICON_FA_FILE " Integer Literal"  , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_LITERAL_INTEGER, create_variable_node_signature<int>() )));
-    action_manager_add_action( action_manager, ICON_FA_FILE " String Literal"   , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_LITERAL_STRING, create_variable_node_signature<std::string>() )));
+    action_manager_add_action( ICON_FA_FILE " Boolean Literal"  , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_LITERAL_BOOLEAN, create_variable_node_signature<bool>() )));
+    action_manager_add_action( ICON_FA_FILE " Double Literal"   , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_LITERAL_DOUBLE, create_variable_node_signature<double>() )));
+    action_manager_add_action( ICON_FA_FILE " Integer Literal"  , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_LITERAL_INTEGER, create_variable_node_signature<int>() )));
+    action_manager_add_action( ICON_FA_FILE " String Literal"   , Event_Data__User( Event_Code_REQUEST_CREATE_NODE, new Event_Data__Create_Node(Create_Node_Type_LITERAL_STRING, create_variable_node_signature<std::string>() )));
     // (to create functions/operators from the API)
     // TODO: add a list of preset to create operators/functions
-    // action_manager_add_action( action_manager, label.c_str(), Shortcut{}, EventPayload_CreateNode{Create_Node_Type_FUNCTION, invokable->get_sig() } );
+    // action_manager_add_action( label.c_str(), Shortcut{}, EventPayload_CreateNode{Create_Node_Type_FUNCTION, invokable->get_sig() } );
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "init " TOOLS_OK "\n");
 }
@@ -205,7 +204,6 @@ void ndbl::nodable_update(App_State* app)
     
     // Nodable events
     Event           event = {};
-    Event_Manager*  event_manager       = event_manager_get();
     Graph_View*     graph_view          = nullptr; 
     History*        curr_file_history   = nullptr;
 
@@ -215,7 +213,7 @@ void ndbl::nodable_update(App_State* app)
         curr_file_history = &app->current_file->history; // TODO: should be included in the event?
     } 
 
-    while( (event = event_manager_poll_event(event_manager)) )
+    while( (event = event_manager_pop_event()) )
     {
         switch ( event.type )
         {
@@ -585,7 +583,7 @@ File* ndbl::nodable_add_file(App_State* app, File* _file)
     VERIFY(_file, "File is nullptr");
     app->files.push_back( _file );
     app->current_file = _file;
-    event_manager_dispatch( event_manager_get(), event_from_type(Event_Type_FILE_OPENED) );
+    event_manager_push_event( event_from_type(Event_Type_FILE_OPENED) );
     return _file;
 }
 

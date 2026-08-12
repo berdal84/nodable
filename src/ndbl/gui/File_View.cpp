@@ -115,7 +115,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
 
     // 2)
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
-    ImGui::PushFont( get_font_manager()->get_font(Font_Slot_Code) );
+    ImGui::PushFont( font_manager_get_by_slot(Font_Slot_Code) );
 
     ImGui::BeginChild("File_View", ImGui::GetContentRegionAvail(), false, 0);
     {
@@ -364,7 +364,7 @@ size_t ndbl::fileview_size(const File_View* file_view)
 
 void ndbl::fileview_refresh_overlay(File_View* file_view, Condition condition )
 {
-    for (const Action& action: action_manager_get()->actions )
+    for (const Action& action: action_manager()->actions )
     {
         if( ( action.flags & condition) == condition && (action.flags & Condition_HIGHLIGHTED) )
         {

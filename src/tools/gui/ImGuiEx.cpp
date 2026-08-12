@@ -323,7 +323,7 @@ const Action* ImGuiEx::MenuItem_for_event_user_code(Event_User_Code code, bool s
     //       we only do it for Event_Type
     //       perhaps we should have an additionnal index, OR Event_User_Code should be a subset of Event_Type!
     const Action* action = nullptr;
-    for(const Action& each_action : action_manager_get()->actions)
+    for(const Action& each_action : action_manager()->actions )
     {
         if( each_action.event.type == Event_Type_USER && each_action.event.user.code == code )
         {
@@ -343,7 +343,7 @@ const Action* ImGuiEx::MenuItem_for_event_user_code(Event_User_Code code, bool s
 
 const Action* ImGuiEx::MenuItem_for_event_type(Event_Type event_type, bool selected, bool enable)
 {
-    const Action* action = action_manager_get_action_with_event_type(action_manager_get(), event_type);
+    const Action* action = action_manager_get_action_with_event_type(event_type);
 
     if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
     {

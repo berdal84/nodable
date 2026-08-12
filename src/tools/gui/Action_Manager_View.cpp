@@ -18,7 +18,7 @@ void tools::action_manager_view_draw(Action_Manager* manager)
             ImGui::TableNextColumn();
             if( ImGui::SmallButton("trigger") )
             {
-                event_manager_dispatch( event_manager_get(), action.event);
+                event_manager_push_event( action.event);
             }
             ImGui::SameLine();
             ImGui::Text("%s", action.label.c_str());

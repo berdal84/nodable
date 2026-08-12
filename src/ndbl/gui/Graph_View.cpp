@@ -878,7 +878,7 @@ void ndbl::_graphview_draw_context_menu(Graph_View* graph_view, Node_Slot_View* 
         auto event_data = static_cast<Event_Data__Create_Node*>(event.user.data1);
         event_data->active_slotview    = dragged_slotview;
         event_data->desired_screen_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
-        event_manager_dispatch( event_manager_get(), event);
+        event_manager_push_event( event );
         ImGui::CloseCurrentPopup();
     }
 }
@@ -1008,7 +1008,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                     graph_view->selection.clear();
                     graph_view->selection.push_back(scopeview);
 
-                    event_manager_dispatch(event_manager_get(), event_from_type(Event_Code_DELETE));
+                    event_manager_push_event( event_from_user_data({Event_Code_DELETE}) );
                 }
 
 
@@ -1028,7 +1028,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                         edge.tail->slot, 
                         edge.head->slot
                     });
-                    event_manager_dispatch( event_manager_get(), event );
+                    event_manager_push_event( event );
                 }
 
                 break;
@@ -1044,7 +1044,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                         nullptr
                     });
 
-                    event_manager_dispatch( event_manager_get(), event );
+                    event_manager_push_event( event );
                 }
 
                 break;
@@ -1074,7 +1074,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                 {
                     graph_view->selection.clear();
                     graph_view->selection.push_back(nodeview);
-                    event_manager_dispatch(event_manager_get(), event_from_user_data({Event_Code_DELETE}));
+                    event_manager_push_event(event_from_user_data({Event_Code_DELETE}));
                 }
 
                 break;
@@ -1246,7 +1246,7 @@ void ndbl::_graphview_line_state_tick(Graph_View* graph_view)
                     graph_view->focused.slotview->slot,
                     graph_view->hovered.slotview->slot
                 });
-                event_manager_dispatch(event_manager_get(), event);
+                event_manager_push_event(event);
                 graph_view->state_machine.exit_state();
             }
         }

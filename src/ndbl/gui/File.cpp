@@ -45,7 +45,7 @@ void ndbl::file_init(File* file)
     graph_view->signal_change.connect<&_file_set_text_dirty>(file);
 
     // Fill the "create node" context menu
-    for( Action& action : action_manager_get()->actions )
+    for( const Action& action : action_manager()->actions )
         if ( action.event.type == Event_Type_USER && action.event.user.code == Event_Code_REQUEST_CREATE_NODE )
             graph_view->node_search_input.items.push_back(action );
 

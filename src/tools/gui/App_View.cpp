@@ -38,20 +38,17 @@ void tools::appview_init(App_View_State* view, App_State* app)
     view->smoothed_fps  = 30.f;
     view->should_reset_layout   = true;
     view->show_splashscreen     = true;
-    view->app               = app;
-    view->texture_manager   = init_texture_manager();
-    view->event_manager     = event_manager_init();
-    view->action_manager    = action_manager_init();
+    view->app                   = app;
 
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
-        TOOLS_LOG(tools::Verbosity_Error,  "tools::AppView", "SDL Error: %s\n", SDL_GetError());
+        TOOLS_LOG(tools::Verbosity_Error,  "tools::AppView", "-- SDL Error: %s\n", SDL_GetError());
         VERIFY(false, "Unable to initialize SDL");
     }
 
     // Setup window
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "setup SDL ...\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Setup SDL ...\n");
 
     // Decide GL+GLSL versions
 #ifdef NDBL_DESKTOP
@@ -89,10 +86,10 @@ void tools::appview_init(App_View_State* view, App_State* app)
                                      SDL_WINDOW_MAXIMIZED |
                                      SDL_WINDOW_SHOWN
     );
-    VERIFY(view->sdl_window, "SDL_CreateWindow failed" );
+    VERIFY(view->sdl_window, "-- SDL_CreateWindow failed" );
     
     view->sdl_gl_context = SDL_GL_CreateContext(view->sdl_window);
-    VERIFY(view->sdl_gl_context, "SDL_GL_CreateContext failed" );
+    VERIFY(view->sdl_gl_context, "-- SDL_GL_CreateContext failed" );
 
 #ifdef NDBL_DESKTOP
     SDL_GL_SetSwapInterval(1); // https://wiki.libsdl.org/SDL2/SDL_GL_SetSwapInterval
@@ -100,7 +97,7 @@ void tools::appview_init(App_View_State* view, App_State* app)
 #endif
 
     // Setup Dear ImGui binding
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "init ImGui ...\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Init ImGui ...\n");
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -115,7 +112,7 @@ void tools::appview_init(App_View_State* view, App_State* app)
     // Override ImGui's default Style
     // TODO: consider declaring new members in Config rather than modifying values from there.
     //       see colors[ImGuiCol_Button]
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "patch ImGui's style ...\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- patch ImGui's style ...\n");
     ImGuiStyle& style = ImGui::GetStyle();
     ImVec4 * colors = style.Colors;
     colors[ImGuiCol_Text]                   = Vec4(0.20f, 0.20f, 0.20f, 1.00f);
@@ -187,7 +184,6 @@ void tools::appview_init(App_View_State* view, App_State* app)
     //style.ScaleAllSizes(1.25f);
 
     // load fonts
-    view->font_manager = init_font_manager();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -197,12 +193,12 @@ void tools::appview_init(App_View_State* view, App_State* app)
     }
 
     // Setup Platform/Renderer bindings
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "init backend for OpenGL ...\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Init backend for OpenGL ...\n");
     if( !ImGui_ImplSDL2_InitForOpenGL(view->sdl_window, view->sdl_gl_context) )
     {
         TOOLS_LOG(tools::Verbosity_Error, "tools::AppView", "Unable to ImGui_ImplSDL2_InitForOpenGL\n");
     }
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "init OpenGL (glsl_version: %s) ...\n", glsl_version);
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- init OpenGL (glsl_version: %s) ...\n", glsl_version);
     if( !ImGui_ImplOpenGL3_Init(glsl_version) )
     {
         TOOLS_LOG(tools::Verbosity_Error, "tools::AppView", "Unable to ImGui_ImplSDL2_InitForOpenGL\n");
@@ -214,32 +210,43 @@ void tools::appview_init(App_View_State* view, App_State* app)
     }
 #endif
     view->show_splashscreen = cfg->show_splashscreen_default;
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "init DONE\n");
+
+    // init managers
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Init managers ...\n");
+    texture_manager_init();
+    font_manager_init(&get_config()->font_manager);
+    event_manager_init();
+    action_manager_init();
+
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Init DONE\n");
 }
 
 void tools::appview_deinit(App_View_State* view)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down ...\n");
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down managers ...\n");
-    action_manager_deinit(view->action_manager);
-    event_manager_shutdown(view->event_manager);
-    shutdown_font_manager(view->font_manager);
-    shutdown_texture_manager(view->texture_manager);
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down OpenGL3 ...\n");
+    
+    // shutdown managers    
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Shutting down managers ...\n");
+    action_manager_shutdown();
+    event_manager_shutdown();
+    font_manager_shutdown();
+    texture_manager_shutdown();
+
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Shutting down OpenGL3 ...\n");
     ImGui_ImplOpenGL3_Shutdown();
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down SDL2 ...\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Shutting down SDL2 ...\n");
     ImGui_ImplSDL2_Shutdown();
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Destroying ImGui context ...\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Destroying ImGui context ...\n");
     ImGui::DestroyContext    ();
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutdown SDL ...\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Shutdown SDL ...\n");
     SDL_GL_DeleteContext     (view->sdl_gl_context);
     SDL_DestroyWindow        (view->sdl_window);
     SDL_Quit                 ();
 #ifdef NDBL_DESKTOP
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Quitting NFD (Native File Dialog) ...\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Quitting NFD (Native File Dialog) ...\n");
     NFD_Quit();
 #endif
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutdown OK\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Shutdown OK\n");
 }
 
 void tools::appview_update(App_View_State* view)
@@ -261,27 +268,27 @@ void tools::appview_update(App_View_State* view)
                 {
                     // Test all the shortcuts with Ctrl or Alt modifiers
 
-                    for(const Action& action: view->action_manager->actions )
+                    for(const Action& action: action_manager()->actions )
                     {
                         // first, priority to shortcuts with mod
                         if ( action.event.type != Event_Type_NULL )
                             if ( action.shortcut.mod != KMOD_NONE)                                
                                     if ( action.shortcut.mod & event.key.keysym.mod ) // same mod
                                         if ( action.shortcut.key == event.key.keysym.sym) // same key
-                                            { event_manager_dispatch(view->event_manager, action.event ); break; }
+                                            { event_manager_push_event( action.event ); break; }
                     }
                 }
                 else
                 {
                     // Test all other shortcuts
 
-                    for(const Action& action: view->action_manager->actions )
+                    for(const Action& action: action_manager()->actions )
                     {
                         if ( action.event.type != Event_Type_NULL )
                             if ( action.shortcut.mod == KMOD_NONE )                            
                                 if ( action.shortcut.key == event.key.keysym.sym)
                                 {
-                                    event_manager_dispatch(view->event_manager, action.event);
+                                    event_manager_push_event( action.event );
                                     break;
                                 }
                     }
@@ -325,7 +332,7 @@ void tools::appview_begin(App_View_State* view)
     {
         ImGui::PopStyleVar( 3 );
 
-        ImGui::SetCurrentFont(view->font_manager->get_font(Font_Slot_Paragraph ) );
+        ImGui::SetCurrentFont(font_manager_get_by_slot(Font_Slot_Paragraph) );
 
         // Show/Hide ImGui Demo Window
         if ( cfg->imgui_demo )
