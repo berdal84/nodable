@@ -47,7 +47,7 @@ void ndbl::scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags f
     auto wrap_nodeview = [&](Node_View* nodeview )
     {
         ASSERT( nodeview );
-        if ( !HAS_FLAGS(nodeview->flags, View_Flag_VISIBLE) )
+        if ( HAS_FLAGS(nodeview->flags, View_Flag_HIDDEN) )
             return;
 
         const Rect r = nodeview_get_rect(nodeview, WORLD_SPACE);

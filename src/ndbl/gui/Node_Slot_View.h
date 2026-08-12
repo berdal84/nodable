@@ -37,7 +37,7 @@ namespace ndbl
         Node_Slot* const                slot;
         tools::Vec2                     alignment_pivot;
         const tools::Box_2D*            alignment_ref;
-        tools::View_Flags               flags = tools::View_Flag_DEFAULTS;
+        tools::View_Flags               flags;
         tools::Box_2D                   shape;
 
         GETTER( Node*            , node      , slot->node )

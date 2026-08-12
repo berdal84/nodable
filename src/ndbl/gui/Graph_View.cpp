@@ -308,7 +308,7 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
     {
         Node_View *each_view = node_component<Node_View>(each_node);
 
-        if ( each_view == nullptr || !HAS_FLAGS(each_view->flags, View_Flag_VISIBLE) )
+        if ( each_view == nullptr || HAS_FLAGS(each_view->flags, View_Flag_HIDDEN) )
             continue;
 
         std::vector<Node_Slot *> slots = node_filter_slots(each_node, Node_Slot::Flag_FLOW_OUT);
@@ -326,10 +326,10 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                 Node*       successor_node     = adjacent_slot->node;
                 Node_View*  successor_nodeview = node_component<Node_View>(successor_node);
 
-                if ( successor_nodeview == nullptr )
+                if ( successor_nodeview == nullptr || HAS_FLAGS(successor_nodeview->flags, View_Flag_HIDDEN) )
+                {
                     continue;
-                if ( !HAS_FLAGS(successor_nodeview->flags, View_Flag_VISIBLE) )
-                    continue;
+                }
 
                 Node_Slot_View* tail = slot->view;
                 Node_Slot_View* head = adjacent_slot->view;
@@ -379,10 +379,10 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
                 auto *node_view_out = componentbag_get<Node_View>(&slot_out->node->component_bag);
                 auto *node_view_in  = componentbag_get<Node_View>(&slot_in->node->component_bag);
 
-                if ( !HAS_FLAGS(node_view_out->flags, View_Flag_VISIBLE) )
+                if ( HAS_FLAGS( node_view_out->flags | node_view_in->flags, View_Flag_HIDDEN) )
+                {
                     continue;
-                if ( !HAS_FLAGS(node_view_in->flags, View_Flag_VISIBLE) )
-                    continue;
+                }
 
                 Vec2 p1, cp1, cp2, p2; // BezierCurveSegment's points
 
@@ -450,10 +450,10 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
     {
         Node_View* nodeview = componentbag_get<Node_View>(&node->component_bag);
 
-        if ( !nodeview)
+        if ( nodeview == nullptr || HAS_FLAGS(nodeview->flags, View_Flag_HIDDEN) )
+        {
             continue;
-        if ( !HAS_FLAGS(nodeview->flags, View_Flag_VISIBLE) )
-            continue;
+        }
 
         changed |= nodeview_draw(nodeview);
 
@@ -810,12 +810,12 @@ void ndbl::_graphview_on_selection_change(Graph_View* graph_view, View_Selection
     {
         case View_Type_SCOPE:
         {
-            SET_FLAGS(view.scopeview->flags, View_Flag_SELECTED, selected);
+            SET_FLAGS_VALUE(view.scopeview->flags, View_Flag_SELECTED, selected);
             break;
         }
         case View_Type_NODE:
         {
-            SET_FLAGS(view.nodeview->flags, View_Flag_SELECTED, selected);
+            SET_FLAGS_VALUE(view.nodeview->flags, View_Flag_SELECTED, selected);
             break;
         }
         case View_Type_LINK:
@@ -838,7 +838,7 @@ void ndbl::_graphview_reset(Graph_View* graph_view)
     {
         if ( Scope_View* scopeview = scope->view )
         {
-            scopeview->flags = View_Flag_DEFAULTS;
+            scopeview->flags = View_Flag_NULL;
         }
     }
 
@@ -846,7 +846,7 @@ void ndbl::_graphview_reset(Graph_View* graph_view)
     {
         if ( Node_View* each_node_view = componentbag_get<Node_View>(&node->component_bag) )
         {
-            each_node_view->flags = View_Flag_DEFAULTS;
+            each_node_view->flags = View_Flag_NULL;
             nodeview_reset_all_properties(each_node_view);
         }
     }
@@ -890,8 +890,8 @@ void ndbl::_graphview_drag_state_enter(Graph_View* graph_view)
     {
         switch (selected_view.type)
         {
-            case View_Type_NODE:    { SET_FLAGS(selected_view.nodeview->flags, View_Flag_PINNED, true); break; }
-            case View_Type_SCOPE:   { SET_FLAGS(selected_view.scopeview->flags, View_Flag_PINNED, true);break; }
+            case View_Type_NODE:    { SET_FLAGS(selected_view.nodeview->flags, View_Flag_PINNED); break; }
+            case View_Type_SCOPE:   { SET_FLAGS(selected_view.scopeview->flags, View_Flag_PINNED);break; }
         }
     }
 }
@@ -1060,7 +1060,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
 
                 if ( ImGui::MenuItem("Pin / Unpin") )
                 {
-                    SET_FLAGS(nodeview->flags, View_Flag_PINNED, !HAS_FLAGS(nodeview->flags, View_Flag_PINNED) );
+                    TOGGLE_FLAGS( nodeview->flags, View_Flag_PINNED );
                 }
 
                 if ( ImGui::MenuItem("Reset Layout") )
@@ -1322,8 +1322,7 @@ std::vector<Node_View*> get_clean_views(std::vector<Node_View*>& possibly_hidden
 {
     std::vector<Node_View*> result;
     for(Node_View* view : possibly_hidden_views)
-        if ( HAS_FLAGS(view->flags, View_Flag_VISIBLE))
-            if (!HAS_FLAGS(view->flags, View_Flag_PINNED))
-                result.push_back(view);
+        if ( !HAS_FLAGS(view->flags, View_Flag_HIDDEN | tools::View_Flag_PINNED))
+            result.push_back(view);
     return std::move(result);
 }

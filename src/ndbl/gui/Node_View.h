@@ -56,7 +56,7 @@ namespace ndbl
     struct Node_View : public tools::Component<Node>
 	{
         tools::Box_2D                               shape;
-        tools::View_Flags                           flags  = tools::View_Flag_DEFAULTS;
+        tools::View_Flags                           flags  = 0;
         std::array<const tools::Vec4*, Color_COUNT> colors = {&tools::Config::COLOR_ERROR};
         std::vector<Node_Slot_View*>                slot_views;
         std::unordered_map<

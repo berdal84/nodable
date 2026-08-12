@@ -23,7 +23,7 @@ Node_Property_View::Node_Property_View(Node_Property* _property )
 : property(_property)
 , show(false)
 , touched(false)
-, flags(View_Flag_DEFAULTS)
+, flags(0)
 , shape(Vec2{10.f, 10.f})
 {
 }
@@ -60,8 +60,10 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 {
     box2d_draw_debug_info(&view->shape);
 
-    if ( !HAS_FLAGS(view->flags, View_Flag_VISIBLE) )
+    if ( HAS_FLAGS(view->flags, View_Flag_HIDDEN) )
+    {
         return false;
+    }
 
     bool            changed            = false;
     Node_Type       node_type          = view->node()->type;

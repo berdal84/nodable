@@ -77,7 +77,7 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
                 // hide THIS property
                 if ( property->has_flags(Node_Property::Flag_IS_NODE_VALUE) )
                 {
-                    SET_FLAGS(new_view->flags, View_Flag_VISIBLE, false);
+                    SET_FLAGS(new_view->flags, View_Flag_HIDDEN);
                 }
             }
         }
@@ -173,7 +173,7 @@ void ndbl::nodeview_handle_init(Node_View* node_view)
             case Node_Slot::Flag_TYPE_VALUE:
             {
                 const Node_Property_View* property_view = nodeview_find_property_view(node_view, slot_view->property());
-                if ( property_view != nullptr && HAS_FLAGS(property_view->flags, View_Flag_VISIBLE) )
+                if ( property_view != nullptr && !HAS_FLAGS(property_view->flags, View_Flag_HIDDEN) )
                     slot_view->alignment_ref = &property_view->shape;
             }
         }
@@ -331,7 +331,7 @@ void ndbl::nodeview_arrange_recursively(Node_View* node_view, bool _smoothly)
         nodeview_update(node_view, float(1000));
     }
 
-    SET_FLAGS(node_view->flags, View_Flag_PINNED, false);
+    UNSET_FLAGS(node_view->flags, View_Flag_PINNED);
 }
 
 void ndbl::nodeview_update(Node_View* node_view, float dt)
@@ -350,8 +350,10 @@ bool ndbl::nodeview_draw(Node_View* node_view)
 {
     box2d_draw_debug_info(&node_view->shape);
 
-    if ( !HAS_FLAGS(node_view->flags, View_Flag_VISIBLE) )
+    if ( HAS_FLAGS(node_view->flags, View_Flag_HIDDEN) )
+    {
         return false;
+    }
 
     ASSERT( node_view->node() );
 
@@ -539,7 +541,8 @@ bool ndbl::nodeview_draw(Node_View* node_view)
     if ( changed )
         node_view->node()->set_flags(Node_Flag_IS_DIRTY );
 
-    SET_FLAGS(node_view->flags, View_Flag_HOVERED, is_rect_hovered || node_view->hovered_slotview != nullptr );
+    const bool hovered = is_rect_hovered || node_view->hovered_slotview != nullptr;
+    SET_FLAGS_VALUE(node_view->flags, View_Flag_HOVERED, hovered );
 
 	return changed;
 }
@@ -744,7 +747,7 @@ Rect ndbl::nodeview_get_rect_ex(const Node_View* node_view, tools::Space space, 
 
     Rect result;
 
-    if ( HAS_FLAGS(node_view->flags, View_Flag_VISIBLE) )
+    if ( !HAS_FLAGS(node_view->flags, View_Flag_HIDDEN) )
     {
         result = node_view->shape.rect(space);
     }
@@ -760,7 +763,7 @@ Rect ndbl::nodeview_get_rect_ex(const Node_View* node_view, tools::Space space, 
         auto* view = componentbag_get<Node_View>(&input_node->component_bag);
         if( !view )
             continue;
-        if( !HAS_FLAGS(view->flags, View_Flag_VISIBLE) )
+        if( HAS_FLAGS(view->flags, View_Flag_HIDDEN) )
             continue;
         if( HAS_FLAGS(view->flags, View_Flag_SELECTED) && HAS_FLAGS(flags, Node_View_Flag_EXCLUDE_UNSELECTED) )
             continue;
@@ -785,12 +788,12 @@ void ndbl::nodeview_toggle_expandcollapse(Node_View* nodeview)
 {
     nodeview->is_expanded = !nodeview->is_expanded;
     nodeview_set_visible_recursively(nodeview, nodeview->is_expanded);
-    SET_FLAGS(nodeview->flags, tools::View_Flag_VISIBLE, true);
+    UNSET_FLAGS(nodeview->flags, tools::View_Flag_HIDDEN);
 }
 
 void ndbl::nodeview_set_visible_recursively(Node_View* nodeview, bool visible)
 {
-    SET_FLAGS(nodeview->flags, View_Flag_VISIBLE, visible );
+    SET_FLAGS_VALUE(nodeview->flags, View_Flag_HIDDEN, !visible );
 
     // Propagate on inputs unless we reach a different scope
     for( Node_View* input_nodeview : nodeview_get_adjacent(nodeview, Node_Slot::Flag_INPUT ) )
@@ -829,7 +832,7 @@ Node_View* ndbl::nodeview_substitute_with_parent_if_not_visible(Node_View* _view
         return _view;
     }
 
-    if( HAS_FLAGS(_view->flags, View_Flag_VISIBLE) )
+    if( !HAS_FLAGS(_view->flags, View_Flag_HIDDEN) )
     {
         return _view;
     }
@@ -837,9 +840,9 @@ Node_View* ndbl::nodeview_substitute_with_parent_if_not_visible(Node_View* _view
     if ( _recursive )
         if( Scope* scope = _view->node()->scope )
             if (Node_View* parent_view = componentbag_get<Node_View>(&scope->entity->component_bag) )
-                return HAS_FLAGS(parent_view->flags, View_Flag_VISIBLE)
-                    ? parent_view
-                    : nodeview_substitute_with_parent_if_not_visible(parent_view, _recursive);
+                return HAS_FLAGS(parent_view->flags, View_Flag_HIDDEN)
+                    ? nodeview_substitute_with_parent_if_not_visible(parent_view, _recursive)
+                    : parent_view;
 
     return nullptr;
 }

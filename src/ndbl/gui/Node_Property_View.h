@@ -22,7 +22,7 @@ namespace ndbl
         bool                show;       // TODO: move this to State_View?
         bool                touched;    // TODO: move this to State_View?
         Node_Property*      property;
-        tools::View_Flags   flags = tools::View_Flag_DEFAULTS;
+        tools::View_Flags   flags;
         tools::Box_2D       shape;
 
         Node*               node() const;

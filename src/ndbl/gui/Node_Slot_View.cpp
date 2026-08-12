@@ -24,6 +24,7 @@ Node_Slot_View::Node_Slot_View(
 , alignment_ref(alignment_ref)
 , direction()
 , shape(Vec2{1.f, 1.f})
+, flags(0)
 {
     ASSERT(slot != nullptr);
 
@@ -65,8 +66,10 @@ bool ndbl::nodeslotview_draw(Node_Slot_View* view)
 {
     box2d_draw_debug_info(&view->shape);
 
-    if ( !HAS_FLAGS(view->flags, View_Flag_VISIBLE) )
+    if ( HAS_FLAGS(view->flags, View_Flag_HIDDEN) )
+    {
         return false;
+    }
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -85,8 +88,8 @@ bool ndbl::nodeslotview_draw(Node_Slot_View* view)
     ImGui::PushID(view->slot);
     ImGui::InvisibleButton("###", rect.size() + cfg->ui_slot_invisible_btn_expand_size);
     ImGui::PopID();
-    bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
-    SET_FLAGS(view->flags, View_Flag_HOVERED, hovered);
+    const bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
+    SET_FLAGS_VALUE(view->flags, View_Flag_HOVERED, hovered);
     const Vec4 fill_color = hovered ? hover_color : color;
 
     // draw shape
@@ -130,17 +133,17 @@ void ndbl::nodeslotview_update(Node_Slot_View* view, float dt)
 
     if (view->slot->capacity == 0)
     {
-        SET_FLAGS(view->flags, View_Flag_VISIBLE, false);
+        SET_FLAGS(view->flags, View_Flag_HIDDEN);
     }
     else if (view->slot->type() == Node_Slot::Flag_TYPE_FLOW )
     {
         // A code flow slot has to be hidden when cannot be an instruction or is not
         bool desired_visibility = node_is_instruction(view->node() ) || node_could_be_instruction(view->node() );
-        SET_FLAGS(view->flags, View_Flag_VISIBLE, desired_visibility );
+        SET_FLAGS_VALUE(view->flags, View_Flag_HIDDEN, !desired_visibility );
     }
     else
     {
-        SET_FLAGS(view->flags, View_Flag_VISIBLE, true);
+        UNSET_FLAGS(view->flags, View_Flag_HIDDEN);
     }
 
     // 2) Update position

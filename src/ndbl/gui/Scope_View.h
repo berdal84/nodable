@@ -29,7 +29,7 @@ namespace ndbl
         tools::Signal<void(Scope_View*)>    signal_hover        = {};
         std::vector<Node_View*>             wrapped_node_view   = {};
         tools::Rect                         content_rect        = {};
-        tools::View_Flags                   flags               = tools::View_Flag_DEFAULTS;
+        tools::View_Flags                   flags               = {};
         Scope*                              scope               = {};
         Theme                               theme               = {};
     };    
