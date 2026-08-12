@@ -225,11 +225,12 @@ common.sources = FileList[
     "src/ndbl/gui/Node_View.cpp",
     "src/ndbl/gui/Node_Search_Input.cpp",
     "src/ndbl/gui/Scope_View.cpp",
+    "src/ndbl/gui/Command_Manager.cpp",
+    "src/ndbl/gui/Command.cpp",
     "src/ndbl/gui/Config.cpp",
     "src/ndbl/gui/File.cpp",
     "src/ndbl/gui/File_View.cpp",
     "src/ndbl/gui/Graph_View.cpp",
-    "src/ndbl/gui/History.cpp",
     "src/ndbl/gui/Nodable.cpp",
     "src/ndbl/gui/Nodable_View.cpp",
 ]

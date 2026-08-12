@@ -13,7 +13,7 @@
 #include "ndbl/gui/Event.h"
 #include "ndbl/gui/Graph_View.h"
 #include "ndbl/gui/File_View.h"
-#include "ndbl/gui/History.h"
+#include "ndbl/gui/Command_Manager.h"
 #include "ndbl/gui/Node_View.h"
 
 using namespace ndbl;
@@ -56,7 +56,7 @@ void ndbl::file_init(File* file)
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "View built, creating History ...\n");
 
     // History
-    TextEditor_Buffer* text_editor_buf = file->history.configure_text_editor_undo_buffer(&file->view.text_editor);
+    Text_Editor_Undo_Buffer* text_editor_buf = command_manager_configure_text_editor_undo_buffer(&file->view.text_editor);
     fileview_set_undo_buffer(&file->view, text_editor_buf);
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "Constructor being called.\n");
 }
@@ -93,32 +93,32 @@ void ndbl::file_update(File* file, bool isolation_on)
 {
     //
     // When history is dirty we update the graph from the text.
-    // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-    if ( file->history.is_dirty )
+    // (By default undo/redo are text-based only, if EXPERIMENTAL_HYBRID_COMMAND_MANAGER is ON, the behavior is different
+    if ( command_manager()->is_dirty )
     {
-        if ( HAS_FLAGS(get_config()->flags, Config_Flag_EXPERIMENTAL_HYBRID_HISTORY) )
+        if ( HAS_FLAGS(get_config()->flags, Config_Flag_EXPERIMENTAL_HYBRID_COMMAND_MANAGER) )
         {
             ASSERT(false); // Not implemented yet
         }
         else
         {
-            file->flags = file->flags & ~File_Flag_TEXT_IS_DIRTY // unset text is dirty
-                        | File_Flag_GRAPH_IS_DIRTY; // set graph dirty (we are text-based!)
+            UNSET_FLAGS(file->flags, File_Flag_IS_DIRTY_MASK);
+            SET_FLAGS(file->flags, File_Flag_GRAPH_IS_DIRTY); // set graph dirty (we are text-based!)
         }
-        file->history.is_dirty = false;
+        command_manager()->is_dirty = false;
     }
 
-    if ( file->flags & File_Flag_GRAPH_IS_DIRTY )
+    if ( HAS_FLAGS(file->flags, File_Flag_GRAPH_IS_DIRTY) )
     {
         file_update_graph_from_text(file, isolation_on);
         graph_update(file->graph);
-        file->flags = file->flags & ~File_Flag_IS_DIRTY_MASK;  // clear dirty flags
+        UNSET_FLAGS(file->flags, File_Flag_IS_DIRTY_MASK);
     }
-    else if ( file->flags & File_Flag_TEXT_IS_DIRTY )
+    else if ( HAS_FLAGS(file->flags, File_Flag_TEXT_IS_DIRTY) )
     {
         graph_update(file->graph);
         file_update_text_from_graph(file, isolation_on);
-        file->flags = file->flags & ~File_Flag_IS_DIRTY_MASK;  // clear dirty flags
+        UNSET_FLAGS(file->flags, File_Flag_IS_DIRTY_MASK);
     }
     else
     {
@@ -134,7 +134,7 @@ void ndbl::file_update_graph_from_text(File* file, bool isolation_on)
     get_language()->parse(file->graph, file->parsed_text);
 
     auto* graphview = graph_component<Graph_View>(file->graph);
-    graphview->flags |= Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
+    SET_FLAGS(graphview->flags, Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT);
 }
 
 size_t ndbl::file_size(const File* file)
@@ -155,7 +155,7 @@ bool ndbl::file_write(File* file, const tools::Path& path)
         return false;
     }
 
-    if ( (file->flags & File_Flag_NEEDS_TO_BE_SAVED) == 0 && path == file->path )
+    if ( !HAS_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED) && path == file->path )
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "File", "Nothing to save\n");
         return true;
@@ -169,7 +169,7 @@ bool ndbl::file_write(File* file, const tools::Path& path)
     out_fstream.write(content.c_str(), content.size()); // TODO: size can exceed fstream!
 
     // update file
-    file->flags &= ~File_Flag_NEEDS_TO_BE_SAVED; // unset flag
+    UNSET_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
     file->path = path;
 
     TOOLS_LOG(tools::Verbosity_Message, "File", "%s saved\n", file_filename(file).c_str() );
@@ -195,7 +195,7 @@ bool ndbl::file_read( File* file, const tools::Path& path)
 
     std::string content((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
     fileview_set_text(&file->view, content, false);
-    file->flags &= ~File_Flag_NEEDS_TO_BE_SAVED; // unset flag
+    UNSET_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
     file->path = path;
 
     TOOLS_LOG(tools::Verbosity_Message, "File", "%s loaded\n", path.filename().c_str(), path.c_str());
@@ -208,11 +208,11 @@ void ndbl::file_handle_file_view_change(File* file, File_View_Event_Type type)
     switch ( type )
     {
         case File_View_Overlay_Type_TEXT:
-            file->flags |= File_Flag_TEXT_IS_DIRTY;
+            SET_FLAGS(file->flags, File_Flag_TEXT_IS_DIRTY);
             break;
         
         case File_View_Overlay_Type_GRAPH:
-            file->flags |= File_Flag_GRAPH_IS_DIRTY;
+            SET_FLAGS(file->flags, File_Flag_GRAPH_IS_DIRTY);
             break;
         
         default:

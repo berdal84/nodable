@@ -1,5 +1,6 @@
 #include "File_View.h"
 
+#include "gui/Command_Manager.h"
 #include "tools/core/Flags.h"
 #include "tools/gui/Action_Manager.h"
 #include "tools/gui/ImGuiEx.h"
@@ -59,10 +60,10 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
     float btn_height    = cfg->ui_history_btn_height;
     float btn_width_max = cfg->ui_history_btn_width_max;
 
-    size_t historySize = file_view->file->history.get_size();
-    std::pair<int, int> history_range = file_view->file->history.get_command_id_range();
+    size_t history_size = command_manager_get_size();
+    std::pair<int, int> history_range = command_manager_get_command_id_range();
     float avail_width = ImGui::GetContentRegionAvail().x;
-    float btn_width = fmin(btn_width_max, avail_width / float(historySize + 1) - btn_spacing);
+    float btn_width = fmin(btn_width_max, avail_width / float(history_size + 1) - btn_spacing);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { btn_spacing, 0});
 
@@ -95,7 +96,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
             if (ImGuiEx::BeginTooltip())
             {
-                ImGui::Text("%s", file_view->file->history.get_cmd_description_at(cmd_pos).c_str());
+                ImGui::Text("%s", command_manager_get_cmd_description_at(cmd_pos).c_str());
                 ImGuiEx::EndTooltip();
             }
             ImGui::PopStyleVar();
@@ -106,7 +107,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
             ImGui::GetMousePos().x > ImGui::GetItemRectMin().x &&
             ImGui::GetMousePos().x < ImGui::GetItemRectMax().x)
         {
-            file_view->file->history.move_cursor(cmd_pos); // update history cursor position
+            command_manager_move_cursor(cmd_pos); // update history cursor position
         }
 
 
@@ -175,7 +176,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
                 }
             }
 
-            file_view->file->history.enable_text_editor(true); // ensure to begin to record history
+            command_manager_enable_text_editor_undo_buffer(true); // ensure to begin to record history
 
             // render text editor
             file_view->text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
@@ -188,7 +189,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
 
             if ( HAS_FLAGS(cfg->flags, Config_Flag_EXPERIMENTAL_MULTI_SELECTION) )
             {
-                file_view->file->history.enable_text_editor(false); // avoid recording events caused by graph serialisation
+                command_manager_enable_text_editor_undo_buffer(false); // avoid recording events caused by graph serialisation
             }
 
             auto new_cursor_position = file_view->text_editor.GetCursorPosition();

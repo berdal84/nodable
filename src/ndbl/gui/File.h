@@ -6,7 +6,6 @@
 
 #include "tools/core/File_System.h"
 #include "ndbl/gui/File_View.h"
-#include "ndbl/gui/History.h"
 #include "ndbl/gui/Nodable.h"
 
 namespace ndbl
@@ -38,7 +37,6 @@ namespace ndbl
     {
         tools::Path            path        = {};                // file path on disk
         File_View              view        = {};
-        History                history     = {};                // history of changes
         std::string            parsed_text = {};                // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
         Graph*                 graph       = nullptr;           // graphical representation
         File_Flags             flags       = File_Flag_NONE;        

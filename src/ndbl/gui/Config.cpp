@@ -154,8 +154,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_grid_size                          = 100.0f;
 
     // Misc.
-    flags                                 = Config_Flag_EXPERIMENTAL_HYBRID_HISTORY
-                                          | Config_Flag_EXPERIMENTAL_MULTI_SELECTION;                                          
+    flags                                 = Config_Flag_EXPERIMENTAL_MULTI_SELECTION;                                          
     graph_view_unfold_duration            = 1.0f; // in sec.
 
     // NodableView

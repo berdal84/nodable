@@ -21,7 +21,7 @@ namespace ndbl
     {
         Config_Flag_NONE                              = 0,
         Config_Flag_ISOLATION_ON                      = 1 << 0,
-        Config_Flag_EXPERIMENTAL_HYBRID_HISTORY       = 1 << 1,
+        Config_Flag_EXPERIMENTAL_HYBRID_COMMAND_MANAGER       = 1 << 1,
         Config_Flag_EXPERIMENTAL_MULTI_SELECTION      = 1 << 2
     };
 

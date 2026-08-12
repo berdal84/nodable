@@ -84,7 +84,6 @@ void ndbl::nodableview_draw(App_View_State* view)
 
     if (ImGui::BeginMenuBar())
     {
-        History* current_file_history = current_file ? &current_file->history : nullptr;
         View_Selection selection;
         
         if ( current_file != nullptr )
@@ -131,16 +130,14 @@ void ndbl::nodableview_draw(App_View_State* view)
 
         if (ImGui::BeginMenu("Edit"))
         {
-            if (current_file_history)
-            {
-                if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_UNDO))
-                    event_manager_push_event(action->event);
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_UNDO))
+                event_manager_push_event(action->event);
 
-                if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_REDO))
-                    event_manager_push_event(action->event);
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_REDO))
+                event_manager_push_event(action->event);
 
-                ImGui::Separator();
-            }
+            ImGui::Separator();
+            
             if (ImGui::MenuItem("Delete", "Del.", false, !selection.empty() ))
             {
                 event_manager_push_event(event_from_user_data({Event_Code_DELETE}) );
@@ -287,7 +284,7 @@ void ndbl::nodableview_draw(App_View_State* view)
 
             if (ImGui::BeginMenu("Experimental"))
             {
-                CHECKBOX_FLAG("Hybrid history" , cfg->flags, Config_Flag_EXPERIMENTAL_HYBRID_HISTORY);
+                CHECKBOX_FLAG("Hybrid history" , cfg->flags, Config_Flag_EXPERIMENTAL_HYBRID_COMMAND_MANAGER);
                 CHECKBOX_FLAG("Multi-Selection", cfg->flags, Config_Flag_EXPERIMENTAL_MULTI_SELECTION);
                 ImGui::EndMenu();
             }

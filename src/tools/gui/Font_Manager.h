@@ -13,12 +13,6 @@ namespace tools
         const Font_Manager_Config*              config = nullptr; // will be assigned by init()
         std::array<ImFont*, Font_Slot_COUNT>    fonts_by_slot  = {nullptr, nullptr, nullptr, nullptr}; // Font required, user can get_font by name or by slot
         std::map<std::string, ImFont*>          fonts_by_name; // All the fonts loaded in memory
-
-        Font_Manager() = delete;
-        
-        Font_Manager(const Font_Manager_Config* _config)
-        : config(_config)
-        {}
     };
 
     // singleton-like global functions

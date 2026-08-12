@@ -1,6 +1,7 @@
 #include "Nodable.h"
 #include "IconsFontAwesome5.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
+#include "gui/Command.h"
 #include "tools/core/Event.h"
 #include "tools/core/Flags.h"
 #include "ndbl/core/Graph.h"
@@ -30,17 +31,13 @@ using namespace tools;
 #include "ndbl/core/Node_Slot.h"
 #include "ndbl/core/language/Nodlang.h"
 
-#include "commands/Cmd_Connect.h"
-#include "commands/Cmd_Disconnect.h"
-#include "commands/Cmd_Group.h"
-
 #include "Node_Slot_View.h"
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
 #include "File_View.h"
 #include "Graph_View.h"
-#include "History.h"
+#include "Command_Manager.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -77,9 +74,11 @@ void ndbl::nodable_init(App_State* app)
     app_init_ex(&app->base, &view->base, cfg->tools_cfg ); // the pointers are owned by this class, base app just use them.
     app->language   = init_language();
     app->config     = cfg;
+ 
+    command_manager_init();
 
     // Add a bunch of new actions
-    
+
     // (With shortcut)
     action_manager_add_action( "Reset Graph", Event_Data__User(Event_Code_RESET_GRAPH_VIEW), Shortcut{SDLK_F5, KMOD_NONE } );
     action_manager_add_action( "Delete Selection", Event_Data__User(Event_Code_DELETE), Shortcut{SDLK_DELETE, KMOD_NONE } );
@@ -137,6 +136,7 @@ void ndbl::nodable_deinit(App_State* app)
     }
 
     // Shutdown managers & co.
+    command_manager_shutdown();
     shutdown_language(app->language);
     nodableview_deinit(app->view()); delete app->view();
     tools::app_deinit(&app->base);
@@ -205,12 +205,10 @@ void ndbl::nodable_update(App_State* app)
     // Nodable events
     Event           event = {};
     Graph_View*     graph_view          = nullptr; 
-    History*        curr_file_history   = nullptr;
 
     if ( app->current_file )
     {
-        graph_view        = componentbag_get<Graph_View>(&app->current_file->graph->component_bag); // TODO: should be included in the event?
-        curr_file_history = &app->current_file->history; // TODO: should be included in the event?
+        graph_view = componentbag_get<Graph_View>(&app->current_file->graph->component_bag); // TODO: should be included in the event?
     } 
 
     while( (event = event_manager_pop_event()) )
@@ -230,13 +228,13 @@ void ndbl::nodable_update(App_State* app)
             }
             case Event_Type_UNDO:
             {
-                if(curr_file_history) curr_file_history->undo();
+                command_manager_undo();
                 break;
             }
 
             case Event_Type_REDO:
             {
-                if(curr_file_history) curr_file_history->redo();
+                command_manager_redo();
                 break;
             }
 
@@ -392,7 +390,6 @@ void ndbl::nodable_update(App_State* app)
 
                     case Event_Code_SLOT_DROPPED:
                     {
-                        ASSERT(curr_file_history != nullptr);
                         auto tail = static_cast<Node_Slot*>(event.user.data1);
                         auto head = static_cast<Node_Slot*>(event.user.data2);
                         ASSERT(head != tail);
@@ -406,34 +403,34 @@ void ndbl::nodable_update(App_State* app)
                             TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Nodable", "Swapping edges to try to connect them\n");
                             std::swap(tail, head);
                         }
-                        auto cmd = std::make_shared<Cmd_Connect>(tail, head);
-                        curr_file_history->push_command(cmd);
+                        Command cmd = command_connect({tail, head});
+                        command_manager_push_command(cmd);
 
                         break;
                     }
 
                     case Event_Code_DELETE_LINK:
                     {
-                        ASSERT(curr_file_history != nullptr);
                         auto tail = static_cast<Node_Slot*>(event.user.data1);
                         auto head = static_cast<Node_Slot*>(event.user.data2);
-                        auto command = std::make_shared<Cmd_DeleteEdge>(tail, head);
-                        curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(command));
+                        Command cmd = command_disconnect({tail, head});
+                        command_manager_push_command(cmd);
                         break;
                     }
 
                     case Event_Code_DELETE_ALL_LINKS:
                     {
-                        ASSERT(curr_file_history != nullptr);
                         auto slot = static_cast<Node_Slot*>(event.user.data1);
 
-                        auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
+                        Command command = command_group("Disconnect All Edges");
+                        Command* previous_command = nullptr;
                         for(Node_Slot* adjacent_slot : slot->adjacent )
                         {
-                            auto each_cmd = std::make_shared<Cmd_DeleteEdge>(slot, adjacent_slot );
-                            cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
+                            command.group.subcommands->push_back( 
+                                command_disconnect({slot, adjacent_slot})
+                            );
                         }
-                        curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));
+                        command_manager_push_command(command);
                         break;
                     }
 
