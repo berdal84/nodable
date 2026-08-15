@@ -74,7 +74,8 @@ void ndbl::nodable_init(App_State* app)
     app_init_ex(&app->base, &view->base, cfg->tools_cfg ); // the pointers are owned by this class, base app just use them.
     app->language   = init_language();
     app->config     = cfg;
- 
+
+    // Init manager(s)
     command_manager_init();
 
     // Add a bunch of new actions

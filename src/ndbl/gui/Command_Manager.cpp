@@ -31,6 +31,8 @@ void ndbl::command_manager_shutdown()
     VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
 	g_command_manager->past.clear();
 	g_command_manager->future.clear();
+    delete g_command_manager;
+    g_command_manager = nullptr;
 }
 
 ndbl::Context make_context()
