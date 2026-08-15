@@ -10,12 +10,14 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <limits>
 #include <string>
 #include <cctype> // isdigit, isalpha, and isalnum.
 
 #include "core/Constants.h"
 #include "core/Node_Slot.h"
 #include "core/Token_Type.h"
+#include "core/Types.h"
 #include "core/reflection/Invokable.h"
 #include "core/reflection/Operator.h"
 #include "tools/core/Format.h"
@@ -220,7 +222,15 @@ int Nodlang::parse_int_or(const std::string &_str, int default_value) const
     size_t cursor = 0;
     Token  token  = parse_token(_str.c_str(), _str.size(), cursor);
     if (token.m_type == Token_Type::literal_int )
-        return stoi(_str);
+    {
+        i64_t l = stoll(_str);
+        int n = std::clamp(l, (i64_t)std::numeric_limits<int>::min() , (i64_t)std::numeric_limits<int>::max());
+        if( n > (int)l )
+        {
+            TOOLS_LOG( Verbosity_Warning, "Nodlang", "Parsing a too large integer for 32bits!\n");
+        }
+        return n;
+    }
     return default_value;
 }
 
