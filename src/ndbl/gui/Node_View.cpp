@@ -50,7 +50,7 @@ Node_View::~Node_View()
 
 void ndbl::nodeview_handle_init(Node_View* node_view)
 {
-    Config* cfg = get_config();
+    Config* cfg = config();
 
     // 1. Create Property views
     //-------------------------
@@ -251,7 +251,7 @@ void ndbl::nodeview_handle_deinit(Node_View* node_view)
 
 std::string ndbl::nodeview_get_label(const Node_View* node_view)
 {
-    Config* cfg = get_config();
+    Config* cfg = config();
 
     bool minimalist = cfg->ui_node_detail == View_Detail_COMPACT;
 
@@ -357,7 +357,7 @@ bool ndbl::nodeview_draw(Node_View* node_view)
 
     ASSERT( node_view->node() );
 
-    Config*     cfg       = get_config();
+    Config*     cfg       = config();
 	bool        changed   = false;
 
     node_view->hovered_slotview = nullptr; // reset every frame
@@ -699,8 +699,8 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* node_view, bool* _show_a
                 {
                     Graph_View* graph_view = componentbag_get<Graph_View>(&node->graph->component_bag);
                     ASSERT(graph_view);
-                    graph_view->selection.clear();
-                    graph_view->selection.push_back(node_component<Node_View>(scope->entity));
+                    view_selection_clear(&graph_view->selection);
+                    view_selection_add(&graph_view->selection, node_component<Node_View>(scope->entity));
                 }
             }
             else

@@ -83,8 +83,7 @@ namespace tools
         float  border_size    {1.f};
     };
 
-    bool    has_config();
-    Config* get_config();     // Get the current config, create_config() must be called first.
-    Config* init_config();  // create a new configuration and set it as current
-    void shutdown_config(Config *pConfig); // destroy the current configuration
+    Config* config_init();  // create a new configuration and set it as current
+    void    config_shutdown(); // destroy the current configuration
+    Config* config();     // Get the current config, create_config() must be called first.
 }

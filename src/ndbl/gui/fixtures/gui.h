@@ -1,7 +1,6 @@
 #include <gtest/gtest.h>
 
 #include "ndbl/gui/Nodable.h"
-#include "ndbl/gui/Nodable_View.h"
 
 #ifdef NDBL_GUI_TEST_HUMAN_SPEED
 #include <thread>
@@ -12,7 +11,8 @@
 
 namespace testing
 {
-    class Gui: public Test {
+    class Gui: public Test
+    {
     public:
         Gui()
         {
@@ -27,12 +27,12 @@ namespace testing
         /**
          * run some loops for a given iteration count
          */
-        static void loop_count(ndbl::App_State* state, size_t iteration_count, double sleep_in_sec = 1.0)
+        static void loop_count(size_t iteration_count, double sleep_in_sec = 1.0)
         {
             for(size_t i = 0; i < iteration_count; ++i)
             {
-                EXPECT_NO_THROW(nodable_update(state));
-                EXPECT_NO_THROW(nodable_draw(state));
+                EXPECT_NO_THROW(ndbl::app_update());
+                EXPECT_NO_THROW(ndbl::app_draw());
             }
             SLEEP_FOR_HUMAN((long)(1000.0 * sleep_in_sec));
         }
@@ -40,7 +40,7 @@ namespace testing
         /**
          * run some loops for a given duration
          */
-        static void loop_for_x_sec(ndbl::App_State* state, double duration_in_sec)
+        static void loop_for_x_sec(double duration_in_sec)
         {
             auto start = std::chrono::system_clock::now();
             auto end   = std::chrono::system_clock::now();
@@ -52,8 +52,8 @@ namespace testing
                 , iteration
                 , float(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()) / 1000.0f
                 , duration_in_sec);
-                EXPECT_NO_THROW(nodable_update(state));
-                EXPECT_NO_THROW(nodable_draw(state));
+                EXPECT_NO_THROW(ndbl::app_update());
+                EXPECT_NO_THROW(ndbl::app_draw());
                 ++iteration;
             }
         }

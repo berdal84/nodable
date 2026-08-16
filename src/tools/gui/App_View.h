@@ -56,7 +56,6 @@ namespace tools
         u32_t               dt_in_ms         = 0;
         float               dt_in_s          = 0.f;
         float               smoothed_fps     = 0.f;
-        App_State*          app              = nullptr;
         bool                should_reset_layout = false;
         bool                show_splashscreen = false;
         ImGuiID             dockspaces[Dockspace_COUNT] = {0};

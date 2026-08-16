@@ -6,10 +6,9 @@ int main(int argc, char *argv[])
 
     TOOLS_try
     {
-        ndbl::App_State state;
-        nodable_init(&state);
-        nodable_run(&state);
-        nodable_deinit(&state);
+        ndbl::app_init();
+        ndbl::app_run();
+        ndbl::app_shutdown();
     }
     TOOLS_catch
     return 0;

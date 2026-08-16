@@ -8,7 +8,6 @@
 
 #include "fixtures/core.h"
 
-using namespace ndbl;
 using namespace tools;
 typedef ::testing::Core Graph_;
 
@@ -75,7 +74,7 @@ TEST_F(Graph_, clear)
     f.init<int(int, int)>("+");
 
     Node* variable      = graph_create_variable(graph, type::get<int>(), "var");
-    Node* operator_node = graph_create_operator(graph, f);
+    Node* operator_node = graph_create_operator(graph, &f);
 
 
     graph_connect(

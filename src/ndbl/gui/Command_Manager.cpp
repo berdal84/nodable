@@ -1,17 +1,17 @@
 #include "Command_Manager.h"
+#include "core/Flags.h"
+#include "gui/Nodable.h"
 #include "tools/core/Asserts.h"
 #include "ndbl/gui/Config.h"
 #include "ndbl/gui/Command.h"
-
-using namespace ndbl;
-
-#define VERIFY_COMMAND_MANAGER_IS_INITIALIZED() VERIFY( ndbl::g_command_manager != nullptr, "g_command_manager is null, did you call command_manager_init() ?")
 
 // private
 namespace ndbl
 {
     static Command_Manager* g_command_manager = nullptr;
 }
+
+#define VERIFY_COMMAND_MANAGER_IS_INITIALIZED() VERIFY( ndbl::g_command_manager != nullptr, "g_command_manager is null, did you call command_manager_init() ?")
 
 ndbl::Command_Manager* ndbl::command_manager_init()
 {
@@ -35,18 +35,28 @@ void ndbl::command_manager_shutdown()
     g_command_manager = nullptr;
 }
 
-ndbl::Context make_context()
+void ndbl::command_manager_begin_transaction()
 {
-    Context ctx;
-    ctx.text_editor = g_command_manager->text_editor_undo_buffer.text_editor;
-    return ctx;
+    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
+    g_command_manager->next_command_flags = Command_Flags_TRANSACTION_BEGIN;
+}
+
+void ndbl::command_manager_end_transaction()
+{
+    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
+    VERIFY(!HAS_FLAGS(g_command_manager->past.back().flags, Command_Flags_TRANSACTION_BEGIN), "Cannot end a transaction on the same command that transaction begins");
+    g_command_manager->past.back().flags |= Command_Flags_TRANSACTION_END;
 }
 
 void ndbl::command_manager_push_command(Command& command, bool _from_text_editor)
 {
     VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
 
-    Config* cfg = get_config();
+    Config* cfg = config();
+
+    // Set flags
+    command.flags = g_command_manager->next_command_flags;
+    g_command_manager->next_command_flags = 0;
 
     // clear any future commands (when we undo, commands are moved from past to future)
     g_command_manager->future.clear();
@@ -55,8 +65,7 @@ void ndbl::command_manager_push_command(Command& command, bool _from_text_editor
     // since modification is already handled by text editor itself
     if ( !_from_text_editor )
     {
-        Context context = make_context();
-        command_do(&command, &context);
+        command_do(&command);
     }
 
     g_command_manager->past.push_front(command);
@@ -78,8 +87,7 @@ void ndbl::command_manager_undo()
 	if ( !g_command_manager->past.empty() )
 	{
         Command& command_to_undo = g_command_manager->past.front();
-        Context context = make_context();
-        command_undo(&command_to_undo, &context);
+        command_undo(&command_to_undo);
         g_command_manager->past.pop_front();
         g_command_manager->future.push_front(command_to_undo);
         g_command_manager->is_dirty = true;
@@ -92,9 +100,8 @@ void ndbl::command_manager_redo()
 
 	if ( !g_command_manager->future.empty() )
 	{
-        Context context = make_context();
         Command& command_to_redo = g_command_manager->future.front();
-        command_redo(&command_to_redo, &context);
+        command_redo(&command_to_redo);
         g_command_manager->future.pop_front();
         g_command_manager->past.push_front(command_to_redo);
         g_command_manager->is_dirty = true;
@@ -173,7 +180,7 @@ std::pair<int, int> ndbl::command_manager_get_command_id_range()
     return std::make_pair(-(int)g_command_manager->past.size(), (int)g_command_manager->future.size());
 }
 
-Text_Editor_Undo_Buffer* ndbl::command_manager_configure_text_editor_undo_buffer( TextEditor* _text_editor )
+ndbl::Text_Editor_Undo_Buffer* ndbl::command_manager_configure_text_editor_undo_buffer( TextEditor* _text_editor )
 {
     VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
 
@@ -196,7 +203,7 @@ void ndbl::command_manager_enable_text_editor_undo_buffer( bool enabled )
     g_command_manager->text_editor_undo_buffer.enabled = enabled;
 }
 
-void Text_Editor_Undo_Buffer::AddUndo(TextEditor::UndoRecord& undo_record)
+void ndbl::Text_Editor_Undo_Buffer::AddUndo(TextEditor::UndoRecord& undo_record)
 {
     VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
 

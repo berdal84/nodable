@@ -3,7 +3,6 @@
 #include <deque>
 #include <ctime>
 #include <string>
-#include <memory>
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "ndbl/gui/Command.h"
 
@@ -36,6 +35,7 @@ namespace ndbl
         using Commands = std::deque<Command>;
 
         bool 			  		is_dirty = false;
+		Command_Flags           next_command_flags;
 		Text_Editor_Undo_Buffer text_editor_undo_buffer;
 		Commands          		past;
 		Commands          		future;
@@ -53,6 +53,8 @@ namespace ndbl
 	*                          hybrid mode (Text/Graph).
 	*/
 	void    			command_manager_push_command(Command&, bool _from_text_editor = false);
+	void 				command_manager_begin_transaction();
+	void 				command_manager_end_transaction();
 	void    			command_manager_enable_text_editor_undo_buffer(bool _val);
 	void    			command_manager_undo();
 	void    			command_manager_redo();
@@ -62,4 +64,5 @@ namespace ndbl
 	std::string         command_manager_get_cmd_description_at(int _cmd_position);
 	Text_Editor_Undo_Buffer*  command_manager_configure_text_editor_undo_buffer(TextEditor* _textEditor); /** To get the special buffer for TextEditor */
 	std::pair<int, int> command_manager_get_command_id_range(); /** return the command position range. Ex: (-100, 20) if we have 100 commands to undo and 20 to redo */
+
 }

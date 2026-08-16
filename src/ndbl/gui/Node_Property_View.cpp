@@ -128,7 +128,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 
         if ( ImGui::IsItemClicked(0) )
         {
-            get_config()->ui_node_detail = View_Detail_NORMAL;
+            config()->ui_node_detail = View_Detail_NORMAL;
             view->touched = true;
             view->show    = true;
         }

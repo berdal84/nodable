@@ -1,6 +1,5 @@
 #include "Node_Search_Input.h"
-#include "core/Graph.h"
-#include "core/Log.h"
+#include "core/Node.h"
 #include "gui/Event.h"
 #include "gui/Node_Slot_View.h"
 #include "tools/gui/Action.h"
@@ -36,55 +35,34 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Inp
     // 2) When a slot is dragged
     //--------------------------
 
-    size_t i = 0;
-    for (const Action& action : context_menu->items )
-    {
-        const Type_Descriptor* dragged_property_type = dragged_slot->property_type();
+    for (size_t i = 0; i < context_menu->items.size(); ++i )
+    {   
+        Action& action = context_menu->items[i];
+        Event_Data__Create_Node* event_data = static_cast<Event_Data__Create_Node*>(action.event.user.data1);
 
-        auto event_data = static_cast<Event_Data__Create_Node*>(action.event.user.data1);
-        switch ( event_data->node_type )
+        // Connect FLOW ?
+        if ( dragged_slot->allows(Node_Slot::Flag_TYPE_FLOW) )
         {
-            case Create_Node_Type_NULL:
-            {
-                TOOLS_LOG(tools::Verbosity_Warning, "Node_View_Context_Menu", "Action is Create_Node_Type_NULL\n");
-                break;
-            }
-            case Create_Node_Type_BLOCK_CONDITION:
-            case Create_Node_Type_BLOCK_FOR_LOOP:
-            case Create_Node_Type_BLOCK_WHILE_LOOP:
-            case Create_Node_Type_BLOCK_SCOPE:
-            case Create_Node_Type_ROOT:
-                // Blocks are only for code flow slots
-                if ( !dragged_slot->allows(Node_Slot::Flag_TYPE_FLOW) )
-                    continue;
-                break;
-
-            default:
-
-                if ( dragged_slot->allows(Node_Slot::Flag_TYPE_FLOW))
-                {
-                    // we can connect anything to a code flow slot
-                }
-                else if ( dragged_slot->allows(Node_Slot::Flag_INPUT) && dragged_slot->property_type()->is<Node*>() )
-                {
-                    // we can connect anything to a Node ref input
-                }
-                else if ( event_data->node_signature )
-                {
-                    // discard incompatible signatures
-
-                    if ( dragged_slot->allows(Node_Slot::Flag_ORDER_1ST ) &&
-                        !event_data->node_signature->has_arg_with_type(dragged_property_type)
-                            )
-                        continue;
-
-                    if ( !event_data->node_signature->return_type()->equals(dragged_property_type) )
-                        continue;
-
-                }
+            continue;
         }
+        
+        // Dragging a Node* slot?
+        if ( dragged_slot->allows(Node_Slot::Flag_INPUT) && !dragged_slot->property_type()->is<Node*>() )
+        {
+            continue;
+        }
+
+        // Compatible with any argument type?
+        if ( dragged_slot->allows(Node_Slot::Flag_ORDER_1ST ) &&
+            !event_data->function_descriptor->has_arg_with_type( dragged_slot->property_type() )
+                )
+            continue;
+
+        // Compatible return type?
+        if ( !event_data->function_descriptor->return_type()->equals( dragged_slot->property_type() ) )
+            continue;
+
         context_menu->items_with_compatible_signature.push_back(i);
-        i++;
     }
 }
 
@@ -121,7 +99,7 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_In
     }
 }
 
-ndbl::Action* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot, size_t _result_max_count )
+tools::Action* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot, size_t _result_max_count )
 {
     if ( context_menu->must_be_reset_flag )
     {
@@ -173,7 +151,7 @@ ndbl::Action* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* co
             auto it = context_menu->items_matching_search.begin();
             while( it != context_menu->items_matching_search.end() && std::distance(context_menu->items_matching_search.begin(), it) != _result_max_count)
             {
-                Action* action = &context_menu->items[*it];
+                tools::Action* action = &context_menu->items[*it];
 
                 // User can click on the button...
                 ImGui::Button( action->label.c_str());

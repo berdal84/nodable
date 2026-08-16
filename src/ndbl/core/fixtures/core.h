@@ -10,7 +10,6 @@
 #include <filesystem>
 
 using namespace ndbl;
-using namespace tools;
 
 namespace testing
 {
@@ -23,8 +22,8 @@ public:
     {
         nodable_init(&state);
 
-        set_log_verbosity( Verbosity_Message );
-        set_log_verbosity( "Parser", Verbosity_Diagnostic );
+        set_log_verbosity( tools::Verbosity_Message );
+        set_log_verbosity( "Parser", tools::Verbosity_Diagnostic );
     }
 
     void TearDown() override

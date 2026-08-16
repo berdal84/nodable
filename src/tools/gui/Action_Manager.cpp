@@ -56,32 +56,11 @@ const tools::Action* tools::action_manager_get_action_with_event_type(Event_Type
     return &g_action_manager->actions[pos];
 }
 
-void tools::action_manager_add_action(const Action& action )// Add a new action (can be triggered via shortcut)
+void tools::action_manager_register_action(const Action& action )// Add a new action (can be triggered via shortcut)
 {
     ASSERT_ACTION_MANAGER_IS_INITIALIZED();
     size_t pos = g_action_manager->actions.size();
     g_action_manager->actions.push_back( action );
     g_action_manager->actions_index_by_event_type.insert(std::pair{action.event.type, pos});
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Action_Manager", "Action '%s' bound to the event.type %i\n", action.label.c_str(), action.event.type);
-}
-
-void tools::action_manager_add_action(const char* label, Event_Type event_type, Shortcut shortcut)
-{
-    ASSERT_ACTION_MANAGER_IS_INITIALIZED();
-    action_manager_add_action({{event_type}, label, shortcut});
-}
-
-void tools::action_manager_add_action(const char* label, Event event, Shortcut shortcut)
-{
-    ASSERT_ACTION_MANAGER_IS_INITIALIZED();
-    ASSERT(event.type <= Event_Type_COUNT);
-    action_manager_add_action({event, label, shortcut});
-}
-
-void tools::action_manager_add_action(const char* label, Event_Data__User event_data, Shortcut shortcut, u64_t flags )
-{
-    ASSERT_ACTION_MANAGER_IS_INITIALIZED();
-    Event event = event_from_user_data(event_data);
-    Action action(event, label, shortcut, flags);
-    action_manager_add_action(action);
 }

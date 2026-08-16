@@ -1,9 +1,6 @@
 #include "Node_Property.h"
 #include "ndbl/core/language/Nodlang.h"
 
-using namespace ndbl;
-using namespace tools;
-
 void ndbl::property_init(
     Node_Property*          property,
     Node*                   node,

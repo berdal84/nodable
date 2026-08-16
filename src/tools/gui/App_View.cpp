@@ -38,7 +38,6 @@ void tools::appview_init(App_View_State* view, App_State* app)
     view->smoothed_fps  = 30.f;
     view->should_reset_layout   = true;
     view->show_splashscreen     = true;
-    view->app                   = app;
 
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
@@ -74,7 +73,7 @@ void tools::appview_init(App_View_State* view, App_State* app)
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
 
-    Config* cfg = get_config();
+    Config* cfg = config();
     view->title = cfg->app_default_title;
     view->sdl_window = SDL_CreateWindow( cfg->app_default_title,
                                      SDL_WINDOWPOS_CENTERED,
@@ -214,7 +213,7 @@ void tools::appview_init(App_View_State* view, App_State* app)
     // init managers
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "-- Init managers ...\n");
     texture_manager_init();
-    font_manager_init(&get_config()->font_manager);
+    font_manager_init(&config()->font_manager);
     event_manager_init();
     action_manager_init();
 
@@ -260,7 +259,7 @@ void tools::appview_update(App_View_State* view)
         {
             case SDL_WINDOWEVENT:
                 if( event.window.event == SDL_WINDOWEVENT_CLOSE)
-                    app_request_stop(view->app);
+                    app_request_stop();
                 break;
 
             case SDL_KEYDOWN:
@@ -302,7 +301,7 @@ void tools::appview_begin(App_View_State* view)
 {
     ASSERT(view != nullptr);
 
-    Config* cfg                 = get_config();
+    Config* cfg                 = config();
     bool    is_main_window_open = true;
 
     // Begin Frame
@@ -484,7 +483,7 @@ void tools::appview_end(App_View_State* view)
 {
     ASSERT(view != nullptr);
 
-    Config* cfg = get_config();
+    Config* cfg = config();
 
     // End Frame
     ImGui::End();
@@ -606,7 +605,7 @@ void tools::appview_dock_window(App_View_State* view, const char* window_name, D
 
 void tools::appview_draw_splashscreen(App_View_State* view)
 {
-    Config* cfg = get_config();
+    Config* cfg = config();
     if ( view->show_splashscreen && !ImGui::IsPopupOpen( cfg->splashscreen_window_label))
     {
         ImGui::OpenPopup( cfg->splashscreen_window_label);

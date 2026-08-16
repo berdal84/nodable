@@ -7,14 +7,12 @@
 #include <vector>
 
 #include "core/Asserts.h"
+#include "core/Event.h"
 #include "core/Flags.h"
 #include "core/Node_Slot.h"
 #include "language/Nodlang.h"
 #include "Node.h"
 #include "Scope.h"
-
-using namespace ndbl;
-using namespace tools;
 
 Graph::~Graph()
 {
@@ -205,18 +203,18 @@ Node* ndbl::graph_create_variable(Graph* graph, const Type_Descriptor *_type, co
 	return node;
 }
 
-Node* ndbl::graph_create_function(Graph* graph, const Function_Descriptor& _type, Scope* scope)
+Node* ndbl::graph_create_function(Graph* graph, const Function_Descriptor* function_descriptor, Scope* scope)
 {
     Node* node = new Node();
-    node_init_as_invokable(node, _type, Node_Type_FUNCTION);
+    node_init_as_invokable(node, function_descriptor, Node_Type_FUNCTION);
     graph_insert(graph, node, scope);
     return node;
 }
 
-Node* ndbl::graph_create_operator(Graph* graph, const Function_Descriptor& _type, Scope* parent_scope)
+Node* ndbl::graph_create_operator(Graph* graph, const Function_Descriptor* function_descriptor, Scope* parent_scope)
 {
     Node* node = new Node();
-    node_init_as_invokable(node, _type, Node_Type_OPERATOR);
+    node_init_as_invokable(node, function_descriptor, Node_Type_OPERATOR);
     graph_insert(graph, node, parent_scope);
     return node;
 }
@@ -522,41 +520,73 @@ Node* ndbl::graph_create_literal(Graph* graph, const Type_Descriptor* _type, Sco
     return node;
 }
 
-Node* ndbl::graph_create_node(Graph* graph, Create_Node_Type type, const Function_Descriptor* func_desc, Scope* scope)
+Node* ndbl::graph_create_node(Graph* graph, const Node_State* node_state, Scope* scope)
 {
-    switch ( type )
+    //
+    // TODO: This function must take a unique struct that is able to create any type of node.
+    //
+
+    switch ( node_state->type )
     {
-        /*
-         * TODO: We could consider narowing the enum to few cases (BLOCK, VARIABLE, LITERAL, OPERATOR, FUNCTION)
-         *       and rely more on _signature (ex: a bool variable could be simply "bool" or "bool bool(bool)")
-         */
-        case Create_Node_Type_BLOCK_CONDITION:  return graph_create_cond_struct(graph, scope);
-        case Create_Node_Type_BLOCK_FOR_LOOP:   return graph_create_for_loop(graph, scope);
-        case Create_Node_Type_BLOCK_WHILE_LOOP: return graph_create_while_loop(graph, scope);
-        case Create_Node_Type_ROOT:             graph_reset(graph);
-                                                 return graph_root(graph);
+        case Node_Type_IF_ELSE:     return graph_create_cond_struct(graph, scope);
+        case Node_Type_FOR_LOOP:    return graph_create_for_loop(graph, scope);
+        case Node_Type_WHILE_LOOP:  return graph_create_while_loop(graph, scope);
 
-        case Create_Node_Type_VARIABLE_BOOLEAN: return graph_create_variable_decl<bool>(graph, "b", scope);
-        case Create_Node_Type_VARIABLE_DOUBLE:  return graph_create_variable_decl<double>(graph, "d", scope);
-        case Create_Node_Type_VARIABLE_INTEGER: return graph_create_variable_decl<int>(graph, "i", scope);
-        case Create_Node_Type_VARIABLE_STRING:  return graph_create_variable_decl<std::string>(graph, "str", scope);
-
-        case Create_Node_Type_LITERAL_BOOLEAN:  return graph_create_literal<bool>(graph, scope);
-        case Create_Node_Type_LITERAL_DOUBLE:   return graph_create_literal<double>(graph, scope);
-        case Create_Node_Type_LITERAL_INTEGER:  return graph_create_literal<int>(graph, scope);
-        case Create_Node_Type_LITERAL_STRING:   return graph_create_literal<std::string>(graph, scope);
-
-        case Create_Node_Type_RETURN:           return graph_create_return(graph, nullptr, scope);
-
-        case Create_Node_Type_FUNCTION:
+        case Node_Type_ROOT:
         {
-            VERIFY(func_desc != nullptr, "_signature is expected when dealing with functions or operators");
-            if ( get_language()->is_operator( func_desc ) )
-                return graph_create_operator( graph, *func_desc, scope );
-            return graph_create_function( graph, *func_desc, scope );
+            graph_reset(graph);
+            return graph_root(graph);
         }
+
+        case Node_Type_VARIABLE:
+        {
+            if ( node_state->function_descriptor->return_type() == type::get<bool>() )
+                return graph_create_variable_decl<bool>(graph, "b", scope);
+
+            if ( node_state->function_descriptor->return_type() == type::get<double>()  )
+                return graph_create_variable_decl<double>(graph, "d", scope);
+
+            if ( node_state->function_descriptor->return_type() == type::get<int>()  )
+                return graph_create_variable_decl<int>(graph, "i", scope);
+
+            if ( node_state->function_descriptor->return_type() == type::get<std::string>()  )
+                return graph_create_variable_decl<std::string>(graph, "str", scope);
+
+            TOOLS_UNREACHABLE("Unexpected function_descriptor!");
+        }
+        
+        case Node_Type_LITERAL:
+        {
+            if ( node_state->function_descriptor->return_type() == type::get<bool>()  )
+                return graph_create_literal<bool>(graph, scope);   
+
+            if ( node_state->function_descriptor->return_type() == type::get<double>()  )
+                return graph_create_literal<double>(graph, scope);
+
+            if ( node_state->function_descriptor->return_type() == type::get<int>()  )
+                return graph_create_literal<int>(graph, scope);
+
+            if ( node_state->function_descriptor->return_type() == type::get<std::string>()  )
+                return graph_create_literal<std::string>(graph, scope);
+
+            TOOLS_UNREACHABLE("Unexpected function_descriptor!");
+        }
+        
+        case Node_Type_RETURN:
+        {
+            return graph_create_return(graph, nullptr, scope);
+        }
+
+        case Node_Type_FUNCTION:
+        {
+            VERIFY(node_state->function_descriptor != nullptr, "_signature is expected when dealing with functions or operators");
+            if ( get_language()->is_operator( node_state->function_descriptor ) )
+                return graph_create_operator( graph, node_state->function_descriptor, scope );
+            return graph_create_function( graph, node_state->function_descriptor, scope );
+        }
+
         default:
-            TOOLS_UNREACHABLE("Unexpected Create_Node_Type: %i\n", type);
+            TOOLS_UNREACHABLE("Unexpected Create_Node_Type: %i\n", node_state->type);
             return nullptr;
     }
 }
@@ -631,6 +661,11 @@ void ndbl::graph_flag_node_to_delete(Node *node, Graph_Flags flags)
 bool ndbl::graph_contains(const Graph* graph, Node* node)
 {
     return std::find( graph->nodes.begin(), graph->nodes.end(), node ) != graph->nodes.end();
+}
+
+ndbl::Node* ndbl::graph_get_latest_created_node(const Graph* graph)
+{
+    return graph->nodes.back();
 }
 
 void ndbl::graph_change_scope(Node* node, Scope* desired_scope)

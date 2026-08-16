@@ -335,7 +335,7 @@ Node_Slot* Nodlang::parse_binary_operator_expression(Scope* parent_scope, u8_t _
         type.arg_at(0).type = _left->property->type;
         type.arg_at(1).type = right->property->type;
 
-        Node* binary_op_node = graph_create_operator( _state.graph(), type, _left->node->scope );
+        Node* binary_op_node = graph_create_operator( _state.graph(), &type, _left->node->scope );
 
         Node::Invokable_State& binary_op = binary_op_node->invokable_data;
 
@@ -397,7 +397,7 @@ Node_Slot* Nodlang::parse_unary_operator_expression(Scope* parent_scope, u8_t _p
     type.init<any(any)>(operator_token.word_to_string().c_str());
     type.arg_at(0).type = out_atomic->property->type;
 
-    Node* node = graph_create_operator(_state.graph(), type, parent_scope );
+    Node* node = graph_create_operator(_state.graph(), &type, parent_scope );
     node->invokable_data.identifier_token = operator_token;
     node->invokable_data.lvalue_in()->property->token.m_type = out_atomic->property->token.m_type;
 
@@ -1111,7 +1111,7 @@ Node_Slot* Nodlang::parse_function_call(Scope* parent_scope)
 
 
     // Find the prototype in the language library
-    Node* fct_node = graph_create_function( _state.graph(), signature, parent_scope );
+    Node* fct_node = graph_create_function( _state.graph(), &signature, parent_scope );
 
     for ( int i = 0; i < fct_node->invokable_data.argument_slots.size; i++ )
     {

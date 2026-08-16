@@ -46,7 +46,7 @@ void ndbl::file_init(File* file)
 
     // Fill the "create node" context menu
     for( const Action& action : action_manager()->actions )
-        if ( action.event.type == Event_Type_USER && action.event.user.code == Event_Code_REQUEST_CREATE_NODE )
+        if ( action.event.type == Event_Type_USER && action.event.user.code == Event_Type_NEW_NODE )
             graph_view->node_search_input.items.push_back(action );
 
     // File_View
@@ -96,7 +96,7 @@ void ndbl::file_update(File* file, bool isolation_on)
     // (By default undo/redo are text-based only, if EXPERIMENTAL_HYBRID_COMMAND_MANAGER is ON, the behavior is different
     if ( command_manager()->is_dirty )
     {
-        if ( HAS_FLAGS(get_config()->flags, Config_Flag_EXPERIMENTAL_HYBRID_COMMAND_MANAGER) )
+        if ( HAS_FLAGS(config()->flags, Config_Flag_EXPERIMENTAL_HYBRID_COMMAND_MANAGER) )
         {
             ASSERT(false); // Not implemented yet
         }

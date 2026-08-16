@@ -19,7 +19,7 @@ using namespace tools;
 
 void ndbl::fileview_init(File_View* file_view, File* file)
 {
-    Config* cfg = get_config();
+    Config* cfg = config();
 
     file_view->file = file;
     std::string overlay_basename{ file_filename(file)};
@@ -55,7 +55,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
     {
         file_view->is_history_dragged = false;
     }
-    auto* cfg           = get_config();
+    auto* cfg           = config();
     float btn_spacing   = cfg->ui_history_btn_spacing;
     float btn_height    = cfg->ui_history_btn_height;
     float btn_width_max = cfg->ui_history_btn_width_max;
@@ -323,7 +323,7 @@ void ndbl::fileview_draw_overlay(const char* title, const std::vector<File_View_
 {
     if( overlay_data.empty() ) return;
 
-    Config* cfg = get_config();
+    Config* cfg = config();
     ImGui::PushStyleColor(ImGuiCol_WindowBg, cfg->ui_overlay_window_bg_golor);
     ImGui::PushStyleColor(ImGuiCol_Border, cfg->ui_overlay_border_color);
     ImGui::PushStyleColor(ImGuiCol_Text, cfg->ui_overlay_text_color);

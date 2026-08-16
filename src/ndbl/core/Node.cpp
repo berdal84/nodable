@@ -12,9 +12,6 @@
 #include "core/Node_Property.h"
 #include "core/reflection/Type_Descriptor.h"
 
-using namespace ndbl;
-using namespace tools;
-
 Node::Node()
 : adjacent_nodes(this)
 {
@@ -500,28 +497,28 @@ const Node_Property* ndbl::node_find_prop_by_name(const Node* node, const char* 
     return nullptr;
 }
 
-void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& _func_type, Node_Type node_type )
+void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor* function_desc, Node_Type node_type )
 {
     ASSERT(node != nullptr);
     ASSERT(node_type == Node_Type_OPERATOR || node_type == Node_Type_FUNCTION );
 
-    node_init(node, node_type, _func_type.get_identifier());
-    node->invokable_data.func_type = _func_type;
+    node_init(node, node_type, function_desc->get_identifier());
+    node->invokable_data.func_type = *function_desc;
     node->invokable_data.identifier_token = {
             Token_Type::identifier,
-            _func_type.get_identifier()
+            function_desc->get_identifier()
     };
-    node->invokable_data.argument_slots.resize(_func_type.arg_count());
-    node->invokable_data.argument_props.resize(_func_type.arg_count());
+    node->invokable_data.argument_slots.resize(function_desc->arg_count());
+    node->invokable_data.argument_props.resize(function_desc->arg_count());
 
     switch ( node->type )
     {
         case Node_Type_OPERATOR:
-            node_set_name(node, _func_type.get_identifier());
+            node_set_name(node, function_desc->get_identifier());
             break;
         case Node_Type_FUNCTION:
         {
-            const std::string& id   = _func_type.get_identifier();
+            const std::string& id   = function_desc->get_identifier();
             std::string label       = id; // We add dynamically the brackets (see Node_View)
             std::string short_label = id.substr(0, 2) + "..";
             node_set_name(node, label.c_str());
@@ -532,7 +529,7 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& 
     }
 
     // Create a result/value
-    property_set_type(node->value, _func_type.return_type() );
+    property_set_type(node->value, function_desc->return_type() );
 
     node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT );
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1);
@@ -541,13 +538,13 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor& 
     // Create arguments
     if (node->type == Node_Type_OPERATOR )
     {
-        VERIFY(_func_type.arg_count() >= 1, "An operator must have one argument minimum");
-        VERIFY(_func_type.arg_count() <= 2, "An operator cannot have more than 2 arguments");
+        VERIFY(function_desc->arg_count() >= 1, "An operator must have one argument minimum");
+        VERIFY(function_desc->arg_count() <= 2, "An operator cannot have more than 2 arguments");
     }
 
-    for (size_t i = 0; i < _func_type.arg_count(); i++ )
+    for (size_t i = 0; i < function_desc->arg_count(); i++ )
     {
-        const Function_Arg_Descriptor& arg  = _func_type.arg_at(i);
+        const Function_Arg_Descriptor& arg  = function_desc->arg_at(i);
 
         const char* name;
         // TODO: this could be done in the Node_View instead...

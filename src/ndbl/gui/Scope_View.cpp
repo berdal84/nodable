@@ -32,8 +32,6 @@ Scope_View* ndbl::scopeview_get_parent(const Scope_View* scope_view)
 
 void ndbl::scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags flags)
 {
-    const Config* config = get_config();
-
     // 1) update recursively
     //    any scope with higher depth in the same hierarchy will be up to date.
     for( Node* child_node : scope_view->scope->children )
@@ -76,7 +74,7 @@ void ndbl::scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags f
     if ( scopeview_must_be_draw(scope_view) )
     {
         // Add padding to clearly see nested scopes
-        const Padding& pad = config->ui_scope_padding;
+        const Padding& pad = config()->ui_scope_padding;
         scope_view->content_rect.expand( pad.left, pad.top, pad.right, pad.bottom );
 
         // pixel perfect
@@ -127,13 +125,13 @@ void ndbl::scopeview_draw(Scope_View* scope_view, float dt)
     
     const Rect r = scope_view->content_rect;
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    const Config* config = get_config();
-    const Vec4& fill_col = scope_view->theme == Theme_DARK ? config->ui_scope_fill_col_light
-                                                    : config->ui_scope_fill_col_dark;
-    draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32(fill_col), config->ui_scope_border_radius );
+    const Vec4& fill_col = scope_view->theme == Theme_DARK
+                         ? config()->ui_scope_fill_col_light
+                         : config()->ui_scope_fill_col_dark;
+    draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32(fill_col), config()->ui_scope_border_radius );
     if ( HAS_FLAGS(scope_view->flags, View_Flag_SELECTED) )
     {
-        draw_list->AddRect(r.min, r.max, ImGui::GetColorU32( config->ui_scope_border_col ) , config->ui_scope_border_radius, 0, config->ui_scope_border_thickness );
+        draw_list->AddRect(r.min, r.max, ImGui::GetColorU32( config()->ui_scope_border_col ) , config()->ui_scope_border_radius, 0, config()->ui_scope_border_thickness );
     }
 
     if ( ImGui::IsMouseHoveringRect(r.min, r.max) )

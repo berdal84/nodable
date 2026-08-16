@@ -57,5 +57,5 @@ void tools::event_manager_push_delayed_event( Event event, u64_t delay_in_ms)
     auto task = [event]() -> void {
         event_manager_push_event(event);
     };
-    get_task_manager()->schedule_task(task, delay_in_ms);
+    task_manager_schedule_task(task, delay_in_ms);
 }

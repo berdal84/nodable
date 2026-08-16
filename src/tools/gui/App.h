@@ -6,29 +6,29 @@ namespace tools
     struct Config;
     struct App_View_State;
 
-    typedef int AppFlags;
-    enum AppFlag_
+    typedef int App_Flags;
+    enum App_Flag_ : int
     {
-        AppFlag_NONE               = 0,
-        AppFlag_OWNS_CONFIG_MEMORY = 1 << 0, // Since some data (view and config) might be owned or not, those flags are there to keep track of it.
-        AppFlag_OWNS_VIEW_MEMORY   = 1 << 1, // ... same ...
-        AppFlag_SHOULD_STOP        = 1 << 2  // when set, app will stop next frame.
+        App_Flag_NONE               = 0,
+        App_Flag_OWNS_CONFIG_MEMORY = 1 << 0, // Since some data (view and config) might be owned or not, those flags are there to keep track of it.
+        App_Flag_OWNS_VIEW_MEMORY   = 1 << 1, // ... same ...
+        App_Flag_SHOULD_STOP        = 1 << 2  // when set, app will stop next frame.
     };
 
     struct App_State
     {
-        AppFlags        flags           = AppFlag_NONE;
+        App_Flags       flags           = App_Flag_NONE;
         Config*         config          = nullptr; // owned or not depending on flags
         App_View_State* view            = nullptr; // owned or not depending on flags
-        Task_Manager*   task_manager    = nullptr;
     };
 
-    void    app_init(App_State* app);
-    void    app_init_ex(App_State* app, App_View_State* , Config*);
-    void    app_main_loop(App_State* app);
-    void    app_deinit(App_State* app);
-    void    app_update(App_State* app);
-    void    app_draw(App_State* app); // Consider overriding AppView::draw instead of App::draw
-    inline bool app_should_stop(const App_State* app) { return app->flags & AppFlag_SHOULD_STOP; }
-    inline void app_request_stop(App_State* app) { app->flags |= AppFlag_SHOULD_STOP; }
+    void        app_init(App_State* app);
+    void        app_init_ex(App_State* app, App_View_State* , Config*);
+    void        app_shutdown();
+    App_State*  app_state();
+    void        app_main_loop();
+    void        app_update();
+    void        app_draw();
+    bool        app_should_stop();
+    void        app_request_stop();
 }

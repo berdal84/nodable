@@ -4,8 +4,9 @@
 #include <vector>
 #include <set>
 
-#include "core/Types.h"
+#include "core/reflection/Type_Descriptor.h"
 #include "tools/core/Component.h" // for Component_Bag<T>
+#include "ndbl/gui/Event.h"
 #include "Node.h"
 #include "Scope.h"
 
@@ -19,27 +20,6 @@ namespace ndbl
     {
         Graph_Flag_NONE               = 0,
         Graph_Flag_ALLOW_SIDE_EFFECTS = 1 << 0,
-    };
-
-    typedef int Create_Node_Type;
-    enum Create_Node_Type_ : int
-    {
-        Create_Node_Type_NULL                   = 0,
-        Create_Node_Type_ROOT                   = 1,
-        Create_Node_Type_BLOCK_CONDITION        = 2,
-        Create_Node_Type_BLOCK_FOR_LOOP         = 3,
-        Create_Node_Type_BLOCK_WHILE_LOOP       = 4,
-        Create_Node_Type_BLOCK_SCOPE            = 5,
-        Create_Node_Type_VARIABLE_BOOLEAN       = 6,
-        Create_Node_Type_VARIABLE_DOUBLE        = 7,
-        Create_Node_Type_VARIABLE_INTEGER       = 8,
-        Create_Node_Type_VARIABLE_STRING        = 9,
-        Create_Node_Type_LITERAL_BOOLEAN        = 10,
-        Create_Node_Type_LITERAL_DOUBLE         = 11,
-        Create_Node_Type_LITERAL_INTEGER        = 12,
-        Create_Node_Type_LITERAL_STRING         = 13,
-        Create_Node_Type_FUNCTION               = 14,
-        Create_Node_Type_RETURN                 = 15,
     };
 
 	struct Graph
@@ -81,25 +61,26 @@ namespace ndbl
     void                    graph_transfer_children(Scope* /* from */, Scope* /* to */);
     void                    graph_change_scope(Node*, Scope* /*desired_scope*/);
     Node*                   graph_create_node(Graph*, Scope* = nullptr);
-    Node*                   graph_create_node(Graph*, Create_Node_Type, const tools::Function_Descriptor*, Scope* = nullptr);
-    Node*                   graph_create_variable(Graph*, const tools::Type_Descriptor* type, const std::string& name, Scope* scope  = nullptr);
+    Node*                   graph_create_variable(Graph*, const tools::Type_Descriptor*, const std::string& name, Scope* scope  = nullptr);
     Node*                   graph_create_variable_ref(Graph*, Scope* = nullptr);
-    Node*                   graph_create_variable_decl(Graph*, const tools::Type_Descriptor* _type, const char* _name, Scope* = nullptr);
-    Node*                   graph_create_literal(Graph*, const tools::Type_Descriptor *_type, Scope* = nullptr);
-    Node*                   graph_create_function(Graph*, const tools::Function_Descriptor&, Scope* = nullptr);
-    Node*                   graph_create_operator(Graph*, const tools::Function_Descriptor&, Scope* = nullptr);
+    Node*                   graph_create_variable_decl(Graph*, const tools::Type_Descriptor*, const char* _name, Scope* = nullptr);
+    Node*                   graph_create_literal(Graph*, const tools::Type_Descriptor*, Scope* = nullptr);
+    Node*                   graph_create_function(Graph*, const tools::Function_Descriptor*, Scope* = nullptr);
+    Node*                   graph_create_operator(Graph*, const tools::Function_Descriptor*, Scope* = nullptr);
     Node*                   graph_create_cond_struct(Graph*, Scope* = nullptr);
     Node*                   graph_create_for_loop(Graph*, Scope* = nullptr);
     Node*                   graph_create_while_loop(Graph*, Scope* = nullptr);
     Node*                   graph_create_empty_instruction(Graph*, Scope* = nullptr);
     Node*                   graph_create_scope(Graph*, Scope* scope = nullptr);
     Node*                   graph_create_return(Graph*, const tools::Type_Descriptor*, Scope* = nullptr);
+    Node*                   graph_create_node(Graph*, const Node_State*, Scope* = nullptr);
     void                    graph_find_and_destroy(Graph*, Node* node);
     std::vector<Scope *>    graph_collect_scopes(const Graph*);
     std::set<Scope *>       graph_collect_root_scopes(const Graph*);
     void                    graph_flag_node_to_delete(Node*, Graph_Flags = Graph_Flag_NONE);
     bool                    graph_contains(const Graph*, Node*);
-
+    Node*                   graph_get_latest_created_node(const Graph*);
+    
     template<typename Component_Type>
     inline Component_Type*  graph_component(Graph* graph) { return tools::componentbag_get<Component_Type>(&graph->component_bag); }
 

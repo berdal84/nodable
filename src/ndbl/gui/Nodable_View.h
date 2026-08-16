@@ -19,13 +19,14 @@ namespace ndbl
         bool                    scroll_to_curr_instr            = true;
         
         SETTER(bool, show_splashscreen, base.show_splashscreen);
-        GETTERS_reinterpret_cast(App_State*, app, base.app )
     };
-    
-    void        nodableview_init(App_View_State*, App_State* app);
-    void        nodableview_deinit(App_View_State*);
-    void        nodableview_update(App_View_State*);
-    void        nodableview_draw(App_View_State*);
-    void        nodableview_save_screenshot(const App_View_State*, const char* relative_path);
+
+    App_View_State* appview_init();
+    void            appview_shutdown();
+    App_View_State* appview();
+    void            appview_update();
+    void            appview_draw();
+    void            appview_save_screenshot(const char* relative_path);
+    inline void     appview_show_splashscreen(bool b) { appview()->base.show_splashscreen = b; }
 
 }

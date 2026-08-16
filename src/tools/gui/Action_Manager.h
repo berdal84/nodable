@@ -26,9 +26,6 @@ namespace tools
     void            action_manager_shutdown();
     Action_Manager* action_manager();
     void            action_manager_set_current(Action_Manager*);
-    const Action*   action_manager_get_action_with_event_type(Event_Type id); // Get the actions bound to a given event id
-    void            action_manager_add_action(const Action& _action);
-    void            action_manager_add_action(const char* label, Event              , Shortcut = {});
-    void            action_manager_add_action(const char* label, Event_Type         , Shortcut = {});
-    void            action_manager_add_action(const char* label, Event_Data__User   , Shortcut = {}, u64_t flags = 0 );
+    const Action*   action_manager_get_action_with_event_type(Event_Type); // Get the actions bound to a given Event_Type
+    void            action_manager_register_action(const Action& _action);
 }

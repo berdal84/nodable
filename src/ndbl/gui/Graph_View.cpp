@@ -6,6 +6,8 @@
 #include <cstdio>
 #include <vector>
 
+#include "gui/Command.h"
+#include "gui/Command_Manager.h"
 #include "gui/Config.h"
 #include "imgui.h"
 
@@ -225,7 +227,7 @@ void ndbl::_graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *fr
 {
     VERIFY(from != nullptr, "from slot can't be nullptr");
 
-    Config* cfg = get_config();
+    Config* cfg = config();
 
     // Style
 
@@ -272,7 +274,7 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 
     graph_view->hovered = {};
 
-    Config*         cfg       = get_config();
+    Config*         cfg       = config();
     ImDrawList*     draw_list = ImGui::GetWindowDrawList();
 
     // Draw Scopes
@@ -397,7 +399,9 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 
                 // Animate style
                 ImGuiEx::WireStyle style = default_wire_style;
-                if ( (lastframe_hovered_linkview == linkview) || graph_view->selection.contains( node_view_out ) || graph_view->selection.contains( node_view_in ) )
+                if ( (lastframe_hovered_linkview == linkview)
+                || view_selection_contains(&graph_view->selection, node_view_out )
+                || view_selection_contains(&graph_view->selection, node_view_in ) )
                 {
                     style.color.w *= wave(0.5f, 1.f, time, 10.f);
 
@@ -553,7 +557,7 @@ bool ndbl::graphview_draw(Graph_View* graph_view, float dt)
 
 void ndbl::_graphview_do_layout_element(Graph_View* graph_view, Node_View* nodeview )
 {
-    Config* cfg  = get_config();
+    Config* cfg  = config();
     Rect    rect = nodeview_get_rect(nodeview, tools::PARENT_SPACE);
 
     layout_append_element(rect.width(), rect.height(), nodeview);
@@ -566,7 +570,7 @@ void ndbl::_graphview_do_layout_element(Graph_View* graph_view, Node_View* nodev
 
 void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* graph_view, Node_View* nodeview )
 {
-    Config* cfg = get_config();
+    Config* cfg = config();
 
     Node*   node = nodeview->node();
     Rect    rect = nodeview_get_rect(nodeview, WORLD_SPACE);
@@ -644,7 +648,7 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
 
 void ndbl::_graphview_do_layout_recursively(Graph_View* graph_view, Node_View* nodeview )
 {
-    Config* cfg  = get_config();
+    Config* cfg  = config();
     Node*   node = nodeview->node();
 
     if( node->internal_scope == nullptr)
@@ -762,7 +766,8 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
     // Frame Content or Selection    
     if( graph_view->flags & Graph_View_Flag_NEEDS_TO_FRAME_CONTENT)
     {
-        std::vector<View> selected_views = graph_view->selection.collect(View_Type_NODE);
+        std::vector<View> selected_views{};
+        view_selection_collect(&selected_views, &graph_view->selection, View_Type_NODE);
 
         bool has_selection = !selected_views.empty();
 
@@ -785,7 +790,7 @@ void ndbl::graphview_update(Graph_View* graph_view, float dt)
         }
         else
         {
-            Vec2 offset = get_config()->ui_textview_padding + Vec2{ get_config()->ui_scope_padding.left, get_config()->ui_scope_padding.top };
+            Vec2 offset = config()->ui_textview_padding + Vec2{ config()->ui_scope_padding.left, config()->ui_scope_padding.top };
             delta =  graph_view->shape.pivot_position( TOP_LEFT, WORLD_SPACE) - selected_rect.top_left() + offset;
         }
 
@@ -951,26 +956,29 @@ void ndbl::_graphview_select_scope(Graph_View* graph_view, Scope_View* scopeview
 {
     ASSERT(scopeview);
 
+    // 1) Gather Node_Views that are a child (direct or not) of the scopeview
+
     // Get descendent scopes
     std::set<Scope*> scopes;
     scope_get_descendent(scopes, scopeview->scope, Scope_Flag_INCLUDE_SELF );
 
     // Extract node views from each descendent
-    std::vector<Node_View*> nodeviews;
+    View_Selection new_selection;
     for(Scope* each_scope : scopes)
     {
         // Include scope owner's view too
         if ( auto* nodeview = componentbag_get<Node_View>(&each_scope->node()->component_bag))
-            nodeviews.push_back( nodeview );
+            view_selection_add(&new_selection, nodeview );
 
         // and every other child's
         for( Node* child_node : each_scope->children )
             if ( auto* nodeview = componentbag_get<Node_View>(&child_node->component_bag))
-                nodeviews.push_back(nodeview);
+                view_selection_add(&new_selection, nodeview );
     }
-    // Replace selection
-    graph_view->selection.clear();
-    graph_view->selection.push_back( nodeviews.begin(), nodeviews.end() ) ;
+
+    // 2) Replace selection
+    Command cmd = command_selection_change(&new_selection);
+    command_manager_push_command(cmd);
 }
 
 void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
@@ -1005,10 +1013,11 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
 
                 if ( ImGui::MenuItem("Delete") )
                 {
-                    graph_view->selection.clear();
-                    graph_view->selection.push_back(scopeview);
+                    // TODO: we should probably handle the selection when we perform a right click on something (slot, nodeview, linkview, etc..)
+                    view_selection_clear(&graph_view->selection);
+                    view_selection_add(&graph_view->selection, scopeview);
 
-                    event_manager_push_event( event_from_user_data({Event_Code_DELETE}) );
+                    event_manager_push_event( event_from_user_data({Event_Type_DELETE}) );
                 }
 
 
@@ -1024,7 +1033,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                 if ( ImGui::MenuItem("Delete") )
                 {
                     Event event = event_from_user_data({ 
-                        Event_Code_DELETE_LINK, 
+                        Event_Type_DELETE_LINK, 
                         edge.tail->slot, 
                         edge.head->slot
                     });
@@ -1039,7 +1048,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
                 if ( ImGui::MenuItem("Disconnect") )
                 {
                     Event event = event_from_user_data({ 
-                        Event_Code_DELETE_ALL_LINKS, 
+                        Event_Type_DELETE_ALL_LINKS, 
                         graph_view->focused.slotview->slot, 
                         nullptr
                     });
@@ -1072,9 +1081,10 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
 
                 if ( ImGui::MenuItem("Delete") )
                 {
-                    graph_view->selection.clear();
-                    graph_view->selection.push_back(nodeview);
-                    event_manager_push_event(event_from_user_data({Event_Code_DELETE}));
+                    view_selection_clear(&graph_view->selection);
+                    view_selection_add(&graph_view->selection, nodeview);
+
+                    event_manager_push_event(event_from_user_data({Event_Type_DELETE}));
                 }
 
                 break;
@@ -1141,20 +1151,20 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             {
                 if ( ctrl_pressed )
                 {
-                    if ( !graph_view->selection.contains( graph_view->hovered ) )
+                    if ( !view_selection_contains(&graph_view->selection, graph_view->hovered ) )
                     {
-                        graph_view->selection.push_back( graph_view->hovered );
+                        view_selection_add( &graph_view->selection, graph_view->hovered );
                         graph_view->focused = graph_view->hovered;
                     }
                     else
                     {
-                        graph_view->selection.remove( graph_view->hovered );
+                        view_selection_remove( &graph_view->selection, graph_view->hovered );
                     }
                 }
                 else
                 {
-                    graph_view->selection.clear();
-                    graph_view->selection.push_back( graph_view->hovered );
+                    view_selection_clear( &graph_view->selection );
+                    view_selection_add( &graph_view->selection, graph_view->hovered );
                     graph_view->focused = graph_view->hovered;
                 }
             }
@@ -1165,11 +1175,11 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             }
             else if ( ImGui::IsMouseClicked(0) )
             {
-                if ( !graph_view->selection.contains( graph_view->hovered) )
+                if ( !view_selection_contains( &graph_view->selection, graph_view->hovered) )
                 {
                     if ( !ctrl_pressed )
-                        graph_view->selection.clear();
-                    graph_view->selection.push_back( graph_view->hovered );
+                        view_selection_clear( &graph_view->selection );
+                    view_selection_add(&graph_view->selection, graph_view->hovered );
                 }
                 graph_view->state_machine.change_state(DRAG_STATE);
             }
@@ -1181,7 +1191,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graph_view)
             if ( ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
             {
                 if (ImGui::IsMouseClicked(0))
-                    graph_view->selection.clear(); // Deselect All (Click on the background)
+                    view_selection_clear(&graph_view->selection); // Deselect All (Click on the background)
                 else if (ImGui::IsMouseReleased(0))
                     graph_view->focused = {};
                 else if (ImGui::IsMouseClicked(1))
@@ -1242,7 +1252,7 @@ void ndbl::_graphview_line_state_tick(Graph_View* graph_view)
             {
                 
                 Event event = event_from_user_data({
-                    Event_Code_SLOT_DROPPED,
+                    Event_Type_SLOT_DROPPED_ONTO_ANOTHER,
                     graph_view->focused.slotview->slot,
                     graph_view->hovered.slotview->slot
                 });
@@ -1294,17 +1304,17 @@ void ndbl::_graphview_roi_state_tick(Graph_View* graph_view)
     {
         // Get the views included in the ROI
         // Note: this might be expensive with a lots of nodes, we will need some sort of space partitionning in the future.
-        std::set<Node_View*> nodeviews_inside_roi;
+        std::vector<View> nodeviews_inside_roi;
         for ( Node* node : graph_view->graph()->nodes )
             if ( auto nodeview = node_component<Node_View>(node) )
                 if ( Rect::contains(roi, nodeview_get_rect(nodeview, tools::WORLD_SPACE)) )
-                    nodeviews_inside_roi.insert( nodeview );
+                    nodeviews_inside_roi.push_back( nodeview );
 
         // Select them
         const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
         if ( !ctrl_pressed )
-            graph_view->selection.clear();
-        graph_view->selection.push_back(nodeviews_inside_roi.begin(), nodeviews_inside_roi.end() );
+            view_selection_clear(&graph_view->selection);
+        view_selection_add(&graph_view->selection, nodeviews_inside_roi );
 
         graph_view->state_machine.exit_state();
     }

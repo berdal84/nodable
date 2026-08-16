@@ -8,7 +8,7 @@ using namespace ndbl;
 void ndbl::nodable_init(App_Headless_State* state)
 {
     // init managers
-    state->task_manager = tools::init_task_manager();
+    state->task_manager = tools::task_manager_init();
     state->language     = init_language();
 
     // configure
@@ -23,7 +23,7 @@ void ndbl::nodable_deinit(App_Headless_State* state)
     nodable_clear(state);
     graph_deinit(state->graph);
     delete state->graph;
-    tools::shutdown_task_manager(state->task_manager);
+    tools::task_manager_shutdown();
     shutdown_language(state->language);
 }
 

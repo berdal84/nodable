@@ -6,6 +6,7 @@
 #include "tools/core/Hash.h"
 #include <algorithm>
 #include <functional>
+#include <vector>
 #include "core/Types.h"
 #include "tools/gui/geometry/Rect.h"
 
@@ -113,112 +114,108 @@ namespace ndbl
         { return items.back(); }
 
         bool empty() const
-        { return items.empty(); }
-
-        void clear()
-        {
-            for(const View& elem : items )
-            {
-                signal_change.emit( View_Selection_Event_Type_REMOVE, elem );
-            }
-            items.clear();
-            count_by_type.clear();
-        }
-
-        bool contains(const View& elem ) const
-        {
-            for(auto& each : items)
-                if( each == elem)
-                    return true;
-            return false;
-        }
-
-        void push_back(const View& elem )
-        {
-            items.push_back(elem);
-            count_by_type[elem.type]++;
-            signal_change.emit( View_Selection_Event_Type_APPEND, elem );
-        }
-
-        template<typename View_Constructor_Arg_Type>
-        void push_back(View_Constructor_Arg_Type arg)
-        {
-            return push_back(View{arg});
-        }
-
-        template<class Iterator> size_t push_back( Iterator begin, Iterator end )
-        {
-            size_t count = 0;
-
-            auto it = begin;
-            while( it != end)
-            {
-                push_back( *it );
-                ++count;
-                ++it;
-            }
-
-            return count;
-        }
-
-        bool remove(const View& elem)
-        {
-            auto found = std::find( items.cbegin(), items.cend(), elem) != items.cend();
-            if( found )
-            {
-                count_by_type[elem.type]--;
-                signal_change.emit( View_Selection_Event_Type_APPEND, elem );
-            }
-            return found;
-        }
-
-        bool contains(View_Type type) const // O(1), read from cache.
-        {
-            return count_by_type.contains(type);
-        }
-
-        size_t count(View_Type type) const // O(1), read from cache.
-        {
-            if ( count_by_type.contains(type ) )
-            {
-                return count_by_type.at(type );
-            }
-            return 0;
-        }
-
-        View first_of(View_Type type) const // O(n), I suggest you to use contains() once first
-        {
-            const size_t _count = count(type);
-            if ( _count == 0 )
-                return {};
-
-            for ( const View& elem : items )
-                if ( elem.type == type )
-                    return elem;
-
-            ASSERT(false); // unreachable case
-            return {};
-        }
-
-        std::vector<View> collect(View_Type type) const // O(n), do only a single allocation when necessary
-        {
-            const size_t _count = count(type);
-            if ( _count == 0 )
-                return {};
-
-            std::vector<View> result;
-            result.reserve( _count ); // 1 allocation max :)
-
-            // OPTIM: we could use a cache per type_index if necessary ( type_index => list<T*> )
-            for ( const View& elem : items )
-                if ( elem.type == type )
-                    result.push_back( elem );
-
-            return result;
-        }
+        { return items.empty(); }        
     };
 
+    inline void view_selection_clear(View_Selection* selection)
+    {
+        for(const View& elem : selection->items )
+        {
+            selection->signal_change.emit( View_Selection_Event_Type_REMOVE, elem );
+        }
+        selection->items.clear();
+        selection->count_by_type.clear();
+    }
 
+    inline bool view_selection_contains(const View_Selection* selection, const View& elem )
+    {
+        for(auto& each : selection->items)
+            if( each == elem)
+                return true;
+        return false;
+    }
+
+    inline void view_selection_add(View_Selection* selection, const View& elem )
+    {
+        selection->items.push_back(elem);
+        selection->count_by_type[elem.type]++;
+        selection->signal_change.emit( View_Selection_Event_Type_APPEND, elem );
+    }
+
+    template<class Iterator> size_t view_selection_add(View_Selection* selection, Iterator begin, Iterator end )
+    {
+        size_t count = 0;
+
+        auto it = begin;
+        while( it != end)
+        {
+            view_selection_add( selection, *it );
+            ++count;
+            ++it;
+        }
+
+        return count;
+    }
+
+    inline void view_selection_add(View_Selection* selection, const std::vector<View>& views)
+    {
+        view_selection_add(selection, views.begin(), views.end());
+    }
+
+    inline bool view_selection_remove(View_Selection* selection, const View& elem)
+    {
+        auto found = std::find( selection->items.cbegin(), selection->items.cend(), elem) != selection->items.cend();
+        if( found )
+        {
+            selection->count_by_type[elem.type]--;
+            selection->signal_change.emit( View_Selection_Event_Type_APPEND, elem );
+        }
+        return found;
+    }
+
+    inline bool view_selection_contains(const View_Selection* selection, View_Type type) // O(1), read from cache.
+    {
+        return selection->count_by_type.contains(type);
+    }
+
+    inline size_t view_selection_count(const View_Selection* selection, View_Type type) // O(1), read from cache.
+    {
+        if ( selection->count_by_type.contains(type ) )
+        {
+            return selection->count_by_type.at(type );
+        }
+        return 0;
+    }
+
+    inline View view_selection_first_of(const View_Selection* selection, View_Type type) // O(n), I suggest you to use contains() once first
+    {
+        const size_t _count = view_selection_count(selection, type);
+        if ( _count == 0 )
+            return {};
+
+        for ( const View& elem : selection->items )
+            if ( elem.type == type )
+                return elem;
+
+        ASSERT(false); // unreachable case
+        return {};
+    }
+
+    inline std::vector<View>* view_selection_collect(std::vector<View>* out, const View_Selection* selection, View_Type type) // O(n), do only a single allocation when necessary
+    {
+        const size_t _count = view_selection_count(selection, type);
+        if ( _count == 0 )
+            return {};
+
+        out->reserve( _count ); // 1 allocation max :)
+
+        // OPTIM: we could use a cache per type_index if necessary ( type_index => list<T*> )
+        for ( const View& elem : selection->items )
+            if ( elem.type == type )
+                out->push_back( elem );
+
+        return out;
+    }
 }
 
 // required to compare tools::Variant<..., Node_Slot_Link_View>

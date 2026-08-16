@@ -4,7 +4,7 @@
 
 namespace tools
 {
-    typedef u16_t Event_Type;
+    typedef u32_t Event_Type;
     enum Event_Type_ : Event_Type
     {
         Event_Type_NULL = 0,
@@ -19,12 +19,10 @@ namespace tools
         Event_Type_UNDO,
         Event_Type_REDO,
         Event_Type_REQUEST_EXIT,
-        Event_Type_TOGGLE_WINDOW,
+        Event_Type_TOGGLE_HELP,
 
-        // extended events (with data)
-        Event_Type_USER,
-
-        Event_Type_COUNT
+        // This slot and above are reserved for user event type/codes
+        Event_Type_USER = 512,
     };
 
     struct Event_Data__Window
@@ -45,7 +43,6 @@ namespace tools
     {
         Event_Type type;
         union {
-            Event_Data__Window  window;
             Event_Data__User    user;
             char                data[sizeof(Event_Data__User)];
         };

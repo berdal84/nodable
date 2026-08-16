@@ -1,4 +1,5 @@
 
+#include "gui/Nodable.h"
 #include "fixtures/gui.h"
 #include "gui/Nodable_View.h"
 
@@ -12,93 +13,88 @@ TEST_F(Gui_App, constructor)
 
 TEST_F(Gui_App, init_deinit)
 {
-    ndbl::App_State app;
-    nodable_init(&app);
-    nodable_deinit(&app);
+    ndbl::app_init();
+    ndbl::app_shutdown();
 }
 
 TEST_F(Gui_App, update)
 {
-    ndbl::App_State app;
-    nodable_init(&app);
-    nodable_update(&app);
-    nodable_deinit(&app);
+    ndbl::app_init();
+    ndbl::app_update();
+    ndbl::app_shutdown();
 }
 
 TEST_F(Gui_App, loop_count_1)
 {
-    ndbl::App_State app;
-    nodable_init(&app);
-    loop_count(&app, 1);
-    nodable_deinit(&app);
+    ndbl::app_init();
+    loop_count(1);
+    ndbl::app_shutdown();
 }
 
 TEST_F(Gui_App, loop_duration_5s)
 {
-    ndbl::App_State app;
-    nodable_init(&app);
-    loop_for_x_sec(&app, 5.0 );
-    nodable_deinit(&app);
+    ndbl::app_init();
+    loop_for_x_sec(5.0 );
+    ndbl::app_shutdown();
 }
 
 TEST_F(Gui_App, new_file)
 {
-    ndbl::App_State app;
-    nodable_init(&app);
-    app.view()->show_splashscreen(false);
-    nodable_new_file(&app);
-    loop_for_x_sec(&app, 1.0 );
-    nodableview_save_screenshot(app.view(), "TEST_Gui_App__new_file__0.png");
-    nodable_deinit(&app);
+    ndbl::app_init();
+    ndbl::appview_show_splashscreen(false);
+    ndbl::app_new_file();
+    loop_for_x_sec(1.0 );
+    ndbl::appview_save_screenshot("TEST_Gui_ndbl::app__new_file__0.png");
+    ndbl::app_shutdown();
 }
 
 TEST_F(Gui_App, open_file)
 {
     ndbl::App_State app;
-    nodable_init(&app);
-    app.view()->show_splashscreen(false);
-    loop_for_x_sec(&app, 1.0 );
-    nodableview_save_screenshot(app.view(), "TEST_Gui_App__open_file__0.png");
-    EXPECT_TRUE(nodable_open_asset_file(&app, "examples/arithmetic.cpp"));
-    loop_for_x_sec(&app, 1.0 );
-    nodableview_save_screenshot(app.view(), "TEST_Gui_App__open_file__1.png");
-    nodable_deinit(&app);
+    ndbl::app_init();
+    ndbl::appview_show_splashscreen(false);
+    loop_for_x_sec(1.0 );
+    appview_save_screenshot("TEST_Gui_ndbl::app__open_file__0.png");
+    EXPECT_TRUE(ndbl::app_open_asset_file("examples/arithmetic.cpp"));
+    loop_for_x_sec(1.0 );
+    appview_save_screenshot("TEST_Gui_ndbl::app__open_file__1.png");
+    ndbl::app_shutdown();
 }
 
 TEST_F(Gui_App, close_file)
 {
     ndbl::App_State app;
-    nodable_init(&app);
-    app.view()->show_splashscreen(false);
-    File* file = nodable_open_asset_file(&app, "examples/arithmetic.cpp");
-    loop_for_x_sec(&app, 1.0 );
-    nodableview_save_screenshot(app.view(), "TEST_Gui_App__close_file__0.png");
-    nodable_close_file(&app, file );
-    loop_for_x_sec(&app, 1.0 );
-    nodableview_save_screenshot(app.view(), "TEST_Gui_App__close_file__1.png");
-    nodable_deinit(&app);
+    ndbl::app_init();
+    ndbl::appview_show_splashscreen(false);
+    File* file = ndbl::app_open_asset_file("examples/arithmetic.cpp");
+    loop_for_x_sec(1.0 );
+    appview_save_screenshot("TEST_Gui_ndbl::app__close_file__0.png");
+    ndbl::app_close_file(file );
+    loop_for_x_sec(1.0 );
+    appview_save_screenshot("TEST_Gui_ndbl::app__close_file__1.png");
+    ndbl::app_shutdown();
 }
 
 TEST_F(Gui_App, open_examples)
 {
     ndbl::App_State app;
-    nodable_init(&app);
-    app.view()->show_splashscreen(false);
-    nodable_update(&app);
-    nodableview_save_screenshot(app.view(), "TEST_Gui_App__open_examples__0.png");
-    EXPECT_TRUE(nodable_open_asset_file(&app, "examples/arithmetic.cpp"));
-    loop_for_x_sec(&app, 1.0 );
-    nodableview_save_screenshot(app.view(), "TEST_Gui_App__open_examples__1.png");
-    EXPECT_TRUE(nodable_open_asset_file(&app, "examples/for-loop.cpp"));
-    loop_for_x_sec(&app, 1.0 );
-    nodableview_save_screenshot(app.view(), "TEST_Gui_App__open_examples__2.png");
-    EXPECT_TRUE(nodable_open_asset_file(&app, "examples/if-else.cpp"));
-    loop_for_x_sec(&app, 1.0 );
-    nodableview_save_screenshot(app.view(), "TEST_Gui_App__open_examples__3.png");
-    EXPECT_TRUE(nodable_open_asset_file(&app, "examples/multi-instructions.cpp"));
-    loop_for_x_sec(&app, 1.0 );
-    nodableview_save_screenshot(app.view(), "TEST_Gui_App__open_examples__4.png");
-    nodable_deinit(&app);
+    ndbl::app_init();
+    ndbl::appview_show_splashscreen(false);
+    ndbl::app_update();
+    appview_save_screenshot("TEST_Gui_ndbl::app__open_examples__0.png");
+    EXPECT_TRUE(ndbl::app_open_asset_file("examples/arithmetic.cpp"));
+    loop_for_x_sec(1.0 );
+    appview_save_screenshot("TEST_Gui_ndbl::app__open_examples__1.png");
+    EXPECT_TRUE(ndbl::app_open_asset_file("examples/for-loop.cpp"));
+    loop_for_x_sec(1.0 );
+    appview_save_screenshot("TEST_Gui_ndbl::app__open_examples__2.png");
+    EXPECT_TRUE(ndbl::app_open_asset_file("examples/if-else.cpp"));
+    loop_for_x_sec(1.0 );
+    appview_save_screenshot("TEST_Gui_ndbl::app__open_examples__3.png");
+    EXPECT_TRUE(ndbl::app_open_asset_file("examples/multi-instructions.cpp"));
+    loop_for_x_sec(1.0 );
+    appview_save_screenshot("TEST_Gui_ndbl::app__open_examples__4.png");
+    ndbl::app_shutdown();
 }
 
 

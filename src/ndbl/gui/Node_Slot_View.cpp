@@ -32,10 +32,9 @@ Node_Slot_View::Node_Slot_View(
     nodeslotview_update_direction_from_alignment(this);
 
     // Update size from shape
-    Config* config = get_config();
     Vec2 size = shape_type == Shape_Type_CIRCLE
-            ? Vec2{ config->ui_slot_circle_radius() * 2.f}
-            : config->ui_slot_rectangle_size;
+            ? Vec2{ config()->ui_slot_circle_radius() * 2.f}
+            : config()->ui_slot_rectangle_size;
     shape.set_size( size );
 }
 
@@ -73,7 +72,7 @@ bool ndbl::nodeslotview_draw(Node_Slot_View* view)
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    Config* cfg          = get_config();
+    Config* cfg          = config();
     Vec4  color          = cfg->ui_slot_color(view->slot->flags );
     Vec4  border_color   = cfg->ui_slot_border_color;
     float border_radius  = cfg->ui_slot_border_radius;
@@ -149,7 +148,7 @@ void ndbl::nodeslotview_update(Node_Slot_View* view, float dt)
     // 2) Update position
     //-------------------
 
-    const Config* cfg = get_config();
+    const Config* cfg = config();
     if (view->slot->type() == Node_Slot::Flag_TYPE_FLOW )
     {
         // Align the code flow slots like that (example at top-left corner)

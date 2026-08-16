@@ -1,6 +1,5 @@
 #pragma once
 
-#include "core/reflection/GETTERS_SETTERS.h"
 #include "tools/gui/App.h"
 #include "Config.h"
 
@@ -15,7 +14,6 @@ namespace ndbl
     // forward declarations
     class Nodlang;
     struct File;
-    struct App_View_State;
 
     struct App_State
     {
@@ -26,31 +24,29 @@ namespace ndbl
         u8_t                untitled_file_count = 0;
         std::vector<File*>  files;
         std::vector<File*>  files_to_delete;
-
-        GETTERS_reinterpret_cast(App_View_State*, view, this->base.view)
     };
 
     // common
 
-    void            nodable_init(App_State*);
-    void            nodable_deinit(App_State*);
-    App_State*      nodable_state();
-    void            nodable_run(App_State*);
-    void            nodable_update(App_State*);
-    void            nodable_draw(App_State*);
-    bool            nodable_should_stop(const App_State*);
-    void            nodable_do_frame(App_State*);
+    App_State*      app_init();
+    void            app_shutdown();
+    App_State*      app_state();
+    void            app_run();
+    void            app_update();
+    void            app_draw();
+    bool            app_should_stop();
+    void            app_do_frame();
 
     // file related
 
-    File*           nodable_open_asset_file(App_State*, const tools::Path&);
-    File*           nodable_open_file(App_State*,const tools::Path&);
-    File*           nodable_new_file(App_State*);
-    void            nodable_save_file(const App_State*, File*);
-    void            nodable_set_current_file(App_State*, File*);
-    void            nodable_save_file_as(const App_State*, File*, const tools::Path&);
-    File*           nodable_add_file(App_State*, File*);
-    void            nodable_close_file(App_State*);
-    void            nodable_close_file(App_State*, File*);
-    void            nodable_reset_current_graph(App_State*);
+    File*           app_open_asset_file(const tools::Path&);
+    File*           app_open_file(const tools::Path&);
+    File*           app_new_file();
+    void            app_save_file(File*);
+    void            app_set_current_file(File*);
+    void            app_save_file_as(File*, const tools::Path&);
+    File*           app_add_file(File*);
+    void            app_close_file();
+    void            app_close_file(File*);
+    void            app_reset_current_graph();
 }
