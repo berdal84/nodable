@@ -1,4 +1,5 @@
 #include "Log.h"
+#include "bdc/String_Hash.hpp"
 #include <iostream>
 
 using namespace tools;
@@ -16,21 +17,21 @@ bool tools::show_log_message(const MessageData& message, const VerbosityFilter& 
     return false;
 }
 
-void tools::set_log_verbosity(const char* category, Verbosity level)
+void tools::set_log_verbosity(const bdc::String& category, Verbosity level)
 {
-    get_log_state().verbosity_by_category.insert_or_assign(category, level );
+    get_log_state().verbosity_by_category_hash.insert_or_assign( bdc::string_hash(category).hash , level );
 }
 
 void tools::set_log_verbosity(Verbosity level)
 {
     get_log_state().verbosity = level;
-    get_log_state().verbosity_by_category.clear(); // ensure no overrides remains
+    get_log_state().verbosity_by_category_hash.clear(); // ensure no overrides remains
 }
 
-Verbosity tools::get_log_verbosity(const char* category)
+Verbosity tools::get_log_verbosity(const bdc::String& category)
 {
-    const auto& pair = get_log_state().verbosity_by_category.find( category );
-    if (pair != get_log_state().verbosity_by_category.end() )
+    const auto& pair = get_log_state().verbosity_by_category_hash.find( bdc::string_hash(category).hash );
+    if (pair != get_log_state().verbosity_by_category_hash.end() )
     {
         return pair->second;
     }

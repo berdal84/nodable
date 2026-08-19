@@ -16,7 +16,7 @@
  * ...
  * REFLECT_ENUM_CLASS_END()
  *
- * const char* str = to_string(MyEnum::A); // str == "A"
+ * const bdc::String str = to_string(MyEnum::A); // str == "A"
  */
 
 
@@ -45,4 +45,5 @@
     __REFLECT_ENUM_CONTENT
 
 #define REFLECT_ENUM_CLASS_V(VALUE) \
-            case EnumT::VALUE: return #VALUE;
+            case EnumT::VALUE: \
+                return #VALUE;

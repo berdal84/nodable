@@ -3,7 +3,7 @@
 #include "Asserts.h"
 #include "Task_Manager.h"
 #include "core/Event.h"
-#include "core/Types.h"
+#include "bdc/Types.hpp"
 
 #define VERIFY_EVENT_MANAGER_IS_INITIALIZED() VERIFY( tools::g_event_manager != nullptr, "g_event_manager is not initialized, did you cann event_manager_init() ?")
 
@@ -16,7 +16,7 @@ namespace tools
 tools::Event_Manager* tools::event_manager_init()
 {
     VERIFY(g_event_manager == nullptr, "Cannot be called twice"); // singleton
-    g_event_manager = new Event_Manager();
+    g_event_manager = bdc::memory_new<Event_Manager>();
     return g_event_manager;
 }
 

@@ -170,7 +170,7 @@ void ndbl::command_new_node_undo(Command* command)
 {
     auto node = static_cast<Node*>(command->data.data2);
     if( node != nullptr)
-        graph_find_and_destroy( app_state()->current_file->graph, node);
+        graph_find_and_destroy_node( app_state()->current_file->graph, node);
 }
 
 //-----------------------------------------------------------------------------
@@ -195,10 +195,10 @@ ndbl::Command ndbl::command_selection_change(const View_Selection* _selection)
     cmd.proc_undo       = command_selection_change_undo;
     cmd.proc_release    = command_selection_change_release;
 
-    auto old_selection = new View_Selection();
+    auto old_selection = bdc::memory_new<View_Selection>();
     view_selection_add(old_selection, app_state()->current_file->view.graph_view->selection.items);
 
-    auto new_selection = new View_Selection();
+    auto new_selection = bdc::memory_new<View_Selection>();
     view_selection_add(new_selection, _selection->items);
 
     cmd.selection_change = {

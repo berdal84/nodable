@@ -90,7 +90,7 @@ TEST(TypeDescriptor, is_integer)
 
     EXPECT_FALSE( type::get<double>()->is_integer() );
     EXPECT_FALSE( type::get<float>()->is_integer() );
-    EXPECT_FALSE( type::get<std::string>()->is_integer() );
+    EXPECT_FALSE( type::get<bdc::String>()->is_integer() );
 }
 
 TEST(TypeDescriptor, is_floating_point)
@@ -106,7 +106,7 @@ TEST(TypeDescriptor, is_floating_point)
     EXPECT_FALSE( type::get<u16_t>()->is_floating_point() );
     EXPECT_FALSE( type::get<u32_t>()->is_floating_point() );
     EXPECT_FALSE( type::get<u64_t>()->is_floating_point() );
-    EXPECT_FALSE( type::get<std::string>()->is_integer() );
+    EXPECT_FALSE( type::get<bdc::String>()->is_integer() );
 }
 
 TEST(TypeDescriptor, pass_by_ref_argument )

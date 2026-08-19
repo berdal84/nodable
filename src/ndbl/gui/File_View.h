@@ -1,7 +1,8 @@
 #pragma once
 
+#include "bdc/String.hpp"
 #include "ImGuiColorTextEdit/TextEditor.h"
-#include "core/Types.h"
+#include "bdc/Types.hpp"
 #include "core/reflection/Type_Descriptor.h"
 #include "gui/geometry/Rect.h"
 #include "tools/core/Signals.h"
@@ -32,8 +33,8 @@ namespace ndbl
 
     struct File_View_Overlay_Data
     {
-        std::string           label;
-        std::string           description;
+        bdc::String           label;
+        bdc::String           description;
         File_View_Overlay_Pos position;
     } ;
 
@@ -73,13 +74,13 @@ namespace ndbl
                                 signal_change                       = {};
         File*                   file                                = nullptr;
         Graph_View*             graph_view                          = nullptr;
-        std::string             text_overlay_window_name            = {};
-        std::string             graph_overlay_window_name           = {};
+        bdc::String             text_overlay_window_name;
+        bdc::String             graph_overlay_window_name;
 		TextEditor              text_editor                         = {};
 		float                   text_child_size                     = 0.3f;
 		float                   graph_child_size                    = 0.7f;
-        std::string             experimental_clipboard_curr         = {};
-        std::string             experimental_clipboard_prev         = {};
+        bdc::String             experimental_clipboard_curr;
+        bdc::String             experimental_clipboard_prev;
         bool                    experimental_clipboard_auto_paste   = false;
         bool                    is_history_dragged                  = false;
     };
@@ -87,8 +88,8 @@ namespace ndbl
     void                            fileview_init(File_View*, File*); // TODO: No fileview_deinit(File*) ?!
     void                            fileview_update(File_View*, float dt);
     void                            fileview_draw(File_View*, float dt);
-    std::string                     fileview_get_text(const File_View*, bool isolation_on = false);
-    void                            fileview_set_text(File_View*, const std::string&, bool isolation_on = false);
+    bdc::String                     fileview_get_text(const File_View*, bool isolation_on = false);
+    void                            fileview_set_text(File_View*, bdc::String, bool isolation_on = false);
     static void                     fileview_set_cursor_position(File_View* file_view, const TextEditor::Coordinates& _cursorPosition) { file_view->text_editor.SetCursorPosition(_cursorPosition); }
     static TextEditor::Coordinates  fileview_get_cursor_position(const File_View* file_view) { return file_view->text_editor.GetCursorPosition(); }
     void	                        fileview_set_undo_buffer(File_View*, TextEditor::IExternalUndoBuffer*);
@@ -96,6 +97,6 @@ namespace ndbl
     void                            fileview_clear_overlay(File_View*);
     void                            fileview_push_overlay(File_View*, File_View_Overlay_Data, File_View_Overlay_Type) ;
     void                            fileview_refresh_overlay(File_View*, Condition);
-    void                            fileview_draw_overlay(const char* title, const std::vector<File_View_Overlay_Data>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
+    void                            fileview_draw_overlay(const bdc::String& title, const std::vector<File_View_Overlay_Data>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
     size_t                          fileview_size(const File_View*);
 }

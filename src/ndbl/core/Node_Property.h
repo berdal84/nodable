@@ -1,13 +1,15 @@
 #pragma once
 
+#include "bdc/String.hpp"
+#include "bdc/Array.hpp"
 #include "tools/core/reflection/Type_Descriptor.h"
 #include "ndbl/core/Token.h"
-#include <string>
 
 namespace ndbl
 {
     // forward declarations
     struct Node;
+    struct Node_Slot;
 
     // Property wraps a Token including extra inFormation such as: name, owner (Node), and some flags.
 	struct Node_Property
@@ -21,14 +23,16 @@ namespace ndbl
             Flag_ALL             = ~Flag_NONE,
         };
 
-        std::string                     name;
-        Token                           token;
-        Node*                           node    = nullptr; // owner
-        const tools::Type_Descriptor*   type    = nullptr; // n.b. use setter
-        Flags                           flags   = Flag_NONE;
+        bdc::String                      name;
+        Token                            token;
+        Node*                            node;
+        const tools::Type_Descriptor*    type;
+        Flags                            flags;
+        bdc::Resizable_Array<Node_Slot*> slots;
     };
 
+    void property_init      (Node_Property*, Node* /* owner */, const tools::Type_Descriptor*, Node_Property::Flags, const bdc::String _name); // must be called once before use
+    void property_release   (Node_Property*);
     void property_set_type  (Node_Property*, const tools::Type_Descriptor* /* new_type */ );
-    void property_init      (Node_Property*, Node* /* owner */, const tools::Type_Descriptor*, Node_Property::Flags, const char* _name); // must be called once before use
     void property_digest    (Node_Property*, Node_Property* /* other */);
 }

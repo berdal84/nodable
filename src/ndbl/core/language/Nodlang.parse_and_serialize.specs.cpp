@@ -11,25 +11,25 @@ typedef ::testing::Core DISABLED_Language_parse_and_serialize;
 
 TEST_F(Language_parse_and_serialize, decl_var_and_assign_string)
 {
-    std::string program = R"(string s = "coucou";)";
+    bdc::String program = R"(string s = "coucou";)";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 TEST_F(Language_parse_and_serialize, decl_var_and_assign_double)
 {
-    std::string program = "double d = 15.0;";
+    bdc::String program = "double d = 15.0;";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 TEST_F(Language_parse_and_serialize, decl_var_and_assign_int)
 {
-    std::string program = "int s = 10;";
+    bdc::String program = "int s = 10;";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 TEST_F(Language_parse_and_serialize, decl_var_and_assign_bool)
 {
-    std::string program = "bool b = true;";
+    bdc::String program = "bool b = true;";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
@@ -37,7 +37,7 @@ TEST_F(Language_parse_and_serialize, decl_var_and_assign_bool)
 
 TEST_F(Language_parse_and_serialize, While_loop )
 {
-    std::string program =
+    bdc::String program =
             "int i = 0;"
             "while(i < 10){"
             "   i = i+1;"
@@ -50,7 +50,7 @@ TEST_F(Language_parse_and_serialize, While_loop )
 
 TEST_F(Language_parse_and_serialize, Conditional_Structures_IF )
 {
-    std::string program =
+    bdc::String program =
             "double bob   = 10;"
             "double alice = 10;"
             "if(bob>alice){"
@@ -62,7 +62,7 @@ TEST_F(Language_parse_and_serialize, Conditional_Structures_IF )
 
 TEST_F(Language_parse_and_serialize, Conditional_Structures_IF_ELSE )
 {
-    std::string program =
+    bdc::String program =
             "double bob   = 10;"
             "double alice = 11;"
             "string message;"
@@ -77,7 +77,7 @@ TEST_F(Language_parse_and_serialize, Conditional_Structures_IF_ELSE )
 
 TEST_F(Language_parse_and_serialize, Conditional_Structures_IF_ELSE_IF )
 {
-    std::string program =
+    bdc::String program =
             "double bob   = 10;"
             "double alice = 10;"
             "string message;"
@@ -96,13 +96,13 @@ TEST_F(Language_parse_and_serialize, Conditional_Structures_IF_ELSE_IF )
 
 TEST_F(Language_parse_and_serialize, parse_serialize_with_undeclared_variables )
 {
-    const std::string program = "double a = b + c * r - z;";
+    const bdc::String program = "double a = b + c * r - z;";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_with_undeclared_variables_in_conditional )
 {
-    const std::string program = "if(a==b){}";
+    const bdc::String program = "if(a==b){}";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
@@ -120,7 +120,7 @@ TEST_F(Language_parse_and_serialize, parse_serialize_empty_program_with_space )
 
 TEST_F(Language_parse_and_serialize, parse_serialize_single_line_program_with_a_comment_before )
 {
-    std::string program =
+    bdc::String program =
             "// comment\n"
             "int a = 42;";
     EXPECT_EQ(parse_and_serialize(program), program);
@@ -128,7 +128,7 @@ TEST_F(Language_parse_and_serialize, parse_serialize_single_line_program_with_a_
 
 TEST_F(Language_parse_and_serialize, parse_serialize_single_program_line_with_two_sigle_line_comments_and_a_space )
 {
-    std::string program =
+    bdc::String program =
             "// first line\n"
             "// second line\n"
             "\n"
@@ -139,7 +139,7 @@ TEST_F(Language_parse_and_serialize, parse_serialize_single_program_line_with_tw
 
 TEST_F(Language_parse_and_serialize, parse_serialize_binary_expression_with_funtion )
 {
-    std::string program = "int i = pow(2,2) + 1";
+    bdc::String program = "int i = pow(2,2) + 1";
     EXPECT_EQ(parse_and_serialize(program), program); // should not be "int i = (pow(2,2))+ 1"
 }
 
@@ -147,7 +147,7 @@ TEST_F(Language_parse_and_serialize, parse_serialize_binary_expression_with_funt
 
 TEST_F(Language_parse_and_serialize, parse_serialize_variable_declaration )
 {
-    const char* code = "int i = 42;";
+    const bdc::String code = "int i = 42;";
     EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
 }
 
@@ -155,13 +155,13 @@ TEST_F(Language_parse_and_serialize, parse_serialize_variable_declaration )
 
 TEST_F(Language_parse_and_serialize, parse_serialize_variable_referenced )
 {
-    const char* code = "int i = 42; int j = i;";
+    const bdc::String code = "int i = 42; int j = i;";
     EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_variable_referenced2 )
 {
-    const char* code = "int i = 42; i;";
+    const bdc::String code = "int i = 42; i;";
     EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
 }
 
@@ -196,19 +196,19 @@ TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_bef
 
 TEST_F(Language_parse_and_serialize, partial_for1)
 {
-    std::string program = "for();";
+    bdc::String program = "for();";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 TEST_F(Language_parse_and_serialize, partial_for2)
 {
-    std::string program = "for(;);";
+    bdc::String program = "for(;);";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 TEST_F(Language_parse_and_serialize, partial_for3)
 {
-    std::string program = "for(;;);";
+    bdc::String program = "for(;;);";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
@@ -216,17 +216,17 @@ TEST_F(Language_parse_and_serialize, partial_for3)
 
 TEST_F(Language_parse_and_serialize, partial_if1)
 {
-    std::string program = "if();";
+    bdc::String program = "if();";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 TEST_F(Language_parse_and_serialize, partial_if2)
 {
-    std::string program = "if();else;";
+    bdc::String program = "if();else;";
     EXPECT_EQ(parse_and_serialize(program), program);
-    std::string program2 = "if()else;";
+    bdc::String program2 = "if()else;";
     EXPECT_EQ(parse_and_serialize(program2), "");
-    std::string program3 = "if()else";
+    bdc::String program3 = "if()else";
     EXPECT_EQ(parse_and_serialize(program3), "");
 }
 
@@ -234,7 +234,7 @@ TEST_F(Language_parse_and_serialize, partial_if2)
 
 TEST_F(Language_parse_and_serialize, partial_while1)
 {
-    std::string program = "while();";
+    bdc::String program = "while();";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
@@ -242,26 +242,26 @@ TEST_F(Language_parse_and_serialize, partial_while1)
 
 TEST_F(Language_parse_and_serialize , exemple_arithmetic)
 {
-    std::string program = load_file("examples/arithmetic.cpp");
+    bdc::String program = load_file("examples/arithmetic.cpp");
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 TEST_F(Language_parse_and_serialize , example_for_loop)
 {
-    std::string program = load_file("examples/for-loop.cpp");
+    bdc::String program = load_file("examples/for-loop.cpp");
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 // TODO: handle missing spaces around in var refs
 TEST_F(DISABLED_Language_parse_and_serialize , example_if_else)
 {
-    std::string program = load_file("examples/if-else.cpp");
+    bdc::String program = load_file("examples/if-else.cpp");
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 // TODO: handle missing spaces around in var refs
 TEST_F(DISABLED_Language_parse_and_serialize , exemple_multi_instructions)
 {
-    std::string program = load_file("examples/multi-instructions.cpp");
+    bdc::String program = load_file("examples/multi-instructions.cpp");
     EXPECT_EQ(parse_and_serialize(program), program);
 }

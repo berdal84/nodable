@@ -1,7 +1,7 @@
 #include "Scope.h"
 
 #include <stack>
-#include <cstring>
+#include "bdc/String.hpp"
 
 #include "core/Asserts.h"
 #include "tools/core/Log.h"
@@ -9,29 +9,30 @@
 #include "Node.h"
 #include "Graph.h"
 
-using namespace ndbl;
+namespace ndbl
+{
+
 using namespace tools;
 
-Scope::Scope()
-: Component<Node>("Scope")
+void    _scope_update_backbone_cache(const Scope*);
+void    _scope_update_depth_cache(const Scope*);
+void    _scope_set_depth_cache_dirty(const Scope*);
+
+void scope_init(Scope* scope)
 {
-    // Component::signal_init.connect<&Scope::on_init>(this);
-    Component::signal_deinit.connect<&scope_on_deinit>(this);
-    // Component::signal_name_change.connect<&Scope::_on_name_change>(this);
 }
 
-Scope::~Scope()
+void scope_deinit(Scope* scope)
 {
-    // assert(Component::signal_init.disconnect<&Scope::on_init>(this));
-    Component::signal_deinit.disconnect();
-    // assert(Component::signal_name_change.disconnect<&Scope::_on_name_change>(this));
-    assert(parent == nullptr);
-    assert(head == nullptr);
-    assert(children.empty());
-    assert(variables.empty());
+    VERIFY(scope->parent == nullptr, "Remove this scope from parent first");
+    VERIFY(scope->children.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
+    scope_reset_head(scope);
+    assert(scope->head == nullptr);
+    assert(scope->children.empty());
+    assert(scope->variables.empty());
 }
 
-void ndbl::_scope_update_backbone_cache(const Scope* scope)
+void _scope_update_backbone_cache(const Scope* scope)
 {
     if ( !scope->_cached_backbone_dirty )
         return;
@@ -51,35 +52,30 @@ void ndbl::_scope_update_backbone_cache(const Scope* scope)
     scope->_cached_backbone_dirty = false;
 }
 
-void ndbl::scope_on_deinit(Scope* scope)
+Node* scope_find_variable(Scope* scope, const bdc::String& identifier, Scope_Flags flags )
 {
-    VERIFY(scope->parent == nullptr, "Remove this scope from parent first");
-    VERIFY( scope->children.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
-    scope_reset_head(scope);
-}
+    using namespace bdc;
 
-Node* ndbl::scope_find_variable(Scope* scope, const std::string& _identifier, Scope_Flags flags )
-{
     // Try first to find in this scope
     for(Node* node : scope->variables)
-        if ( node_get_identifier(node) == _identifier )
+        if ( identifier == node_get_identifier(node) )
             return node;
 
     // not found? => recursive call in parent ...
     if ( scope->parent && flags & Scope_Flag_RECURSE_PARENT_SCOPES )
-        return scope_find_variable(scope->parent, _identifier, flags);
+        return scope_find_variable(scope->parent, identifier, flags);
 
     return nullptr;
 }
 
-void ndbl::scope_append(Scope* scope, Node *node)
+void scope_append(Scope* scope, Node *node)
 {
     scope->_cached_backbone_dirty = true;
 
     const Scope* previous_scope = node->scope;
     ASSERT(node);
     VERIFY(previous_scope == nullptr, "Node should have no scope");
-    VERIFY(node != scope->node(), "Can't add a node into its own internal scope" );
+    VERIFY(node != scope->node, "Can't add a node into its own internal scope" );
 
     // Insert
     const auto& [_, ok] = scope->children.insert(node); ASSERT(ok);
@@ -113,16 +109,16 @@ void ndbl::scope_append(Scope* scope, Node *node)
     node_reset_scope(node, scope);
 }
 
-std::vector<Node*> ndbl::scope_get_leaves(Scope* scope)
+std::vector<Node*> scope_get_leaves(Scope* scope)
 {
     std::vector<Node*> result;
     scope_get_leaves_ex(result, scope);
-    if ( result.empty() && scope->node() != nullptr )
-        result.push_back( scope->node() );
+    if ( result.empty() && scope->node != nullptr )
+        result.push_back( scope->node );
     return result;
 }
 
-std::vector<Node*>& ndbl::scope_get_leaves_ex(std::vector<Node*>& out, Scope* scope)
+std::vector<Node*>& scope_get_leaves_ex(std::vector<Node*>& out, Scope* scope)
 {
     Node* node = scope->head;
     while( node != nullptr )
@@ -148,7 +144,7 @@ std::vector<Node*>& ndbl::scope_get_leaves_ex(std::vector<Node*>& out, Scope* sc
     return out;
 }
 
-void ndbl::scope_remove(Scope* scope, ndbl::Node *node)
+void scope_remove(Scope* scope, Node *node)
 {
     ASSERT( node );
     VERIFY( node->scope == scope, "node can't be inside its own Scope");
@@ -177,7 +173,7 @@ void ndbl::scope_remove(Scope* scope, ndbl::Node *node)
     ASSERT( node->scope == nullptr);
 }
 
-bool ndbl::scope_is_empty(const Scope* scope, Scope_Flags flags)
+bool scope_is_empty(const Scope* scope, Scope_Flags flags)
 {
     return scope->children.empty();
 }
@@ -193,7 +189,7 @@ std::stack<Scope*> get_path(Scope* s)
     return path;
 }
 
-Scope* ndbl::scope_find_lowest_common_ancestor(const std::set<Scope*>& scopes)
+Scope* scope_find_lowest_common_ancestor(const std::set<Scope*>& scopes)
 {
     Scope* lca_scope = nullptr;
     for( Scope* curr_scope : scopes )
@@ -204,7 +200,7 @@ Scope* ndbl::scope_find_lowest_common_ancestor(const std::set<Scope*>& scopes)
     return lca_scope;
 }
 
-Scope* ndbl::scope_lowest_common_ancestor(Scope* s1, Scope* s2)
+Scope* scope_lowest_common_ancestor(Scope* s1, Scope* s2)
 {
     if ( s1 == s2 )
     {
@@ -225,7 +221,7 @@ Scope* ndbl::scope_lowest_common_ancestor(Scope* s1, Scope* s2)
     return common;
 }
 
-std::set<Scope*>& ndbl::scope_get_descendent_ex(std::set<Scope*>& out, Scope* scope, size_t level_max, Scope_Flags flags)
+std::set<Scope*>& scope_get_descendent_ex(std::set<Scope*>& out, Scope* scope, size_t level_max, Scope_Flags flags)
 {
     ASSERT(scope != nullptr);
 
@@ -255,14 +251,14 @@ std::set<Scope*>& ndbl::scope_get_descendent_ex(std::set<Scope*>& out, Scope* sc
     return out;
 }
 
-void ndbl::scope_reset_parent(Scope* scope, Scope* new_parent)
+void scope_reset_parent(Scope* scope, Scope* new_parent)
 {
     VERIFY(new_parent != scope->parent, "new_parent is expected to be different than the current one");
     scope->parent = new_parent;
     _scope_set_depth_cache_dirty(scope);
 }
 
-void ndbl::_scope_set_depth_cache_dirty(const Scope* scope)
+void _scope_set_depth_cache_dirty(const Scope* scope)
 {
     scope->_cached_depth_dirty = true;
 
@@ -272,12 +268,12 @@ void ndbl::_scope_set_depth_cache_dirty(const Scope* scope)
             _scope_set_depth_cache_dirty(child_scope);
 }
 
-bool ndbl::scope_contains(const Scope* scope, Node* node)
+bool scope_contains(const Scope* scope, Node* node)
 {
     return scope->children.contains( node );
 }
 
-void ndbl::scope_reset_head(Scope* scope, Node* new_head)
+void scope_reset_head(Scope* scope, Node* new_head)
 {
 #ifdef TOOLS_DEBUG
     VERIFY( !new_head      || new_head->scope      == scope, "Node must be from this scope");
@@ -286,7 +282,7 @@ void ndbl::scope_reset_head(Scope* scope, Node* new_head)
     scope->head = new_head;
 }
 
-void ndbl::_scope_update_depth_cache(const Scope* scope)
+void _scope_update_depth_cache(const Scope* scope)
 {
     if ( !scope->_cached_depth_dirty )
         return;
@@ -294,3 +290,21 @@ void ndbl::_scope_update_depth_cache(const Scope* scope)
     scope->_cached_depth       = scope->parent ? scope_get_depth(scope->parent) + 1 : 0;
     scope->_cached_depth_dirty = false;
 }
+
+size_t scope_get_depth(const Scope* scope)
+{
+    _scope_update_depth_cache(scope); return scope->_cached_depth;
+};
+
+const std::vector<Node*>& scope_get_backbone(const Scope* scope)
+{
+    _scope_update_backbone_cache(scope);
+    return scope->_cached_backbone;
+}
+
+std::set<Scope*>& scope_get_descendent(std::set<Scope*>& out, Scope* scope, Scope_Flags flags )
+{
+    return scope_get_descendent_ex(out, scope, -1, flags);
+}
+
+} // namespace ndbl

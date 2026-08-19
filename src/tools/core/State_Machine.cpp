@@ -4,10 +4,10 @@
 
 using namespace tools;
 
-State_Machine::~State_Machine()
+void State_Machine::release()
 {
     for(auto& [hash, state] : m_state)
-        delete state;
+        bdc::memory_delete(state);
 }
 
 void State_Machine::set_default_state(const char* name)
@@ -47,6 +47,7 @@ void State_Machine::tick()
 
 void State_Machine::start()
 {
+    VERIFY( m_context_ptr != nullptr, "Did you call init(void* context) first?");
     VERIFY( !started(), "State_Machine is already started");
     m_current_state = m_default_state;
     m_current_state->delegate[OnEnter].call();
@@ -61,7 +62,7 @@ void State_Machine::stop()
 
 State* State_Machine::add_state(const char* _name)
 {
-    auto* state = new State();
+    auto* state = bdc::memory_new<State>();
     state->name = _name;
     add_state(state);
     return state;

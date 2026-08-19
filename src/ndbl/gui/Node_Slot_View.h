@@ -22,23 +22,15 @@ namespace ndbl
     };
 
     struct Node_Slot_View
-    {
-        Node_Slot_View(
-                Node_Slot*,
-                const tools::Vec2&   /* alignment */,
-                Shape_Type,
-                size_t               /* index */,
-                const tools::Box_2D* /* alignment_ref */
-            );
-
-        const size_t                    index;
-        const Shape_Type                shape_type;
-        tools::Vec2                     direction; // cached
-        Node_Slot* const                slot;
-        tools::Vec2                     alignment_pivot;
-        const tools::Box_2D*            alignment_ref;
-        tools::View_Flags               flags;
-        tools::Box_2D                   shape;
+    {   
+        Node_Slot*                slot;
+        u32_t                     index;
+        Shape_Type                shape_type;
+        tools::Vec2               direction; // cached
+        tools::Vec2               alignment_pivot;
+        const tools::Box_2D*      alignment_ref;
+        tools::Box_2D             shape;
+        tools::View_Flags         flags;
 
         GETTER( Node*            , node      , slot->node )
         GETTER( Node_Property*   , property  , slot->property )
@@ -47,8 +39,10 @@ namespace ndbl
         inline const tools::Type_Descriptor* property_type()const                { return property() ? property()->type : nullptr; }
     };
 
-    void                            nodeslotview_update(Node_Slot_View*, float dt);
-    bool                            nodeslotview_draw(Node_Slot_View*);
-    tools::String_64                nodeslotview_compute_tooltip(const Node_Slot_View*);
-    void                            nodeslotview_update_direction_from_alignment(Node_Slot_View*);
+    void        nodeslotview_init(Node_Slot_View*, Node_Slot*, const tools::Vec2& /* alignment */,
+                                  Shape_Type, u32_t /* index */, const tools::Box_2D* /* alignment_ref */);
+    void        nodeslotview_update(Node_Slot_View*, float dt);
+    bool        nodeslotview_draw(Node_Slot_View*);
+    bdc::String nodeslotview_compute_tooltip(const Node_Slot_View*);
+    void        nodeslotview_update_direction_from_alignment(Node_Slot_View*);
 }

@@ -34,6 +34,13 @@
             "linux":    { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable/bin/nodable" },
             "windows":  { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable/bin/nodable.exe" },
 
+        },
+        {
+            "name": "bdc",
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "bdc:build",
+            "program": "a.out"
         }
     ]
 }   

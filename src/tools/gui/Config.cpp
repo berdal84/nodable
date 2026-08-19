@@ -10,7 +10,7 @@ namespace tools
 tools::Config* tools::config_init()
 {
     ASSERT(g_config == nullptr);
-    g_config = new Config();
+    g_config = bdc::memory_new<Config>();
     return g_config;
 }
 

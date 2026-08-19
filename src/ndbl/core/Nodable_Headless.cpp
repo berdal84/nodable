@@ -8,13 +8,13 @@ using namespace ndbl;
 void ndbl::nodable_init(App_Headless_State* state)
 {
     // init managers
-    state->task_manager = tools::task_manager_init();
-    state->language     = init_language();
+    tools::task_manager_init();
+    language_init();
 
     // configure
-    state->graph = new Graph();
+    state->graph = bdc::memory_new<Graph>();
     graph_init(state->graph);
-    state->language->_state.reset( state->graph ); // in some cases (like during tests), we call parse_xxx methods that implicitly requires the state to be reset
+    lang_reset( language(), state->graph ); // in some cases (like during tests), we call parse_xxx methods that implicitly requires the state to be reset
 }
 
 void ndbl::nodable_deinit(App_Headless_State* state)
@@ -24,17 +24,17 @@ void ndbl::nodable_deinit(App_Headless_State* state)
     graph_deinit(state->graph);
     delete state->graph;
     tools::task_manager_shutdown();
-    shutdown_language(state->language);
+    language_shutdown();
 }
 
-std::string& ndbl::nodable_serialize(const App_Headless_State* state, std::string& out )
+bdc::String_Builder& ndbl::nodable_serialize(const App_Headless_State* state, bdc::String_Builder& out )
 {
-    return state->language->serialize_graph(out, state->graph);
+    return lang_serialize_graph(language(), out, state->graph);
 }
 
-Graph* ndbl::nodable_parse(const App_Headless_State* state,  const std::string& code )
+Graph* ndbl::nodable_parse(const App_Headless_State* state,  const bdc::String& in_code )
 {
-    state->language->parse( state->graph, code );
+    lang_parse(language(), state->graph, in_code );
     return state->graph;
 }
 
@@ -48,5 +48,5 @@ void ndbl::nodable_update(App_Headless_State* state)
 void ndbl::nodable_clear(App_Headless_State* state)
 {
     graph_reset(state->graph);
-    state->source_code.clear();
+    string_reset( state->source_code );
 }

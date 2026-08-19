@@ -1,11 +1,16 @@
 {
 	"version": "2.0.0",
 	"tasks": [
+		{
+			"label": "bdc:build",
+			"type": "shell",
+			"command": "clang++ -std=c++20 -O0 -g src/bdc/tests.cpp"
+		},
 		// DEBUG
 		{
 			"label": 	"tests:build-linux-debug",
 			"type": 	"shell",
-			"command": 	"rake tests:build",
+			"command": 	"rake -j 1 tests:build",
 			"group":	{ "kind": "build" },
 			"options": {
 				"env": {

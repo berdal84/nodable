@@ -59,6 +59,15 @@ def base_target(name, type)
         "-Wno-deprecated-declarations",
     ]
 
+    if CONFIG_DEBUG or CONFIG_OPTIMIZED
+
+        target.defines |= [
+            "BDC_ENABLE_LOGS",
+            "BDC_DEBUG_ALLOCATORS",
+        ]
+
+    end
+
     if WEB
 
         target.defines |= [
@@ -174,6 +183,14 @@ end
 common = base_target("common", TARGET_TYPE_OBJECTS)
 
 common.sources = FileList[
+
+    # BDC
+    "src/bdc/Allocators.cpp",
+    "src/bdc/Array.cpp",
+    "src/bdc/Hash_Map.cpp",
+    "src/bdc/String_Builder.cpp",
+    "src/bdc/String_Hash.cpp",
+    "src/bdc/String.cpp",
 
     # Tools Core
     "src/tools/core/index.cpp",

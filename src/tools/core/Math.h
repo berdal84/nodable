@@ -1,6 +1,6 @@
 #pragma once
 #include "core/Asserts.h"
-#include "core/Types.h"
+#include "bdc/Types.hpp"
 #include <glm/common.hpp>
 
 namespace tools

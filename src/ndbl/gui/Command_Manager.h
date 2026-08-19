@@ -2,7 +2,7 @@
 
 #include <deque>
 #include <ctime>
-#include <string>
+#include "bdc/String.hpp"
 #include "ImGuiColorTextEdit/TextEditor.h"
 #include "ndbl/gui/Command.h"
 
@@ -61,7 +61,7 @@ namespace ndbl
 	void    			command_manager_clear();
 	size_t  			command_manager_get_size(); /** To get the set_size of the history (command count) */
 	void                command_manager_move_cursor(int _pos); /** Move time cursor to past (negative value) or future (positive value). */
-	std::string         command_manager_get_cmd_description_at(int _cmd_position);
+	bdc::String         command_manager_get_cmd_description_at(int _cmd_position);
 	Text_Editor_Undo_Buffer*  command_manager_configure_text_editor_undo_buffer(TextEditor* _textEditor); /** To get the special buffer for TextEditor */
 	std::pair<int, int> command_manager_get_command_id_range(); /** return the command position range. Ex: (-100, 20) if we have 100 commands to undo and 20 to redo */
 

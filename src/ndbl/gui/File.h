@@ -2,7 +2,7 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <string>
+#include "bdc/String.hpp"
 
 #include "tools/core/File_System.h"
 #include "ndbl/gui/File_View.h"
@@ -11,10 +11,10 @@
 namespace ndbl
 {
     // forward declarations
-    class Node;
-    class Graph;
-    class Graph_View;
-    class History;
+    struct Node;
+    struct Graph;
+    struct Graph_View;
+    struct History;
 
     typedef int File_Flags;
     enum File_Flag_
@@ -35,11 +35,11 @@ namespace ndbl
      */
 	struct File
     {
-        tools::Path            path        = {};                // file path on disk
-        File_View              view        = {};
-        std::string            parsed_text = {};                // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
-        Graph*                 graph       = nullptr;           // graphical representation
-        File_Flags             flags       = File_Flag_NONE;        
+        tools::Path            path;        // file path on disk
+        File_View              view;
+        bdc::String            parsed_text; // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
+        Graph*                 graph;       // graphical representation
+        File_Flags             flags;        
 
         inline void            set_flags(File_Flags _flags) { flags |= _flags; }
         inline bool            has_flags(File_Flags _flags) { return (flags & _flags) == _flags; }
@@ -49,7 +49,7 @@ namespace ndbl
     void                    file_deinit(File*);
     void                    file_update(File*, bool isolation_on); // to call each frame
     void                    file_handle_file_view_change(File*, File_View_Event_Type type);
-    std::string             file_filename(const File*);
+    const char*             file_name(const File*);
     size_t                  file_size(const File*);
     void                    file_update_graph_from_text(File*, bool isolation_on);
     void                    file_update_text_from_graph(File*, bool isolation_on);

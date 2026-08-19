@@ -5,7 +5,7 @@
 #include "tools/core/File_System.h"
 #include <exception>
 #include <gtest/gtest.h>
-#include <string>
+#include "bdc/String.hpp"
 #include <fstream>
 #include <filesystem>
 
@@ -31,7 +31,7 @@ public:
         nodable_deinit(&state);
     }
 
-    std::string parse_and_serialize(const std::string &_source_code)
+    bdc::String parse_and_serialize(const bdc::String &_source_code)
     {
         TOOLS_DEBUG_LOG(tools::Verbosity_Message, "core.h", "parse_and_serialize parsing \"%s\"\n", _source_code.c_str());
 
@@ -39,7 +39,7 @@ public:
         nodable_parse(&state, _source_code);
 
         // serialize
-        std::string result;
+        bdc::String result;
         nodable_serialize(&state, result );
         TOOLS_DEBUG_LOG(tools::Verbosity_Message, "core.h", "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
 
@@ -47,7 +47,7 @@ public:
     }
 
     // load a file relative to executable directory
-    std::string load_file(const char* path)
+    bdc::String load_file(const bdc::String path)
     {
         tools::Path _path = tools::Path::get_executable_path().parent_path() / path;
         std::ifstream file_stream( _path.c_str() );
@@ -56,7 +56,7 @@ public:
             TOOLS_LOG(tools::Verbosity_Message, "core.h", "Can't open '%s'\n", _path.string().c_str() );
             ASSERT(false && "Unable to open file!" );
         }
-        std::string program((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
+        bdc::String program((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
         return program;
     }
     

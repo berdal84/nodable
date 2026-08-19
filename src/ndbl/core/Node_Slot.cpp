@@ -6,20 +6,25 @@ using namespace ndbl;
 
 const Node_Slot Node_Slot::null{};
 
-Node_Slot::Node_Slot(
-    Flags   _flags,
-    size_t  _capacity,
-    size_t  _position
+void ndbl::node_slot_init(
+    Node_Slot*          slot,
+    Node_Slot::Flags    flags,
+    u32_t               capacity,
+    u32_t               position
 )
-: capacity(_capacity)
-, flags(_flags)
-, position(_position)
 {
     VERIFY( !HAS_FLAGS(flags, Node_Slot::Flag_IS_FULL), "Node_Slot::Flag_IS_FULL is for readonly use" );
     
-    if (this->capacity == 0)
-        this->capacity = this->adjacent.capacity();
-    ASSERT( this->capacity <= this->adjacent.capacity() );
+    if (capacity == 0)
+    {
+        capacity = slot->adjacent.capacity();
+    }
+
+    ASSERT( capacity <= slot->adjacent.capacity() );
+
+    slot->position = position;
+    slot->capacity = capacity;
+    slot->flags    = flags;
 }
 
 Node_Slot* ndbl::node_slot_adjacent_at(const Node_Slot* slot, u8_t pos)

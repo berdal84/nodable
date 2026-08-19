@@ -14,7 +14,7 @@ TEST(Token, empty_constructor)
 
 TEST(Token, constructor__with_const_char_ptr)
 {
-    Token token(Token_Type::identifier, "toto");
+    Token token(Token_Type_identifier, "toto");
     EXPECT_EQ(token.prefix_to_string(), "");
     EXPECT_EQ(token.word_to_string(), "toto");
     EXPECT_EQ(token.suffix_to_string(), "");
@@ -26,7 +26,7 @@ TEST(Token, suffix_append_from_stack)
 {
     //                          >|--|<
     const char* toto = "// test\ntoto";
-    Token token(Token_Type::identifier, const_cast<char*>(toto), 8, 4);
+    Token token(Token_Type_identifier, const_cast<char*>(toto), 8, 4);
     EXPECT_EQ(token.prefix_to_string(), "");
     EXPECT_EQ(token.m_buffer.intern(), false);
 
@@ -41,7 +41,7 @@ TEST(Token, suffix_append_from_stack)
 TEST(Token, constructor__with_not_owned_buffer)
 {
     const char* buffer = "<prefix>toto<suffix>";
-    Token token(Token_Type::identifier, const_cast<char*>(buffer));
+    Token token(Token_Type_identifier, const_cast<char*>(buffer));
     token.word_move_begin(8);
     token.word_move_end(-8);
 
@@ -55,13 +55,13 @@ TEST(Token, take_prefix_suffix_from)
 {
     // prepare
 
-    std::string tata{"<prefix>TATA<suffix>"};
-    Token source(Token_Type::identifier, const_cast<char*>(tata.data()));
+    bdc::String tata{"<prefix>TATA<suffix>"};
+    Token source(Token_Type_identifier, const_cast<char*>(tata.data()));
     source.word_move_begin(8);
     source.word_move_end(-8);
 
-    std::string toto{"TOTO"};
-    Token target(Token_Type::identifier, const_cast<char*>(toto.data()), 0, toto.length());
+    bdc::String toto{"TOTO"};
+    Token target(Token_Type_identifier, const_cast<char*>(toto.data()), 0, toto.length());
 
     // pre-check
     EXPECT_EQ(source.string(), "<prefix>TATA<suffix>");
@@ -84,8 +84,8 @@ TEST(Token, take_prefix_suffix_from)
 TEST(Token, replace_word__same_length)
 {
     // prepare
-    std::string tata{"<prefix>TATA<suffix>"};
-    Token source(Token_Type::identifier, const_cast<char*>(tata.data()), 0, tata.length());
+    bdc::String tata{"<prefix>TATA<suffix>"};
+    Token source(Token_Type_identifier, const_cast<char*>(tata.data()), 0, tata.length());
     source.word_move_begin(8);
     source.word_move_end(-8);
 
@@ -105,7 +105,7 @@ TEST(Token, replace_word__larger)
 {
     // prepare
     const char* tata = "<prefix>42<suffix>";
-    Token source(Token_Type::identifier, const_cast<char*>(tata));
+    Token source(Token_Type_identifier, const_cast<char*>(tata));
     source.word_move_begin(8);
     source.word_move_end(-8);
 
@@ -127,7 +127,7 @@ TEST(Token, replace_word__smaller)
 {
     // prepare
     const char* tata = "<prefix>42<suffix>";
-    Token source(Token_Type::identifier, const_cast<char*>(tata));
+    Token source(Token_Type_identifier, const_cast<char*>(tata));
     source.word_move_begin(8);
     source.word_move_end(-8);
 

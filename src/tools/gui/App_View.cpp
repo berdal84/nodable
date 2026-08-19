@@ -598,9 +598,9 @@ ImGuiID tools::appview_get_dockspace(App_View_State* view, Dockspace dockspace)
     return view->dockspaces[dockspace];
 }
 
-void tools::appview_dock_window(App_View_State* view, const char* window_name, Dockspace dockspace)
+void tools::appview_dock_window(App_View_State* view, const bdc::String& window_name, Dockspace dockspace)
 {
-    ImGui::DockBuilderDockWindow(window_name, view->dockspaces[dockspace]);
+    ImGui::DockBuilderDockWindow(window_name.c_str(), view->dockspaces[dockspace]);
 }
 
 void tools::appview_draw_splashscreen(App_View_State* view)
@@ -668,11 +668,11 @@ void tools::appview_save_screenshot(const App_View_State* view, const tools::Pat
 {
     std::vector<unsigned char> out = appview_take_screenshot(view);
     TOOLS_LOG(tools::Verbosity_Message, "tools::App", "Save screenshot ...\n");
-    lodepng::save_file(out, path.string());
+    lodepng::save_file(out, path.c_str());
     TOOLS_LOG(tools::Verbosity_Message, "tools::App", "Save screenshot " TOOLS_OK " (%s)\n", path.c_str());
 }
 
-void tools::appview_set_title(App_View_State* view, const char* title )
+void tools::appview_set_title(App_View_State* view, const bdc::String title )
 {
     view->title = title;
     SDL_SetWindowTitle( view->sdl_window, view->title.c_str() );

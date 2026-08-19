@@ -2,10 +2,10 @@
 
 #include <fstream>
 
+#include "bdc/String_Builder.hpp"
 #include "tools/core/Event.h"
 #include "tools/core/Flags.h"
 #include "tools/core/Asserts.h"
-#include "tools/core/Component.h"
 #include "tools/gui/Action_Manager.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
@@ -34,14 +34,15 @@ void ndbl::file_init(File* file)
     file->flags = File_Flag_NEEDS_TO_BE_SAVED | File_Flag_GRAPH_IS_DIRTY; // A File is text-based by default, so we set the graph dirty to force it to be refreshed from the text.
 
     // Graph
-    file->graph = new Graph();
-    graph_init(file->graph);
+    auto* graph = bdc::memory_new<Graph>();
+    file->graph = graph;
+    graph_init(graph);
 
-    auto* graph_view = new Graph_View();
-    component_init(graph_view, file->graph);
-    componentbag_add(&file->graph->component_bag, graph_view);
+    auto* graph_view = bdc::memory_new<Graph_View>();
+    graphview_init(graph_view, file->graph);
+    graph->view = graph_view;
 
-    file->graph->signal_change.connect<&_file_set_text_dirty>(file);
+    graph->signal_change.connect<&_file_set_text_dirty>(file);
     graph_view->signal_change.connect<&_file_set_text_dirty>(file);
 
     // Fill the "create node" context menu
@@ -51,6 +52,7 @@ void ndbl::file_init(File* file)
 
     // File_View
     fileview_init(&file->view, file);
+
     file->view.signal_change.connect<&file_handle_file_view_change>(file);
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "View built, creating History ...\n");
@@ -65,9 +67,7 @@ void ndbl::file_deinit(File* file)
 {
     assert(file->graph->signal_change.disconnect<&_file_set_text_dirty>(file));
     
-    Graph_View* graph_view = componentbag_get<Graph_View>(&file->graph->component_bag); // TODO: we could store the ptr in ctor.
-    graph_view->signal_change.disconnect();
-
+    file->graph->view->signal_change.disconnect();
     file->view.signal_change.disconnect();
 
     graph_deinit(file->graph);
@@ -79,9 +79,10 @@ void ndbl::file_update_text_from_graph(File* file, bool isolation_on)
 {
     if ( auto* root_node = graph_root( file->graph ) )
     {
-        std::string code;
-        get_language()->serialize_node(code, root_node, Serialization_Flag_RECURSE);
-        fileview_set_text( &file->view, code, isolation_on );
+        bdc::String_Builder out;
+        lang_serialize_node(language(), out, root_node, Serialization_Flag_RECURSE);
+        bdc::String temp_str = bdc::string_builder_build_string(out); // the TextEditor in FileView will do a copy via an std::string
+        fileview_set_text( &file->view, temp_str, isolation_on );
     }
     else
     {
@@ -131,10 +132,9 @@ void ndbl::file_update_graph_from_text(File* file, bool isolation_on)
     // Parse source code
     // note: File owns the parsed text buffer
     file->parsed_text = fileview_get_text(&file->view, isolation_on );
-    get_language()->parse(file->graph, file->parsed_text);
+    lang_parse(language(), file->graph, file->parsed_text);
 
-    auto* graphview = graph_component<Graph_View>(file->graph);
-    SET_FLAGS(graphview->flags, Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT);
+    SET_FLAGS(file->graph->view->flags, Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT);
 }
 
 size_t ndbl::file_size(const File* file)
@@ -142,9 +142,9 @@ size_t ndbl::file_size(const File* file)
     return fileview_size(&file->view);
 }
 
-std::string ndbl::file_filename(const File* file)
+const char* ndbl::file_name(const File* file)
 {
-    return file->path.filename().string();
+    return file->path.filename().c_str();
 }
 
 bool ndbl::file_write(File* file, const tools::Path& path)
@@ -162,17 +162,17 @@ bool ndbl::file_write(File* file, const tools::Path& path)
     }
 
     // get content (We do a copy here, because the data from the fileview is not necessarily contiguous, and texteditor gives us a new string instance)
-    std::string content = fileview_get_text(&file->view, false );
+    bdc::String content = fileview_get_text(&file->view, false );
 
     // write bytes
-    std::ofstream out_fstream(path.string());
-    out_fstream.write(content.c_str(), content.size()); // TODO: size can exceed fstream!
+    std::ofstream out_fstream(path.c_str());
+    out_fstream.write(content.data, content.size); // TODO: size can exceed fstream!
 
     // update file
     UNSET_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
     file->path = path;
 
-    TOOLS_LOG(tools::Verbosity_Message, "File", "%s saved\n", file_filename(file).c_str() );
+    TOOLS_LOG(tools::Verbosity_Message, "File", "%s saved\n", file_name(file) );
 
     return true;
 }
@@ -186,15 +186,33 @@ bool ndbl::file_read( File* file, const tools::Path& path)
         return false;
     }
 
-    std::ifstream file_stream(path.string());
+    std::ifstream file_stream( path.c_str() );
+
     if (!file_stream.is_open())
     {
         TOOLS_LOG(tools::Verbosity_Error, "File", "Unable to load \"%s\"\n", path.c_str());
         return false;
     }
 
-    std::string content((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
-    fileview_set_text(&file->view, content, false);
+    bdc::String_Builder sb{};
+    string_builder_init(sb);
+
+    const int MAX_LINE_LENGTH = 256;
+    char buffer[MAX_LINE_LENGTH];
+    while (file_stream.getline(buffer, MAX_LINE_LENGTH))
+    {
+        std::streamsize bytes_read = file_stream.gcount();
+        String str = string_copy( String{buffer, (u32_t)bytes_read}, temp_allocator() );
+        string_builder_append(sb, str);
+    }
+
+    if (file_stream.eof() == false && file_stream.fail())
+    {
+        TOOLS_LOG(tools::Verbosity_Warning, "File", "Line exceeded buffer size!\n");
+        file_stream.clear();
+    }
+
+    fileview_set_text(&file->view, string_builder_build_string(sb, bdc::heap_allocator() ), false);
     UNSET_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
     file->path = path;
 

@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <functional>
 #include <vector>
-#include "core/Types.h"
+#include "bdc/Types.hpp"
 #include "tools/gui/geometry/Rect.h"
 
 namespace ndbl

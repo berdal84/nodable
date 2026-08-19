@@ -1,4 +1,5 @@
 #include "Command_Manager.h"
+#include "bdc/String_Builder.hpp"
 #include "core/Flags.h"
 #include "gui/Nodable.h"
 #include "tools/core/Asserts.h"
@@ -16,7 +17,7 @@ namespace ndbl
 ndbl::Command_Manager* ndbl::command_manager_init()
 {
     VERIFY(g_command_manager == nullptr, "Cannot call init twice!");
-    g_command_manager = new Command_Manager();
+    g_command_manager = bdc::memory_new<Command_Manager>();
     return g_command_manager;
 }
 
@@ -141,35 +142,35 @@ void ndbl::command_manager_move_cursor(int delta)
     g_command_manager->is_dirty = true;
 }
 
-std::string ndbl::command_manager_get_cmd_description_at(int _cmd_position)
+bdc::String ndbl::command_manager_get_cmd_description_at(int _cmd_position)
 {
     VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
 
-	std::string result;
+	bdc::String_Builder sb{};
 
     if (_cmd_position <= -(int)g_command_manager->past.size())
     {
-        result.append("History Begin");
+        bdc::string_builder_append(sb, "History Begin");
     }
     else if ( _cmd_position >= (int)g_command_manager->future.size() )
     {
-        result.append("History End");
+        bdc::string_builder_append(sb, "History End");
     }
     else
 	{
         if (_cmd_position <= 0 )
         {
             Command& cmd = g_command_manager->past.at(abs(_cmd_position));
-            result.append( cmd.description );
+            bdc::string_builder_append(sb, cmd.description );
         }
         else
         {
             Command& cmd = g_command_manager->future.at(_cmd_position-1); // index zero is m_past.front()
-            result.append( cmd.description );
+            bdc::string_builder_append(sb, cmd.description );
         }
 	}
 
-	return result;
+	return bdc::string_builder_build_string(sb);
 }
 
 std::pair<int, int> ndbl::command_manager_get_command_id_range()
@@ -209,7 +210,9 @@ void ndbl::Text_Editor_Undo_Buffer::AddUndo(TextEditor::UndoRecord& undo_record)
 
     if ( enabled )
     {
-	    Command cmd = command_text_undo_record({ new TextEditor::UndoRecord(undo_record), text_editor});
+        auto* undo_record_copy = bdc::memory_new<TextEditor::UndoRecord>();
+        *undo_record_copy = undo_record;
+	    Command cmd = command_text_undo_record({ undo_record_copy, text_editor});
         command_manager_push_command(cmd, true);
     }
 }

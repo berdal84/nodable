@@ -1,6 +1,6 @@
 #pragma once
 #include <unordered_map>
-#include "Types.h"
+#include "bdc/Types.hpp"
 #include "tools/core/Asserts.h"
 #include "tools/core/Delegate.h"
 
@@ -31,9 +31,8 @@ namespace tools
     class State_Machine
     {
     public:
-        State_Machine(void* context_ptr): m_context_ptr(context_ptr) {};
-        ~State_Machine();
-
+        void         init(void* context) { m_context_ptr = context; };
+        void         release();
         void         start();
         void         tick();
         void         stop();

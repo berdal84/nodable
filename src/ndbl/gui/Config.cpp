@@ -19,7 +19,7 @@ ndbl::Config* ndbl::config_init()
 {
     ASSERT(g_config == nullptr);
     
-    g_config            = new Config();
+    g_config            = bdc::memory_new<Config>();
     g_config->tools_cfg = tools::config_init();
 
     config_reset();

@@ -1,15 +1,15 @@
 #pragma once
 
-#include <string>
+#include "bdc/String.hpp"
 
-#include "tools/core/Types.h"
+#include "bdc/Types.hpp"
 #include "QWord.h"
 #include "Type_Descriptor.h"
 
 namespace tools
 {
     /**
-     * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data get_value)
+     * @brief This class can hold several types such as: bool, double, bdc::String, etc.. (see m_data get_value)
      */
 	class Variant
     {
@@ -18,17 +18,16 @@ namespace tools
         ~Variant();
 
         Variant(const Variant& other);
-        Variant(const std::string& val);
-        Variant(const char* val);
+        Variant(const bdc::String& val);
+        Variant(const bdc::String val);
         Variant(double val);
         Variant(i16_t val) ;
         Variant(i32_t val);
         Variant(bool val);
         Variant(null val);
 
-        void        set(void* ptr);
-        void        set(const std::string& _value);
-        void        set(const char* _value);
+        void        set(void* /* pointer */);
+        void        set(const bdc::String&);
         void        set(null);
         void        set(double);
         void        set(bool);
@@ -50,13 +49,13 @@ namespace tools
         explicit operator i32_t&();
         explicit operator i16_t&();
         explicit operator bool&();
-        explicit operator std::string& ();
+        explicit operator bdc::String& ();
         explicit operator double() const;
         explicit operator i32_t() const;
         explicit operator i16_t() const;
         explicit operator bool() const;
-        explicit operator std::string() const;
-        explicit operator const char*() const;
+        explicit operator bdc::String() const;
+        explicit operator const bdc::String() const;
         explicit operator void* () const;
 
         template<typename T>
@@ -89,7 +88,7 @@ namespace tools
         enum Flag_
         {
             Flag_NONE                       = 0,
-            Flag_OWNS_HEAP_ALLOCATED_MEMORY = 1 << 0, // True when dynamically allocated memory is owned by this Variant (ex: a std::string*)
+            Flag_OWNS_HEAP_ALLOCATED_MEMORY = 1 << 0, // True when dynamically allocated memory is owned by this Variant (ex: a bdc::String*)
             Flag_ALLOWS_TYPE_CHANGE         = 1 << 1  // True if Variant's type can change over time, by default its strict (type can be set once).
         };
 

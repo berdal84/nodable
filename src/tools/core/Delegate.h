@@ -27,6 +27,7 @@ namespace tools
     struct Delegate<Result_Type(Args_Type...)>
     {
         enum Type {
+            DELEGATE_TYPE_NONE   = 0,
             DELEGATE_TYPE_STATIC = 1,
             DELEGATE_TYPE_METHOD = 2
         };
@@ -50,6 +51,8 @@ namespace tools
         {
             switch (_m_type)
             {
+                case DELEGATE_TYPE_NONE:
+                    return true;
                 case DELEGATE_TYPE_STATIC:
                     return _m_static_function_ptr == &_null_function;
                 case DELEGATE_TYPE_METHOD:
@@ -86,6 +89,8 @@ namespace tools
                     return _m_static_function_ptr(args...);
                 case DELEGATE_TYPE_METHOD:
                     return (*_m_method.function_ptr)(_m_method.object_ptr, args...);
+                case DELEGATE_TYPE_NONE:
+                    return;
             }
         }
 
@@ -101,7 +106,8 @@ namespace tools
                 case DELEGATE_TYPE_METHOD:
                     return  _m_method.object_ptr   == other._m_method.object_ptr &&
                             _m_method.function_ptr == other._m_method.function_ptr;
-
+                case DELEGATE_TYPE_NONE:
+                    return true;
             }
 
         }

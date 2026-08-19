@@ -41,7 +41,7 @@ ndbl::App_View_State* ndbl::appview_init()
 {
     VERIFY(g_app_view == nullptr, "Nodable_View is already initialized, did you forgot to call nodableview_shutdown() or called init twice?");
 
-    g_app_view = new App_View_State();
+    g_app_view = bdc::memory_new<App_View_State>();
 
     // Init base (tools::App_View)
     tools::appview_init(&g_app_view->base, &ndbl::app_state()->base );
@@ -108,8 +108,7 @@ void ndbl::appview_draw()
         
         if ( current_file != nullptr )
         {
-            auto* graph_view = componentbag_get<Graph_View>(&current_file->graph->component_bag);
-            selection = graph_view->selection;
+            selection = current_file->graph->view->selection;
         }
 
         if (ImGui::BeginMenu("File"))
@@ -179,8 +178,7 @@ void ndbl::appview_draw()
                     config()->ui_node_detail = _detail;
                     if (current_file != nullptr)
                     {
-                        auto* graph_view = componentbag_get<Graph_View>(&current_file->graph->component_bag);
-                        graphview_reset_all_properties(graph_view);
+                        graphview_reset_all_properties( current_file->graph->view );
                     }
                 }
             };
@@ -294,10 +292,10 @@ void ndbl::appview_draw()
                     }
                 };
 
-                menu_item_verbosity(Verbosity_Diagnostic, "Verbose");
-                menu_item_verbosity(Verbosity_Message, "Message");
-                menu_item_verbosity(Verbosity_Warning, "Warning");
-                menu_item_verbosity(Verbosity_Error,   "Error");
+                menu_item_verbosity(Verbosity_Diagnostic, "Verbose" );
+                menu_item_verbosity(Verbosity_Message   , "Message" );
+                menu_item_verbosity(Verbosity_Warning   , "Warning" );
+                menu_item_verbosity(Verbosity_Error     , "Error"   );
 
                 ImGui::EndMenu();
             }
@@ -315,12 +313,12 @@ void ndbl::appview_draw()
         {
             if (ImGui::MenuItem("Report on Github.com"))
             {
-                system_open_url_async("https://github.com/berdal84/nodable/issues");
+                system_open_url_async( "https://github.com/berdal84/nodable/issues" );
             }
 
             if (ImGui::MenuItem("Report by email"))
             {
-                system_open_url_async("mail:berenger@42borgata.com");
+                system_open_url_async( "mail:berenger@42borgata.com" );
             }
 
             ImGui::EndMenu();
@@ -335,12 +333,12 @@ void ndbl::appview_draw()
 
             if (ImGui::MenuItem("Browse source code"))
             {
-                system_open_url_async("https://www.github.com/berdal84/nodable");
+                system_open_url_async("https://www.github.com/berdal84/nodable" );
             }
 
             if (ImGui::MenuItem("Credits"))
             {
-                system_open_url_async("https://github.com/berdal84/nodable#credits-");
+                system_open_url_async("https://github.com/berdal84/nodable#credits-" );
             }
 
             ImGui::EndMenu();
@@ -365,7 +363,7 @@ void ndbl::appview_draw()
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {5.0f, 5.0f});
 
-        if ( ImGui::Begin( config()->ui_toolbar_window_label, NULL, flags ) )
+        if ( ImGui::Begin( config()->ui_toolbar_window_label.c_str(), NULL, flags ) )
         {
             const Vec2&   button_size   = config()->ui_toolButton_size;
 
@@ -410,7 +408,7 @@ void ndbl::appview_draw()
             ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
             bool open        = true;
-            bool uncollapsed = ImGui::Begin(file_filename(file).c_str(), &open, window_flags);
+            bool uncollapsed = ImGui::Begin( file_name(file), &open, window_flags);
 
             ImGui::PopStyleVar();
             ImGui::PopStyleColor(1);
@@ -437,12 +435,12 @@ void ndbl::appview_draw()
         // Draw file info panel
         //----------------------------------------------------------------------------------------
         
-        if ( current_file != nullptr && ImGui::Begin( config()->ui_file_info_window_label))
+        if ( current_file != nullptr && ImGui::Begin( config()->ui_file_info_window_label.c_str() ))
         {
             // Basic inFormation
             ImGui::Text("Current file:");
             ImGui::Indent();
-            ImGui::TextWrapped("path: %s", current_file->path.string().c_str());
+            ImGui::TextWrapped("path: %s", current_file->path.c_str());
             ImGui::TextWrapped("set_size: %0.3f KiB", float(file_size(current_file)) / 1000.0f );
             ImGui::Unindent();
             ImGui::NewLine();
@@ -450,7 +448,7 @@ void ndbl::appview_draw()
             // Statistics
             ImGui::Text("Graph statistics:");
             ImGui::Indent();
-            ImGui::Text("Node count: %zu", current_file->graph->nodes.size());
+            ImGui::Text("Node count: %u", current_file->graph->nodes.size);
             ImGui::Unindent();
             ImGui::NewLine();
 
@@ -468,7 +466,7 @@ void ndbl::appview_draw()
 
         if( HAS_FLAGS( tools::config()->debug_flags, Debug_Flags_SHOW_IMGUI_CONFIG_WINDOW) )
         {
-            if (ImGui::Begin( config()->ui_imgui_config_window_label))
+            if (ImGui::Begin( config()->ui_imgui_config_window_label.c_str() ))
             {
                 ImGui::ShowStyleEditor();
             }
@@ -479,7 +477,7 @@ void ndbl::appview_draw()
         // Draw configuration window (to edit tools::Config and ndbl::Config)
         //----------------------------------------------------------------------------------------
 
-        if (ImGui::Begin( config()->ui_config_window_label))
+        if (ImGui::Begin( config()->ui_config_window_label.c_str() ))
         {
             const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth;
 
@@ -603,12 +601,12 @@ void ndbl::appview_draw()
         // Draw node properties window
         //----------------------------------------------------------------------------------------
 
-        if (ImGui::Begin( config()->ui_node_properties_window_label))
+        if (ImGui::Begin( config()->ui_node_properties_window_label.c_str() ))
         {
             if( app_state()->current_file )
             {
                 bool node_properties_changed = false;
-                const Graph_View* graph_view = componentbag_get<Graph_View>(&app_state()->current_file->graph->component_bag); // Graph can't be null
+                const Graph_View* graph_view = app_state()->current_file->graph->view; // Graph can't be null
                 switch ( view_selection_count(&graph_view->selection, View_Type_NODE) )
                 {
                     case 0:
@@ -637,7 +635,7 @@ void ndbl::appview_draw()
         // Draw help window
         //----------------------------------------------------------------------------------------
         {
-        if (ImGui::Begin( config()->ui_help_window_label))
+        if (ImGui::Begin( config()->ui_help_window_label.c_str() ))
         {
             ImGui::PushFont(font_manager_get_by_slot(Font_Slot_Heading));
             ImGui::Text("Welcome to Nodable!");
@@ -681,7 +679,7 @@ void ndbl::appview_draw()
         ImGui::SetNextWindowDockID(ds_root, ImGuiCond_Always);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3f, 0.3f, 0.3f, 1.f));
 
-        ImGui::Begin( config()->ui_startup_window_label);
+        ImGui::Begin( config()->ui_startup_window_label.c_str() );
         {
             ImGui::PopStyleColor();
 
@@ -712,8 +710,8 @@ void ndbl::appview_draw()
                 ImGui::Text("%s", "Open an example");
 
                 struct Example {
-                    const char* label;
-                    const char* path;
+                    const bdc::String label;
+                    const bdc::String path;
                 };
 
                 const std::array<Example, 4> examples = {
@@ -731,7 +729,7 @@ void ndbl::appview_draw()
                 for (const Example& example : examples)
                 {
                     if (i % columns != 0) ImGui::SameLine();
-                    if (ImGui::Button(example.label, example_btn_size))
+                    if (ImGui::Button(example.label.c_str(), example_btn_size))
                     {
                         app_open_asset_file( example.path );
                     }
@@ -807,7 +805,7 @@ void ndbl::_nodableview_on_reset_layout()
     appview_dock_window( &view->base, config()->ui_toolbar_window_label          , Dockspace_TOP   );
 };
 
-void ndbl::appview_save_screenshot(const char* relative_path)
+void ndbl::appview_save_screenshot(const bdc::String relative_path)
 {
     App_View_State* view = appview();
     

@@ -76,8 +76,8 @@ namespace ndbl
 
     struct Command_Data__Text_Replace
     {
-        const std::string* old_content;
-        const std::string* new_content;
+        const bdc::String* old_content;
+        const bdc::String* new_content;
     };
 
     struct Command_Data__Text_Undo_Record
@@ -107,7 +107,7 @@ namespace ndbl
 
         Command_Type    type;
         Command_Flags   flags;
-        const char*     description;
+        bdc::String     description;
         
         union {
             Command_Data                    data;

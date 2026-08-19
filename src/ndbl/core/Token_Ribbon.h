@@ -8,47 +8,48 @@
 
 namespace ndbl
 {
-    /**
-     * This class wraps a container to store a list of Token.
-     * An internal cursor points to a current token, cursor can be moved by calling eat or eat_if.
-     * A transaction system allows to commit or rollback a sequence of eating.
-     */
+    // This class wraps a container to store a list of Token.
+    // An internal cursor points to a current token, cursor can be moved by calling eat or eat_if.
+    // A transaction system allows to commit or rollback a sequence of eating.
+    //
+    // TODO: convert this class to a POD struct
     class Token_Ribbon
     {
     public:
 
         using Iterator = std::vector<Token>::iterator;
+        using Const_Iterator = std::vector<Token>::const_iterator;
+
+        size_t              cursor; // current token index
+        Token               global_token; // wraps the whole buffer
+        std::vector<Token>  tokens;
+        std::stack<size_t>  transaction; // transaction start indexes
 
         Token_Ribbon()
-        : m_cursor(0)
-        , m_global_token(Token_Type::ignore)
+        : cursor(0)
+        , global_token(Token_Type_ignore)
         {}
 
-        void                reset(const char* buffer = nullptr, size_t size = 0);
-        Token&              at(size_t index) { return m_tokens.at(index); }
-        Token&              back() { return m_tokens.back(); };        
-        Iterator            begin() { return m_tokens.begin(); };
-        Iterator            end() { return m_tokens.end(); };
+        void                reset(bdc::String = {});
+        Token&              at(size_t index) { return tokens.at(index); }
+        Token&              back() { return tokens.back(); };        
+        Iterator            begin() { return tokens.begin(); };
+        Iterator            end() { return tokens.end(); };
+        Const_Iterator      cbegin() const { return tokens.cbegin(); };
+        Const_Iterator      cend() const  { return tokens.cend(); };
         bool                can_eat(size_t count = 1)const;
-        std::string         range_to_string(size_t begin, size_t end); // Format ribbon from range [begin, end-1]
+        bdc::String         range_to_string(size_t begin, size_t end) const; // Format ribbon from range [begin, end-1]
         Token               eat();           // Return the next token and increment cursor
         Token               eat_if(Token_Type); // Only if next token has a given type: returns it and increment cursor
-        bool                empty()const { return m_tokens.empty(); }
-        const Token&        get_eaten()const { ASSERT(m_cursor > 0); return m_tokens[m_cursor - 1];}
-        bool                peek(Token_Type t) const { return m_cursor < m_tokens.size() && m_tokens[m_cursor].m_type == t; }
-        const Token&        peek()const { return m_tokens[m_cursor]; }
+        bool                empty()const { return tokens.empty(); }
+        const Token&        get_eaten()const { ASSERT(cursor > 0); return tokens[cursor - 1];}
+        bool                peek(Token_Type t) const { return cursor < tokens.size() && tokens[cursor].type == t; }
+        const Token&        peek()const { return tokens[cursor]; }
         Token&              push(Token&);
-        Token&              global_token() { return m_global_token; }
-        size_t              size()const { return m_tokens.size(); }
-        std::string         to_string() const; // Generate a colored string highlighting the current and past tokens
+        size_t              size()const { return tokens.size(); }
+        bdc::String         to_string() const; // Generate a colored string highlighting the current and past tokens
         void                start_transaction();    // Start a transaction by saving the cursor position in a stack (allows nested transactions).
         void                rollback(); // Restore the cursor position where the last transaction started.
         void                commit();   // Commit the current transaction.
-
-    private:
-        size_t              m_cursor; // current token index
-        Token               m_global_token; // wraps the whole buffer
-        std::vector<Token>  m_tokens;
-        std::stack<size_t>  m_transaction; // transaction start indexes
     };
 }

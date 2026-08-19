@@ -7,14 +7,9 @@
 
 using namespace tools;
 
-const std::filesystem::path::value_type* Path::c_str() const
+const char* Path::c_str() const
 {
     return m_path.c_str();
-}
-
-std::string Path::string() const
-{
-    return m_path.string();
 }
 
 bool Path::is_absolute() const
@@ -29,7 +24,9 @@ bool Path::is_relative() const
 
 Path Path::filename() const
 {
-    return m_path.filename();
+    Path result;
+    result.m_path = m_path.filename();
+    return result;
 }
 
 bool Path::empty() const
@@ -39,7 +36,9 @@ bool Path::empty() const
 
 Path Path::parent_path() const
 {
-    return m_path.parent_path();
+    Path result;
+    result.m_path = m_path.parent_path();
+    return result;
 }
 
 bool Path::create_directories(const Path& path)
@@ -56,7 +55,7 @@ Path Path::get_executable_path()
     Path result;
     if (length > 0)
     {
-        path = new char[length + 1];
+        path = bdc::memory_malloc_array<char>( length + 1, bdc::temp_allocator() );
 
         if ( wai_getExecutablePath(path, length, &dirname_length) )
         {
@@ -70,7 +69,6 @@ Path Path::get_executable_path()
         {
             TOOLS_LOG(tools::Verbosity_Error, "tools::system", "Unable to get executable path\n");
         }
-        delete[] path;
     }
     else
     {
@@ -101,8 +99,7 @@ tools::Path Path::absolute(const tools::Path& _path)
 }
 
 // TODO: this function is useless, we can use directly make_absolute
-tools::Path Path::get_asset_path(const char* _str)
+tools::Path Path::get_asset_path(const bdc::String _str)
 {
-    Path result = absolute(_str);
-    return result;
+    return absolute(_str);
 }

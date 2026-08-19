@@ -1,77 +1,69 @@
 #include "Token.h"
+#include "bdc/Allocators.hpp"
+#include "bdc/String.hpp"
+#include "bdc/String_Builder.hpp"
+#include "bdc/Types.hpp"
+#include <cassert>
+#include <cstddef>
 #include <cstring>
 
 using namespace ndbl;
 
-const Token Token::s_end_of_line        = {Token_Type::ignore, "\n"};
-const Token Token::s_end_of_instruction = {Token_Type::ignore, ";\n"};
+const Token Token::s_end_of_line        = {Token_Type_ignore, "\n"};
+const Token Token::s_end_of_instruction = {Token_Type_ignore, ";\n"};
 
-Token::Token(Token&& other)
+bdc::String Token::json() const
 {
-    *this = std::move( other );
-};
+    using namespace bdc;
 
-Token::~Token()
-{
-}
+    String_Builder sb;
 
-std::string Token::json() const
-{
-    std::string result;
-    result.reserve( length() );
+    string_builder_append(sb, "{\n");
 
-    result.append("{ ");
+    assert(false && "TODO: implement bdc::push_allocator(Allocator*) (with auto pop and scope end)");
+    string_builder_append(sb, string_printf(temp_allocator(), "\ttype: %i,\n", type));
+    string_builder_append(sb, string_printf(temp_allocator(),"\tprefix_view: \"%s\",\n", prefix_view.c_str() ) );
+    string_builder_append(sb, string_printf(temp_allocator(),"\tword_view: \"%s\",\n", word_view.c_str() ) );
+    string_builder_append(sb, string_printf(temp_allocator(),"\tsuffix: \"%s\",\n", suffix_view.c_str() ) );
 
-    result.append("word: \"" );
-    result.append(word(), word_len());
-    result.append("\"" );
+    string_builder_append(sb, " }");
 
-    result.append(", charIndex: " + std::to_string( (u64_t)word() - (u64_t) begin() ) );
-
-    result.append(", prefix: \""  );
-    result.append(prefix(), prefix_len());
-    result.append("\""  );
-
-    result.append(", suffix: \""  );
-    result.append(suffix(), suffix_len());
-    result.append("\""  );
-
-    result.append(", token_type: \"" + std::to_string((int)m_type) + "\"");
-
-    result.append(" }");
-
-    return result;
+    return string_builder_build_string(sb);
 }
 
 void Token::take_prefix_suffix_from(Token* source)
 {
-    std::string word_copy = word_to_string();
-    m_buffer.switch_to_intern_buf(length());
+    bdc::String word_copy = string_copy( word_view, bdc::temp_allocator() );
 
     // transfer prefix and suffix to this token, but keep the same word.
     // this operation requires the buffer to be owned
 
-    m_prefix_len       = source->m_prefix_len;
-    // m_word_len      = unchanged
-    m_suffix_len       = source->m_suffix_len;
+    prefix_view       = source->prefix_view;
+    // word_view      = unchanged
+    suffix_view       = source->suffix_view;
+
+    bdc::String_Builder sb{};
 
     // copy prefix from source
-    if( source->m_prefix_len )
+    if( !source->prefix_view.empty() )
     {
-        m_buffer.intern_buf->append(source->begin(), source->m_prefix_len);
+        bdc::string_builder_append(sb, source->prefix_view);
     }
 
     // reassign word
-    if( word_copy.length() )
+    if( !word_copy.empty() )
     {
-        m_buffer.intern_buf->append(word_copy.data(), word_copy.length());
+        bdc::string_builder_append(sb, word_copy );
     }
 
     // copy suffix from source
-    if( source->m_suffix_len )
+    if( !source->suffix_view.empty() )
     {
-        m_buffer.intern_buf->append(source->suffix(), source->m_suffix_len);
+        bdc::string_builder_append(sb, source->suffix_view );
     }
+
+    assert(false && "TODO: free existing buffer if owned");
+    buffer = bdc::string_builder_build_string(sb, bdc::heap_allocator());
 
     // Remove prefix and suffix on the source
     source->suffix_reset();
@@ -80,244 +72,181 @@ void Token::take_prefix_suffix_from(Token* source)
 
 void Token::clear()
 {
-    m_index      = 0;
-    m_type       = Token_Type::none;
-    m_prefix_len = 0;
-    m_word_len   = 0;
-    m_suffix_len = 0;
+    index       = 0;
+    type        = 0;
+    prefix_view = "";
+    word_view   = "";
+    suffix_view = "";
 
-    m_buffer.delete_intern_buf();
+    assert(false && "TODO: free existing buffer if owned");
 }
 
-void Token::set_external_buffer(char* buffer, size_t offset, size_t size, bool external_only )
+u32_t Token::char_position() const
 {
-    // here, we consider that the whole buffer will be into the "word" part, no suffix/prefix.
-
-    m_buffer.delete_intern_buf();
-
-    m_buffer._flags     = BimodalBuffer::Flags_READONLY * external_only;
-    m_buffer.extern_buf = buffer;
-    m_buffer.offset     = offset;
-    m_prefix_len = 0;
-    m_word_len   = size;
-    m_suffix_len = 0;
+    u64_t offset = (u64_t)word_view.data - (u64_t)buffer.data;
+    assert(offset < bdc::String::invalid_pos && "Need to use a larger string, buffer goes beyond String::size!");
+    return (u32_t)offset;
 }
 
-std::string Token::prefix_to_string()const
+bool Token::owns_buffer() const
 {
-    if( has_buffer() && m_prefix_len )
-    {
-        return std::string{prefix(), m_prefix_len};
-    }
-    return {};
+    assert(false && "IMpmlement this. Should we rely on bdc::String::flags? or not?");
 }
-
-std::string Token::word_to_string()const
-{
-    if( has_buffer() && m_word_len)
-        return std::string{word(), m_word_len};
-    return {};
-}
-
-std::string Token::suffix_to_string()const
-{
-    if( has_buffer() && m_suffix_len )
-        return std::string{suffix(), m_suffix_len};
-    return {};
-}
-
-std::string Token::string() const
-{
-    if ( has_buffer() )
-        return { begin(), length() };
-    return {};
-}
-
-Token& Token::operator=(Token&& other) noexcept
-{
-    if( this == &other )
-    {
-        return *this;
-    }
-
-    m_buffer.delete_intern_buf();
-
-    m_buffer     = other.m_buffer;
-    m_prefix_len = other.m_prefix_len;
-    m_word_len   = other.m_word_len;
-    m_suffix_len = other.m_suffix_len;
-    m_type       = other.m_type;
-    m_index      = other.m_index;
-
-    other.m_buffer     = {}; // otherwise it would destroy it
-
-    return *this;
-};
 
 Token& Token::operator=(const Token& other)
 {
     if( this == &other) return *this;
 
-    m_buffer.delete_intern_buf();
+    assert(false && "TODO: free existing buffer if owned");
 
-    m_index      = other.m_index;
-    m_prefix_len = other.m_prefix_len;
-    m_word_len   = other.m_word_len;
-    m_suffix_len = other.m_suffix_len;
-    m_type       = other.m_type;
+    index       = other.index;
+    prefix_view = other.prefix_view;
+    word_view   = other.word_view;
+    suffix_view = other.suffix_view;
+    type        = other.type;
 
-    if( !other.m_buffer.intern() )
+    if( !other.owns_buffer() )
     {
-        m_buffer.switch_to_intern_buf(other.length());
-        m_buffer.intern_buf->append({other.begin(), other.length()});
+        buffer = bdc::string_copy(other.buffer);
     }
     else
     {
-        m_buffer = other.m_buffer;
+        buffer = other.buffer;
     }
 
     return *this;
 }
 
-void Token::word_replace(const char* new_word)
+void Token::replace_buffer(const bdc::String& _buffer, bool external_only )
 {
-    const size_t new_word_len = strlen(new_word);
+    // here, we consider that the whole buffer will be into the "word" part, no suffix/prefix.
 
-    if( new_word_len == 0 )
+    if( owns_buffer() )
+    {
+        bdc::heap_allocator()->proc_free( this->buffer.data );
+    }
+
+    if( external_only )
+    {
+        this->buffer = _buffer;
+    }
+
+    prefix_view         = this->buffer;
+    prefix_view.size    = 0;
+
+    word_view           = this->buffer;
+
+    suffix_view         = this->word_view;
+    bdc::string_advance(suffix_view, word_view.size);
+}
+
+void Token::replace_word(const bdc::String& new_word)
+{
+    if( new_word.size == 0 )
         return;
 
-    std::string prefix_copy = prefix_to_string();
-    std::string suffix_copy = suffix_to_string();
+    bdc::String prefix_copy = bdc::string_copy(prefix_view, bdc::temp_allocator() );
+    bdc::String suffix_copy = bdc::string_copy(suffix_view, bdc::temp_allocator() );
 
-    m_buffer.switch_to_intern_buf(m_prefix_len + new_word_len + m_suffix_len);
+   
+    bdc::String new_buffer = bdc::string_printf("%s%s%s", prefix_copy.c_str(), new_word.c_str(), suffix_copy.c_str() );
 
-    m_buffer.intern_buf->clear();
-    m_buffer.intern_buf->append(prefix_copy );
-    m_buffer.intern_buf->append(new_word );
-    m_buffer.intern_buf->append(suffix_copy );
+    assert(false && "Not implemented yet:");
+    // heap_allocator()->proc_free( buffer.data )
+    buffer = new_buffer;
 
-    // m_prefix_len    = no change
-    m_word_len         = new_word_len;
-    // m_suffix_len    = no change
+    // prefix_view   = no change
+    word_view        = new_word;
+    // suffix_view   = no change
 }
 
-void Token::prefix_push_front(const char* str)
+void Token::prefix_push_front(const bdc::String& str)
 {
-    if (!m_buffer.intern())
+    if ( !owns_buffer() )
     {
-        size_t size = length();
-        char*  data = begin();
-        m_buffer.switch_to_intern_buf(size);
-        m_buffer.intern_buf->append( data, size );
+        assert(false && "Not implemented yet:");
+        // TODO: create a new buffer
     }
-    m_buffer.intern_buf->insert(0, str);
-    m_prefix_len += strlen(str);
+    
+    assert(false && "Not implemented yet:");
+    // TODO: update views
 }
 
-void Token::suffix_push_back(const char* str)
+void Token::suffix_push_back(const bdc::String& str)
 {
-    if (!m_buffer.intern())
+    if ( !owns_buffer() )
     {
-        size_t size = length();
-        char*  data = begin();
-        m_buffer.switch_to_intern_buf(size);
-        m_buffer.intern_buf->append( data, size );
+        assert(false && "Not implemented yet:");
+        // TODO: create a new buffer
     }
-    m_buffer.intern_buf->append(str);
-    m_suffix_len += strlen(str);
+    
+    assert(false && "Not implemented yet:");
+    // TODO: update views
 }
 
 void Token::prefix_reset(size_t size )
 {
     // Instead of erasing chars, we prefer to simply "move the cursor to the right"
-    m_buffer.offset += m_prefix_len - size;
-    m_prefix_len     = size;
+    buffer.size += prefix_view.size - size;
+    prefix_view.size = size;
 }
 
 void Token::reset_lengths()
 {
-    m_prefix_len = m_word_len = m_suffix_len = 0;
+    assert(false && "Not implemented yet:");
+    // TODO: update views
 }
 
 void Token::word_move_begin(int amount)
 {
-    m_prefix_len = (int)m_prefix_len + amount;
-    m_word_len   = (int)m_word_len - amount;
+    assert(false && "Not implemented yet:");
+    // TODO: update views
 }
 
 void Token::word_move_end(int amount)
 {
-    m_word_len   = (int)m_word_len + amount;
-    m_suffix_len = (int)m_suffix_len - amount;
+    assert(false && "Not implemented yet:");
+    // TODO: update views
 }
 
 void Token::set_offset(size_t pos)
 {
-    m_buffer.offset = pos;
+    assert(false && "Not implemented yet:");
+    // TODO: update views
 }
 
 void Token::suffix_reset(size_t size)
 {
-    m_suffix_len = size;
+    suffix_view.size = size;
 }
 
 void Token::prefix_begin_grow(size_t l_amount)
 {
-    VERIFY( offset() >= l_amount, "Can't extend prefix above data's boundary");
-
-    set_offset( offset() - l_amount ); // slide
-    m_prefix_len += l_amount;
+    assert(false && "Not implemented yet:");
+    // TODO: update views
 }
 
 void Token::suffix_end_grow(size_t size)
 {
-    suffix_reset(m_suffix_len + size);
+    suffix_reset(suffix_view.size + size);
 }
 
 void Token::suffix_begin_grow(size_t l_amount)
 {
-    ASSERT( m_word_len >= l_amount );
-    m_word_len   -= l_amount;
-    m_suffix_len += l_amount;
+    assert(false && "Not implemented yet:");
+    // TODO: update views
+
+    // ASSERT( word_size >= l_amount );
+    // word_size   -= l_amount;
+    // suffix_size += l_amount;
 }
 
 void Token::prefix_end_grow(size_t r_amount)
 {
-    ASSERT( r_amount <= m_word_len);
-    m_prefix_len += r_amount;
-    m_word_len   -= r_amount;
+    assert(false && "Not implemented yet:");
+    // TODO: update views
+
+    // ASSERT( r_amount <= word_size);
+    // prefix_size += r_amount;
+    // word_size   -= r_amount;
 }
-
-Token::BimodalBuffer::~BimodalBuffer()
-{
-    delete_intern_buf();
-}
-
-void Token::BimodalBuffer::switch_to_intern_buf(size_t size)
-{
-    ASSERT( !readonly() );
-
-    // Initialize memory
-    if ( !intern() )
-    {
-        intern_buf = new std::string();
-        _flags     = BimodalBuffer::Flags_INTERN;
-        offset     = 0;
-    }
-    intern_buf->reserve(size);
-}
-
-
-void Token::BimodalBuffer::delete_intern_buf()
-{
-    if( !intern() )
-        return;
-
-    VERIFY( !readonly(), "Can't delete readonly buffers" );
-    delete intern_buf;
-
-    _flags     = BimodalBuffer::Flags_NONE;
-    offset     = 0;
-    intern_buf = nullptr;
-}
-

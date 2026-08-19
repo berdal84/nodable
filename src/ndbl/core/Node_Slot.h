@@ -2,7 +2,7 @@
 #include "core/Flags.h"
 #include "tools/core/Signals.h"
 #include "tools/core/Containers.h"
-#include "tools/core/Types.h"
+#include "bdc/Types.hpp"
 
 namespace ndbl
 {
@@ -53,19 +53,13 @@ namespace ndbl
             Event_Remove
         };
 
-        Node_Slot(
-            Flags   _flags    = {},
-            size_t  _capacity = 0, // 0 => max
-            size_t  _position = 0
-        );
-
         tools::Signal<void(Event, Node_Slot*)>  signal_change;
-        const size_t                            position        = {}; // In case multiple Node_Slot exists for the same type and order, we distinguish them with their position.
-        Node*                                   node            = {}; // parent node
-        Node_Property*                          property        = {}; // parent node's property
-        Node_Slot_View*                         view            = {};
-        Flags                                   flags           = {};
-        size_t                                  capacity        = {};
+        u32_t                                   position;       // In case multiple Node_Slot exists for the same type and order, we distinguish them with their position.
+        Node*                                   node;           // parent node
+        Node_Property*                          property;       // parent node's property
+        Node_Slot_View*                         view;
+        Flags                                   flags;
+        size_t                                  capacity;
         tools::Inline_Vector16<Node_Slot*>      adjacent;
         
         static const Node_Slot                  null;
@@ -78,8 +72,9 @@ namespace ndbl
         Node_Slot*          first_adjacent() const { return !adjacent.empty() ? adjacent[0] : nullptr; }
     };
 
+    void                    node_slot_init(Node_Slot*, Node_Slot::Flags = {}, u32_t capacity = 0 /* 0 => maxsize */, u32_t position = 0);
     Node_Slot*              node_slot_adjacent_at(const Node_Slot*, u8_t /* position */);
     inline Node_Slot::Flags node_slot_flags_toggle_order(Node_Slot::Flags flags) { return (i8_t)(flags ^ Node_Slot::Flag_ORDER_MASK); }
     void                    node_slot_add_adjacent(Node_Slot*, Node_Slot* /* other */);
-    bool                    node_slot_remove_adjacent(Node_Slot*, Node_Slot* /* other */);
+    bool                    node_slot_remove_adjacent(Node_Slot*, Node_Slot* /* other */ );
 }

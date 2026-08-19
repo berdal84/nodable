@@ -2,26 +2,26 @@
 #include <cstdlib>    // for ::system
 #include <thread>     // for std::thread
 #include "Log.h"
+#include "bdc/Allocators.hpp"
+#include "bdc/String.hpp"
 
 using namespace tools;
 
 #ifdef NDBL_DESKTOP
-int tools::system_run_command(const char* command)
+int tools::system_run_command(const bdc::String& command)
 {
-    int exit_code = ::system(command);
+    int exit_code = ::system(command.c_str() );
     if ( exit_code != 0 )
     {
-        TOOLS_LOG(tools::Verbosity_Error, "tools::system", "Command failed: %s", command);
+        TOOLS_LOG(tools::Verbosity_Error, "tools::system", "Command failed: %s", command.c_str() );
     }
     return exit_code;
 };
 
-void tools::system_open_url_async(const char* url)
+void tools::system_open_url_async(const bdc::String& url)
 {
-    std::string command;
-    command.append("x-www-browser ");
-    command.append(url); // TODO: does not work on all distros
-    std::thread thread( system_run_command, command.c_str() );
+    bdc::String command = bdc::string_printf( bdc::temp_allocator(), "x-www-browser %s", url.c_str());
+    std::thread thread( system_run_command, command );
     thread.detach();
 }
 
@@ -46,7 +46,7 @@ EM_JS(void, call_open_url, (), {
   throw 'all done';
 });
 
-void tools::system_open_url_async(const char* url)
+void tools::system_open_url_async(const bdc::String url)
 {
     call_open_url();
 }

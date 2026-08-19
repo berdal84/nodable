@@ -1,5 +1,5 @@
 #include "QWord.h"
-#include <string>
+#include "bdc/String.hpp"
 #include "tools/core/Format.h"
 
 using namespace tools;
@@ -17,7 +17,7 @@ R_UNION_MEMBER_DEFINITION(QWord, f)
 R_UNION_MEMBER_DEFINITION(QWord, d)
 R_UNION_MEMBER_DEFINITION(QWord, ptr)
 
-std::string QWord::to_string(const QWord& _value)
+bdc::String QWord::to_string(const QWord& _value)
 {
     return Format::hexadecimal(_value.u64);
 }

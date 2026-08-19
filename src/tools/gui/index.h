@@ -3,5 +3,5 @@
 
 namespace tools
 {
-    void init_reflection_with_gui();
+    void init_with_gui();
 }

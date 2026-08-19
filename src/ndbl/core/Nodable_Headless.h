@@ -1,6 +1,7 @@
 #pragma once
 
-#include <string>
+#include "bdc/String.hpp"
+#include "bdc/String_Builder.hpp"
 
 namespace tools
 {
@@ -9,25 +10,26 @@ namespace tools
 
 namespace ndbl
 {
+    using bdc::String_Builder;
+    using bdc::String;
+
     // forward declarations
     struct Graph;
-    class Nodlang;
+    class Language;
 
     struct App_Headless_State
     {
-        bool                    auto_completion = false;
-        bool                    should_stop     = false;
-        tools::Task_Manager*    task_manager    = nullptr; // ref
-        Graph*                  graph           = nullptr; // ref
-        Nodlang*                language        = nullptr; // ref
-        std::string             source_code     = "";
+        bool    auto_completion;
+        bool    should_stop;
+        Graph*  graph;
+        String  source_code;
     };
 
     void            nodable_init(App_Headless_State*);
     void            nodable_deinit(App_Headless_State*);
     void            nodable_update(App_Headless_State*);
     void            nodable_clear(App_Headless_State*);
-    std::string&    nodable_serialize(const App_Headless_State*, std::string& out);
-    Graph*          nodable_parse(const App_Headless_State*, const std::string& in );
+    String_Builder& nodable_serialize(const App_Headless_State*, String_Builder& out);
+    Graph*          nodable_parse(const App_Headless_State*, const String& in );
 }
 

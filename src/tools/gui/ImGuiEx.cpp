@@ -75,33 +75,33 @@ void ImGuiEx::DrawRectShadow (const Vec2& _topLeftCorner, const Vec2& _bottomRig
     }
 }
 
-void ImGuiEx::ShadowedText(const Vec2& _offset, const Vec4& _shadowColor, const char* _Format, ...)
+void ImGuiEx::ShadowedText(const Vec2& offset, const Vec4& shadow_color, const char* fmt, ...)
 {
     va_list args;
-    va_start(args, _Format);
+    va_start(args, fmt);
     ImGui::BeginGroup();
     // shadow
     auto p = ImGui::GetCursorScreenPos();
-    ImGui::SetCursorScreenPos(Vec2(p.x + _offset.x, p.y + _offset.y));
-    ImGui::TextColored(_shadowColor, _Format, args);
+    ImGui::SetCursorScreenPos(Vec2(p.x + offset.x, p.y + offset.y));
+    ImGui::TextColored(shadow_color, fmt, args);
     // text
     ImGui::SetCursorScreenPos(p);
-    ImGui::Text(_Format, args);
+    ImGui::Text(fmt, args);
     ImGui::EndGroup();
     va_end(args);
 }
 
-void ImGuiEx::ColoredShadowedText(const Vec2& _offset, const Vec4& _textColor, const Vec4& _shadowColor, const char* _Format, ...)
+void ImGuiEx::ColoredShadowedText(const Vec2& offset, const Vec4& text_color, const Vec4& shadow_color, const char*  fmt, ...)
 {
     // draw first the shadow
     auto p = ImGui::GetCursorPos();
-    ImGui::SetCursorPos(Vec2(p.x + _offset.x, p.y + _offset.y));
+    ImGui::SetCursorPos(Vec2(p.x + offset.x, p.y + offset.y));
 
     va_list args;
-    va_start(args, _Format);
-    ImGui::TextColored(_shadowColor, _Format, args);
+    va_start(args, fmt);
+    ImGui::TextColored(shadow_color, fmt, args);
     ImGui::SetCursorPos(p);
-    ImGui::TextColored(_textColor, _Format, args);
+    ImGui::TextColored(text_color, fmt, args);
     va_end(args);
 }
 

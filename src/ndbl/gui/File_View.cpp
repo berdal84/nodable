@@ -22,15 +22,16 @@ void ndbl::fileview_init(File_View* file_view, File* file)
     Config* cfg = config();
 
     file_view->file = file;
-    std::string overlay_basename{ file_filename(file)};
-    file_view->text_overlay_window_name  = overlay_basename + "_text_overlay";
-    file_view->graph_overlay_window_name = overlay_basename + "_graph_overlay";
+    file_view->text_overlay_window_name  = bdc::string_printf( bdc::temp_allocator(), "%s_text_overlay" , file_name(file));
+    file_view->graph_overlay_window_name = bdc::string_printf( bdc::temp_allocator(), "%s_graph_overlay", file_name(file));
 
 	file_view->text_editor.SetImGuiChildIgnored(true);
 	file_view->text_editor.SetPalette( cfg->ui_text_textEditorPalette );
 
-    file_view->graph_view = componentbag_get<Graph_View>(&file_view->file->graph->component_bag);
-    VERIFY( file_view->graph_view, "A Graph_View component is required by File_View" );
+    assert(file->graph->view);
+    file_view->graph_view = file->graph->view;
+
+    VERIFY( file_view->file->graph->view, "A Graph_View component is required by File_View" );
 }
 
 void ndbl::fileview_update(File_View* file_view, float dt)
@@ -71,7 +72,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
     {
         ImGui::SameLine();
 
-        std::string label("##" + std::to_string(cmd_pos));
+        bdc::String label = bdc::string_printf(bdc::temp_allocator(), "##%i", cmd_pos);
 
         // Draw a highlighted button for the current history position
         if (cmd_pos == 0) {
@@ -166,11 +167,12 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
             // listen to clipboard in background (disable by default)
             if (file_view->experimental_clipboard_auto_paste)
             {
-                file_view->experimental_clipboard_curr = ImGui::GetClipboardText();
-                if (!file_view->experimental_clipboard_curr.empty() &&
+                bdc::String clipboard = ImGui::GetClipboardText();
+                file_view->experimental_clipboard_curr = string_copy(clipboard);
+                if (!file_view->experimental_clipboard_curr.size &&
                     file_view->experimental_clipboard_curr != file_view->experimental_clipboard_prev)
                 {
-                    if (!file_view->experimental_clipboard_prev.empty())
+                    if (!file_view->experimental_clipboard_prev.size )
                         file_view->text_editor.InsertText(file_view->experimental_clipboard_curr.c_str(), true);
                     file_view->experimental_clipboard_prev = std::move(file_view->experimental_clipboard_curr);
                 }
@@ -184,7 +186,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
             // overlay
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
             overlay_rect.expand( -cfg->ui_textview_padding );
-            fileview_draw_overlay(file_view->text_overlay_window_name.c_str(), file_view->overlay_data[File_View_Overlay_Type_TEXT], overlay_rect, Vec2(0, 1));
+            fileview_draw_overlay(file_view->text_overlay_window_name, file_view->overlay_data[File_View_Overlay_Type_TEXT], overlay_rect, Vec2(0, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             if ( HAS_FLAGS(cfg->flags, Config_Flag_EXPERIMENTAL_MULTI_SELECTION) )
@@ -222,7 +224,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
             // Draw overlay: shortcuts
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
             overlay_rect.expand( -cfg->ui_textview_padding );
-            fileview_draw_overlay(file_view->graph_overlay_window_name.c_str(), file_view->overlay_data[File_View_Overlay_Type_GRAPH], overlay_rect, Vec2(1, 1));
+            fileview_draw_overlay(file_view->graph_overlay_window_name, file_view->overlay_data[File_View_Overlay_Type_GRAPH], overlay_rect, Vec2(1, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
@@ -245,24 +247,31 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
     ImGui::PopStyleColor();
 }
 
-std::string ndbl::fileview_get_text( const File_View* file_view, bool isolation_on )
+bdc::String ndbl::fileview_get_text( const File_View* file_view, bool isolation_on )
 {
+    std::string tmp;
+
     if ( !isolation_on )
     {
-        return file_view->text_editor.GetText();
+        tmp = file_view->text_editor.GetText();
     }
-
-    if ( file_view->text_editor.HasSelection() )
+    else if ( file_view->text_editor.HasSelection() )
     {
-        return file_view->text_editor.GetSelectedText();
+        tmp = file_view->text_editor.GetSelectedText();
+    }
+    else
+    {
+        tmp = file_view->text_editor.GetCurrentLineText(); // By default, we consider the current line as the selection
     }
 
-    return file_view->text_editor.GetCurrentLineText(); // By default, we consider the current line as the selection
+    assert( tmp.size() < (u32_t)(-1));
+    bdc::String result = bdc::string_copy( bdc::String{tmp.data(), (u32_t)tmp.size()} );
+    return result;
 }
 
-void ndbl::fileview_set_text(File_View* file_view, const std::string& text, bool isolation_on)
+void ndbl::fileview_set_text(File_View* file_view, bdc::String text, bool isolation_on)
 {
-    if ( fileview_get_text(file_view, isolation_on) == text )
+    if ( bdc::string_compare(text, fileview_get_text(file_view, isolation_on)) == 0 )
     {
         return;
     }
@@ -284,7 +293,7 @@ void ndbl::fileview_set_text(File_View* file_view, const std::string& text, bool
         }
 
         /* insert text (and select it) */
-        file_view->text_editor.InsertText( text, true);
+        file_view->text_editor.InsertText({ text.data, text.size }, true);
 
         auto end = file_view->text_editor.GetCursorPosition();
         if (!hasSelection && start.mLine == end.mLine) // no selection and insert text is still on the same line
@@ -296,7 +305,7 @@ void ndbl::fileview_set_text(File_View* file_view, const std::string& text, bool
     }
     else
     {
-        file_view->text_editor.SetText(text);
+        file_view->text_editor.SetText({ text.data, text.size });
         // auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, text, &m_text_editor);
         // m_file->get_history()->push_command(cmd);
 
@@ -319,7 +328,7 @@ void ndbl::fileview_set_experimental_clipboard_auto_paste(File_View* file_view, 
     }
 }
 
-void ndbl::fileview_draw_overlay(const char* title, const std::vector<File_View_Overlay_Data>& overlay_data, const Rect& rect, const Vec2& position)
+void ndbl::fileview_draw_overlay(const bdc::String& title, const std::vector<File_View_Overlay_Data>& overlay_data, const Rect& rect, const Vec2& position)
 {
     if( overlay_data.empty() ) return;
 
@@ -334,7 +343,7 @@ void ndbl::fileview_draw_overlay(const char* title, const std::vector<File_View_
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
                                    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMouseInputs;
 
-    if (ImGui::Begin(title, &show, flags) )
+    if (ImGui::Begin(title.c_str(), &show, flags) )
     {
         ImGui::Indent( cfg->ui_overlay_indent);
         std::for_each(overlay_data.begin(), overlay_data.end(), [](const File_View_Overlay_Data& _data) {
@@ -369,8 +378,9 @@ void ndbl::fileview_refresh_overlay(File_View* file_view, Condition condition )
     {
         if( ( action.flags & condition) == condition && (action.flags & Condition_HIGHLIGHTED) )
         {
-            std::string             label        = action.label.substr(0, 12);
-            std::string             shortcut_str = action.shortcut.to_string();
+            bdc::String label = action.label;
+            label.size = label.size > 12 ? 12 : label.size;
+            bdc::String shortcut_str = action.shortcut.to_string();
             File_View_Overlay_Type overlay_type;
             
             if (action.flags & Condition_HIGHLIGHTED_IN_TEXT_EDITOR)

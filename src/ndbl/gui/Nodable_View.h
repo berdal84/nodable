@@ -26,7 +26,7 @@ namespace ndbl
     App_View_State* appview();
     void            appview_update();
     void            appview_draw();
-    void            appview_save_screenshot(const char* relative_path);
+    void            appview_save_screenshot(const bdc::String relative_path);
     inline void     appview_show_splashscreen(bool b) { appview()->base.show_splashscreen = b; }
 
 }

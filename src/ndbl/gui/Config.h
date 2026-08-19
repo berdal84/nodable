@@ -3,7 +3,7 @@
 #include "gui/Action.h"
 #include "gui/Layout.h"
 #include "gui/geometry/Rect.h"
-#include "tools/core/Types.h"
+#include "bdc/Types.hpp"
 #include "tools/gui/Config.h"
 #include "tools/gui/Size.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
@@ -60,15 +60,15 @@ namespace ndbl
         float          ui_wire_bezier_thickness;
         i32_t          ui_grid_size;
         i32_t          ui_grid_subdiv_count;
-        const char*    ui_config_window_label;
-        const char*    ui_file_info_window_label;
-        const char*    ui_help_window_label;
-        const char*    ui_imgui_config_window_label;
-        const char*    ui_interpreter_window_label;
-        const char*    ui_node_properties_window_label;
-        const char*    ui_splashscreen_imagePath;
-        const char*    ui_startup_window_label;
-        const char*    ui_toolbar_window_label ;
+        bdc::String    ui_config_window_label;
+        bdc::String    ui_file_info_window_label;
+        bdc::String    ui_help_window_label;
+        bdc::String    ui_imgui_config_window_label;
+        bdc::String    ui_interpreter_window_label;
+        bdc::String    ui_node_properties_window_label;
+        bdc::String    ui_splashscreen_imagePath;
+        bdc::String    ui_startup_window_label;
+        bdc::String    ui_toolbar_window_label ;
         tools::Config* tools_cfg;
         std::array<Vec4,Node_Type_COUNT> ui_node_fill_color;
         std::vector<tools::Action> actions;

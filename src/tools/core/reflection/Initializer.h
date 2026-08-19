@@ -44,26 +44,6 @@ namespace tools
                 m_class = (Class_Descriptor *) Type_Register::insert_or_merge(type);
             }
 
-            template<typename F>
-            Initializer &add_method(F* func_ptr, const char *_name, const char *_alt_name = "")
-            {
-                auto *invokable = new Invokable_Static_Function<F>( _name, func_ptr); // TODO: delete?
-                m_class->add_static(_name, invokable);
-
-                if (_alt_name[0] != '\0')
-                    m_class->add_static(_alt_name, invokable);
-
-                return *this;
-            }
-
-            template<typename R, typename C, typename ...Ts>
-            Initializer &add_method(R(C::*func_ptr)(Ts...), const char *_name) // non static
-            {
-                auto *invokable = new Invokable_Method<R(C::*)(Ts...)>(_name, func_ptr);  // TODO: delete?
-                m_class->add_method(_name, invokable);
-                return *this;
-            }
-
             template<typename BaseClassT>
             Initializer &extends()
             {

@@ -1,12 +1,12 @@
 #pragma once
 
-#include "String.h"
+#include "bdc/String.hpp"
+#include "bdc/String_Builder.hpp"
 #include "Format.h"
 #include <chrono>
 #include <ctime>
 #include <deque>
 #include <map>
-#include <string>
 
 #define TOOLS_COLOR_DEFAULT     "\033[0m"
 #define TOOLS_COLOR_BLACK       "\033[30m"        /* Black */
@@ -43,13 +43,15 @@
 #   define TOOLS_LOG_MESSAGE_MEMORY_MAX 2*1000*1000
 #endif
 
-#define TOOLS_ERROR tools::Verbosity_Error
+#define TOOLS_ERROR   tools::Verbosity_Error
 #define TOOLS_WARNING tools::Verbosity_Warning
 #define TOOLS_MESSAGE tools::Verbosity_Message
-#define TOOLS_DIAG tools::Verbosity_Diagnostic
+#define TOOLS_DIAG    tools::Verbosity_Diagnostic
 
 namespace tools
 {
+    using namespace bdc;
+
     // Different verbosity levels a message can have
     typedef int Verbosity;
     enum Verbosity_: int
@@ -91,30 +93,30 @@ namespace tools
     {
         using clock_t = std::chrono::time_point<std::chrono::system_clock>;
 
-        const char* category = "";                        // short category name (ex: "Game", "App", etc.)
-        Verbosity verbosity{TOOLS_LOG_VERBOSITY_DEFAULT}; // verbosity level
-        String_512 text{};                                 // message content
-        clock_t   date{std::chrono::system_clock::now()}; // printed at date
+        const char*     category;   // short category name (ex: "Game", "App", etc.)
+        Verbosity       verbosity;  // verbosity level
+        String     text;       // message content
+        clock_t         date;       // printed at date
     };
 
     struct LogState
     {
         Verbosity                        verbosity = TOOLS_LOG_VERBOSITY_DEFAULT;
-        std::map<std::string, Verbosity> verbosity_by_category = {};
+        std::map<u64_t, Verbosity>       verbosity_by_category_hash = {};
         std::deque<MessageData>          messages = {};
         VerbosityFilter                  verbosity_filter{true}; // true => checked by default
     };
 
     LogState&        get_log_state();
-    void             set_log_verbosity(const char* category, Verbosity level); // Set verbosity level for a given category
+    void             set_log_verbosity(const String& category, Verbosity level); // Set verbosity level for a given category
     void             set_log_verbosity(Verbosity level); // override verbosity globally
-    Verbosity        get_log_verbosity(const char* category);
+    Verbosity        get_log_verbosity(const String& category);
     static Verbosity get_log_verbosity() { return get_log_state().verbosity; }
     void             flush(); // Ensure all messages have been printed out
     bool             show_log_message(const MessageData&, const VerbosityFilter& filter); // return true if messages needs to be displayed depending on filter and global verbosity
 
     template<typename...Args>
-    void log(Verbosity verbosity, const char* category, const char* Format, Args... args) // print a message like "[time|verbosity|category] message"
+    void log(Verbosity verbosity, const char* category, const char* fmt, Args... args) // print a message like "[time|verbosity|category] message"
     {
         struct VerbosityInfo
         {
@@ -129,18 +131,19 @@ namespace tools
             { "DIAGNOSTIC", TOOLS_COLOR_DEFAULT }, // Verbosity_Diagnostic
         };
 
-        MessageData message;
-        message.verbosity = verbosity;
-        message.category  = category;
-        // text prefix
-        message.text.append_fmt(
-                "[%s|%s|%s] ",
-                Format::time_point_to_string(message.date).c_str(),
-                verbosity_info[verbosity].label,
-                category
-                );
-        // text body
-        message.text.append_fmt(Format, args...);
+        MessageData message{};
+
+        message.date            = std::chrono::system_clock::now();
+        message.verbosity       = verbosity;
+        message.category        = category;
+
+        // message
+        String_Builder sb{};
+        string_builder_init(sb);
+        string_builder_appendf(sb, "[%s|%s|%s] ", Format::time_point_to_string(message.date).c_str(), verbosity_info[verbosity].label, category);
+        string_builder_appendf(sb, fmt, args...);
+
+        message.text = string_builder_build_string(sb);
 
         // print if allowed
         if ( message.verbosity <= get_log_verbosity(category) )

@@ -5,9 +5,9 @@
 using namespace tools;
 
 // Define window names once here
-constexpr const char* CENTER_WINDOW = "Center View";
-constexpr const char* RIGHT_WINDOW  = "Right View";
-constexpr const char* TOP_WINDOW    = "Top View";
+constexpr const bdc::String CENTER_WINDOW = "Center View";
+constexpr const bdc::String RIGHT_WINDOW  = "Right View";
+constexpr const bdc::String TOP_WINDOW    = "Top View";
 
 void App_View_Example::init(App_Example *_app)
 {

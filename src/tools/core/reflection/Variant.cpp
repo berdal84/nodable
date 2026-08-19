@@ -1,4 +1,5 @@
 #include "Variant.h"
+#include "bdc/String.hpp"
 #include "core/Asserts.h"
 #include "tools/core/Format.h"
 
@@ -13,15 +14,15 @@ Variant::~Variant()
         release_mem();
 }
 
-Variant::Variant(const std::string& val)
+Variant::Variant(const bdc::String& val)
 : Variant(val.c_str())
 {}
 
-Variant::Variant(const char* val)
+Variant::Variant(const bdc::String val)
 : m_type(Type_string)
 {
     init_mem();
-    *(std::string*)m_data.ptr = val;
+    *(bdc::String*)m_data.ptr = val;
 }
 
 Variant::Variant(double val)
@@ -78,7 +79,7 @@ double Variant::to<double>()const
         case Type_double:  return m_data.d;
         case Type_i16:     return double(m_data.i16);
         case Type_i32:     return double(m_data.i32);
-        case Type_string:  return stod(*(std::string*)m_data.ptr);
+        case Type_string:  return std::stod(((bdc::String*)m_data.ptr)->c_str());
         default:
             ASSERT(false); // this case is not handled
     }
@@ -94,7 +95,7 @@ i16_t Variant::to<i16_t>()const
         case Type_double:  return (i16_t)m_data.d;
         case Type_i16:     return m_data.i16;
         case Type_i32:     return (i16_t)m_data.i32;
-        case Type_string:  return (i16_t)stoi(*(std::string*)m_data.ptr);
+        case Type_string:  return (i16_t)std::stoi(((bdc::String*)m_data.ptr)->c_str());
         default:
             ASSERT(false); // this case is not handled
     }
@@ -110,7 +111,7 @@ i32_t Variant::to<i32_t>()const
         case Type_double:  return i32_t(m_data.d);
         case Type_i16:     return m_data.i16;
         case Type_i32:     return m_data.i32;
-        case Type_string:  return stoi(*(std::string*)m_data.ptr );
+        case Type_string:  return std::stoi(((bdc::String*)m_data.ptr)->c_str());
         default:
             ASSERT(false); // this case is not handled
     }
@@ -126,7 +127,7 @@ bool Variant::to<bool>()const
         case Type_double: return (bool)m_data.d;
         case Type_i16:    return (bool)m_data.i16;
         case Type_i32:    return (bool)m_data.i32;
-        case Type_string: return !((std::string*)m_data.ptr)->empty();
+        case Type_string: return !((bdc::String*)m_data.ptr)->empty();
         default:
             ASSERT(false); // this case is not handled
     }
@@ -134,25 +135,20 @@ bool Variant::to<bool>()const
 }
 
 template<>
-std::string Variant::to<std::string>()const
+bdc::String Variant::to<bdc::String>()const
 {
     switch (m_type)
     {
         case Type_bool:   return m_data.b ? "true" : "false";
         case Type_double: return Format::number(m_data.d);
-        case Type_i16:    return std::to_string(m_data.i16);
-        case Type_i32:    return std::to_string(m_data.i32);
-        case Type_string: return *(std::string*)m_data.ptr;
+        case Type_i16:    [[fallthrough]];
+        case Type_i32:    return bdc::string_printf("%i", m_data.i32);
+        case Type_string: return *(bdc::String*)m_data.ptr;
         default:
             // return Format::hexadecimal(m_data.u64); // this code was found there, probably a mistake
             ASSERT(false); // this case is not handled
             return {};
     }
-}
-
-void Variant::set(const std::string& _value)
-{
-    set(_value.c_str());
 }
 
 void Variant::set(void* ptr)
@@ -162,7 +158,7 @@ void Variant::set(void* ptr)
     m_data.ptr = ptr;
 }
 
-void Variant::set(const char* _value)
+void Variant::set(const bdc::String& _value)
 {
     if ( m_type != Type_string )
         change_type(Type_string);
@@ -170,7 +166,7 @@ void Variant::set(const char* _value)
     if ((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY) == 0 )
         init_mem();
 
-    *(std::string*)m_data.ptr = _value;
+    *(bdc::String*)m_data.ptr = _value;
 }
 
 void Variant::set(double _value)
@@ -219,7 +215,7 @@ void Variant::clear_data()
 
     if (m_type == Type_string)
     {
-        ((std::string*)m_data.ptr)->clear();
+        bdc::string_release(*(bdc::String*)m_data.ptr);
         return;
     }
     m_data.reset();
@@ -229,8 +225,8 @@ void Variant::init_mem()
 {
     if( m_type == Type_string && ((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY) == 0) )
     {
-        // std::string is the only class we handle the instantiation, we use otherwise pointers to allocated memory
-        m_data.ptr = new std::string();
+        // bdc::String is the only class we handle the instantiation, we use otherwise pointers to allocated memory
+        m_data.ptr = new bdc::String();
     }
 
     m_flags |=  Flag_OWNS_HEAP_ALLOCATED_MEMORY; // set flag to 1
@@ -241,8 +237,8 @@ void Variant::release_mem()
     if ( m_type == Type_string )
     {
         ASSERT(m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY );
-        // std::string is the only class we handle the instantiation, we use otherwise pointers to allocated memory
-        delete ((std::string*)m_data.ptr);
+        // bdc::String is the only class we handle the instantiation, we use otherwise pointers to allocated memory
+        delete ((bdc::String*)m_data.ptr);
         m_data.ptr = nullptr;
     }
     m_flags &= ~Flag_OWNS_HEAP_ALLOCATED_MEMORY; // set flags to 0
@@ -276,7 +272,7 @@ Variant& Variant::operator=(const Variant &other)
     if (other.m_type == m_type )
     {
         if( m_type == Type_string)
-            set( *((std::string*)other.m_data.ptr) );
+            set( *((bdc::String*)other.m_data.ptr) );
         else
             m_data = other.m_data;
         return *this;
@@ -289,7 +285,7 @@ Variant& Variant::operator=(const Variant &other)
         case Type_double: this->set(other.to<double>() ); break;
         case Type_i16:    this->set(other.to<i16_t>() ); break;
         case Type_i32:    this->set(other.to<i32_t>() ); break;
-        case Type_string: this->set(other.to<std::string>()); break;
+        case Type_string: this->set(other.to<bdc::String>()); break;
         default:
             VERIFY(false, "Variant: missing type case for operator=");
     }
@@ -302,16 +298,16 @@ Variant::operator bool& ()            { return m_data.b;}
 Variant::operator double& ()          { return m_data.d;}
 Variant::operator i16_t& ()           { return m_data.i16;}
 Variant::operator i32_t& ()           { return m_data.i32;}
-Variant::operator std::string& ()     { return *((std::string*)m_data.ptr);}
+Variant::operator bdc::String& ()     { return *((bdc::String*)m_data.ptr);}
 
 // by value
 
 Variant::operator bool () const       { return m_data.b;}
-Variant::operator const char*() const { return ((std::string*)m_data.ptr)->c_str();}
+Variant::operator const bdc::String() const { return ((bdc::String*)m_data.ptr)->c_str();}
 Variant::operator double () const     { return m_data.d;}
 Variant::operator i16_t () const      { return m_data.i16;}
 Variant::operator i32_t () const      { return m_data.i32;}
-Variant::operator std::string() const { return *((std::string*)m_data.ptr);}
+Variant::operator bdc::String() const { return *((bdc::String*)m_data.ptr);}
 Variant::operator void*() const       { return m_data.ptr;}
 
 Variant::Type Variant::type_to_enum(const tools::Type_Descriptor* _type)
@@ -322,9 +318,9 @@ Variant::Type Variant::type_to_enum(const tools::Type_Descriptor* _type)
     if( _type->is<i16_t>() )       return Type_i16;
     if( _type->is<i32_t>() )       return Type_i32;
     if( _type->is<null>() )      return Type_null;
-    if( _type->is<std::string>() ) return Type_string;
+    if( _type->is<bdc::String>() ) return Type_string;
     if( _type->is_ptr() )          return Type_ptr;
-    ASSERT( !_type->is<const char*>() ); // use std::string instead
+    ASSERT( !_type->is<const bdc::String>() ); // use bdc::String instead
     ASSERT(false); // Unhandled type;
     return {};
 }
@@ -340,7 +336,7 @@ const tools::Type_Descriptor* Variant::enum_to_type(Type _type)
         case Type_i32:     return type::get<i32_t>();
         case Type_null:    return type::get<null>();
         case Type_ptr:     return type::get<void*>();
-        case Type_string:  return type::get<std::string>();
+        case Type_string:  return type::get<bdc::String>();
         default:
             ASSERT(false); // unhandled type
     }

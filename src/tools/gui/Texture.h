@@ -2,7 +2,7 @@
 
 #include "tools/gui/GL_Helpers.h"
 #include "tools/gui/geometry/Vec2.h"
-#include "tools/core/Types.h"
+#include "bdc/Types.hpp"
 
 namespace tools
 {

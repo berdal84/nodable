@@ -50,9 +50,10 @@ Type_Descriptor* Type_Register::merge(Type_Descriptor* existing, const Type_Desc
         tools::Verbosity_Diagnostic,
         __FILE__,
         "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n",
-        existing->m_name.c_str(), existing->m_compiler_name,
-        other->m_name.c_str(), other->m_compiler_name
+        existing->m_name.c_str(), existing->m_compiler_name.c_str(),
+        other->m_name.c_str(), other->m_compiler_name.c_str()
     );
+
     if( existing->m_name[0] == '\0' )
     {
         existing->m_name = other->m_name;
@@ -77,7 +78,7 @@ void Type_Register::log_statistics()
 
     for ( const auto& [type_hash, type] : by_index() )
     {
-        TOOLS_LOG(tools::Verbosity_Diagnostic, "reflection", " %-16llu %-25s %-60s\n", type_hash, type->m_name.c_str(), type->m_compiler_name );
+        TOOLS_LOG(tools::Verbosity_Diagnostic, "reflection", " %-16llu %-25s %-60s\n", type_hash, type->m_name.c_str(), type->m_compiler_name.c_str() );
     }
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "reflection", "Logging done.\n");

@@ -1,4 +1,5 @@
 #include "Scope_View.h"
+#include "bdc/String_Builder.hpp"
 #include "core/Flags.h"
 #include "gui/Layout.h"
 #include "gui/View_Flags.h"
@@ -54,16 +55,16 @@ void ndbl::scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags f
     };
 
     // sibling nodeview is always wrapped inside its own scopeview
-    if ( auto sibling_nodeview = componentbag_get<Node_View>(&scope_view->scope->node()->component_bag) )
+    if ( Node_View* sibling_nodeview = scope_view->scope->node->view )
         wrap_nodeview( sibling_nodeview );
 
     for( Node* node : scope_view->scope->children )
-        if ( auto nodeview = componentbag_get<Node_View>(&node->component_bag) )
-            wrap_nodeview( nodeview );
+        if ( node->view )
+            wrap_nodeview( node->view );
 
     for( Node* child_node : scope_view->scope->children )
     {
-        if ( child_node->internal_scope != nullptr )
+        if ( child_node->internal_scope )
         {
             Scope_View* child_node_scope_view = child_node->internal_scope->view;
             scopeview_update(child_node_scope_view, dt, flags);
@@ -148,9 +149,9 @@ void ndbl::scopeview_arrange_content(Scope_View* scope_view)
     }
 }
 
-void ndbl::TreeNode_Scope(const char* title, Scope* scope)
+void ndbl::TreeNode_Scope(const bdc::String& title, Scope* scope)
 {
-    if ( ImGui::TreeNode( title ) )
+    if ( ImGui::TreeNode( title.c_str() ) )
     {
         if ( scope )
             TreeNode_ScopeContent(scope);
@@ -168,22 +169,20 @@ void ndbl::TreeNode_Node(Node* node)
         case Node_Type_OPERATOR:
         case Node_Type_FUNCTION:
         {
-            std::string signature;
-            get_language()->serialize_func_sig(signature, &node->invokable_data.func_type);
+            bdc::String_Builder sb;
+            lang_serialize_func_sig(language(), sb, &node->invokable_data.func_type);
             char str[255];
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name(), signature.c_str());
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name().c_str(), bdc::string_builder_build_string(sb).c_str() );
             break;
         }
         case Node_Type_VARIABLE:
         {
-            std::string value = node->value->token.word_to_string();
-            char str[255];
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, value.c_str(), node->name.c_str());
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, node->value->token.word_view.c_str(), node->name.c_str());
             break;
         }
         default:
         {
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, node->name.c_str(), node->get_class()->name());
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, node->name.c_str(), node->get_class()->name().c_str() );
         }
     }
 

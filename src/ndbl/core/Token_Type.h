@@ -1,5 +1,5 @@
 #pragma once
-#include "tools/core/Types.h"
+#include "bdc/Types.hpp"
 
 namespace ndbl {
 
@@ -10,47 +10,50 @@ namespace ndbl {
      *     "bool" => Token_t::keyword_bool
      *     "100"  => Token_t::literal_int
      */
-	enum class Token_Type: i8_t
+    typedef int Token_Type;
+	enum Token_Type_: Token_Type
 	{
-        none = 0, // to say 'absence of token'
+        Token_Type_NULL = 0, // to say 'absence of token'
 
-        ignore,
-        keyword_if,
-        keyword_else,
-        keyword_for,
-        keyword_while,
-        keyword_operator,
-        keyword_return,
+        Token_Type_ignore,
+        Token_Type_keyword_if,
+        Token_Type_keyword_else,
+        Token_Type_keyword_for,
+        Token_Type_keyword_while,
+        Token_Type_keyword_operator,
+        Token_Type_keyword_return,
         //----- types -------
-        keyword_string,
-        keyword_double,
-        keyword_int,
-        keyword_i16,
-        keyword_bool,
-        keyword_any,     // like TypeScript's
-        keyword_unknown, // like TypeScript's
+        Token_Type_keyword_string,
+        Token_Type_keyword_double,
+        Token_Type_keyword_int,
+        Token_Type_keyword_i16,
+        Token_Type_keyword_bool,
+        Token_Type_keyword_any,     // like TypeScript's
+        Token_Type_keyword_unknown, // like TypeScript's
+        Token_Type_keyword_FIRST  = Token_Type_keyword_string,
+        Token_Type_keyword_LAST   = Token_Type_keyword_unknown,
         //----- literals -----
-        literal_string,
-        literal_double,
-        literal_int,
-        literal_bool,
-        literal_any,
-        literal_unknown,
-        operator_,
-        identifier,
-        parenthesis_open,
-        parenthesis_close,
-        list_separator,
-        scope_begin,
-        scope_end ,
-        end_of_instruction,
-        end_of_line,
+        Token_Type_literal_string,
+        Token_Type_literal_double,
+        Token_Type_literal_int,
+        Token_Type_literal_bool,
+        Token_Type_literal_any,
+        Token_Type_literal_unknown,
+        Token_Type_operator,
+        Token_Type_identifier,
+        Token_Type_parenthesis_open,
+        Token_Type_parenthesis_close,
+        Token_Type_list_separator,
+        Token_Type_scope_begin,
+        Token_Type_scope_end ,
+        Token_Type_end_of_instruction,
+        Token_Type_end_of_line,
     };
 
     /** Check if a given keyword is a type (ex: bool, int, double,...)*/
 	static constexpr bool is_a_type_keyword(Token_Type _token_t)
     {
-        return Token_Type::keyword_string <= _token_t && _token_t <= Token_Type::keyword_unknown;
+        return Token_Type_keyword_FIRST <= _token_t && _token_t <= Token_Type_keyword_LAST;
     }
 
 }

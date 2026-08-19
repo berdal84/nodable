@@ -16,10 +16,10 @@ TEST_F(Language_parse_function_call, dna_to_protein)
     // check
     Token_Ribbon& ribbon = language->_state.tokens();
     EXPECT_EQ(ribbon.size(), 4);
-    EXPECT_EQ(ribbon.at(0).m_type, Token_Type::identifier);
-    EXPECT_EQ(ribbon.at(1).m_type, Token_Type::parenthesis_open);
-    EXPECT_EQ(ribbon.at(2).m_type, Token_Type::literal_string);
-    EXPECT_EQ(ribbon.at(3).m_type, Token_Type::parenthesis_close);
+    EXPECT_EQ(ribbon.at(0).m_type, Token_Type_identifier);
+    EXPECT_EQ(ribbon.at(1).m_type, Token_Type_parenthesis_open);
+    EXPECT_EQ(ribbon.at(2).m_type, Token_Type_literal_string);
+    EXPECT_EQ(ribbon.at(3).m_type, Token_Type_parenthesis_close);
 
     // parse
     Node_Slot* function_out = language->parse_function_call( graph_root_scope(state.graph ) );
@@ -39,9 +39,9 @@ TEST_F(Language_parse_function_call, operator_add)
     // check
     Token_Ribbon& ribbon = language->_state.tokens();
     EXPECT_EQ(ribbon.size(), 3);
-    EXPECT_EQ(ribbon.at(0).m_type, Token_Type::literal_int);
-    EXPECT_EQ(ribbon.at(1).m_type, Token_Type::operator_);
-    EXPECT_EQ(ribbon.at(2).m_type, Token_Type::literal_int);
+    EXPECT_EQ(ribbon.at(0).m_type, Token_Type_literal_int);
+    EXPECT_EQ(ribbon.at(1).m_type, Token_Type_operator_);
+    EXPECT_EQ(ribbon.at(2).m_type, Token_Type_literal_int);
 
     // parse
     Node_Slot* result = language->parse_expression( graph_root_scope(state.graph) );

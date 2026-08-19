@@ -35,7 +35,7 @@ namespace tools
         Vec4                  button_activeColor       { 0.98f, 0.73f, 0.29f, 0.95f}; // orange
         Vec4                  button_hoveredColor      { 0.70f, 0.70f, 0.70f, 0.95f}; // light grey
         Vec4                  button_color             {0.50f, 0.50f, 0.50f, 0.63f}; // grey
-        const char*           splashscreen_window_label= "##Splashscreen";
+        const char*           splashscreen_window_label = "##Splashscreen";
         bool                  show_splashscreen_default = true;
         bool                  imgui_demo               = false;
         float                 dockspace_bottom_size    = 120.f;
@@ -58,20 +58,20 @@ namespace tools
         Font_Manager_Config font_manager
         {
             {{
-                    "default",                  // id
-                    "fonts/CenturyGothic.ttf",  // path
-                    18.0f,                      // size in px.
-                    true,                       // include icons?
-                    18.0f                       // icons size in px.
+                "default",                  // id
+                "fonts/CenturyGothic.ttf",  // path
+                18.0f,                      // size in px.
+                true,                       // include icons?
+                18.0f                       // icons size in px.
             }},
             {
-                    "default",// Font_Slot_Paragraph
-                    "default",// Font_Slot_Heading
-                    "default",// Font_Slot_Code
-                    "default" // Font_Slot_ToolBtn
+                "default", // Font_Slot_Paragraph
+                "default", // Font_Slot_Heading
+                "default", // Font_Slot_Code
+                "default"  // Font_Slot_ToolBtn
             },
             {
-                "FA-solid-900",                  // Icon font name
+                "FA-solid-900",           // Icon font name
                 "fonts/fa-solid-900.ttf"  // Icon font path
             },
             1.0f  // subsampling

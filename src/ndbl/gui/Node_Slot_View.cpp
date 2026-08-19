@@ -1,6 +1,7 @@
 #include "Node_Slot_View.h"
 #include "Config.h"
 #include "Event.h"
+#include "bdc/Allocators.hpp"
 #include "core/Flags.h"
 #include "gui/ImGuiEx.h"
 #include "gui/View_Flags.h"
@@ -10,35 +11,39 @@
 using namespace ndbl;
 using namespace tools;
 
-Node_Slot_View::Node_Slot_View(
+void ndbl::nodeslotview_init(
+    Node_Slot_View* view,
     Node_Slot*      slot,
     const Vec2&     align,
     Shape_Type      shape_type,
-    size_t          index,
+    u32_t           index,
     const Box_2D*   alignment_ref
 )
-: slot(slot)
-, alignment_pivot(align)
-, shape_type(shape_type)
-, index(index)
-, alignment_ref(alignment_ref)
-, direction()
-, shape(Vec2{1.f, 1.f})
-, flags(0)
 {
+    ASSERT(view != nullptr);
     ASSERT(slot != nullptr);
 
-    slot->view = this;
-    nodeslotview_update_direction_from_alignment(this);
+    view->slot              = slot;
+    view->alignment_pivot   = align;
+    view->shape_type        = shape_type;
+    view->index             = index;
+    view->alignment_ref     = alignment_ref;
+    view->direction         = {};
+    view->shape             = {};
+    view->flags             = 0;
+    
+    nodeslotview_update_direction_from_alignment(view);
 
     // Update size from shape
     Vec2 size = shape_type == Shape_Type_CIRCLE
             ? Vec2{ config()->ui_slot_circle_radius() * 2.f}
             : config()->ui_slot_rectangle_size;
-    shape.set_size( size );
+    view->shape.set_size( size );
+
+    slot->view = view;
 }
 
-String_64 ndbl::nodeslotview_compute_tooltip(const Node_Slot_View* view)
+bdc::String ndbl::nodeslotview_compute_tooltip(const Node_Slot_View* view)
 {
     switch (view->slot->type_and_order())
     {
@@ -46,19 +51,15 @@ String_64 ndbl::nodeslotview_compute_tooltip(const Node_Slot_View* view)
         case Node_Slot::Flag_FLOW_IN:  return "flow_in";
     }
 
-    std::string prop_name;
+    bdc::String prop_name = view->property() ? view->property()->name : "...";
 
-    if ( view->property() )
-        prop_name = view->property()->name;
-
-    String_64 result;
     switch (view->slot->type_and_order())
     {
-        case Node_Slot::Flag_INPUT:  result.append_fmt("%s (in)",  prop_name.c_str());  break;
-        case Node_Slot::Flag_OUTPUT: result.append_fmt("%s (out)", prop_name.c_str());
+        case Node_Slot::Flag_INPUT:  return bdc::string_printf( bdc::temp_allocator(), "%s (in)",  prop_name.c_str());
+        case Node_Slot::Flag_OUTPUT: return bdc::string_printf( bdc::temp_allocator(), "%s (out)", prop_name.c_str());
     }
 
-    return std::move(result);
+    return "";
 }
 
 bool ndbl::nodeslotview_draw(Node_Slot_View* view)
@@ -117,7 +118,7 @@ bool ndbl::nodeslotview_draw(Node_Slot_View* view)
 
     if ( ImGuiEx::BeginTooltip() )
     {
-        String_64 tooltip = nodeslotview_compute_tooltip(view);
+        bdc::String tooltip = nodeslotview_compute_tooltip(view);
         ImGui::Text("%s", tooltip.c_str() );
         ImGuiEx::EndTooltip();
     }

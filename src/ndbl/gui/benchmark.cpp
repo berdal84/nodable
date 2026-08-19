@@ -47,7 +47,7 @@ public:
     {
         language       = &ndbl::Nodlang::get_instance();
         autocompletion = false;
-        graph          = new Graph(factory);
+        graph          = bdc::memory_malloc( Graph(factory);
         log_set_verbosity(Verbosity_Error);
     }
 
@@ -56,14 +56,14 @@ public:
         delete graph;
     }
 
-    std::string get_random_double_as_string()
+    bdc::String get_random_double_as_string()
     {
         return std::to_string( distribution(generator) );
     }
 };
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_double)(benchmark::State& state) {
-    std::array<std::string, 500> double_as_str;
+    std::array<bdc::String, 500> double_as_str;
     for(size_t i = 0; i < double_as_str.size(); ++i)
     {
         double_as_str[i] = get_random_double_as_string();
@@ -95,12 +95,12 @@ static void BM_empty_constructor(benchmark::State& state)
     }
 }
 
-const char* SIXTY_THREE_CHARS = "|<------------------------ 63 chars ------------------------->|";
+const bdc::String SIXTY_THREE_CHARS = "|<------------------------ 63 chars ------------------------->|";
 
 template<class StringT>
 static void BM_constructor(benchmark::State& state)
 {
-    char* buf = new char[state.range(0)];
+    char* buf = bdc::memory_malloc( char[state.range(0)];
     memset(buf, 'x', state.range(0));
     buf[state.range(0)-1] = 0;
     for (auto _ : state)
@@ -113,7 +113,7 @@ static void BM_constructor(benchmark::State& state)
 template<class StringT>
 static void BM_constructor_then_push_back_a_char(benchmark::State& state)
 {
-    char* buf = new char[state.range(0)];
+    char* buf = bdc::memory_malloc( char[state.range(0)];
     memset(buf, 'x', state.range(0));
     buf[state.range(0)-1] = 0;
     for (auto _ : state)
@@ -139,7 +139,7 @@ static void BM_strncpy_stack_to_stack(benchmark::State& state)
 template<size_t STRING_SIZE>
 static void BM_strncpy_heap_to_stack(benchmark::State& state)
 {
-    char* source = new char[STRING_SIZE];
+    char* source = bdc::memory_malloc( char[STRING_SIZE];
     while (state.KeepRunning())
     {
         char destination[STRING_SIZE];
@@ -152,8 +152,8 @@ static void BM_strncpy_heap_to_stack(benchmark::State& state)
 template<size_t STRING_SIZE>
 static void BM_strncpy_heap_to_heap(benchmark::State& state)
 {
-    char* source = new char[STRING_SIZE];
-    char* destination = new char[STRING_SIZE];
+    char* source = bdc::memory_malloc( char[STRING_SIZE];
+    char* destination = bdc::memory_malloc( char[STRING_SIZE];
     while (state.KeepRunning())
     {
         strncpy(destination, source, STRING_SIZE);
@@ -184,7 +184,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_char)(benchmark::State&
 }
 
 BENCHMARK_DEFINE_F(NodlangFixture, tokenize__some_code_to_graph)(benchmark::State& state) {
-    std::string code = "double a = 10.400012;"
+    bdc::String code = "double a = 10.400012;"
                        "double b = 5.564478;"
                        "if(a>b){"
                        " print(\"a>b\");"
@@ -229,18 +229,18 @@ BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword);
 //
-//BENCHMARK(BM_empty_constructor<std::string>);
+//BENCHMARK(BM_empty_constructor<bdc::String>);
 //BENCHMARK(BM_empty_constructor<string>);
 //BENCHMARK(BM_empty_constructor<String64>);
 //BENCHMARK(BM_empty_constructor<String128>);
 //
-//BENCHMARK(BM_constructor<std::string>)->Range(1, 16);
+//BENCHMARK(BM_constructor<bdc::String>)->Range(1, 16);
 //BENCHMARK(BM_constructor<string>)->Range(1, 16);
 //BENCHMARK(BM_constructor<string8>)->Range(1, 16);
 //BENCHMARK(BM_constructor<string16>)->Range(1, 16);
 //BENCHMARK(BM_constructor<string32>)->Range(1, 16);
 //
-//BENCHMARK(BM_constructor_then_append_a_char<std::string>);
+//BENCHMARK(BM_constructor_then_append_a_char<bdc::String>);
 //BENCHMARK(BM_constructor_then_append_a_char<string>);
 //BENCHMARK(BM_constructor_then_append_a_char<String64>);
 //BENCHMARK(BM_constructor_then_append_a_char<String128>);

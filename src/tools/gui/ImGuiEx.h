@@ -6,7 +6,6 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include "core/Event.h"
-#include "gui/Config.h"
 #include "tools/gui/geometry/Rect.h"
 #include "tools/gui/geometry/Vec2.h"
 #include "tools/gui/geometry/Vec4.h"
@@ -40,24 +39,24 @@ namespace tools
          * TODO: use a low cost method, this one is drawing several rectangle with modulated opacity.
         */
         extern void DrawRectShadow(
-                const Vec2& _topLeftCorner,
-                const Vec2& _bottomRightCorner,
-                float _borderRadius = 0.0f,
-                int _shadowRadius = 10,
-                const Vec2& _shadowOffset = Vec2(),
-                const Vec4& _shadowColor = Vec4(0.0f, 0.0f, 0.0f, 1.f));
+                const Vec2& top_left_corner,
+                const Vec2& bottom_right_corner,
+                float       border_radius = 0.0f,
+                int         shadow_radius = 10,
+                const Vec2& shadow_offset = Vec2(),
+                const Vec4& shadow_color  = Vec4(0.0f, 0.0f, 0.0f, 1.f));
 
         extern void ShadowedText(
-                const Vec2& _offset,
-                const Vec4& _shadowColor,
-                const char *_Format,
+                const Vec2& offset,
+                const Vec4& shadow_color,
+                const char* fmt,
                 ...);
 
         extern void ColoredShadowedText(
-                const Vec2& _offset,
-                const Vec4& _textColor,
-                const Vec4& _shadowColor,
-                const char *_Format,
+                const Vec2& offset,
+                const Vec4& text_color,
+                const Vec4& shadow_color,
+                const char* fmt,
                 ...);
 
         extern void     DrawWire( ImDrawList* draw_list, const Bezier_Curve_Segment_2D& curve, const WireStyle& style, bool* hovered = nullptr);
@@ -80,21 +79,21 @@ namespace tools
         const Action*   MenuItem_for_event_user_code(Event_User_Code, bool selected = false, bool enable = true); // Shorthand to get a given action from the manager and draw a MenuItem from it.
 
         template<typename ...Args>
-        static void DrawHelperEx(float _alpha, const char* _Format, Args... args)
+        static void DrawHelperEx(float alpha, const char* fmt, Args... args)
         {
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, _alpha);
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
             ImGui::Text(ICON_FA_QUESTION_CIRCLE);
             ImGui::PopStyleVar();
 
             if( BeginTooltip() )
             {
-                ImGui::Text(_Format, args...);
+                ImGui::Text(fmt, args...);
                 EndTooltip();
             }
         }
 
         template<typename ...Args>
-        static void DrawHelper(const char* _Format, Args... args)
+        static void DrawHelper(const bdc::String _Format, Args... args)
         { DrawHelperEx(0.25f, _Format, args...); } // simple "?" test with a tooltip.
     }
 }

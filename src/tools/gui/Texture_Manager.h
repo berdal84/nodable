@@ -1,7 +1,7 @@
 #pragma once
 
 #include <map>
-#include <string>
+#include "bdc/String.hpp"
 #include "tools/core/File_System.h"
 
 namespace tools
@@ -11,7 +11,7 @@ namespace tools
 
     struct Texture_Manager
     {
-        std::map<std::string, Texture*> texture_by_absolute_path;
+        std::map<bdc::String, Texture*> texture_by_absolute_path;
     };
 
     Texture_Manager* texture_manager_init();

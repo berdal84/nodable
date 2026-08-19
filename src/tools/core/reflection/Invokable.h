@@ -185,7 +185,7 @@ namespace tools
         static_assert( std::is_function_v<FunctionT> );
         static_assert( !std::is_member_function_pointer_v<FunctionT> );
 
-        Invokable_Static_Function(const char* _name, const FunctionT* _function_pointer)
+        Invokable_Static_Function(const bdc::String _name, const FunctionT* _function_pointer)
         : m_function_pointer( _function_pointer )
         {
             ASSERT( m_function_pointer );
@@ -217,7 +217,7 @@ namespace tools
         Method_Type                m_method_pointer;
 
     public:
-        Invokable_Method(const char* _name, Method_Type _method_pointer )
+        Invokable_Method(const bdc::String _name, Method_Type _method_pointer )
             : m_method_pointer( _method_pointer )
             , m_method_signature(Function_Descriptor::create<Method_Type>(_name) )
         { ASSERT( m_method_pointer ); }

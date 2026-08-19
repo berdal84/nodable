@@ -18,7 +18,7 @@ namespace testing
         {
             // Override app label with test name
             const TestInfo* test_info = ::testing::UnitTest::GetInstance()->current_test_info();
-            std::string label = "Test | ";
+            bdc::String label = "Test | ";
             label += test_info->test_suite_name();
             label += " - ";
             label += test_info->name();

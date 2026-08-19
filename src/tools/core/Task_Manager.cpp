@@ -22,7 +22,7 @@ Task_Manager* tools::task_manager_init(const Task_Manager::Config& config)
 {
     VERIFY(g_task_manager == nullptr, "Did you initialize twice? OR fogot to shutdown?");
     VERIFY(config.max_capacity >= config.reserve_size, "[tools::init_task_manager] can't reserve more space than capacity!" );
-    g_task_manager = new Task_Manager();
+    g_task_manager = bdc::memory_new<Task_Manager>();
     g_task_manager->tasks.reserve(config.reserve_size );
     return g_task_manager;
 }

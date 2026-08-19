@@ -1,10 +1,8 @@
 #pragma once
 
-#include "core/Types.h"
+#include "bdc/Types.hpp"
 #include "ndbl/gui/View.h"
 #include "tools/core/reflection/GETTERS_SETTERS.h"
-#include "tools/core/Component.h"  // base class
-
 #include "Node_View.h"
 #include "tools/core/State_Machine.h"
 #include "Node_Search_Input.h"
@@ -12,8 +10,8 @@
 namespace ndbl
 {
     // forward declarations
-    class  Nodable;
-    class  Graph;
+    struct Nodable;
+    struct Graph;
     struct Node_View_Constraint;
     using  tools::Vec2;
 
@@ -25,11 +23,8 @@ namespace ndbl
         Graph_View_Flag_NEEDS_TO_FRAME_CONTENT  = 1 << 1
     };
 
-    struct Graph_View : public tools::Component<Graph>
+    struct Graph_View
     {
-	    Graph_View();
-		~Graph_View();
-
         Graph_View_Flags                    flags = 0;
         tools::Simple_Signal                signal_change;
         Node_Search_Input                   node_search_input;
@@ -40,10 +35,11 @@ namespace ndbl
         tools::State_Machine                state_machine;
         tools::Vec2                         state_roi_start_pos;
         tools::Vec2                         state_roi_end_pos;   
-        
-        GETTER(Graph*, graph, entity);
+        Graph*                              graph;
     };
-
+    
+    void    graphview_init(Graph_View* view, Graph* owner);
+    void    graphview_deinit(Graph_View*);
     void    graphview_update(Graph_View*, float dt);
     bool    graphview_draw(Graph_View*, float dt);
     bool    graphview_has_an_active_tool(const Graph_View*);

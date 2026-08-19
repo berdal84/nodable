@@ -1,5 +1,6 @@
 #pragma once
-#include "Types.h"
+#include "bdc/Types.hpp"
+#include "bdc/String.hpp"
 #include <cstring>
 
 namespace tools
@@ -27,7 +28,7 @@ namespace tools
 
     struct Event_Data__Window
     {
-        const char* imgui_id;
+        const bdc::String imgui_id;
     };
 
     typedef u16_t Event_User_Code;

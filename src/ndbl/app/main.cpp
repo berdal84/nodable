@@ -2,7 +2,7 @@
 
 int main(int argc, char *argv[])
 {
-    ndbl::init_reflection_with_gui();
+    ndbl::init_with_gui();
 
     TOOLS_try
     {

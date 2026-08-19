@@ -23,7 +23,7 @@ tools::App_State* tools::app_state()
 void tools::app_init(App_State* app)
 {
     // Create and initialize a view
-    auto* view = new App_View_State();
+    auto* view = bdc::memory_new<App_View_State>();
     appview_init(view, app);
     app->flags |= App_Flag_OWNS_VIEW_MEMORY;
 

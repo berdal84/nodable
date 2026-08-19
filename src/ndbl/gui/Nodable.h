@@ -12,7 +12,7 @@ namespace tools
 namespace ndbl
 {
     // forward declarations
-    class Nodlang;
+    class Language;
     struct File;
 
     struct App_State
@@ -20,7 +20,6 @@ namespace ndbl
         tools::App_State    base;
         Config*             config              = nullptr;
         File*               current_file        = nullptr;
-        Nodlang*            language            = nullptr;
         u8_t                untitled_file_count = 0;
         std::vector<File*>  files;
         std::vector<File*>  files_to_delete;

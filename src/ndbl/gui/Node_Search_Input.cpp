@@ -59,43 +59,30 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Inp
             continue;
 
         // Compatible return type?
-        if ( !event_data->function_descriptor->return_type()->equals( dragged_slot->property_type() ) )
+        if ( !event_data->function_descriptor->return_type->equals( dragged_slot->property_type() ) )
             continue;
 
         context_menu->items_with_compatible_signature.push_back(i);
     }
 }
 
-template<typename charT>
-struct CaseInsensitiveEqual
-{
-    const std::locale& locale;
-    bool operator()(charT ch1, charT ch2)
-    {
-        return std::toupper(ch1, locale) == std::toupper(ch2, locale);
-    }
-};
-
-template<typename T>
-bool CaseInsensitiveFind(const T& str1, const T& str2, const std::locale& loc = std::locale())
-{
-    return std::search(str1.begin(), str1.end(),
-                       str2.begin(), str2.end(),
-                       CaseInsensitiveEqual<typename T::value_type>{loc}) != str1.end();
-}
-
 void ndbl::_nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_Input* context_menu, Node_Slot_View* _dragged_slot, size_t _limit )
 {
-    std::string search{context_menu->search_input_value}; // FindCaseInsensitive takes a std::string
+    bdc::String search{context_menu->search_input_value}; // FindCaseInsensitive takes a bdc::String
     context_menu->items_matching_search.clear();
     for ( size_t i : context_menu->items_with_compatible_signature )
     {
-        if( !CaseInsensitiveFind(context_menu->items[i].label, search) )
+        bdc::String found = bdc::string_case_insensitive_find( context_menu->items[i].label, search);
+        if( !found.empty() )
+        {
             continue;
+        }
 
         context_menu->items_matching_search.push_back(i);
         if ( context_menu->items_matching_search.size() == _limit )
+        {
             break;
+        }
     }
 }
 

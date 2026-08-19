@@ -1,5 +1,6 @@
 #pragma once
 #include "Asserts.h"
+#include <cstddef>
 
 namespace tools
 {
@@ -21,8 +22,8 @@ namespace tools
         using Iterator       = Array_Iterator<ElementT>;
         using Iterator_Const = Array_Iterator<const ElementT>;
 
-        u16_t    size = {};
-        ElementT data[CAPACITY] = {};
+        u16_t    size;
+        ElementT data[CAPACITY];
 
         bool empty() const
         { return size == 0; }
@@ -30,11 +31,25 @@ namespace tools
         constexpr u32_t capacity() const
         { return CAPACITY; }
 
-        void push_back(ElementT elem)
+        ElementT& back()
+        {
+            ASSERT(size > 0);
+            return data[size-1];
+        }
+
+        const ElementT& back() const
+        {
+            ASSERT(size > 0);
+            return data[size-1];
+        }
+
+        ElementT& push_back(const ElementT& elem_to_push)
         {
             ASSERT(size < CAPACITY);
-            data[size] = elem;
-            ++size;
+            ElementT& elem = data[size];
+            elem = elem_to_push;
+            size++;
+            return elem;
         }
 
         const ElementT& operator[](u16_t index) const
@@ -64,7 +79,6 @@ namespace tools
         void resize(u16_t new_size)
         {
             ASSERT(new_size <= CAPACITY);
-            ASSERT(new_size > size);
             size = new_size;
         }
 

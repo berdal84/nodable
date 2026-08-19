@@ -1,10 +1,10 @@
 #pragma once
 #include <filesystem>
-#include <string>
+#include "bdc/String.hpp"
 
 namespace tools
 {
-    // Wraps a std::filesystem object as a multi-platform interface (std::string under linux is super permissive, but it does not compiles on MSVC..)
+    // Wraps a std::filesystem object as a multi-platform interface (bdc::String under linux is super permissive, but it does not compiles on MSVC..)
     class Path
     {
     public:
@@ -12,15 +12,20 @@ namespace tools
         Path()
         : m_path()
         {}
+        
         Path(const char* str)
         : m_path(str)
         {}
+
+        Path(const bdc::String& str)
+        : m_path(str.c_str())
+        {}
+
         Path(const std::filesystem::path& str)
         : m_path(str)
         {}
 
-        const std::filesystem::path::value_type* c_str()const; // Not compatible with "const char*" on WIN32
-        std::string  string()const;
+        const char*  c_str()const;
         bool         is_absolute() const;
         bool         is_relative() const;
         Path         filename() const;
@@ -43,7 +48,7 @@ namespace tools
         static bool  create_directories(const Path&);
         static Path  get_executable_path();            // Get the executable directory absolute path
         static Path  absolute(const Path &_path);
-        static Path  get_asset_path(const char* _relative_path); // return a valid path (absolute or relative depending platform)
+        static Path  get_asset_path(const bdc::String _relative_path); // return a valid path (absolute or relative depending platform)
 
     private:
         std::filesystem::path m_path;

@@ -2,7 +2,7 @@
 
 #include "core/Event.h"
 #include "core/Graph.h"
-#include "core/Types.h"
+#include "bdc/Types.hpp"
 #include "ndbl/gui/View.h"
 #include "tools/core/reflection/Type_Descriptor.h"
 #include "tools/gui/geometry/Vec2.h"

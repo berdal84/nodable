@@ -46,7 +46,7 @@ namespace ndbl
 
     // extra ImGui-related tools
     
-    void TreeNode_Scope(const char* title, ndbl::Scope*);
+    void TreeNode_Scope(const bdc::String& title, ndbl::Scope*);
     void TreeNode_ScopeContent(ndbl::Scope*);
     void TreeNode_Node(ndbl::Node*);
 }

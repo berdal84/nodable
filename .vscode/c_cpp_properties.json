@@ -23,7 +23,8 @@
                 "NDBL_DESKTOP",
                 "SDL_MAIN_HANDLED",
                 "NOMINMAX",
-                "__PRFCHWINTRIN_H" 
+                "__PRFCHWINTRIN_H",
+                "BDC_IMPLEMENTATION" 
             ],
             "windowsSdkVersion": "10.0.26100.0",
             "cStandard": "c17",

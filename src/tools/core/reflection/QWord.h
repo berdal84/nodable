@@ -1,10 +1,11 @@
 #pragma once
 
-#include <string>
+#include "bdc/String.hpp"
 #include <cstring> // for memset
 #include <cassert>
+#include <type_traits>
 
-#include "tools/core/Types.h"
+#include "bdc/Types.hpp"
 #include "Union.h"
 
 namespace tools
@@ -32,8 +33,8 @@ namespace tools
 
         QWord() { reset(); }
         void reset() { memset(this, 0, sizeof(*this) ); }
-        [[nodiscard]] std::string        to_string()const { return QWord::to_string(*this); }
-        [[nodiscard]] static std::string to_string(const QWord&);
+        [[nodiscard]] bdc::String        to_string()const { return QWord::to_string(*this); }
+        [[nodiscard]] static bdc::String to_string(const QWord&);
 
         template<typename T, std::enable_if_t<std::is_fundamental_v<T>, bool> = 0>
         explicit operator T() const

@@ -39,3 +39,6 @@ _screenshots/
 
 # Generate by rake
 compile_commands.json
+
+# temp binaries
+a.out

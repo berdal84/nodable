@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <xxhash/xxhash64.h>
 
-#include "Types.h"
+#include "bdc/Types.hpp"
 
 namespace tools
 {

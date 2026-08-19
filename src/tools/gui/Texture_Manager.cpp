@@ -4,6 +4,7 @@
 #include <utility>
 
 #include "Texture.h"
+#include "bdc/Allocators.hpp"
 #include "tools/core/Log.h"
 #include "tools/core/Asserts.h"
 
@@ -22,7 +23,7 @@ namespace tools
 tools::Texture_Manager* tools::texture_manager_init()
 {
     ASSERT(g_texture_manager == nullptr);
-    g_texture_manager = new Texture_Manager();
+    g_texture_manager = bdc::memory_new<Texture_Manager>();
     return g_texture_manager;
 }
 
@@ -46,7 +47,7 @@ tools::Texture* tools::texture_manager_load(const Path& path)
     VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
 
     // Return if already exists
-    auto tex = g_texture_manager->texture_by_absolute_path.find(path.string());
+    auto tex = g_texture_manager->texture_by_absolute_path.find(path.c_str());
     if (tex != g_texture_manager->texture_by_absolute_path.end() )
         return tex->second;
 
@@ -58,21 +59,25 @@ bool tools::texture_manager_release_all()
     VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
 
     bool success = true;
-    for( const auto& [key, texture] : g_texture_manager->texture_by_absolute_path )
+    for( auto pair : g_texture_manager->texture_by_absolute_path )
     {
+        bdc::String path    = pair.first;
+        Texture*    texture = pair.second;
+
         if( texture->gl_handler ) // is zero when texture is not loaded to GPU
         {
             glDeleteTextures(1, &texture->gl_handler);
             if( GL_NO_ERROR != glGetError())
             {
                 success = false;
-                TOOLS_LOG(tools::Verbosity_Warning, "Texture_Manager", "Unable to release: %s (code: %i)\n", key.c_str(), glGetError());
+                TOOLS_LOG(tools::Verbosity_Warning, "Texture_Manager", "Unable to release: %s (code: %i)\n", path.c_str(), glGetError());
             }
             else
             {
-                TOOLS_LOG(tools::Verbosity_Diagnostic, "Texture_Manager", "Released %s\n", key.c_str());
+                TOOLS_LOG(tools::Verbosity_Diagnostic, "Texture_Manager", "Released %s\n", path.c_str());
             }
         }
+        bdc::string_release(path);
         delete texture;
     }
     g_texture_manager->texture_by_absolute_path.clear();
@@ -81,9 +86,9 @@ bool tools::texture_manager_release_all()
 
 tools::Texture* tools::_texture_manager_load_png_to_gpu(const Path &path)
 {
-    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
+    Texture_Manager* texture_manager = tools::texture_manager();
     
-    auto* texture = new Texture();
+    auto* texture = bdc::memory_new<Texture>();
 
     // 1. Load png file to Texture (RAM only)
     int error = _texture_manager_load_png(path, texture);
@@ -103,7 +108,7 @@ tools::Texture* tools::_texture_manager_load_png_to_gpu(const Path &path)
         return nullptr;
     }
 
-    g_texture_manager->texture_by_absolute_path.emplace(path.string(), texture);
+    texture_manager->texture_by_absolute_path.emplace(bdc::string_copy(path.c_str()), texture);
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Texture_Manager", "File loaded to GPU: %s\n", path.c_str());
 
     return texture;
@@ -113,7 +118,7 @@ int tools::_texture_manager_load_png(const Path& path, Texture* texture)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Texture_Manager", "Loading PNG from disk %s ...\n", path.c_str());
     std::vector<unsigned char> buffer;
-    unsigned error = lodepng::load_file(buffer, path.string() ); //load the image file with given filename
+    unsigned error = lodepng::load_file(buffer, path.c_str() ); //load the image file with given filename
     if (error) {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "Texture_Manager", "Error: %i %s\n", error, lodepng_error_text(error) );
         return 1;

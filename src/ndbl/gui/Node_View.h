@@ -1,11 +1,10 @@
 #pragma once
 
-#include <string>
+#include "bdc/String.hpp"
 #include <unordered_map>
 
 #include "gui/Config.h"
 #include "gui/geometry/Spatial_Node.h"
-#include "tools/core/Component.h"// base class
 #include "tools/core/reflection/GETTERS_SETTERS.h"
 #include "tools/gui/geometry/Box_2D.h"
 #include "tools/gui/View_Flags.h"
@@ -16,12 +15,12 @@
 namespace ndbl
 {
     // forward declaration
-    class Node;
-    class Graph;
-    class Scope_View;
+    struct Node;
+    struct Graph;
+    struct Scope_View;
     struct Node_Slot;
     struct Node_Slot_View;
-    class Graph_View;
+    struct Graph_View;
 
     /**
      * Enum to define some color types
@@ -53,7 +52,7 @@ namespace ndbl
         Property_Category_COUNT
     };
 
-    struct Node_View : public tools::Component<Node>
+    struct Node_View
 	{
         tools::Box_2D                               shape;
         tools::View_Flags                           flags  = 0;
@@ -72,19 +71,18 @@ namespace ndbl
         Scope_View*                                 internal_scopeview      = nullptr;
         float                                       opacity                 = 1.f;
         bool                                        is_expanded             = true;
+        Node*                                       node;
 
-        Node_View();
-		~Node_View() override;
-        
-        GETTER(Node*               , node        , entity);
         GETTER(tools::Spatial_Node&, spatial_node, shape.spatial_node);
     };
 
+    void                    nodeview_init(Node_View* view, Node* owner);
+    void                    nodeview_deinit(Node_View* view);
     std::vector<Node_View*> nodeview_get_adjacent(const Node_View*, Node_Slot::Flags);
     bool                    nodeview_draw(Node_View*);
     void                    nodeview_update(Node_View*, float);
     void                    nodeview_arrange_recursively(Node_View*, bool smoothly = true);
-    std::string             nodeview_get_label(const Node_View*);
+    bdc::String             nodeview_get_label(const Node_View*);
     inline tools::Rect      nodeview_get_rect(const Node_View* node_view, tools::Space space = tools::WORLD_SPACE) { return node_view->shape.rect(space); }
     tools::Rect             nodeview_get_rect_ex(const Node_View*, tools::Space, Node_View_Flags);
     void                    nodeview_set_visible_recursively(Node_View*, bool);

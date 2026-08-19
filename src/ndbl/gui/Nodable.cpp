@@ -63,14 +63,15 @@ ndbl::App_State* ndbl::app_state()
 
 ndbl::App_State* ndbl::app_init()
 {
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "init ...\n");
+    TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "ndbl::app_init() ...\n");
 
     // Expose a global pointer
     ASSERT(g_app == nullptr);
-    g_app = new App_State();
+    g_app = bdc::memory_new<App_State>();
 
     // Initialize config (must be done first)
     auto* cfg = config_init();
+    g_app->config     = cfg;
 
     // Create and init App_View
     auto* view = ndbl::appview_init();   
@@ -78,8 +79,8 @@ ndbl::App_State* ndbl::app_init()
     // Init App
     tools::app_init_ex(&g_app->base, &view->base, cfg->tools_cfg ); // the pointers are owned by this class, base app just use them.
     
-    g_app->language   = init_language();
-    g_app->config     = cfg;
+    language_init();
+
 
     // Init manager(s)
     ndbl::command_manager_init();
@@ -111,7 +112,7 @@ void ndbl::app_shutdown()
 
     // Shutdown managers & co.
     ndbl::command_manager_shutdown();
-    ndbl::shutdown_language(app->language);
+    ndbl::language_shutdown();
     tools::app_shutdown();
     ndbl::appview_shutdown();
     ndbl::config_shutdown();
@@ -124,6 +125,7 @@ void ndbl::app_shutdown()
 
 void ndbl::app_do_frame()
 {
+    bdc::temp_allocator_buffer_reset(); // the intend of a temporary allocator, is to use data quickly after allocation, we want to clear that buffer at the begining of each frame.
     app_update();
     app_draw();
 }
@@ -150,7 +152,7 @@ void ndbl::app_update()
     // Delete flagged files
     for( File* file : app->files_to_delete )
     {
-        TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file_filename(file).c_str());
+        TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file_name(file) );
         file_deinit(file);
         delete file;
     }
@@ -171,7 +173,7 @@ void ndbl::app_update()
 
     if ( app->current_file )
     {
-        graph_view = componentbag_get<Graph_View>(&app->current_file->graph->component_bag); // TODO: should be included in the event?
+        graph_view = app->current_file->graph->view; // Q&A: Should be included in the event? No, because a event applies on current context, adnd the history can mutate the context via Commands.
     } 
 
     while( (event = event_manager_pop_event()) )
@@ -268,7 +270,6 @@ void ndbl::app_update()
 
             case Event_Type_RESET_GRAPH_VIEW:
             {
-                Graph_View* graph_view = graph_component<Graph_View>(app->current_file->graph);
                 graph_view->flags |= Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
                 break;
             }
@@ -296,8 +297,8 @@ void ndbl::app_update()
                 {
                     switch ( selected_item.type )
                     {
-                        case View_Type_NODE:    { graph_flag_node_to_delete(selected_item.nodeview->node(), Graph_Flag_NONE);                       break; }
-                        case View_Type_SCOPE:   { graph_flag_node_to_delete(selected_item.scopeview->scope->node(), Graph_Flag_ALLOW_SIDE_EFFECTS); break; }
+                        case View_Type_NODE:    { graph_flag_node_to_delete(selected_item.nodeview->node, Graph_Flag_NONE);                       break; }
+                        case View_Type_SCOPE:   { graph_flag_node_to_delete(selected_item.scopeview->scope->node, Graph_Flag_ALLOW_SIDE_EFFECTS); break; }
                     }
                 }
                 break;
@@ -328,9 +329,9 @@ void ndbl::app_update()
                 // Append all the successors to the selection
                 for(View& selected_item : graph_view->selection )
                     if (selected_item.type == View_Type_NODE)
-                        for (Node* _successor : selected_item.nodeview->node()->flow_outputs() )
-                            if (Node_View* _successor_view = node_component<Node_View>(_successor) )
-                                view_selection_add( &graph_view->selection, _successor_view );
+                        for (Node* successor_node : selected_item.nodeview->node->flow_outputs() )
+                            if ( successor_node->view )
+                                view_selection_add( &graph_view->selection, successor_node->view );
                 break;
             }
 
@@ -399,17 +400,16 @@ void ndbl::app_update()
 
                 // 2) clear selection and select the new node
                 //    TODO: replace selection (from current to the new_node's view)
-                Node_View* view = node_component<Node_View>(new_node);
-                if ( view != nullptr )
+                if ( new_node->view )
                 {
                     View_Selection new_selection;
-                    view_selection_add(&new_selection, view);
+                    view_selection_add(&new_selection, new_node->view);
 
                     Command cmd_selection_change = command_selection_change(&new_selection);
                 }
 
                 // 3) Set Node_View position
-                spatialnode_set_position(&view->shape.spatial_node, event_data->desired_screen_pos, WORLD_SPACE);
+                spatialnode_set_position(&new_node->view->shape.spatial_node, event_data->desired_screen_pos, WORLD_SPACE);
 
                 // 4) Connect the new node to the code flow if a slot is being dragged
                 if ( Node_Slot_View* slot_view = event_data->active_slotview )
@@ -434,9 +434,10 @@ void ndbl::app_update()
                     // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
                     if (node_is_instruction(out->node ) && out->type() == Node_Slot::Flag_TYPE_FLOW )
                     {
-                        std::string buffer = out->node->suffix.string();
-                        if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
+                        if ( bdc::string_rfind( out->node->suffix.string(), '\n') == bdc::String::invalid_pos )
+                        {
                             out->node->suffix.suffix_push_back("\n");
+                        }
                     }
                 }
 
@@ -471,7 +472,7 @@ File* ndbl::app_open_file(const tools::Path& _path)
 {
     auto app = app_state();
 
-    File* file = new File();
+    File* file = bdc::memory_new<File>();
     file_init(file);
     
     // Currently, we rely on the LanguageDefinition provided by the text editor to perform syntax highlighting
@@ -510,7 +511,7 @@ void ndbl::app_save_file(File* file)
 
 	if ( !file_write(file, file->path) )
     {
-        TOOLS_LOG(tools::Verbosity_Error, "ndbl::App", "Unable to save %s (%s)\n", file_filename(file).c_str(), file->path.c_str());
+        TOOLS_LOG(tools::Verbosity_Error, "ndbl::App", "Unable to save %s (%s)\n", file_name(file), file->path.c_str());
         return;
     }
     TOOLS_LOG(tools::Verbosity_Message, "ndbl::App", "File saved: %s\n", file->path.c_str());
@@ -570,17 +571,19 @@ void ndbl::app_reset_current_graph()
     app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
 }
 
-File*ndbl::app_new_file()
+File* ndbl::app_new_file()
 {
+    using namespace bdc;
+
     auto app = app_state();
 
     app->untitled_file_count++;
 
-    String_32 name;
-    name.append_fmt("Untitled_%i.cpp", app->untitled_file_count);
-    auto* file = new File();
+    bdc::String temp_name = bdc::string_printf( bdc::temp_allocator(), "Untitled_%i.cpp", app->untitled_file_count);
+    
+    auto* file = bdc::memory_new<File>();
     file_init(file);
-    file->path = name.c_str();
+    file->path = temp_name.c_str();
 
     return app_add_file(file);
 }
