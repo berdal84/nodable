@@ -9,7 +9,7 @@ namespace bdc
         return *this;
     }
 
-    const char* String::c_str() const
+    const i8_t* String::c_str() const
     {
         return string_cstr(*this);
     }
@@ -20,7 +20,7 @@ namespace bdc
         //printf( "b: '%s' (size: %i)\n", b.c_str(), b.size );
 
         u32_t alloc_size = a.size + b.size + 1 ; // I am unsure this is a good idea, but I prefer to allocate 1 byte extra for null-termination
-        char* alloc_data =  static_cast<char*>(allocator->proc_malloc( alloc_size)); 
+        i8_t* alloc_data = memory_malloc_array<i8_t>( alloc_size ); 
 
         String result;
         result.data = alloc_data;
@@ -32,7 +32,7 @@ namespace bdc
 
         alloc_data[alloc_size-1] = '\0';
 
-        return (Array<char>)result;
+        return result;
     }
 
     void string_reset(String& str)
@@ -48,7 +48,7 @@ namespace bdc
 
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    u32_t string_rfind(const String& str, char c)
+    u32_t string_rfind(const String& str, i8_t c)
     {
         u32_t cursor = str.size-1;
         while ( cursor != String::String::invalid_pos && str.data[cursor] != c)
@@ -112,7 +112,7 @@ namespace bdc
         return string_lsplit(str, index);
     }
 
-    const char* string_cstr(const String& str)
+    const i8_t* string_cstr(const String& str)
     {
         if ( (str.flags & String_Flags_IS_NULL_TERMINATED) || str.data == nullptr )
         {
@@ -134,7 +134,7 @@ namespace bdc
 
     String& string_copy(String& target, const String& source, Allocator* copy_allocator )
     {
-        target.data = static_cast<char*>(copy_allocator->proc_malloc(source.size));
+        target.data = memory_malloc_array<i8_t>(source.size, copy_allocator);
         target.size = source.size;
 
         std::memcpy(target.data, source.data, source.size + 1); // null terminated

@@ -50,11 +50,6 @@ std::vector<ndbl::Node*> ndbl::node_get_adjacent_nodes(const Node* node, Node_Sl
     // return node->adjacent_nodes_cache[flags];
 }
 
-ndbl::Node::Node()
-{
-    #warning TODO: write zeros on tagged union?
-}
-
 ndbl::Node::Node(const Node& other)
 {
    *this = other;

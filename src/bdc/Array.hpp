@@ -16,8 +16,8 @@ namespace bdc
 
         static constexpr u32_t npos = (u32_t)-1; // invalid position, depends on context
 
-        Elem_Type*  data;
-        u32_t       size;
+        u32_t size; // size must be 1st to be the same type as Inlined_Array
+        i8_t* data;
 
         Array()             = default;
         Array(const Array&) = default;
@@ -25,7 +25,7 @@ namespace bdc
 
         Array(Elem_Type* _data, u32_t _size): data(_data), size(_size) {}
         Array(const std::initializer_list<Elem_Type>& list)
-        : data( const_cast<Elem_Type*>(&*list.begin()) )
+        : data( const_cast<i8_t*>(&*list.begin()) )
         , size( list.size() )
         {}
             
@@ -46,13 +46,16 @@ namespace bdc
     template<typename Elem_Type>
     Elem_Type array_join(const Array<Elem_Type>& array, const Elem_Type& separator, Allocator* string_allocator = temp_allocator() );
 
+    //
+    // Resizable_Array<T> is like a Array<T> memory wise, but is aware of its buffer capacity and allocator.
+    //
     template<typename _Elem_Type>
     struct Resizable_Array
     {
         using Elem_Type = _Elem_Type;
 
-        Elem_Type*  data;
-        u32_t       size;
+        u32_t       size; // size must be 1st to be the same type as Inlined_Array
+        i8_t*       data;
         u32_t       capacity;
         Allocator*  allocator;
             
@@ -80,28 +83,96 @@ namespace bdc
         // inline operator const Array<Elem_Type>& () const { return *reinterpret_cast<Array<Elem_Type>*>(this); }
     };
 
+    //
+    // Inlined_Array is like a fixed-capacity Array<T> that is aware of its (fixed-)capacity.
+    //
+    template<typename Elem_Type, u32_t CAPACITY>
+    struct Inlined_Array
+    {
+        u32_t   size;
+        i8_t    data[CAPACITY]; // data must be 2nd to match with other arrays
+
+        constexpr u32_t capacity() const
+        { return CAPACITY; }
+
+        inline const Elem_Type& operator[](u32_t pos) const
+        {
+            assert(pos < size && "out of bounds");
+            return *(((Elem_Type*)data) + pos);
+        }
+
+        inline Elem_Type& operator[](u32_t pos)
+        {
+            assert(pos < size && "out of bounds");
+            return *(((Elem_Type*)data) + pos);
+        }
+    };
+
     // Some templates to deduce if a type is an Hash_Map and get its sub types
     template<typename T>
-    concept Is_Array =
-        (requires(T& t) { []<typename Elem_Type>(Array<Elem_Type>&          ){}(t); }) ||
-        (requires(T& t) { []<typename Elem_Type>(Resizable_Array<Elem_Type>&){}(t); });   
-    template<typename T> using Array_Elem = typename T::Elem_Type;   
+    concept Any_Array_Type =
+        (requires(T& t) {
+            []<typename Elem_Type>(Array<Elem_Type>&){}(t);
+        }) ||
+        (requires(T& t) {
+            []<typename Elem_Type>(Resizable_Array<Elem_Type>&){}(t);
+        }) ||   
+        (requires(T& t) {
+            []<typename Elem_Type, u32_t CAPACITY>(Inlined_Array<Elem_Type, CAPACITY>&  ){}(t);
+        });
 
     // Generic Array API (works on both Array and Resizable_Array)
 
-    template<Is_Array T>
-    inline Array_Elem<T>& array_front(T& a)
+    template<Any_Array_Type T>
+    inline typename T::Elem_Type& array_front(T& arr)
     {
-        assert(a.size);
-        return a[0];
+        assert(arr.size);
+        return arr[0];
     }
 
-    template<Is_Array T>
-    inline Array_Elem<T>& array_back(T& a)
+    template<Any_Array_Type T>
+    inline typename T::Elem_Type& array_back(T& arr)
     {
-        assert(a.size);
-        return a[a.size-1];
+        assert(arr.size);
+        return arr[arr.size-1];
     }
+
+    // Inlined_Array API
+
+    template<typename Elem_Type, u32_t CAPACITY>
+    void array_init(Inlined_Array<Elem_Type, CAPACITY>& arr, u32_t initial_size = 0)
+    {
+        array_resize(arr, initial_size);
+        memset(arr.data, 0, sizeof(arr.data) );
+    }
+
+    template<typename Elem_Type, u32_t CAPACITY>
+    void array_resize(Inlined_Array<Elem_Type, CAPACITY>& arr, u32_t new_size)
+    {
+        assert( new_size <= arr.capacity() );
+        arr.size = new_size;
+    }
+
+    template<typename Elem_Type, u32_t CAPACITY>
+    Elem_Type& array_append(Inlined_Array<Elem_Type, CAPACITY>& arr, const Elem_Type& elem)
+    {
+        assert(arr.size < CAPACITY);
+        return arr[arr.size++] = elem;
+    }
+
+    template<typename Elem_Type, u32_t CAPACITY>
+    Elem_Type array_remove(Inlined_Array<Elem_Type, CAPACITY>& arr, u32_t pos)
+    {
+        assert( pos <= arr.size );
+        Elem_Type removed_elem = arr[pos];
+        for(size_t i = pos; i < arr.size; ++i )
+        {
+            arr[i] = arr[i+1];
+        }
+        arr.size -= 1;
+        return removed_elem;
+    }
+
 
     // Resizable_Array API
 
@@ -150,14 +221,14 @@ namespace bdc
         {
             if( arr.data == nullptr )
             {
-                arr.data = memory_malloc_array<Elem_Type>(new_capacity, arr.allocator);
+                arr.data = memory_malloc_array<i8_t>(new_capacity * sizeof(Elem_Type), arr.allocator);
             }
             else
             {
-                arr.data = memory_realloc_array<Elem_Type>(arr.data, new_capacity, arr.allocator);
+                arr.data = memory_realloc_array(arr.data, new_capacity * sizeof(Elem_Type), arr.allocator);
             }
             assert(arr.data != nullptr);
-            memset( (void*)(arr.data + arr.size), 0, (new_capacity - arr.size) * sizeof(Elem_Type)); // new elements are zero-initialized
+            memset( (void*)(&arr[arr.size]), 0, (new_capacity - arr.size) * sizeof(Elem_Type)); // new elements are zero-initialized
             arr.capacity = new_capacity;
         }        
     }
@@ -175,8 +246,8 @@ namespace bdc
     {
         Resizable_Array<Elem_Type> result{};
         array_resize(result, a.size + b.size);
-        memcpy(result.data, a.data, a.size);
-        memcpy(result.data + a.size, b.data, b.size);
+        memcpy( result.data   , a.data, a.size * sizeof(Elem_Type));
+        memcpy(&result[a.size], b.data, b.size * sizeof(Elem_Type));
 
         return result;
     }

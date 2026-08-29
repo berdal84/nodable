@@ -180,7 +180,7 @@ namespace ndbl
             Node_Slot::Flags,
             std::vector<Node*>>                 adjacent_nodes_cache;
 
-        Node();
+        Node() = delete;
         ~Node();
         Node(const Node&);
         Node& operator=(const Node& other);

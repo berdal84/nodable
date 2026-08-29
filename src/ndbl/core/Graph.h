@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include "bdc/String.hpp"
+#include "bdc/Array.hpp"
 #include <unordered_map>
 #include <vector>
 #include <set>
@@ -31,8 +32,8 @@ namespace ndbl
 	{       
         #define NODE_MAX_COUNT 4096
 
-        bdc::Hash_Map<bdc::String, size_t>         node_index_by_name;
-        tools::Inline_Vector<Node, NODE_MAX_COUNT> nodes;
+        bdc::Hash_Map<bdc::String, size_t>      node_index_by_name;
+        bdc::Inlined_Array<Node, NODE_MAX_COUNT> nodes;
 
         Graph_View*                         view;
         tools::Simple_Signal                signal_reset;

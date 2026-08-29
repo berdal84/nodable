@@ -83,6 +83,8 @@ namespace ndbl
         static const Token s_end_of_instruction;
     };
 
+    static_assert( std::is_trivially_constructible_v<Token>, "Token should be trivially constructible!");
+
     inline Token::Token(Token_Type type)
     : type( type )
     {}
