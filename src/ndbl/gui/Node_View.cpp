@@ -256,7 +256,7 @@ bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)
         {
             if (minimalist)
                 return "";
-            return node_variable_type(nodeview->node )->name();
+            return node_variable_type(nodeview->node)->name;
         }
         case Node_Type_OPERATOR:
         {
@@ -569,7 +569,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
         ImGui::Text(
                 "%s (%s): ",
                 property->name.c_str(),
-                property->type->name().c_str());
+                property->type->name.c_str());
 
         ImGui::SameLine();
         ImGui::Text("(?)");
@@ -584,7 +584,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
     };
 
     ImGui::Text("Name:  \"%s\"", node->name.c_str() );
-    ImGui::Text("Class: \"%s\"", node->get_class()->name().c_str() );
+    ImGui::Text("Class: \"%s\"", node->get_class()->name.c_str() );
 
     // Draw exposed input properties
 

@@ -101,10 +101,10 @@ namespace ndbl
     [[nodiscard]] bdc::String       lang_serialize_type(const Language&, const tools::Type_Descriptor *_type);
     
     bdc::String_Builder&            lang_serialize_graph(const Language&, bdc::String_Builder& out, const Graph* in);
-    const Node_Slot*                lang_serialize_invokable(const Language&, bdc::String_Builder& out, const Node*);
-    bdc::String_Builder&            lang_serialize_invokable_sig(const Language&, bdc::String_Builder& out, const tools::IInvokable*);
-    bdc::String_Builder&            lang_serialize_func_call(const Language&, bdc::String_Builder& out, const tools::Function_Descriptor *_signature, const bdc::Array<Node_Slot*>& inputs);
-    bdc::String_Builder&            lang_serialize_func_sig(const Language&, bdc::String_Builder& out, const tools::Function_Descriptor*);
+    //const Node_Slot*                lang_serialize_invokable(const Language&, bdc::String_Builder& out, const Node*);
+    //bdc::String_Builder&            lang_serialize_invokable_sig(const Language&, bdc::String_Builder& out, const tools::IInvokable*);
+    bdc::String_Builder&            lang_serialize_func_call(const Language&, bdc::String_Builder& out, const tools::Type_Descriptor *_signature, const bdc::Array<Node_Slot*>& inputs);
+    bdc::String_Builder&            lang_serialize_func_sig(const Language&, bdc::String_Builder& out, const tools::Type_Descriptor*);
     bdc::String_Builder&            lang_serialize_input(const Language&, bdc::String_Builder& out, const Node_Slot *_slot, Serialization_Flags _flags = Serialization_Flag_NONE );
     bdc::String_Builder&            lang_serialize_value_out(const Language&, bdc::String_Builder& out, const Node_Slot *slot, Serialization_Flags _flags = Serialization_Flag_NONE );
     bdc::String_Builder&            lang_serialize_node(const Language&, bdc::String_Builder& out, const Node*, Serialization_Flags _flags = Serialization_Flag_NONE);
@@ -121,10 +121,10 @@ namespace ndbl
 
     // General read-only procedures -------------------------------------------------------------------------
 
-    bool                            lang_is_operator(const Language&, const tools::Function_Descriptor*);
+    bool                            lang_is_operator(const Language&, const tools::Type_Descriptor*);
     const tools::Operator*          lang_find_operator(const Language&,  const tools::Operator& op); // op.precedence is ignored in operator== for tools::Operator
     Token_Type                      lang_to_literal_token(const Language&, const tools::Type_Descriptor*);
-    int                             lang_get_precedence(const Language&, const tools::Function_Descriptor*);         // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
+    int                             lang_get_precedence(const Language&, const tools::Type_Descriptor*);         // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
     const tools::Type_Descriptor*   lang_get_type(const Language&, Token_Type _token);                               // Get the type corresponding to a given token_t (must be a type keyword)
 
     // Language management -----------------------------------------------------------------------------------

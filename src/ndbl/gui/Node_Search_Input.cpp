@@ -54,12 +54,12 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Inp
 
         // Compatible with any argument type?
         if ( dragged_slot->allows(Node_Slot::Flag_ORDER_1ST ) &&
-            !event_data->function_descriptor->has_arg_with_type( dragged_slot->property_type() )
+            !event_data->function_type->function_has_arg_with_type( dragged_slot->property_type() )
                 )
             continue;
 
         // Compatible return type?
-        if ( !event_data->function_descriptor->return_type->equals( dragged_slot->property_type() ) )
+        if ( !type_equals( event_data->function_type->function.return_type, dragged_slot->property_type() ) )
             continue;
 
         context_menu->items_with_compatible_signature.push_back(i);

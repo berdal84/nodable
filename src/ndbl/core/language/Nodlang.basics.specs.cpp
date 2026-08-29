@@ -15,12 +15,12 @@ TEST_F(Language_basics, can_get_add_operator_with_short_identifier )
 }
 TEST_F(Language_basics, token_t_to_type)
 {
-    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_bool)  , type::get<bool>());
-    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_double), type::get<double>() );
-    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_i16)   , type::get<i16_t>() );
-    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_int)   , type::get<i32_t>() );
-    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_string), type::get<bdc::String>() );
-    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_any)   , type::get<any>() );
+    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_bool)  , type_get<bool>());
+    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_double), type_get<double>() );
+    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_i16)   , type_get<i16_t>() );
+    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_int)   , type_get<i32_t>() );
+    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_string), type_get<bdc::String>() );
+    EXPECT_EQ(get_language()->get_type(Token_Type_keyword_any)   , type_get<any>() );
 
     EXPECT_EQ(get_language()->get_type(Token_Type_literal_bool), nullptr);
     EXPECT_EQ(get_language()->get_type(Token_Type_literal_double), nullptr);
@@ -31,11 +31,11 @@ TEST_F(Language_basics, token_t_to_type)
 
 TEST_F(Language_basics, type_to_string)
 {
-    EXPECT_EQ(get_language()->serialize_type(type::get<bool>())        , "bool" );
-    EXPECT_EQ(get_language()->serialize_type(type::get<double>())      , "double" );
-    EXPECT_EQ(get_language()->serialize_type(type::get<i16_t>())       , "i16" );
-    EXPECT_EQ(get_language()->serialize_type(type::get<int>())         , "int" );
-    EXPECT_EQ(get_language()->serialize_type(type::get<i32_t>())       , "int" );
-    EXPECT_EQ(get_language()->serialize_type(type::get<bdc::String>()) , "string" );
-    EXPECT_EQ(get_language()->serialize_type(type::get<any>())         , "any" );
+    EXPECT_EQ(get_language()->serialize_type(type_get<bool>())        , "bool" );
+    EXPECT_EQ(get_language()->serialize_type(type_get<double>())      , "double" );
+    EXPECT_EQ(get_language()->serialize_type(type_get<i16_t>())       , "i16" );
+    EXPECT_EQ(get_language()->serialize_type(type_get<int>())         , "int" );
+    EXPECT_EQ(get_language()->serialize_type(type_get<i32_t>())       , "int" );
+    EXPECT_EQ(get_language()->serialize_type(type_get<bdc::String>()) , "string" );
+    EXPECT_EQ(get_language()->serialize_type(type_get<any>())         , "any" );
 }

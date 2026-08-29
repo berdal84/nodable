@@ -156,7 +156,7 @@ void ndbl::_graph_add_node(Graph* graph, Node* node, Scope* scope)
     graph->signal_add_node.emit(node);
     graph->signal_change.broadcast();
 
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name.c_str(), node->get_class()->name().c_str() );
+    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name.c_str(), node->get_class()->name.c_str() );
 }
 
 void ndbl::_graph_add_node_to_index(Graph* graph, Node* node, size_t position)
@@ -249,18 +249,18 @@ ndbl::Node* ndbl::graph_create_variable(Graph* graph, const tools::Type_Descript
 	return node;
 }
 
-ndbl::Node* ndbl::graph_create_function(Graph* graph, const Function_Descriptor* function_descriptor, Scope* scope)
+ndbl::Node* ndbl::graph_create_function(Graph* graph, const Type_Descriptor* function_type, Scope* scope)
 {
     Node* node = _graph_new_node(graph);
-    node_init_as_invokable(node, function_descriptor, Node_Type_FUNCTION);
+    node_init_as_invokable(node, function_type, Node_Type_FUNCTION);
     _graph_add_node(graph, node, scope);
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_operator(Graph* graph, const Function_Descriptor* function_descriptor, Scope* parent_scope)
+ndbl::Node* ndbl::graph_create_operator(Graph* graph, const Type_Descriptor* function_type, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
-    node_init_as_invokable(node, function_descriptor, Node_Type_OPERATOR);
+    node_init_as_invokable(node, function_type, Node_Type_OPERATOR);
     _graph_add_node(graph, node, parent_scope);
     return node;
 }
@@ -308,7 +308,7 @@ void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
     // now graph is abstract
 //    const type* out_type = __out->property->get_type();
 //    const type* in_type  = _in->property->get_type();
-//    EXPECT( type::is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
+//    EXPECT( type_is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
 
     // case 1: merge orphan slot
     if (tail->node == nullptr ) // if dependent is orphan
@@ -584,36 +584,36 @@ ndbl::Node* ndbl::graph_create_node(Graph* graph, const Node_State* node_state, 
 
         case Node_Type_VARIABLE:
         {
-            if ( node_state->function_descriptor->return_type == type::get<bool>() )
+            if ( node_state->function_type->function.return_type == type_get<bool>() )
                 return graph_create_variable_decl<bool>(graph, "b", scope);
 
-            if ( node_state->function_descriptor->return_type == type::get<double>()  )
+            if ( node_state->function_type->function.return_type == type_get<double>()  )
                 return graph_create_variable_decl<double>(graph, "d", scope);
 
-            if ( node_state->function_descriptor->return_type == type::get<int>()  )
+            if ( node_state->function_type->function.return_type == type_get<int>()  )
                 return graph_create_variable_decl<int>(graph, "i", scope);
 
-            if ( node_state->function_descriptor->return_type == type::get<bdc::String>()  )
+            if ( node_state->function_type->function.return_type == type_get<bdc::String>()  )
                 return graph_create_variable_decl<bdc::String>(graph, "str", scope);
 
-            TOOLS_UNREACHABLE("Unexpected function_descriptor!");
+            TOOLS_UNREACHABLE("Unexpected function_type!");
         }
         
         case Node_Type_LITERAL:
         {
-            if ( node_state->function_descriptor->return_type == type::get<bool>()  )
+            if ( node_state->function_type->function.return_type == type_get<bool>()  )
                 return graph_create_literal<bool>(graph, scope);   
 
-            if ( node_state->function_descriptor->return_type == type::get<double>()  )
+            if ( node_state->function_type->function.return_type == type_get<double>()  )
                 return graph_create_literal<double>(graph, scope);
 
-            if ( node_state->function_descriptor->return_type == type::get<int>()  )
+            if ( node_state->function_type->function.return_type == type_get<int>()  )
                 return graph_create_literal<int>(graph, scope);
 
-            if ( node_state->function_descriptor->return_type == type::get<bdc::String>()  )
+            if ( node_state->function_type->function.return_type == type_get<bdc::String>()  )
                 return graph_create_literal<bdc::String>(graph, scope);
 
-            TOOLS_UNREACHABLE("Unexpected function_descriptor!");
+            TOOLS_UNREACHABLE("Unexpected function_type!");
         }
         
         case Node_Type_RETURN:
@@ -623,10 +623,10 @@ ndbl::Node* ndbl::graph_create_node(Graph* graph, const Node_State* node_state, 
 
         case Node_Type_FUNCTION:
         {
-            VERIFY(node_state->function_descriptor != nullptr, "_signature is expected when dealing with functions or operators");
-            if ( lang_is_operator( language(), node_state->function_descriptor ) )
-                return graph_create_operator( graph, node_state->function_descriptor, scope );
-            return graph_create_function( graph, node_state->function_descriptor, scope );
+            VERIFY(node_state->function_type != nullptr, "_signature is expected when dealing with functions or operators");
+            if ( lang_is_operator( language(), node_state->function_type ) )
+                return graph_create_operator( graph, node_state->function_type, scope );
+            return graph_create_function( graph, node_state->function_type, scope );
         }
 
         default:

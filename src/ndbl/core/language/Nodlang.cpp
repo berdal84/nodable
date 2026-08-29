@@ -20,7 +20,6 @@
 #include "core/Node_Slot.h"
 #include "core/Token_Type.h"
 #include "bdc/Types.hpp"
-#include "core/reflection/Invokable.h"
 #include "core/reflection/Operator.h"
 #include "tools/core/Format.h"
 #include "tools/core/Log.h"
@@ -85,17 +84,17 @@ namespace ndbl
 
         language->definition.types =
         {
-            // TODO: instead of using type::get<T>(), I should use a more datadriven option,
-            //       I should be able to do type::get(Token_Type_keyword_bool) for example,
-            //       Or with an indirection level  type::get( token_type_keyword_to_type(Token_Type_keyword_bool) )  
-            { "bool",   Token_Type_keyword_bool,   type::get<bool>()},
-            { "string", Token_Type_keyword_string, type::get<bdc::String>()},
-            { "double", Token_Type_keyword_double, type::get<double>()},
-            { "i16",    Token_Type_keyword_i16,    type::get<i16_t>()},
-            { "int",    Token_Type_keyword_int,    type::get<i32_t>()},
-            { "any",    Token_Type_keyword_any,    type::get<any>()},
+            // TODO: instead of using type_get<T>(), I should use a more datadriven option,
+            //       I should be able to do type_get(Token_Type_keyword_bool) for example,
+            //       Or with an indirection level  type_get( token_type_keyword_to_type(Token_Type_keyword_bool) )  
+            { "bool",   Token_Type_keyword_bool,   type_get<bool>()},
+            { "string", Token_Type_keyword_string, type_get<bdc::String>()},
+            { "double", Token_Type_keyword_double, type_get<double>()},
+            { "i16",    Token_Type_keyword_i16,    type_get<i16_t>()},
+            { "int",    Token_Type_keyword_int,    type_get<i32_t>()},
+            { "any",    Token_Type_keyword_any,    type_get<any>()},
             // we don't really want to parse/serialize that
-            // { "unknown",Token_t::keyword_unknown,type::get<unknown>()},
+            // { "unknown",Token_t::keyword_unknown,type_get<unknown>()},
         };
 
         language->definition.operators =
@@ -140,9 +139,9 @@ namespace ndbl
         for( auto [keyword, token_t, type] : language->definition.types)
         {
             language->keyword_by_token_type.insert({token_t, keyword});
-            language->keyword_by_type_id.insert({type->id(), keyword});
+            language->keyword_by_type_id.insert({type->id, keyword});
             language->token_type_by_keyword.insert({Hash::hash(keyword), token_t});
-            language->token_type_by_type_id.insert({type->id(), token_t});
+            language->token_type_by_type_id.insert({type->id, token_t});
             language->type_descriptor_by_token_type.insert({token_t, type});
         }
 
@@ -326,7 +325,7 @@ namespace ndbl
             TOOLS_DEBUG_LOG(
                 Verbosity_Diagnostic, "Parser", TOOLS_OK " Token %s converted to a Literal %s\n",
                 _token.word_view.c_str(),
-                literal->value->type->name().c_str()
+                literal->value->type->name.c_str()
             );
             literal->value->token = _token;
             return literal->value_out();
@@ -382,10 +381,11 @@ namespace ndbl
         if ( Node_Slot* right = lang_parse_expression(lang, parent_scope, ope->precedence) )
         {
             // Create a function signature according to ltype, rtype and operator word
-            Function_Descriptor type;
-            type.init<any(any, any)>(ope->identifier.c_str());
-            type.args[0].type = _left->property->type;
-            type.args[1].type = right->property->type;
+            Type_Descriptor type;
+            type_init<any(any, any)>(&type);
+            type.name = ope->identifier;
+            type.function.args[0].type = _left->property->type;
+            type.function.args[1].type = right->property->type;
 
             Node* binary_op_node = graph_create_operator( lang.graph, &type, _left->node->scope );
 
@@ -445,9 +445,10 @@ namespace ndbl
         }
 
         // Create a function signature
-        Function_Descriptor type;
-        type.init<any(any)>(operator_token.word_view.c_str());
-        type.args[0].type = out_atomic->property->type;
+        Type_Descriptor type;
+        type_init<any(any)>(&type);
+        type.name = operator_token.word_view;
+        type.function.args[0].type = out_atomic->property->type;
 
         Node* node = graph_create_operator(lang.graph, &type, parent_scope );
         node->invokable_data.identifier_token = operator_token;
@@ -1161,8 +1162,9 @@ namespace ndbl
         std::vector<Node_Slot*> result_slots;
 
         // Declare a new function prototype
-        Function_Descriptor signature;
-        signature.init<any()>(function_identifier );
+        Type_Descriptor function_type;
+        type_init<any()>(&function_type);
+        function_type.name = function_identifier;
 
         bool parsingError = false;
         while (!parsingError && lang.ribbon.can_eat() &&
@@ -1172,7 +1174,7 @@ namespace ndbl
             if ( expression_out )
             {
                 result_slots.push_back( expression_out );
-                signature.push_arg( expression_out->property->type );
+                function_type.function_push_arg( expression_out->property->type );
                 lang.ribbon.eat_if(Token_Type_list_separator);
             }
             else
@@ -1191,7 +1193,7 @@ namespace ndbl
 
 
         // Find the prototype in the language library
-        Node* fct_node = graph_create_function( lang.graph, &signature, parent_scope );
+        Node* fct_node = graph_create_function( lang.graph, &function_type, parent_scope );
 
         for ( int i = 0; i < fct_node->invokable_data.argument_slots.size; i++ )
         {
@@ -1501,7 +1503,7 @@ namespace ndbl
             if ( success )
             {
                 TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Variable declaration: %s %s\n",
-                            variable_node->value->type->name().c_str(),
+                            variable_node->value->type->name.c_str(),
                             identifier_token.word_view.c_str());
                 lang.ribbon.commit();
                 return variable_node->value_out();
@@ -1526,15 +1528,15 @@ namespace ndbl
         if (_node->type == Node_Type_OPERATOR )
         {
             Array<Node_Slot*> args = array_view( _node->invokable_data.argument_slots );
-            int precedence = lang_get_precedence(lang, &_node->invokable_data.func_type);
+            int precedence = lang_get_precedence(lang, &_node->invokable_data.type);
 
-            switch ( _node->invokable_data.func_type.args.size )
+            switch ( _node->invokable_data.type.function.args.size )
             {
                 case 2:
                 {
                     // Left part of the expression
                     {
-                        const Function_Descriptor* l_func_type = node_get_connected_function_type(_node, LEFT_VALUE_PROPERTY);
+                        const Type_Descriptor* l_func_type = node_get_connected_function_type(_node, LEFT_VALUE_PROPERTY);
                         bool needs_braces = l_func_type && lang_get_precedence(lang, l_func_type) < precedence;
                         Serialization_Flags flags = Serialization_Flag_RECURSE
                                             | needs_braces * Serialization_Flag_WRAP_WITH_BRACES ;
@@ -1547,7 +1549,7 @@ namespace ndbl
 
                     // Right part of the expression
                     {
-                        const Function_Descriptor* r_func_type = node_get_connected_function_type(_node, RIGHT_VALUE_PROPERTY);
+                        const Type_Descriptor* r_func_type = node_get_connected_function_type(_node, RIGHT_VALUE_PROPERTY);
                         bool needs_braces = r_func_type && lang_get_precedence(lang, r_func_type) < precedence;
                         Serialization_Flags flags = Serialization_Flag_RECURSE
                                             | needs_braces * Serialization_Flag_WRAP_WITH_BRACES ;
@@ -1573,15 +1575,15 @@ namespace ndbl
         }
         else
         {
-            lang_serialize_func_call(lang, out, &_node->invokable_data.func_type, array_view(_node->invokable_data.argument_slots) );
+            lang_serialize_func_call(lang, out, &_node->invokable_data.type, array_view(_node->invokable_data.argument_slots) );
         }
 
         return _node->value_out();
     }
 
-    bdc::String_Builder& lang_serialize_func_call(const Language& lang, bdc::String_Builder& out, const Function_Descriptor *_signature, const bdc::Array<Node_Slot*>& inputs)
+    bdc::String_Builder& lang_serialize_func_call(const Language& lang, bdc::String_Builder& out, const Type_Descriptor *function_type, const bdc::Array<Node_Slot*>& inputs)
     {
-        string_builder_append( out, _signature->get_identifier() );
+        string_builder_append( out, function_type->name );
         
         string_builder_append( out, lang_serialize_token_type_default(lang, Token_Type_parenthesis_open));
 
@@ -1599,21 +1601,16 @@ namespace ndbl
         return out;
     }
 
-    bdc::String_Builder& lang_serialize_invokable_sig(const Language& lang, bdc::String_Builder& out, const IInvokable* _invokable)
+    bdc::String_Builder &lang_serialize_func_sig(const Language& lang, bdc::String_Builder& out, const Type_Descriptor *function_type)
     {
-        return lang_serialize_func_sig(lang, out, _invokable->get_sig());
-    }
-
-    bdc::String_Builder &lang_serialize_func_sig(const Language& lang, bdc::String_Builder& out, const Function_Descriptor *_signature)
-    {
-        string_builder_append( out, lang_serialize_type(lang, _signature->return_type));
+        string_builder_append( out, lang_serialize_type(lang, function_type->function.return_type));
         string_builder_append( out, " ");
-        string_builder_append( out, _signature->get_identifier());
+        string_builder_append( out, function_type->name );
         string_builder_append( out, lang_serialize_token_type_default(lang, Token_Type_parenthesis_open) );
 
-        for (auto it = _signature->args.begin(); it != _signature->args.end(); it++)
+        for (auto it = function_type->function.args.begin(); it != function_type->function.args.end(); it++)
         {
-            if (it != _signature->args.begin())
+            if (it != function_type->function.args.begin())
             {
                 string_builder_append( out, lang_serialize_token_type_default(lang, Token_Type_list_separator));
                 string_builder_append( out, " ");
@@ -1899,12 +1896,12 @@ namespace ndbl
         return nullptr;
     }
 
-    bool lang_is_operator(const Language& lang, const Function_Descriptor* descriptor)
+    bool lang_is_operator(const Language& lang, const Type_Descriptor* type)
     {
-        switch ( descriptor->args.size )
+        switch ( type->function.args.size )
         {
-            case 1:     return lang_find_operator( lang, Operator{ descriptor->name(), Operator_Type::Unary} );
-            case 2:     return lang_find_operator( lang, Operator{ descriptor->name(), Operator_Type::Binary} );
+            case 1:     return lang_find_operator( lang, Operator{ type->name, Operator_Type::Unary} );
+            case 2:     return lang_find_operator( lang, Operator{ type->name, Operator_Type::Binary} );
             default:    return false;
         }
     }
@@ -1944,9 +1941,9 @@ namespace ndbl
         }
     }
 
-    bdc::String lang_serialize_type(const Language& lang, const Type_Descriptor *_type)
+    bdc::String lang_serialize_type(const Language& lang, const Type_Descriptor* type)
     {
-        auto found = lang.keyword_by_type_id.find(_type->id());
+        auto found = lang.keyword_by_type_id.find( type->id );
         if (found != lang.keyword_by_type_id.cend())
         {
             return found->second;
@@ -1954,12 +1951,12 @@ namespace ndbl
         return "";
     }
 
-    int lang_get_precedence(const Language& lang, const Function_Descriptor* _func_type)
+    int lang_get_precedence(const Language& lang, const Type_Descriptor* _func_type)
     {
         if (!_func_type)
             return std::numeric_limits<int>::min(); // default
 
-        Operator expected_operator{ _func_type->get_identifier(), static_cast<Operator_Type>(_func_type->args.size) };
+        Operator expected_operator{ _func_type->name, static_cast<Operator_Type>(_func_type->function.args.size) };
 
         if (const Operator* found_operator = lang_find_operator(lang, expected_operator))
             return found_operator->precedence;
@@ -1983,17 +1980,17 @@ namespace ndbl
 
     Token_Type lang_to_literal_token(const Language& lang, const Type_Descriptor *type)
     {
-        if (type == type::get<double>() )
+        if (type == type_get<double>() )
             return Token_Type_literal_double;
-        if (type == type::get<i16_t>() )
+        if (type == type_get<i16_t>() )
             return Token_Type_literal_int;
-        if (type == type::get<int>() )
+        if (type == type_get<int>() )
             return Token_Type_literal_int;
-        if (type == type::get<bool>() )
+        if (type == type_get<bool>() )
             return Token_Type_literal_bool;
-        if (type == type::get<bdc::String>() )
+        if (type == type_get<bdc::String>() )
             return Token_Type_literal_string;
-        if (type == type::get<any>() )
+        if (type == type_get<any>() )
             return Token_Type_literal_any;
         return Token_Type_literal_unknown;
     }
@@ -2020,7 +2017,7 @@ namespace ndbl
                 block->suffix = tok;
             }
 
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Block found (class %s)\n", block->get_class()->name().c_str() );
+            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Block found (class %s)\n", block->get_class()->name.c_str() );
             return block;
         }
 

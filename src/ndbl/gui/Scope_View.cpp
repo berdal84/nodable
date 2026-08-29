@@ -170,9 +170,9 @@ void ndbl::TreeNode_Node(Node* node)
         case Node_Type_FUNCTION:
         {
             bdc::String_Builder sb;
-            lang_serialize_func_sig(language(), sb, &node->invokable_data.func_type);
+            lang_serialize_func_sig(language(), sb, &node->invokable_data.type);
             char str[255];
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name().c_str(), bdc::string_builder_build_string(sb).c_str() );
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name.c_str(), bdc::string_builder_build_string(sb).c_str() );
             break;
         }
         case Node_Type_VARIABLE:
@@ -182,7 +182,7 @@ void ndbl::TreeNode_Node(Node* node)
         }
         default:
         {
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, node->name.c_str(), node->get_class()->name().c_str() );
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, node->name.c_str(), node->get_class()->name.c_str() );
         }
     }
 

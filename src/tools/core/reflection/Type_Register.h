@@ -6,23 +6,17 @@
 namespace tools
 {
     // forward declaration
-    class Type_Descriptor;
-    class Class_Descriptor;
+    struct Type_Descriptor;
 
     /**
      * structure to help register types
      */
-    struct Type_Register
-    {
-        static std::unordered_map<std::type_index, Type_Descriptor*>& by_index();
-        static Type_Descriptor* get(std::type_index);
-        static Class_Descriptor* get_class(std::type_index);
-        static bool      has(const Type_Descriptor*);
-        static bool      has(std::type_index);
-        static Type_Descriptor* insert(Type_Descriptor*);
-        static Type_Descriptor* merge(Type_Descriptor* existing, const Type_Descriptor* other);
-        static Type_Descriptor* insert_or_merge(Type_Descriptor*);
-        static void      log_statistics();
-
-    };
-} // namespace headless
+    Type_Descriptor*    type_register_get(std::type_index);
+    bool                type_register_has(const Type_Descriptor*);
+    bool                type_register_has(std::type_index);
+    Type_Descriptor*    type_register_insert(Type_Descriptor*);
+    Type_Descriptor*    type_register_merge(Type_Descriptor* existing, const Type_Descriptor* other);
+    Type_Descriptor*    type_register_insert_or_merge(Type_Descriptor*);
+    void                type_register_log_statistics();
+    
+} // namespace tools

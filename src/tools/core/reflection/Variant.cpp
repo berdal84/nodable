@@ -185,7 +185,7 @@ void Variant::set(i16_t _value)
 
 void Variant::set(i32_t _value)
 {
-    auto* type = type::get<i32_t>();
+    auto* type = type_get<i32_t>();
     if ( !is_type(type) )
         change_type(type);
     m_data.i32 = _value;
@@ -193,7 +193,7 @@ void Variant::set(i32_t _value)
 
 void Variant::set(bool _value)
 {
-    auto* type = type::get<bool>();
+    auto* type = type_get<bool>();
     if ( !is_type(type) )
         change_type(type);
     m_data.b = _value;
@@ -201,7 +201,7 @@ void Variant::set(bool _value)
 
 void Variant::set(null)
 {
-    change_type(type::null());
+    change_type(type_null());
 }
 
 void Variant::set(const Variant& _other)
@@ -246,7 +246,7 @@ void Variant::release_mem()
 
 void Variant::change_type(const Type_Descriptor* _type)
 {
-    auto* normalized_type = _type->is_ptr() ? type::get<void*>() : _type; // normalize any pointer to void*
+    auto* normalized_type = _type->is_ptr() ? type_get<void*>() : _type; // normalize any pointer to void*
     change_type( type_to_enum(normalized_type) );
     init_mem();
 }
@@ -329,14 +329,14 @@ const tools::Type_Descriptor* Variant::enum_to_type(Type _type)
 {
     switch ( _type )
     {
-        case Type_any:     return type::get<any>();
-        case Type_bool:    return type::get<bool>();
-        case Type_double:  return type::get<double>();
-        case Type_i16:     return type::get<i16_t>();
-        case Type_i32:     return type::get<i32_t>();
-        case Type_null:    return type::get<null>();
-        case Type_ptr:     return type::get<void*>();
-        case Type_string:  return type::get<bdc::String>();
+        case Type_any:     return type_get<any>();
+        case Type_bool:    return type_get<bool>();
+        case Type_double:  return type_get<double>();
+        case Type_i16:     return type_get<i16_t>();
+        case Type_i32:     return type_get<i32_t>();
+        case Type_null:    return type_get<null>();
+        case Type_ptr:     return type_get<void*>();
+        case Type_string:  return type_get<bdc::String>();
         default:
             ASSERT(false); // unhandled type
     }

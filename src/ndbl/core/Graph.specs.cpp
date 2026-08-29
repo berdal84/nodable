@@ -70,10 +70,10 @@ TEST_F(Graph_, clear)
     Graph* graph = state.graph;
     EXPECT_TRUE( graph_is_empty(state.graph) );
 
-    Function_Descriptor  f;
+    Type_Descriptor  f;
     f.init<int(int, int)>("+");
 
-    Node* variable      = graph_create_variable(graph, type::get<int>(), "var");
+    Node* variable      = graph_create_variable(graph, type_get<int>(), "var");
     Node* operator_node = graph_create_operator(graph, &f);
 
 

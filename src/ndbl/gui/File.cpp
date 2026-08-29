@@ -80,6 +80,7 @@ void ndbl::file_update_text_from_graph(File* file, bool isolation_on)
     if ( auto* root_node = graph_root( file->graph ) )
     {
         bdc::String_Builder out;
+        string_builder_init(out);
         lang_serialize_node(language(), out, root_node, Serialization_Flag_RECURSE);
         bdc::String temp_str = bdc::string_builder_build_string(out); // the TextEditor in FileView will do a copy via an std::string
         fileview_set_text( &file->view, temp_str, isolation_on );

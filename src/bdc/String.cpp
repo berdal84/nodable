@@ -61,7 +61,7 @@ namespace bdc
 
     String string_lsplit(const String& str, u32_t index)
     {
-        assert(index < str.size && "Out of bounds");
+        assert(index <= str.size && "Out of bounds");
 
         if( index == str.size)
         {
@@ -126,6 +126,9 @@ namespace bdc
 
     String string_copy(const String& source, Allocator* copy_allocator )
     {
+        if( source.size == 0)
+            return {};
+            
         String result{};
         string_copy( result, source, copy_allocator);
         return result;

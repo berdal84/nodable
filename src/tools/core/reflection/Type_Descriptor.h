@@ -15,8 +15,8 @@
 // add this macro to a class declaration to enable reflection on it.
 // Must have a parent class having REFLECT_BASE_CLASS macro.
 #define DECLARE_REFLECT_EX( VIRTUAL, OVERRIDE ) \
-    VIRTUAL const ::tools::Class_Descriptor* get_class() const OVERRIDE \
-    { return ::tools::type::get_class(this); }
+    VIRTUAL const ::tools::Type_Descriptor* get_class() const OVERRIDE \
+    { return ::tools::type_get(this); }
 
 #define DECLARE_REFLECT          DECLARE_REFLECT_EX(        ,          )
 #define DECLARE_REFLECT_virtual  DECLARE_REFLECT_EX( virtual,          )
@@ -24,21 +24,134 @@
 
 namespace tools
 {
-    // forward declarations
-    class Function_Descriptor;
-    class IInvokable;
-    class IInvokable_Method;
-    class Type_Descriptor;
-    class Class_Descriptor;
-    class Operator;
+    // few empty struct to use as place holder
+    struct any{};       // Any type (like TypeScript's)
+    struct unknown{};   // Unknown type (like TypeScript's)
+    struct null{};      // Absence of type
 
-    struct any{};  // Any type (like TypeScript's)
-    struct unknown{}; // Unknown type (like TypeScript's)
-    struct null{}; // Absence of type
+    typedef int Type_Flags;
+    enum Type_Flags_ : int
+    {
+        Type_Flags_NONE              = 0,
+        Type_Flags_IS_CONST          = 1 << 1,
+        Type_Flags_IS_POINTER        = 1 << 2,
+        Type_Flags_IS_MEMBER_PTR     = 1 << 3,
+        Type_Flags_HAS_PARENT        = 1 << 4,
+        Type_Flags_HAS_CHILD         = 1 << 5,
+        Type_Flags_IS_INTEGRAL       = 1 << 6,
+        Type_Flags_IS_FLOATING_POINT = 1 << 7,
+        Type_Flags_IS_CLASS          = 1 << 8,
+        Type_Flags_IS_FUNCTION       = 1 << 9,
+    };
 
+    //
+    // type API
+    //
+    template<typename T> Type_Descriptor*           type_create(bdc::String name = "" );
+    bool                                            type_is_implicitly_convertible(const Type_Descriptor* from, const Type_Descriptor* to);
+    bool                                            type_equals(const Type_Descriptor*, const Type_Descriptor*);
+    const Type_Descriptor*                          type_any();
+    const Type_Descriptor*                          type_null();
+    template<typename T> std::type_index            type_get_id();
+    template<typename T> std::type_index            type_get_primitive_id();
+    template<typename T> const char*                type_get_compiler_name();
+    template<typename T> Type_Flags                 type_get_flags();
+    template<typename T> const Type_Descriptor*     type_get();
+    template<typename T> const Type_Descriptor*     type_get(T value) { return type_get<T>(); }
+
+    //
+    // Simple object to store a named function argument
+    //
+    struct Function_Arg_Descriptor
+    {
+        const Type_Descriptor* type;
+        bool                   pass_by_ref;
+        bdc::String            name;
+    };
+
+    /**
+     * @class TypeDesc (type descriptor) holds meta data relative to a given type.
+     *
+     * @example @code
+     * const TypeDesc* t = type_get<int>();
+     * assert( t->is_ptr() == false );
+     */
+    struct Type_Descriptor
+    {
+        bdc::String         name          = "";
+        bdc::String         compiler_name = "";
+        Type_Flags          flags         = Type_Flags_NONE;
+        std::type_index     primitive_id  = std::type_index(typeid(null)); // ex: int
+        std::type_index     id            = std::type_index(typeid(null)); // ex: int**, int*
+
+        struct Function
+        {
+            bdc::Inlined_Array<Function_Arg_Descriptor, 8> args;
+            const Type_Descriptor*                         return_type;
+        };
+
+        struct Class
+        {
+            std::unordered_set<std::type_index> parents;
+            std::unordered_set<std::type_index> children;
+        };
+
+        union
+        {
+            Function function;
+            Class    clss;
+        };
+
+        Type_Descriptor() {}
+        ~Type_Descriptor()
+        {
+                 if( flags & Type_Flags_IS_CLASS)    clss.~Class();
+            else if( flags & Type_Flags_IS_FUNCTION) function.~Function();
+        }
+
+        Type_Descriptor(const Type_Descriptor& other)
+        {
+            #warning not implemented, handle the tagged union 
+        }
+
+        Type_Descriptor& operator=(const Type_Descriptor& other)
+        {
+            #warning not implemented, handle the tagged union
+            return *this;
+        }
+
+        bool                      is_class() const { return flags & Type_Flags_IS_CLASS; }
+        bool                      any_of(std::vector<const Type_Descriptor*> args)const;
+        bool                      has_parent() const { return flags & Type_Flags_HAS_PARENT; }
+        bool                      is_ptr() const { return flags & Type_Flags_IS_POINTER; }
+        bool                      is_const() const { return flags & Type_Flags_IS_CONST; }
+        bool                      is_integer() const { return flags & Type_Flags_IS_INTEGRAL; }
+        bool                      is_floating_point() const { return flags & Type_Flags_IS_FLOATING_POINT; }
+        bool                      equals(const Type_Descriptor* other) const { return type_equals(this, other); }
+        template<typename T> bool is() const;
+        bool                      is_implicitly_convertible(const Type_Descriptor* _dst ) const;
+
+
+        template<typename T>                          void function_init(const bdc::String& name);
+        template<int ARG_INDEX, typename ArgsAsTuple> void function_push_nth_arg();
+        template<typename ...Args>                    void function_push_args();
+
+        bool                        function_is_exactly(const Type_Descriptor*)const;
+        bool                        function_is_compatible(const Type_Descriptor*)const;
+        void                        function_push_arg(const Type_Descriptor* _type, bool _pass_by_ref = false);
+        bool                        function_has_arg_with_type(const Type_Descriptor*)const;
+
+        void                        class_add_parent(std::type_index _parent);
+        void                        class_add_child(std::type_index _child);
+        bool                        class_is_child_of(std::type_index _possible_parent_id, bool _selfCheck = true) const;
+        template<class T> bool      class_is_child_of() const { return class_is_child_of(std::type_index(typeid(T)), true); }
+        template<class T> bool      class_is_not_child_of() const { return !class_is_child_of<T>(); }
+
+    };
+    
     // Return true if T is reflected
     template<class T, typename GET_CLASS = decltype(&T::get_class)>
-    constexpr bool IsReflectedClass = std::is_member_function_pointer_v<GET_CLASS>;
+    constexpr bool Is_Reflected_Class = std::is_member_function_pointer_v<GET_CLASS>;
 
     /**
      * @struct Removes a pointer from a given type PointerT
@@ -53,350 +166,160 @@ namespace tools
         inline constexpr static const char* name() { return typeid(type).name(); };
     };
 
-    typedef int TypeFlags;
-    enum TypeFlag_ : int
-    {
-        TypeFlag_NONE              = 0,
-        TypeFlag_IS_CLASS          = 1 << 0,
-        TypeFlag_IS_CONST          = 1 << 1,
-        TypeFlag_IS_POINTER        = 1 << 2,
-        TypeFlag_IS_MEMBER_PTR     = 1 << 3,
-        TypeFlag_HAS_PARENT        = 1 << 5,
-        TypeFlag_HAS_CHILD         = 1 << 6,
-        TypeFlag_IS_INTEGRAL       = 1 << 7,
-        TypeFlag_IS_FLOATING_POINT = 1 << 8
-    };
-
-    // Type utilities
-    namespace type
-    {
-        bool               is_implicitly_convertible(const Type_Descriptor* _src, const Type_Descriptor* _dst);
-        bool               equals(const Type_Descriptor* left, const Type_Descriptor* right);
-        const Type_Descriptor*    any();
-        const Type_Descriptor*    null();
-
-        template<typename T> std::type_index            get_id();
-        template<typename T> std::type_index            get_primitive_id();
-        template<typename T> const char*                get_compiler_name();
-        template<typename T> TypeFlags                  get_flags();
-        template<typename T> const Type_Descriptor*     get();
-        template<typename T> const Class_Descriptor*    get_class(T* ptr);
-        template<typename T> const Class_Descriptor*    get_class();
-        template<typename T> Type_Descriptor*           create(bdc::String name = "" );
-        template<typename T> const Type_Descriptor*     get(T value) { return get<T>(); }
-    };
-
-    /**
-     * @class TypeDesc (type descriptor) holds meta data relative to a given type.
-     *
-     * @example @code
-     * const TypeDesc* t = type::get<int>();
-     * assert( t->is_ptr() == false );
-     */
-    class Type_Descriptor
-    {
-        friend Type_Register;
-    public:
-        Type_Descriptor()
-        : m_id(std::type_index(typeid(null)))
-        , m_primitive_id( std::type_index(typeid(null)) )
-        {}
-
-        Type_Descriptor(std::type_index _id, std::type_index _primitive_id)
-        : m_id(_id)
-        , m_primitive_id(_primitive_id)
-        {}
-
-        virtual ~Type_Descriptor() {};
-
-        template<class T>
-        static Type_Descriptor*   create(bdc::String _name);
-        std::type_index           id() const { return m_id; }
-        const bdc::String&        compiler_name() const { return m_compiler_name; };
-        const bdc::String&        name() const { return m_name; };
-        bool                      is_class() const { return m_flags & TypeFlag_IS_CLASS; }
-        bool                      any_of(std::vector<const Type_Descriptor*> args)const;
-        bool                      has_parent() const { return m_flags & TypeFlag_HAS_PARENT; }
-        bool                      is_ptr() const { return m_flags & TypeFlag_IS_POINTER; }
-        bool                      is_const() const { return m_flags & TypeFlag_IS_CONST; }
-        bool                      is_integer() const { return m_flags & TypeFlag_IS_INTEGRAL; }
-        bool                      is_floating_point() const { return m_flags & TypeFlag_IS_FLOATING_POINT; }
-        bool                      equals(const Type_Descriptor* other) const { return type::equals(this, other); }
-        template<typename T>
-        bool                      is() const;
-        bool                      is_implicitly_convertible(const Type_Descriptor* _dst ) const;
-    protected:
-        bdc::String         m_name;
-        bdc::String         m_compiler_name;
-        TypeFlags           m_flags         = TypeFlag_NONE;
-        std::type_index     m_primitive_id; // ex: int
-        std::type_index     m_id;           // ex: int**, int*
-    };
-
-    /*
-     * Simple object to store a named function argument
-     */
-    struct Function_Arg_Descriptor
-    {
-        const Type_Descriptor* type;
-        bool                   pass_by_ref;
-        bdc::String            name;
-    };
-
-    /*
-     * Class to store a function signature.
-     * We can check if two function signature are matching using this->match(other)
-     */
-    class Function_Descriptor : public Type_Descriptor
-    {
-    public:
-
-        template<typename T>
-        static Function_Descriptor* create(bdc::String name);
-
-        template<typename T>
-        void init(const bdc::String& name);
-
-        template<int ARG_INDEX, typename ArgsAsTuple>
-        void push_nth_arg();
-
-        template<typename ...Args>
-        void push_args();
-
-        bool            is_exactly(const Function_Descriptor*)const;
-        bool            is_compatible(const Function_Descriptor*)const;
-        bdc::String     get_identifier() const { return m_name; };
-        void            push_arg(const Type_Descriptor* _type, bool _pass_by_ref = false);
-        bool            has_arg_with_type(const Type_Descriptor*)const;
-
-        bdc::Inlined_Array<Function_Arg_Descriptor, 8> args;
-        const Type_Descriptor*                         return_type = type::null();
-    };
-
-    /**
-     * @class ClassDesc (class descriptor) holds meta data relative to a given class.
-     *
-     * @example @code
-     * const TypeDesc* class_desc = type::get<bdc::String>();
-     * assert( class_desc->is_class() );
-     */
-    class Class_Descriptor : public Type_Descriptor
-    {
-        friend Type_Register;
-    public:
-        Class_Descriptor() = default;
-        ~Class_Descriptor();
-
-        template<class T>
-        static Class_Descriptor* create(const bdc::String _name);
-
-        void                      add_parent(std::type_index _parent);
-        void                      add_child(std::type_index _child);
-        void                      add_static(const bdc::String& _name, const IInvokable*);
-        void                      add_method(const bdc::String& _name, const IInvokable_Method*);
-        const std::unordered_set<const IInvokable*>&       get_statics()const { return m_static_methods; }
-        const std::unordered_set<const IInvokable_Method*>& get_methods()const { return m_methods; }
-        const IInvokable*         get_static(const bdc::String& _name) const;
-        const IInvokable_Method*  get_method(const bdc::String& _name) const;
-        bool                      is_child_of(std::type_index _possible_parent_id, bool _selfCheck = true) const;
-        template<class T>
-        bool               is_child_of() const { return is_child_of(std::type_index(typeid(T)), true); }
-        template<class T>
-        bool               is_not_child_of() const { return !is_child_of<T>(); }
-
-    protected:
-        std::unordered_set<std::type_index>                 m_parents;
-        std::unordered_set<std::type_index>                 m_children;
-        std::unordered_set<const IInvokable*>               m_static_methods;
-        std::unordered_map<u64_t, const IInvokable*>        m_static_methods_by_name;
-        std::unordered_set<const IInvokable_Method*>        m_methods;
-        std::unordered_map<u64_t, const IInvokable_Method*> m_methods_by_name;
-    };
-
     template<typename T>
-    std::type_index type::get_id()
+    std::type_index type_get_id()
     { return std::type_index(typeid(T)); }
 
     template<typename T>
-    std::type_index type::get_primitive_id()
-    { return type::get_id<typename remove_pointer<T>::type>(); }
+    std::type_index type_get_primitive_id()
+    { return type_get_id<typename remove_pointer<T>::type>(); }
 
     template<typename T>
-    const char* type::get_compiler_name()
+    const char* type_get_compiler_name()
     { return typeid(T).name(); }
 
     template<int N, typename ArgsAsTuple>
-    void Function_Descriptor::push_nth_arg()
+    void Type_Descriptor::function_push_nth_arg()
     {
         using NTH_ARG = std::tuple_element_t<N, ArgsAsTuple>;
-        push_arg( type::get<NTH_ARG>(), std::is_reference_v<NTH_ARG> );
+        function_push_arg( type_get<NTH_ARG>(), std::is_reference_v<NTH_ARG> );
     }
 
     template<typename ...Args>
-    void Function_Descriptor::push_args()
+    void Type_Descriptor::function_push_args()
     {
         constexpr size_t ARG_COUNT = std::tuple_size_v<Args...>;
         static_assert(ARG_COUNT <= 8, "maximum 8 arguments can be pushed at once");
 
         // note: I duplicate instead of using template recursion hell. :)
 
-        if constexpr (ARG_COUNT > 0 ) push_nth_arg<0, Args...>();
-        if constexpr (ARG_COUNT > 1 ) push_nth_arg<1, Args...>();
-        if constexpr (ARG_COUNT > 2 ) push_nth_arg<2, Args...>();
-        if constexpr (ARG_COUNT > 3 ) push_nth_arg<3, Args...>();
-        if constexpr (ARG_COUNT > 4 ) push_nth_arg<4, Args...>();
-        if constexpr (ARG_COUNT > 5 ) push_nth_arg<5, Args...>();
-        if constexpr (ARG_COUNT > 6 ) push_nth_arg<6, Args...>();
-        if constexpr (ARG_COUNT > 7 ) push_nth_arg<7, Args...>();
+        if constexpr (ARG_COUNT > 0 ) function_push_nth_arg<0, Args...>();
+        if constexpr (ARG_COUNT > 1 ) function_push_nth_arg<1, Args...>();
+        if constexpr (ARG_COUNT > 2 ) function_push_nth_arg<2, Args...>();
+        if constexpr (ARG_COUNT > 3 ) function_push_nth_arg<3, Args...>();
+        if constexpr (ARG_COUNT > 4 ) function_push_nth_arg<4, Args...>();
+        if constexpr (ARG_COUNT > 5 ) function_push_nth_arg<5, Args...>();
+        if constexpr (ARG_COUNT > 6 ) function_push_nth_arg<6, Args...>();
+        if constexpr (ARG_COUNT > 7 ) function_push_nth_arg<7, Args...>();
     }
 
     template<typename T>
     bool Type_Descriptor::is() const
-    { return type::equals(this, type::get<T>()); }
+    { return type_equals(this, type_get<T>()); }
 
     template<typename T>
-    Type_Descriptor* Type_Descriptor::create(bdc::String name)
+    Type_Descriptor* type_create(const char* name)
     {
-        static_assert( std::is_class_v<T> == false );
+        Type_Descriptor* type = new Type_Descriptor();
 
-        Type_Descriptor* descriptor = new Type_Descriptor();
+        type_init<T>(type);
+        type->name = name;
 
-        descriptor->m_id            = type::get_id<T>();
-        descriptor->m_primitive_id  = type::get_primitive_id<T>();
-        descriptor->m_name          = name;
-        descriptor->m_compiler_name = type::get_compiler_name<T>();
-        descriptor->m_flags         = type::get_flags<T>();
-
-        return descriptor;
+        return type;
     }
 
     template<typename T>
-    Class_Descriptor* Class_Descriptor::create(bdc::String _name)
+    void type_init(Type_Descriptor* type)
     {
-        static_assert( std::is_class_v<T> );
-
-        Class_Descriptor* class_desc = new Class_Descriptor();
-
-        class_desc->m_id            = type::get_id<T>();
-        class_desc->m_primitive_id  = type::get_primitive_id<T>();
-        class_desc->m_name          = _name;
-        class_desc->m_compiler_name = type::get_compiler_name<T>();
-        class_desc->m_flags         = type::get_flags<T>();
-
-        return class_desc;
-    }
-
-    template<typename T>
-    Function_Descriptor* Function_Descriptor::create(bdc::String _name)
-    {
-        Function_Descriptor* descriptor = new Function_Descriptor();
-        descriptor->init<T>(_name);
-        return descriptor;
-    }
-
-    template<typename T>
-    void Function_Descriptor::init(const bdc::String& _name)
-    {
-        m_id            = type::get_id<T>();
-        m_primitive_id  = type::get_primitive_id<T>();
-        m_compiler_name = type::get_compiler_name<T>();
-        m_flags         = type::get_flags<T>();
-        return_type     = type::get<typename Function_Trait<T>::Result_Type >();
-        assert(false && "Should we copy _name ??");
-        m_name          = _name;
-
-        using Args_Type = typename Function_Trait<T>::Args_Type;
-        if constexpr ( std::tuple_size_v<Args_Type> != 0)
-            push_args<Args_Type>();
-    }
-
-    template<typename T>
-    const Class_Descriptor* type::get_class()
-    {
-        static_assert( std::is_class_v<T> );
-        return (const Class_Descriptor*)get<T>();
-    }
-
-    template<typename T>
-    const Class_Descriptor* type::get_class(T* ptr)
-    {
-        static_assert( std::is_class_v<T> );
-        return (const Class_Descriptor*)get<T>();
-    }
-
-    template<typename T>
-    const Type_Descriptor* type::get()
-    {
-        auto id = type::get_id<T>();
-
-        if ( Type_Register::has(id) )
+        if constexpr ( std::is_class_v<T> )
         {
-            return Type_Register::get(id);
+            new (&type->clss) Type_Descriptor::Class();
+
+            type->id            = type_get_id<T>();
+            type->primitive_id  = type_get_primitive_id<T>();
+            type->compiler_name = type_get_compiler_name<T>();
+            type->flags         = type_get_flags<T>();
+        }
+        else if constexpr ( std::is_function_v<T> )
+        {
+            new (&type->function) Type_Descriptor::Function();
+
+            type->id            = type_get_id<T>();
+            type->primitive_id  = type_get_primitive_id<T>();
+            type->compiler_name = type_get_compiler_name<T>();
+            type->flags         = type_get_flags<T>();
+            
+            type->function.return_type   = type_get<typename Function_Trait<T>::Result_Type >();
+
+            using Args_Type = typename Function_Trait<T>::Args_Type;
+            if constexpr ( std::tuple_size_v<Args_Type> != 0)
+            {
+                type->function_push_args<Args_Type>();
+            }
+        }
+        else
+        {
+            type->id            = type_get_id<T>();
+            type->primitive_id  = type_get_primitive_id<T>();
+            type->compiler_name = type_get_compiler_name<T>();
+            type->flags         = type_get_flags<T>();
+        }
+    }
+
+    template<typename T>
+    const Type_Descriptor* type_get()
+    {
+        auto id = type_get_id<T>();
+
+        if ( type_register_has(id) )
+        {
+            return type_register_get(id);
         }
 
-        Type_Descriptor* descriptor = type::create<T>();
-        Type_Register::insert(descriptor);
+        Type_Descriptor* descriptor = new Type_Descriptor();
+        type_init<T>(descriptor);
+        type_register_insert(descriptor);
 
         return descriptor;
     }
 
     template<typename T>
-    TypeFlags type::get_flags()
+    Type_Flags type_get_flags()
     {
-        return  (TypeFlag_IS_POINTER    * std::is_pointer_v<T>)
-              | (TypeFlag_IS_CONST      * std::is_const_v<T>)
-              | (TypeFlag_IS_MEMBER_PTR * std::is_member_pointer_v<T>)
-              | (TypeFlag_IS_INTEGRAL   * std::is_integral_v<T>)
-              | (TypeFlag_IS_FLOATING_POINT * std::is_floating_point_v<T>)
-              | (TypeFlag_IS_CLASS      * std::is_class_v<T>);
-    }
-
-    template<typename T>
-    Type_Descriptor* type::create(bdc::String _name)
-    {
-        if constexpr ( std::is_member_function_pointer_v<T> || std::is_function_v<T>)
-            return Function_Descriptor::create<T>(_name);
-        if constexpr ( std::is_class_v<T> )
-            return Class_Descriptor::create<T>(_name);
-        else
-            return Type_Descriptor::create<T>(_name);
+        return  (Type_Flags_IS_POINTER          * std::is_pointer_v<T>)
+              | (Type_Flags_IS_CONST            * std::is_const_v<T>)
+              | (Type_Flags_IS_MEMBER_PTR       * std::is_member_pointer_v<T>)
+              | (Type_Flags_IS_INTEGRAL         * std::is_integral_v<T>)
+              | (Type_Flags_IS_FLOATING_POINT   * std::is_floating_point_v<T>)
+              | (Type_Flags_IS_CLASS            * std::is_class_v<T>)
+              | (Type_Flags_IS_FUNCTION         * (std::is_member_function_pointer_v<T> || std::is_function_v<T>));
     }
 
     /**
-     * Return if SourceClass extends PossiblyBaseClass
+     * Return if Type extends Possibly_Base_Type
      */
-    template<class PossiblyBaseClass, class SourceClass, bool self_check = true>
-    bool extends(SourceClass* source_ptr)
+    template<class Possibly_Base_Type, class Type, bool self_check = true>
+    bool extends(Type* source_ptr)
     {
         // ensure both classes are reflected
-        static_assert(IsReflectedClass<SourceClass>);
-        static_assert(IsReflectedClass<PossiblyBaseClass>);
+        static_assert(Is_Reflected_Class<Type>);
+        static_assert(Is_Reflected_Class<Possibly_Base_Type>);
 
         // check if source_type is a child of possibly_base_class
-        const Class_Descriptor* source_type         = source_ptr->get_class();
-        const Type_Descriptor*  possibly_base_class = type::get<PossiblyBaseClass>();
-        return source_type->is_child_of(possibly_base_class->id(), self_check );
+        const Type_Descriptor*  source_type         = source_ptr->get_class();
+        const Type_Descriptor*  possibly_base_class = type_get<Possibly_Base_Type>();
+        return source_type->class_is_child_of( possibly_base_class->id, self_check );
     }
 
-    template<class TargetClass>
-    TargetClass* cast(TargetClass* source_ptr)
+    template<class Target_Type>
+    Target_Type* cast(Target_Type* source_ptr)
     { return source_ptr; }
 
-    template<class TargetClass, class SourceClass>
-    TargetClass* cast(SourceClass* source_ptr)
+    template<class Target_Type, class Type>
+    Target_Type* cast(Type* source_ptr)
     {
-        static_assert(!std::is_same_v<TargetClass, SourceClass>);
+        static_assert(!std::is_same_v<Target_Type, Type>);
 
-        if( extends<TargetClass>(source_ptr) )
+        if( extends<Target_Type>(source_ptr) )
         {
-            return static_cast<TargetClass*>(source_ptr);
+            return static_cast<Target_Type*>(source_ptr);
         }
         return nullptr;
     }
 
     template<class T, class>
-    T* cast(T* source_ptr)
+    T* cast(T* ptr)
     {
-        return source_ptr;
+        return ptr;
     }
 }

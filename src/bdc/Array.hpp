@@ -99,7 +99,7 @@ namespace bdc
         { t.size } -> std::convertible_to<u32_t>;
         t.data;
     };
-
+    
     // Generic Array API (works on both Array and Resizable_Array)
 
     template<Is_Array Array_Type, typename Elem_Type = Array_Type::Elem_Type>

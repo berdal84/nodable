@@ -86,7 +86,7 @@ namespace ndbl
     {
         Node_Type                   type;
         bool                        user_created;
-        tools::Function_Descriptor* function_descriptor; // TODO: this has to be serializable!
+        tools::Type_Descriptor* function_type; // TODO: this has to be serializable!
     };
 
     struct Node
@@ -119,7 +119,7 @@ namespace ndbl
         struct Invokable_State // shall remain POD
         {
             Token                                   identifier_token;
-            tools::Function_Descriptor              func_type; // not owned
+            tools::Type_Descriptor                  type; // not owned
             bdc::Inlined_Array<Node_Slot*, 8>       argument_slots;
             bdc::Inlined_Array<Node_Property*, 8>   argument_props;
 
@@ -211,7 +211,7 @@ namespace ndbl
     void                    node_init_as_root_scope(Node*);         // TODO:  (same)
     void                    node_init_as_variable_ref(Node*);       // TODO:  (same)
     void                    node_init_as_return(Node* node, const tools::Type_Descriptor* = nullptr);
-    void                    node_init_as_invokable(Node*, const tools::Function_Descriptor*, Node_Type = Node_Type_FUNCTION);
+    void                    node_init_as_invokable(Node*, const tools::Type_Descriptor*, Node_Type = Node_Type_FUNCTION);
     void                    node_init_as_variable(Node*, const tools::Type_Descriptor*, const bdc::String identifier);
     void                    node_init_as_literal(Node*, const tools::Type_Descriptor*);
     void                    node_init_internal_scope(Node*);
@@ -227,7 +227,7 @@ namespace ndbl
     inline Token&           node_get_identifier_token(Node* node) { return node->value->token; }
     inline void             node_set_identifier_token(Node* node, const Token& tok) { node->value->token = tok; }
     inline bdc::String      node_get_identifier(const Node* node) { return node_get_identifier_token(node).word_view; }
-    inline void             node_set_name(Node* node, const bdc::String& _name) { node->name = _name; node->signal_name_change.emit(node->name); }
+    void                    node_set_name(Node* node, const bdc::String& _name);
     
     // Slot-related
     Node_Slot*              node_add_slot(Node*, Node_Property *, Node_Slot::Flags, size_t limit_capacity = 0, size_t _position = 0);
@@ -251,14 +251,14 @@ namespace ndbl
     // Property-related
     Node_Property*          node_add_prop(Node*, const tools::Type_Descriptor*, const bdc::String name, Node_Property::Flags = Node_Property::Flag_NONE);
     template<typename T>    
-    Node_Property*          node_add_prop(Node* node, const bdc::String& name, Node_Property::Flags flags = Node_Property::Flag_NONE ) { return node_add_prop(node, tools::type::get<T>(), name, flags); }
+    Node_Property*          node_add_prop(Node* node, const bdc::String& name, Node_Property::Flags flags = Node_Property::Flag_NONE ) { return node_add_prop(node, tools::type_get<T>(), name, flags); }
     bool                    node_has_input_connected(const Node*, const Node_Property*);
     bool                    node_has_prop(const Node*, const bdc::String&);
     const Node_Property*    node_find_prop_by_name(const Node*, const bdc::String& name);
     inline Node_Property*   node_find_prop_by_name(Node* node, const bdc::String& name) { return const_cast<Node_Property*>( node_find_prop_by_name(const_cast<const Node*>(node), name) );}
     const Node_Property*    node_find_first_prop(const Node*, Node_Property::Flags, const tools::Type_Descriptor* );
     inline Node_Property*   node_find_first_prop(Node* node, Node_Property::Flags flags, const tools::Type_Descriptor* type ) { return const_cast<Node_Property*>( node_find_first_prop(const_cast<const Node*>(node), flags, type) );}
-    const tools::Function_Descriptor* node_get_connected_function_type(const Node*, const bdc::String& property_name); //
+    const tools::Type_Descriptor* node_get_connected_function_type(const Node*, const bdc::String& property_name); //
 
     // Misc.
 

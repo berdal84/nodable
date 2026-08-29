@@ -88,11 +88,6 @@ u32_t Token::char_position() const
     return (u32_t)offset;
 }
 
-bool Token::owns_buffer() const
-{
-    assert(false && "IMpmlement this. Should we rely on bdc::String::flags? or not?");
-}
-
 Token& Token::operator=(const Token& other)
 {
     if( this == &other) return *this;
@@ -105,9 +100,15 @@ Token& Token::operator=(const Token& other)
     suffix_view = other.suffix_view;
     type        = other.type;
 
-    if( !other.owns_buffer() )
+    if( owns_buffer )
     {
-        buffer = bdc::string_copy(other.buffer);
+        string_release(buffer);
+    }
+
+    if( !other.owns_buffer )
+    {
+        buffer      = bdc::string_copy(other.buffer);
+        owns_buffer = true;
     }
     else
     {
@@ -121,23 +122,28 @@ void Token::replace_buffer(const bdc::String& _buffer, bool external_only )
 {
     // here, we consider that the whole buffer will be into the "word" part, no suffix/prefix.
 
-    if( owns_buffer() )
+    if( owns_buffer )
     {
-        bdc::heap_allocator()->proc_free( this->buffer.data );
+        string_release( buffer );
+        owns_buffer = false;
     }
 
     if( external_only )
     {
         this->buffer = _buffer;
     }
+    else
+    {
+        this->buffer = string_copy(_buffer);
+        owns_buffer = true;
+    }
 
-    prefix_view         = this->buffer;
+    prefix_view.data    = buffer.data;
     prefix_view.size    = 0;
-
-    word_view           = this->buffer;
-
-    suffix_view         = this->word_view;
-    bdc::string_advance(suffix_view, word_view.size);
+    word_view.data      = buffer.data + prefix_view.size;
+    word_view.size      = buffer.size;
+    suffix_view.data    = buffer.data + word_view.size;
+    suffix_view.size    = 0;
 }
 
 void Token::replace_word(const bdc::String& new_word)
@@ -148,21 +154,28 @@ void Token::replace_word(const bdc::String& new_word)
     bdc::String prefix_copy = bdc::string_copy(prefix_view, bdc::temp_allocator() );
     bdc::String suffix_copy = bdc::string_copy(suffix_view, bdc::temp_allocator() );
 
-   
-    bdc::String new_buffer = bdc::string_printf("%s%s%s", prefix_copy.c_str(), new_word.c_str(), suffix_copy.c_str() );
+    if( owns_buffer )
+    {
+        string_release(buffer);
+    }
 
-    assert(false && "Not implemented yet:");
-    // heap_allocator()->proc_free( buffer.data )
-    buffer = new_buffer;
+    // print a new buffer, and update the views
+    buffer      = bdc::string_printf("%s%s%s", prefix_copy.c_str(), new_word.c_str(), suffix_copy.c_str() );
+    owns_buffer = true;
 
-    // prefix_view   = no change
-    word_view        = new_word;
-    // suffix_view   = no change
+    prefix_view.data    = buffer.data;
+    // prefix_view.size    = ... no change
+
+    word_view.data      = buffer.data + prefix_view.size;
+    word_view.size      = new_word.size;
+
+    suffix_view.data    = buffer.data + prefix_view.size + word_view.size;
+    // suffix_view.size    = ... no change
 }
 
 void Token::prefix_push_front(const bdc::String& str)
 {
-    if ( !owns_buffer() )
+    if ( !owns_buffer )
     {
         assert(false && "Not implemented yet:");
         // TODO: create a new buffer
@@ -174,7 +187,7 @@ void Token::prefix_push_front(const bdc::String& str)
 
 void Token::suffix_push_back(const bdc::String& str)
 {
-    if ( !owns_buffer() )
+    if ( !owns_buffer )
     {
         assert(false && "Not implemented yet:");
         // TODO: create a new buffer

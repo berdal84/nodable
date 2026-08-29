@@ -3,93 +3,80 @@
 #include "tools/core/Log.h"
 #include "tools/core/Asserts.h"
 
-using namespace tools;
-
-Type_Descriptor* Type_Register::get(std::type_index index)
+namespace tools
 {
-    auto found = by_index().find(index);
-    VERIFY(found != by_index().end(), "reflection: type not found!");
+
+static std::unordered_map<std::type_index, Type_Descriptor*> g_type_register;
+
+Type_Descriptor* type_register_get(std::type_index index)
+{
+    auto found = g_type_register.find(index);
+    VERIFY(found != g_type_register.end(), "reflection: type not found!");
     return found->second;
 }
 
-Class_Descriptor* Type_Register::get_class(std::type_index index)
+bool type_register_has(const Type_Descriptor* type)
 {
-    Type_Descriptor* type = get(index);
-    if ( type->is_class() )
-        return static_cast<Class_Descriptor*>( type );
-    return nullptr;
+    return g_type_register.find(type->id) != g_type_register.end();
 }
 
-std::unordered_map<std::type_index, Type_Descriptor*>& Type_Register::by_index()
+bool type_register_has(std::type_index index)
 {
-    static std::unordered_map<std::type_index, Type_Descriptor*> meta_type_register_by_typeid;
-    return meta_type_register_by_typeid;
+    auto found = g_type_register.find(index);
+    return found != g_type_register.end();
 }
 
-
-bool Type_Register::has(const Type_Descriptor* _type)
+Type_Descriptor* type_register_insert(Type_Descriptor* type)
 {
-    return by_index().find(_type->id()) != by_index().end();
+    g_type_register.insert({type->id, type});
+    return type;
 }
 
-bool Type_Register::has(std::type_index index)
-{
-    auto found = by_index().find(index);
-    return found != by_index().end();
-}
-
-Type_Descriptor* Type_Register::insert(Type_Descriptor* _type)
-{
-    by_index().insert({_type->id(), _type});
-    return _type;
-}
-
-Type_Descriptor* Type_Register::merge(Type_Descriptor* existing, const Type_Descriptor* other)
+Type_Descriptor* type_register_merge(Type_Descriptor* existing_type, const Type_Descriptor* other_type)
 {
     TOOLS_DEBUG_LOG(
         tools::Verbosity_Diagnostic,
         __FILE__,
         "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n",
-        existing->m_name.c_str(), existing->m_compiler_name.c_str(),
-        other->m_name.c_str(), other->m_compiler_name.c_str()
+        existing_type->name.c_str(), existing_type->compiler_name.c_str(),
+        other_type->name.c_str(), other_type->compiler_name.c_str()
     );
 
-    if( existing->m_name[0] == '\0' )
+    if( existing_type->name[0] == '\0' )
     {
-        existing->m_name = other->m_name;
+        existing_type->name = other_type->name;
     }
 
-    if ( existing->is_class() )
+    if( existing_type->is_class() )
     {
-        auto* existing_class = reinterpret_cast<Class_Descriptor*>(existing);
-        auto* other_class    = reinterpret_cast<const Class_Descriptor*>(other);
-
-        existing_class->m_children.insert(other_class->m_children.begin(), other_class->m_children.end() );
-        existing_class->m_parents.insert(other_class->m_parents.begin(), other_class->m_parents.end() );
+        existing_type->clss.children.insert(other_type->clss.children.begin(), other_type->clss.children.end() );
+        existing_type->clss.parents.insert(other_type->clss.parents.begin(), other_type->clss.parents.end() );
     }
 
-    return existing;
+    return existing_type;
 }
 
-void Type_Register::log_statistics()
+void type_register_log_statistics()
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "reflection", "Logging reflected types ...\n");
     TOOLS_LOG(tools::Verbosity_Diagnostic, "reflection", " %-16s %-25s %-60s\n", "-- type hash --", "-- user name --", "-- compiler name --" );
 
-    for ( const auto& [type_hash, type] : by_index() )
+    for ( const auto& [type_hash, type] : g_type_register )
     {
-        TOOLS_LOG(tools::Verbosity_Diagnostic, "reflection", " %-16llu %-25s %-60s\n", type_hash, type->m_name.c_str(), type->m_compiler_name.c_str() );
+        TOOLS_LOG(tools::Verbosity_Diagnostic, "reflection", " %-16llu %-25s %-60s\n", type_hash, type->name.c_str(), type->compiler_name.c_str() );
     }
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "reflection", "Logging done.\n");
 }
 
-Type_Descriptor* Type_Register::insert_or_merge(Type_Descriptor* possibly_existing_type)
+Type_Descriptor* type_register_insert_or_merge(Type_Descriptor* possibly_registered_type)
 {
-    if( has(possibly_existing_type->id()) )
+    if( type_register_has(possibly_registered_type->id) )
     {
-        Type_Descriptor* existing_type = get(possibly_existing_type->id());
-        return merge(existing_type, possibly_existing_type);
+        Type_Descriptor* existing_type = type_register_get(possibly_registered_type->id);
+        return type_register_merge(existing_type, possibly_registered_type);
     }
-    return insert(possibly_existing_type);
+    return type_register_insert(possibly_registered_type);
 }
+
+} // namespace tools

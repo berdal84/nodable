@@ -48,10 +48,10 @@ namespace ndbl
 
 #define VERIFY_NODABLE_IS_INITIALIZED() VERIFY(g_app != nullptr, "Nodable is not initialized, did you call nodable_init() ?")
 
-template<typename T>
-static Function_Descriptor* create_variable_node_signature()
+template<typename Type>
+static Type_Descriptor* create_variable_node_signature()
 {
-    static Function_Descriptor* descriptor = Function_Descriptor::create<T(T)>("variable");
+    static Type_Descriptor* descriptor = type_create<Type(Type)>("variable");
     return descriptor;
 }
 
@@ -133,7 +133,7 @@ void ndbl::app_do_frame()
 void ndbl::app_run()
 {
     #ifdef __EMSCRIPTEN__
-        emscripten_set_main_loop(&ndbl::nodable_do_frame, 0, true);
+        emscripten_set_main_loop(&ndbl::app_do_frame, 0, true);
     #else
         while( !app_should_stop() )
         {

@@ -33,7 +33,8 @@ namespace ndbl
         Token_Type  type;
         
         bdc::String buffer; // original source code (not owned), might be replaced by custom data in case used edits a value.
-
+        bool        owns_buffer;
+        
         bdc::String prefix_view;
         bdc::String word_view;
         bdc::String suffix_view;
@@ -77,7 +78,6 @@ namespace ndbl
         void        replace_buffer(const bdc::String& buffer, bool external_only = false);
         void        replace_word(const bdc::String&);
         u32_t       char_position() const;
-        bool        owns_buffer() const;
 
         static const Token s_end_of_line;
         static const Token s_end_of_instruction;

@@ -78,8 +78,8 @@ namespace ndbl
     Node*                   graph_create_variable_ref(Graph*, Scope* = nullptr);
     Node*                   graph_create_variable_decl(Graph*, const tools::Type_Descriptor*, const bdc::String _name, Scope* = nullptr);
     Node*                   graph_create_literal(Graph*, const tools::Type_Descriptor*, Scope* = nullptr);
-    Node*                   graph_create_function(Graph*, const tools::Function_Descriptor*, Scope* = nullptr);
-    Node*                   graph_create_operator(Graph*, const tools::Function_Descriptor*, Scope* = nullptr);
+    Node*                   graph_create_function(Graph*, const tools::Type_Descriptor*, Scope* = nullptr);
+    Node*                   graph_create_operator(Graph*, const tools::Type_Descriptor*, Scope* = nullptr);
     Node*                   graph_create_cond_struct(Graph*, Scope* = nullptr);
     Node*                   graph_create_for_loop(Graph*, Scope* = nullptr);
     Node*                   graph_create_while_loop(Graph*, Scope* = nullptr);
@@ -96,13 +96,13 @@ namespace ndbl
 
     template<typename T>
     Node* graph_create_variable_decl(Graph* graph, const bdc::String name = "var", Scope* scope = nullptr)
-    { return graph_create_variable_decl( graph, tools::type::get<T>(), name, scope); }
+    { return graph_create_variable_decl( graph, tools::type_get<T>(), name, scope); }
 
     template<typename T>
     Node* graph_create_variable(Graph* graph, const bdc::String name = "var", Scope* scope = nullptr)
-    { return graph_create_variable( graph, tools::type::get<T>(), name, scope); }
+    { return graph_create_variable( graph, tools::type_get<T>(), name, scope); }
 
     template<typename T>
     Node* graph_create_literal(Graph* graph, Scope* scope = nullptr)                          
-    { return graph_create_literal( graph, tools::type::get<T>(), scope ); }
+    { return graph_create_literal( graph, tools::type_get<T>(), scope ); }
 }

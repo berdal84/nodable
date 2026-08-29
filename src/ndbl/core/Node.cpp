@@ -145,7 +145,7 @@ void ndbl::node_deinit(Node* node)
 {
     ASSERT(node != nullptr);
 
-    assert(false && "TODO: release bdc::Strings ");
+    string_release(node->name);
 
     while( !node->props.empty() )
     {
@@ -232,7 +232,7 @@ switch (node->type)
     }
 }
 
-const ndbl::Function_Descriptor* ndbl::node_get_connected_function_type(const Node* node, const bdc::String& property_name)
+const ndbl::Type_Descriptor* ndbl::node_get_connected_function_type(const Node* node, const bdc::String& property_name)
 {
     const Node_Slot* slot = node_find_slot_by_property_name(node, property_name, Node_Slot::Flag_INPUT );
     VERIFY(slot!= nullptr, "Unable to find input slot for this property name");
@@ -240,7 +240,7 @@ const ndbl::Function_Descriptor* ndbl::node_get_connected_function_type(const No
 
     if ( adjacent_slot )
         if ( node_is_invokable(adjacent_slot->node) )
-            return &adjacent_slot->node->invokable_data.func_type;
+            return &adjacent_slot->node->invokable_data.type;
 
     return nullptr;
 }
@@ -271,7 +271,7 @@ ndbl::Node_Slot* ndbl::node_find_slot_by_property_type(const Node* node, Node_Sl
 {
     for(Node_Slot* slot : node_filter_slots(node, flags) )
     {
-        if( tools::type::is_implicitly_convertible(slot->property->type, type ) )
+        if( tools::type_is_implicitly_convertible(slot->property->type, type ) )
         {
             return slot;
         }
@@ -282,6 +282,12 @@ ndbl::Node_Slot* ndbl::node_find_slot_by_property_type(const Node* node, Node_Sl
 void ndbl::Node::handle_slot_change(Node_Slot::Event event, Node_Slot* slot)
 {
     this->adjacent_nodes_cache.clear();
+}
+
+void ndbl::node_set_name(Node* node, const bdc::String& new_name)
+{
+    node->name = string_copy(new_name);
+    node->signal_name_change.emit(node->name);
 }
 
 ndbl::Node_Slot* ndbl::node_add_slot(Node* node, Node_Property* property, Node_Slot::Flags flags, size_t capacity, size_t position)
@@ -535,7 +541,7 @@ const ndbl::Node_Property* ndbl::node_find_first_prop(const Node* node, Node_Pro
 {
     auto filter = [_flags, _type](const Node_Property* property) -> bool
     {
-        return tools::type::is_implicitly_convertible(property->type, _type)
+        return tools::type_is_implicitly_convertible(property->type, _type)
                && ( HAS_FLAGS(property->flags, _flags ) );
     };
 
@@ -562,28 +568,28 @@ const ndbl::Node_Property* ndbl::node_find_prop_by_name(const Node* node, const 
     return nullptr;
 }
 
-void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor* function_desc, Node_Type node_type )
+void ndbl::node_init_as_invokable(Node* node, const tools::Type_Descriptor* function_desc, Node_Type node_type )
 {
     ASSERT(node != nullptr);
     ASSERT(node_type == Node_Type_OPERATOR || node_type == Node_Type_FUNCTION );
 
-    node_init(node, node_type, function_desc->get_identifier());
-    node->invokable_data.func_type = *function_desc;
+    node_init(node, node_type, function_desc->name);
+    node->invokable_data.type = *function_desc;
     node->invokable_data.identifier_token = {
             Token_Type_identifier,
-            function_desc->get_identifier()
+            function_desc->name
     };
-    array_resize( node->invokable_data.argument_slots, function_desc->args.size);
-    array_resize( node->invokable_data.argument_props, function_desc->args.size);
+    array_resize( node->invokable_data.argument_slots, function_desc->function.args.size);
+    array_resize( node->invokable_data.argument_props, function_desc->function.args.size);
 
     switch ( node->type )
     {
         case Node_Type_OPERATOR:
-            node_set_name(node, function_desc->get_identifier());
+            node_set_name(node, function_desc->name);
             break;
         case Node_Type_FUNCTION:
         {
-            const bdc::String& id   = function_desc->get_identifier();
+            const bdc::String& id   = function_desc->name;
             bdc::String label       = id; // We add dynamically the brackets (see Node_View)
             bdc::String short_label = bdc::string_printf("%.2s..", id.c_str());
             node_set_name(node, label);
@@ -594,7 +600,7 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor* 
     }
 
     // Create a result/value
-    property_set_type(node->value, function_desc->return_type );
+    property_set_type(node->value, function_desc->function.return_type );
 
     node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT );
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1);
@@ -603,13 +609,13 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor* 
     // Create arguments
     if (node->type == Node_Type_OPERATOR )
     {
-        VERIFY(function_desc->args.size >= 1, "An operator must have one argument minimum");
-        VERIFY(function_desc->args.size <= 2, "An operator cannot have more than 2 arguments");
+        VERIFY(function_desc->function.args.size >= 1, "An operator must have one argument minimum");
+        VERIFY(function_desc->function.args.size <= 2, "An operator cannot have more than 2 arguments");
     }
 
-    for (size_t i = 0; i < function_desc->args.size; i++ )
+    for (size_t i = 0; i < function_desc->function.args.size; i++ )
     {
-        const tools::Function_Arg_Descriptor& arg  = function_desc->args[i];
+        const tools::Function_Arg_Descriptor& arg  = function_desc->function.args[i];
 
         bdc::String name;
         // TODO: this could be done in the Node_View instead...
@@ -660,7 +666,7 @@ void ndbl::node_init_as_variable_ref(Node* node)
     node_init(node, Node_Type_VARIABLE_REF, "Ref.");
 
     // Init identifier property
-    property_set_type(node->value, tools::type::any());
+    property_set_type(node->value, tools::type_any());
     node->value->token = Token{Token_Type_identifier};
 
     // Init Node_Slots
@@ -783,7 +789,7 @@ void ndbl::node_init_as_return(Node* node, const tools::Type_Descriptor* type_de
 
     if ( type_descriptor == nullptr)
     {
-        type_descriptor = tools::type::get<void>();
+        type_descriptor = tools::type_get<void>();
     }
     
     property_set_type(node->value, type_descriptor);
@@ -873,7 +879,7 @@ bool ndbl::node_could_be_instruction(const Node* node)
 bool ndbl::node_is_unary_operator(const Node* node)
 {
     if (node->type == Node_Type_OPERATOR )
-        if (node->invokable_data.func_type.args.size == 1 )
+        if (node->invokable_data.type.function.args.size == 1 )
             return true;
     return false;
 }
@@ -881,7 +887,7 @@ bool ndbl::node_is_unary_operator(const Node* node)
 bool ndbl::node_is_binary_operator(const Node* node)
 {
     if (node->type == Node_Type_OPERATOR )
-        if (node->invokable_data.func_type.args.size == 2 )
+        if (node->invokable_data.type.function.args.size == 2 )
             return true;
     return false;
 }

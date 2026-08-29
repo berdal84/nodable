@@ -35,7 +35,7 @@ tools::Texture_Manager* tools::texture_manager()
 
 void tools::texture_manager_shutdown()
 {
-    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED()
+    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
     ASSERT(g_texture_manager != nullptr);
     texture_manager_release_all();
     delete g_texture_manager;

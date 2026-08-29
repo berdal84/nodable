@@ -15,7 +15,7 @@ namespace ndbl
     struct Node;
     struct Graph;
     using tools::Vec2;
-    using tools::Function_Descriptor;
+    using tools::Type_Descriptor;
 
     typedef tools::Event_Type Event_Type; // alias under different namespace
     enum Event_Type_ : tools::Event_Type
@@ -45,7 +45,7 @@ namespace ndbl
         Node_State              node_state;
         Node_Slot_View*         active_slotview;    // The slot view being dragged.
         Vec2                    desired_screen_pos; // The desired position for the new node view
-        Function_Descriptor*    function_descriptor;
+        Type_Descriptor*    function_type;
     };
 
 }// namespace ndbl

@@ -108,7 +108,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 
     if ( ImGuiEx::BeginTooltip() )
     {
-        ImGui::Text("%s %s\n", view->property->type->name().c_str(), view->property->name.c_str());
+        ImGui::Text("%s %s\n", view->property->type->name.c_str(), view->property->name.c_str());
 
         bdc::String_Builder sb;
         if( view->property == view->node()->value || node_find_slot_by_property( view->node(), view->property, Node_Slot::Flag_OUTPUT ))

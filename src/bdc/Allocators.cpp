@@ -77,7 +77,9 @@ namespace bdc
 
     void* temp_allocator_malloc(size_t size)
     {
-        assert(size >= 1);
+        if (size == 0)
+            return nullptr;
+
         Allocation_Header* header = temp_allocator_buffer_acquire(size);
 
         #ifdef BDC_DEBUG_ALLOCATORS
@@ -100,6 +102,8 @@ namespace bdc
 
     void* temp_allocator_realloc(void* src_ptr, size_t size)
     {
+        assert(src_ptr != nullptr);
+        
         Allocation_Header* src_header = get_header(src_ptr);
 
         // When ptr was previously aquired, we can simply extend it
