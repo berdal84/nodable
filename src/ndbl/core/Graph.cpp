@@ -28,8 +28,6 @@ namespace ndbl
 
 void ndbl::graph_init(Graph* graph)
 {
-    *graph = {};
-
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initializing ...\n");
     ASSERT( graph->nodes.size == 0 ); // Did you call graph_init multiple times? Did you forgot to call graph_deinit() after each graph_init() ?
 
@@ -68,7 +66,8 @@ void ndbl::graph_clear(Graph* graph)
             node_deinit(&node);
         }
     }
-    graph->nodes.resize(0);
+
+    array_resize(graph->nodes, 0);
 
     // Add a root node
     Node* root_node = _graph_new_node(graph);
@@ -220,11 +219,10 @@ ndbl::Node* ndbl::_graph_new_node(Graph* graph)
 {
     ASSERT(graph->nodes.size < NODE_MAX_COUNT);
 
-    Node node{};
-
+    Node& node = array_append(graph->nodes, {} );
     node.id = string_hash( get_next_GUID("Node") );
 
-    return &graph->nodes.push_back(node);
+    return &node;
 }
 
 ndbl::Node* ndbl::graph_create_return(Graph* graph, const tools::Type_Descriptor* type_descriptor, Scope* parent_scope)
@@ -714,12 +712,12 @@ bool ndbl::graph_contains(const Graph* graph, Node* node)
 
 ndbl::Node* ndbl::graph_get_latest_created_node(Graph* graph)
 {
-    return &graph->nodes.back();
+    return &array_back(graph->nodes);
 }
 
 const ndbl::Node* ndbl::graph_get_latest_created_node(const Graph* graph)
 {
-    return &graph->nodes.back();
+    return &array_back(graph->nodes);
 }
 
 void ndbl::graph_change_scope(Node* node, Scope* desired_scope)

@@ -59,8 +59,8 @@ namespace bdc
         const i8_t*     c_str() const;
         inline bool     empty() const { return size == 0; }
     };
-
     static_assert( sizeof(String) == 24, "String has an unexpected size!" );
+    static_assert( std::is_trivially_constructible_v<String> );
 
     void            string_reset(String&);
     void            string_release(String&, Allocator* release_allocator = default_allocator());

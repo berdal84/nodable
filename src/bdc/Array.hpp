@@ -23,24 +23,21 @@ namespace bdc
         Array(const Array&) = default;
         ~Array()            = default;
 
-        Array(Elem_Type* _data, u32_t _size): data(_data), size(_size) {}
+        Array(u32_t _size, i8_t* _data): data((i8_t*)_data), size(_size) {}
         Array(const std::initializer_list<Elem_Type>& list)
         : data( const_cast<i8_t*>(&*list.begin()) )
         , size( list.size() )
         {}
-            
-        inline const Elem_Type& operator[](u32_t pos) const
-        {
-            assert(pos < size && "out of bounds");
-            return *(((Elem_Type*)data) + pos);
-        }
 
-        inline Elem_Type& operator[](u32_t pos)
-        {
-            assert(pos < size && "out of bounds");
-            return *(((Elem_Type*)data) + pos);
-        }
+        inline const Elem_Type& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
+        inline Elem_Type&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
+        inline Elem_Type*       begin()        { return (Elem_Type*)data; }
+        inline Elem_Type*       end()          { return ((Elem_Type*)data) + size; }
+        inline const Elem_Type* begin() const { return (Elem_Type*)data; }
+        inline const Elem_Type* end() const   { return ((Elem_Type*)data) + size; }
     };
+    static_assert( std::is_trivially_constructible_v<Array<i8_t>> );
+
 
     // Simply declare array_join, user must implement it. Only array_join for String is implement in String.hpp.
     template<typename Elem_Type>
@@ -59,82 +56,117 @@ namespace bdc
         u32_t       capacity;
         Allocator*  allocator;
             
-        Resizable_Array(Allocator* _allocator = default_allocator() )
-        : data(nullptr)
-        , size(0)
-        , capacity(0)
-        , allocator( _allocator )
-        {}
+        Resizable_Array() = default;
+        Resizable_Array(const Resizable_Array& ) = default;
+        ~Resizable_Array() = default;
 
-        inline const Elem_Type& operator[](u32_t pos) const
-        {
-            assert(pos < size && "out of bounds");
-            return *(((Elem_Type*)data) + pos);
-        }
-
-        inline Elem_Type& operator[](u32_t pos)
-        {
-            assert(pos < size && "out of bounds");
-            return *(((Elem_Type*)data) + pos);
-        }
-
-        // I tried to use to_array() instead, see at the end of this file.
-        // inline operator Array<Elem_Type>& () { return *reinterpret_cast<Array<Elem_Type>*>(this); }
-        // inline operator const Array<Elem_Type>& () const { return *reinterpret_cast<Array<Elem_Type>*>(this); }
+        inline const Elem_Type& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
+        inline Elem_Type&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
+        inline Elem_Type*       begin()        { return (Elem_Type*)data; }
+        inline Elem_Type*       end()          { return ((Elem_Type*)data) + size; }
+        inline const Elem_Type* begin() const { return (Elem_Type*)data; }
+        inline const Elem_Type* end() const   { return ((Elem_Type*)data) + size; }
     };
+    static_assert( std::is_trivially_constructible_v<Resizable_Array<i8_t>> );
 
     //
     // Inlined_Array is like a fixed-capacity Array<T> that is aware of its (fixed-)capacity.
     //
-    template<typename Elem_Type, u32_t CAPACITY>
+    template<typename _Elem_Type, u32_t CAPACITY>
     struct Inlined_Array
     {
+        using Elem_Type = _Elem_Type;
+
         u32_t   size;
         i8_t    data[CAPACITY]; // data must be 2nd to match with other arrays
 
         constexpr u32_t capacity() const
         { return CAPACITY; }
 
-        inline const Elem_Type& operator[](u32_t pos) const
-        {
-            assert(pos < size && "out of bounds");
-            return *(((Elem_Type*)data) + pos);
-        }
-
-        inline Elem_Type& operator[](u32_t pos)
-        {
-            assert(pos < size && "out of bounds");
-            return *(((Elem_Type*)data) + pos);
-        }
+        inline const Elem_Type& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
+        inline Elem_Type&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
+        inline Elem_Type*       begin()        { return (Elem_Type*)data; }
+        inline Elem_Type*       end()          { return ((Elem_Type*)data) + size; }
+        inline const Elem_Type* begin() const { return (Elem_Type*)data; }
+        inline const Elem_Type* end() const   { return ((Elem_Type*)data) + size; }
     };
-
-    // Some templates to deduce if a type is an Hash_Map and get its sub types
+    static_assert( std::is_trivially_constructible_v<Inlined_Array<i8_t, 16>> );
+    
+    // Concept to know if a give type is compatible with the generic array API
     template<typename T>
-    concept Any_Array_Type =
-        (requires(T& t) {
-            []<typename Elem_Type>(Array<Elem_Type>&){}(t);
-        }) ||
-        (requires(T& t) {
-            []<typename Elem_Type>(Resizable_Array<Elem_Type>&){}(t);
-        }) ||   
-        (requires(T& t) {
-            []<typename Elem_Type, u32_t CAPACITY>(Inlined_Array<Elem_Type, CAPACITY>&  ){}(t);
-        });
+    concept Is_Array = requires(T& t, u32_t pos)
+    {
+        { t.size } -> std::convertible_to<u32_t>;
+        t.data;
+    };
 
     // Generic Array API (works on both Array and Resizable_Array)
 
-    template<Any_Array_Type T>
-    inline typename T::Elem_Type& array_front(T& arr)
+    template<Is_Array Array_Type, typename Elem_Type = Array_Type::Elem_Type>
+    inline Array<Elem_Type> array_view(const Array_Type& arr)
+    {
+        return Array<Elem_Type>( arr.size, (i8_t*)arr.data );
+    }
+
+    template<Is_Array Array_Type, typename Elem_Type = Array_Type::Elem_Type>
+    inline Elem_Type& array_front(Array_Type& arr)
     {
         assert(arr.size);
         return arr[0];
     }
 
-    template<Any_Array_Type T>
-    inline typename T::Elem_Type& array_back(T& arr)
+    template<Is_Array Array_Type, typename Elem_Type = Array_Type::Elem_Type>
+    inline Elem_Type& array_back(Array_Type& arr)
     {
         assert(arr.size);
         return arr[arr.size-1];
+    }
+
+    template<Is_Array Array_Type, typename Elem_Type = Array_Type::Elem_Type>
+    inline const Elem_Type& array_back(const Array_Type& arr)
+    {
+        assert(arr.size);
+        return arr[arr.size-1];
+    }
+
+    struct Array_Find_Result
+    {
+        bool  found  = false;
+        u32_t at_pos = (u32_t)-1;
+    };
+
+    template<Is_Array Array_Type, typename Elem_Type = Array_Type::Elem_Type>
+    Array_Find_Result array_find(Array_Type& arr, const Elem_Type& elem)
+    {
+        for(u32_t i = 0; i < arr.size; i++)
+            if ( arr[i] == elem )
+                return { .found = true, .at_pos = i };
+
+        return { .found = false };
+    }
+
+    template<Is_Array Array_Type, typename Elem_Type = Array_Type::Elem_Type>
+    Array_Find_Result array_rfind(Array_Type& arr, const Elem_Type& elem)
+    {
+        if( arr.size == 0)
+            return { .found = false };
+
+        for(u32_t i = arr.size-1; i >= 0; i--)
+            if ( arr[i] == elem )
+                return { .found = true, .at_pos = i };
+
+        return { .found = false };
+    }
+
+    template<Is_Array Array_Type>
+    void array_remove_ordered(Array_Type& arr, u32_t pos)
+    {
+        assert( pos <= arr.size );
+
+        for(u32_t i = pos; i < arr.size-1; ++i )
+            arr[i] = arr[i+1];
+
+        arr.size -= 1;
     }
 
     // Inlined_Array API
@@ -159,20 +191,6 @@ namespace bdc
         assert(arr.size < CAPACITY);
         return arr[arr.size++] = elem;
     }
-
-    template<typename Elem_Type, u32_t CAPACITY>
-    Elem_Type array_remove(Inlined_Array<Elem_Type, CAPACITY>& arr, u32_t pos)
-    {
-        assert( pos <= arr.size );
-        Elem_Type removed_elem = arr[pos];
-        for(size_t i = pos; i < arr.size; ++i )
-        {
-            arr[i] = arr[i+1];
-        }
-        arr.size -= 1;
-        return removed_elem;
-    }
-
 
     // Resizable_Array API
 
@@ -228,7 +246,7 @@ namespace bdc
                 arr.data = memory_realloc_array(arr.data, new_capacity * sizeof(Elem_Type), arr.allocator);
             }
             assert(arr.data != nullptr);
-            memset( (void*)(&arr[arr.size]), 0, (new_capacity - arr.size) * sizeof(Elem_Type)); // new elements are zero-initialized
+            memset( (void*)(arr.data + arr.size * sizeof(Elem_Type) ), 0, (new_capacity - arr.size) * sizeof(Elem_Type)); // new elements are zero-initialized
             arr.capacity = new_capacity;
         }        
     }
@@ -252,13 +270,4 @@ namespace bdc
         return result;
     }
 
-    template<typename Elem_Type>
-    Array<Elem_Type> to_view(const Resizable_Array<Elem_Type>& arr)
-    {
-        Array<Elem_Type> view{};
-        view.data = arr.data;
-        view.size = arr.size;
-        
-        return view;
-    }
 } // namespace bdc

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <vector>
+
 #include "bdc/String.hpp"
 #include "bdc/String_Builder.hpp"
+#include "bdc/Array.hpp"
+
 #include "core/reflection/Operator.h"
-#include "tools/core/Containers.h"
 
 #include "ndbl/core/Token.h"
 #include "ndbl/core/Token_Ribbon.h"
@@ -101,7 +103,7 @@ namespace ndbl
     bdc::String_Builder&            lang_serialize_graph(const Language&, bdc::String_Builder& out, const Graph* in);
     const Node_Slot*                lang_serialize_invokable(const Language&, bdc::String_Builder& out, const Node*);
     bdc::String_Builder&            lang_serialize_invokable_sig(const Language&, bdc::String_Builder& out, const tools::IInvokable*);
-    bdc::String_Builder&            lang_serialize_func_call(const Language&, bdc::String_Builder& out, const tools::Function_Descriptor *_signature, tools::Array_View<const Node_Slot*> inputs);
+    bdc::String_Builder&            lang_serialize_func_call(const Language&, bdc::String_Builder& out, const tools::Function_Descriptor *_signature, const bdc::Array<Node_Slot*>& inputs);
     bdc::String_Builder&            lang_serialize_func_sig(const Language&, bdc::String_Builder& out, const tools::Function_Descriptor*);
     bdc::String_Builder&            lang_serialize_input(const Language&, bdc::String_Builder& out, const Node_Slot *_slot, Serialization_Flags _flags = Serialization_Flag_NONE );
     bdc::String_Builder&            lang_serialize_value_out(const Language&, bdc::String_Builder& out, const Node_Slot *slot, Serialization_Flags _flags = Serialization_Flag_NONE );

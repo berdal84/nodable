@@ -573,8 +573,8 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor* 
             Token_Type_identifier,
             function_desc->get_identifier()
     };
-    node->invokable_data.argument_slots.resize(function_desc->args.size);
-    node->invokable_data.argument_props.resize(function_desc->args.size);
+    array_resize( node->invokable_data.argument_slots, function_desc->args.size);
+    array_resize( node->invokable_data.argument_props, function_desc->args.size);
 
     switch ( node->type )
     {
@@ -609,7 +609,7 @@ void ndbl::node_init_as_invokable(Node* node, const tools::Function_Descriptor* 
 
     for (size_t i = 0; i < function_desc->args.size; i++ )
     {
-        const tools::Function_Arg_Descriptor& arg  = function_desc->args.at(i);
+        const tools::Function_Arg_Descriptor& arg  = function_desc->args[i];
 
         bdc::String name;
         // TODO: this could be done in the Node_View instead...

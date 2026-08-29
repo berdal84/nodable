@@ -157,7 +157,7 @@ void Function_Descriptor::push_arg( const Type_Descriptor* _type, bool _pass_by_
     
     arg.name = bdc::string_printf( "arg_%i", args.size );
 
-    args.push_back(arg);
+    array_append(args, arg);
 }
 
 bool Function_Descriptor::is_exactly(const Function_Descriptor* _other)const
@@ -168,7 +168,7 @@ bool Function_Descriptor::is_exactly(const Function_Descriptor* _other)const
         return false;
     if ( m_name != _other->m_name )
         return false;
-    if ( args.empty() )
+    if ( args.size == 0 )
         return true;
 
     size_t i = 0;
@@ -194,7 +194,7 @@ bool Function_Descriptor::is_compatible(const Function_Descriptor* _other)const
         return false;
     if ( m_name != _other->m_name )
         return false;
-    if ( args.empty() )
+    if ( args.size == 0 )
         return true;
 
     size_t i = 0;

@@ -1,8 +1,10 @@
 #pragma once
-#include "core/Flags.h"
-#include "tools/core/Signals.h"
-#include "tools/core/Containers.h"
+
+#include "bdc/Array.hpp"
 #include "bdc/Types.hpp"
+
+#include "tools/core/Flags.h"
+#include "tools/core/Signals.h"
 
 namespace ndbl
 {
@@ -60,7 +62,7 @@ namespace ndbl
         Node_Slot_View*                         view;
         Flags                                   flags;
         size_t                                  capacity;
-        tools::Inline_Vector16<Node_Slot*>      adjacent;
+        bdc::Inlined_Array<Node_Slot*, 16>      adjacent;
         
         static const Node_Slot                  null;
 
@@ -68,8 +70,8 @@ namespace ndbl
         Node_Slot::Flags    type_and_order() const { return this->flags & (Node_Slot::Flag_TYPE_MASK | Node_Slot::Flag_ORDER_MASK); }
         Node_Slot::Flags    order() const{return this->flags & Node_Slot::Flag_ORDER_MASK;}
         bool                is_full() const {return HAS_FLAGS(this->flags, Node_Slot::Flag_IS_FULL);}
-        Node*               first_adjacent_node() const { return !adjacent.empty() ? adjacent[0]->node : nullptr; }
-        Node_Slot*          first_adjacent() const { return !adjacent.empty() ? adjacent[0] : nullptr; }
+        Node*               first_adjacent_node() const { return adjacent.size ? adjacent[0]->node : nullptr; }
+        Node_Slot*          first_adjacent() const { return adjacent.size ? adjacent[0] : nullptr; }
     };
 
     void                    node_slot_init(Node_Slot*, Node_Slot::Flags = {}, u32_t capacity = 0 /* 0 => maxsize */, u32_t position = 0);

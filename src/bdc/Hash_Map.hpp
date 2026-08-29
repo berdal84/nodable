@@ -87,7 +87,8 @@ namespace bdc
         Allocator*                      allocator;
         Hash_Proc_Type                  hash_proc;
     };
-    
+    static_assert( std::is_trivially_constructible_v<Hash_Map<String, String>> );
+
     // Some templates to deduce if a type is an Hash_Map and get its sub types
     // template<typename T>
     // concept Is_Hash_Map = requires(T& t) {

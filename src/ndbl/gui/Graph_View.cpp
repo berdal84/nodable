@@ -302,7 +302,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
         {
             Node_Slot *slot = slots[slot_index];
 
-            if (slot->adjacent.empty() )
+            if ( slot->adjacent.size == 0 )
             {
                 continue;
             }

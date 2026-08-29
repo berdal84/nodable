@@ -4,13 +4,13 @@
 #include <unordered_map>
 #include "bdc/Types.hpp"
 #include "bdc/String.hpp"
+#include "bdc/Array.hpp"
 #include <typeinfo>
 #include <vector>
 #include <tuple>
 
 #include "Function_Traits.h"
 #include "Type_Register.h"
-#include "core/Containers.h"
 
 // add this macro to a class declaration to enable reflection on it.
 // Must have a parent class having REFLECT_BASE_CLASS macro.
@@ -98,9 +98,14 @@ namespace tools
         friend Type_Register;
     public:
         Type_Descriptor()
-        : m_id(std::type_index(typeid(null))), m_primitive_id( std::type_index(typeid(null)) ) {}
+        : m_id(std::type_index(typeid(null)))
+        , m_primitive_id( std::type_index(typeid(null)) )
+        {}
+
         Type_Descriptor(std::type_index _id, std::type_index _primitive_id)
-        : m_id(_id), m_primitive_id(_primitive_id) {}
+        : m_id(_id)
+        , m_primitive_id(_primitive_id)
+        {}
 
         virtual ~Type_Descriptor() {};
 
@@ -164,8 +169,8 @@ namespace tools
         void            push_arg(const Type_Descriptor* _type, bool _pass_by_ref = false);
         bool            has_arg_with_type(const Type_Descriptor*)const;
 
-        Inline_Vector8<Function_Arg_Descriptor> args;
-        const Type_Descriptor*                  return_type = type::null();
+        bdc::Inlined_Array<Function_Arg_Descriptor, 8> args;
+        const Type_Descriptor*                         return_type = type::null();
     };
 
     /**

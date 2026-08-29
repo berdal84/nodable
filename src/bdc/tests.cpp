@@ -287,10 +287,49 @@ int main()
         {
             memory_manager_init();
 
-            Resizable_Array<int> arr( temp_allocator() );
+            Resizable_Array<int> arr;
+            array_init(arr, 0, temp_allocator());
 
             for(int i = 0; i < 10; ++i) array_append(arr, i+1);
             for(int i = 0; i < 10; ++i) TEST_EXPECTS( arr[i] == i+1);
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+
+        TEST_BEGIN( array_find() )
+        {
+            memory_manager_init();
+
+            Resizable_Array<int> arr;
+            array_init(arr, 0, temp_allocator());
+
+            array_append(arr, 10);
+            array_append(arr, 42);
+            array_append(arr, 1);
+
+            auto result = array_find(arr, 42);
+            TEST_EXPECTS( result.found );
+            TEST_EXPECTS( result.at_pos == 1);
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+
+        TEST_BEGIN( array_remove_ordered )
+        {
+            memory_manager_init();
+
+            Resizable_Array<int> arr;
+            array_init(arr, 0, temp_allocator());
+
+            array_append(arr, 0);
+            array_append(arr, 1);
+            array_append(arr, 2);
+
+            array_remove_ordered(arr, 1);
+
+            TEST_EXPECTS( arr[1] == 2 );
 
             memory_manager_shutdown();
         }
@@ -300,7 +339,8 @@ int main()
         {
             memory_manager_init();
 
-            Resizable_Array<int> arr( temp_allocator() );
+            Resizable_Array<int> arr;
+            array_init(arr, 0, temp_allocator());
 
             array_resize(arr, 16);
             for(u32_t i = 0; i < arr.size; ++i)

@@ -120,8 +120,8 @@ namespace ndbl
         {
             Token                                   identifier_token;
             tools::Function_Descriptor              func_type; // not owned
-            tools::Inline_Vector8<Node_Slot*>       argument_slots;
-            tools::Inline_Vector8<Node_Property*>   argument_props;
+            bdc::Inlined_Array<Node_Slot*, 8>       argument_slots;
+            bdc::Inlined_Array<Node_Property*, 8>   argument_props;
 
             Node_Slot*                              lvalue_in() const { return argument_slots[0]; }
             Node_Slot*                              rvalue_in() const { return argument_slots[1]; }
@@ -160,7 +160,7 @@ namespace ndbl
             //Type_State() { memset( this, 0, sizeof( Type_State ) ); }
         };
 
-        bdc::String_Hash                        id;
+        bdc::String_Hash                        id = {};
         tools::Simple_Signal                    signal_deinit;      // emit once component_deinit() has been called
         tools::Signal<void(const bdc::String&)> signal_name_change;   
         std::vector<Node_Property*>             props;              // TODO: use bdc::Resizable_Array
@@ -168,19 +168,19 @@ namespace ndbl
         bdc::Hash_Map<bdc::String, Node_Property*>   props_by_name;
         bdc::String                             name;
         Token                                   suffix;
-        Graph*                                  graph;
-        Node_Property*                          value;              // this Node_Property
-        Scope*                                  scope          = nullptr; 
-        Scope*                                  internal_scope = nullptr;
-        Node_Type                               type;
-        Node_Flags                              flags;
-        Node_View*                              view;
+        Graph*                                  graph = {};
+        Node_Property*                          value = {};   // this Node_Property
+        Scope*                                  scope = {}; 
+        Scope*                                  internal_scope = {};
+        Node_Type                               type = {};
+        Node_Flags                              flags = {};
+        Node_View*                              view = {};
               
         mutable std::unordered_map<
             Node_Slot::Flags,
             std::vector<Node*>>                 adjacent_nodes_cache;
 
-        Node() = delete;
+        Node() { /* we don't intialize the tagged union here */ } ;
         ~Node();
         Node(const Node&);
         Node& operator=(const Node& other);

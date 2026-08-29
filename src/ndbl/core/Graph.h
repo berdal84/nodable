@@ -1,15 +1,15 @@
 #pragma once
 
 #include <cstddef>
-#include "bdc/String.hpp"
-#include "bdc/Array.hpp"
 #include <unordered_map>
 #include <vector>
 #include <set>
 
+#include "bdc/String.hpp"
+#include "bdc/Array.hpp"
 #include "bdc/String_Hash.hpp"
-#include "core/Containers.h"
 #include "bdc/Types.hpp"
+
 #include "core/reflection/Type_Descriptor.h"
 #include "ndbl/gui/Event.h"
 #include "Node.h"
@@ -49,7 +49,7 @@ namespace ndbl
         };
         tools::Signal<void(Scope_Change)>   signal_change_scope;
 
-        Graph() { }
+        Graph() = default;
         Graph(const Graph& other) { *this = other; }
         Graph& operator=(const Graph& other) { if (this != &other) memcpy((void*)this, (void*)&other, sizeof(Graph)); return *this; }
     };
