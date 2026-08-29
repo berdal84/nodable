@@ -1,36 +1,55 @@
 {
+	"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
 	"folders":
 	[
 		{
-			"path": "~/nodable",
-			"folder_exclude_patterns": ["build-*", ".vscode", ".idea", ".cache"]
+			"path": "/mnt/Shared/Projects/nodable",
+			"folder_exclude_patterns": [".cache"]
 		},
 	],
 	"build_systems": [{
-		"name": "Nodable (release)",
-		"shell_cmd": "rake ndbl:app:build",
+		"name": "BDC",
 		"env": {
-			"BUILD_TYPE": "release"
+			"OUT_DIR": 		 "build-linux-debug/bdc/bin",
+			"SRC_DIR":   	 "src/bdc",
+			"CLANG_COMMAND": "clang++ -std=c++20 -O0 -g"
+		},
+		"shell_cmd": "echo \"This build system does nothing by default:\n>> Press Ctrl+Shift+B to 'build' or 'run'\"",
+		"variants": [{
+			"name": "build",
+			"shell_cmd": "mkdir -p \\$OUT_DIR && \\$CLANG_COMMAND \\$SRC_DIR/tests.cpp -o \\$OUT_DIR/tests",
+		},{
+			"name": "run",
+			"shell_cmd": "\\$BUILD_DIR/tests",
+		},{
+			"name": "rebuild and run",
+			"shell_cmd": "mkdir -p \\$OUT_DIR && \\$CLANG_COMMAND \\$SRC_DIR/tests.cpp -o \\$OUT_DIR/tests && \\$OUT_DIR/tests",
+		}]
+	},{
+		"name": "Nodable (release)",
+		"shell_cmd": "rake nodable:build",
+		"env": {
+			"CONFIG": "release"
 		},
 		"variants": [{
 			"name": "rebuild",
-			"shell_cmd": "rake clobber ndbl:app:build",
+			"shell_cmd": "rake clobber && rake nodable:build",
 		},{
 			"name": "run",
-			"shell_cmd": "rake ndbl:app:build run"
+			"shell_cmd": "rake nodable:build run"
 		}]
 	},{
 		"name": "Nodable (debug)",
-		"shell_cmd": "rake ndbl:app:build",
+		"shell_cmd": "rake nodable:build",
 		"env": {
-			"BUILD_TYPE": "debug"
+			"CONFIG": "debug"
 		},
 		"variants": [{
 			"name": "rebuild",
-			"shell_cmd": "rake clobber ndbl:app:build",
+			"shell_cmd": "rake clobber && rake nodable:build",
 		},{
 			"name": "run",
-			"shell_cmd": "rake ndbl:app:build run"
+			"shell_cmd": "rake nodable:build run"
 		}],
 	}]
 }
