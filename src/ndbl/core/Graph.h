@@ -32,7 +32,7 @@ namespace ndbl
 	{       
         #define NODE_MAX_COUNT 4096
 
-        bdc::Hash_Map<bdc::String, size_t>      node_index_by_name;
+        bdc::Hash_Map<bdc::String_Hash, size_t>  node_index_by_id;
         bdc::Inlined_Array<Node, NODE_MAX_COUNT> nodes;
 
         Graph_View*                         view;

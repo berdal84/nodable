@@ -62,7 +62,7 @@ def base_target(name, type)
     if CONFIG_DEBUG or CONFIG_OPTIMIZED
 
         target.defines |= [
-            "BDC_ENABLE_LOGS",
+            #"BDC_ENABLE_LOGS",
             "BDC_DEBUG_ALLOCATORS",
         ]
 
@@ -336,16 +336,14 @@ tests.sources |= FileList[
     "src/ndbl/core/Node_Slot.specs.cpp",
     "src/ndbl/core/Token.specs.cpp",
     "src/ndbl/core/Graph.specs.cpp",
-    "src/ndbl/core/language/Nodlang.basics.specs.cpp",
-    "src/ndbl/core/language/Nodlang.parse_and_serialize.specs.cpp",
-    "src/ndbl/core/language/Nodlang.parse_function_call.specs.cpp",
-    "src/ndbl/core/language/Nodlang.parse_token.specs.cpp",
-    "src/ndbl/core/language/Nodlang.tokenize.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse0.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse1.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse2.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse3.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse4.specs.cpp",
     "src/ndbl/test/main.cpp",
 
     "src/tools/core/Delegate.specs.cpp",
-    "src/tools/core/Containers.specs.cpp",
-    "src/tools/core/String.specs.cpp",
     "src/tools/core/reflection/index.specs.cpp",
     "src/tools/gui/geometry/Spatial_Node.specs.cpp",
     "src/tools/gui/geometry/Rect.specs.cpp",

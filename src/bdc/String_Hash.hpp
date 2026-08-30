@@ -12,4 +12,15 @@ namespace bdc
     static_assert( std::is_trivially_constructible_v<String_Hash> );
 
     String_Hash string_hash(const String& str);
+
+
+    inline bool operator==(const String_Hash& a, const String_Hash& b)
+    {
+        return a.hash == b.hash;
+    }
+
+    inline bool operator!=(const String_Hash& a, const String_Hash& b)
+    {
+        return a.hash != b.hash;
+    }
 }

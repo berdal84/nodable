@@ -31,6 +31,8 @@ namespace ndbl
         {}
 
         void                reset(bdc::String = {});
+        Token&              operator[](size_t pos) { return tokens.at(pos); }
+        const Token&        operator[](size_t pos) const { return tokens.at(pos); }
         Token&              at(size_t index) { return tokens.at(index); }
         Token&              back() { return tokens.back(); };        
         Iterator            begin() { return tokens.begin(); };

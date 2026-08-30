@@ -54,7 +54,7 @@ namespace ndbl
         if (!language_is_initialized()) return; // Had to do this because when I test a node without a language, it crashes there.
 
         // Convert m_type to a Token_t
-        Token_Type token_type = lang_to_literal_token(language(), property->type);
+        Token_Type token_type = lang_type_to_literal_token_type(language(), property->type);
         VERIFY(token_type != Token_Type_NULL, "This token is not handled");
 
         property->token = { token_type };

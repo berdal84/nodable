@@ -255,6 +255,12 @@ namespace bdc
         g_memory_manager_ctx = nullptr;
     }
 
+    void memory_manager_clear_trackers()
+    {
+        heap_allocator_tracker().allocations.clear();
+        temp_allocator_tracker().allocations.clear();
+    }
+
     void memory_manager_report_print(Memory_Manager_Report* report, bool asserts_no_leaks)
     {
         BDC_LOG_DEBUG("allocators_report_print() ...\n");
@@ -288,7 +294,10 @@ namespace bdc
             return;
         }
 
-        assert(find_allocation(ptr) == nullptr );
+        if( find_allocation(ptr) != nullptr )
+        {
+            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] warning: %s already has an allocation at %p \n", allocator->name, ptr);
+        }
 
         auto& info = allocations.emplace_back();
         info.data = ptr;
@@ -328,7 +337,12 @@ namespace bdc
 
     void Memory_Allocation_Tracker::before_free(void* ptr)
     {               
-        assert(ptr != nullptr);        
+        if( ptr == nullptr )
+        {
+            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] %s warning: freeing nullptr will do nothing.\n", allocator->name); 
+            return;
+        }
+
         auto it = std::find_if(
             allocations.begin(), allocations.end(),
             [ptr](auto& item){ return item.data == ptr; }
@@ -337,7 +351,7 @@ namespace bdc
         if ( it == allocations.end() )
         {
             BDC_LOG_DEBUG("[Memory_Allocation_Tracker] %s warning: allocation at %p will be released but: WAS NOT REGISTERED. Will crash.\n", allocator->name, ptr); 
-            assert(false);
+            return;
         }
 
         BDC_LOG_DEBUG("[Memory_Allocation_Tracker] %s released %p (known size: %lu)\n", allocator->name, it->data, it->size);

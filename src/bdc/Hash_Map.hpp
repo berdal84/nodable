@@ -26,16 +26,26 @@ namespace bdc
             return const_cast<Pointer_T>(&t);
         }
     }
-
+    
     // User must implement this template with his own types
     template<typename Key_Type, typename Hash_Type>
-    Hash_Type hashmap_hash(const Key_Type& key);
-    
+    Hash_Type hash(const Key_Type& key)
+    {
+        static_assert(false, "No predefined implementation of this hash function, define yours");
+    };
+
     // String implemenentation
     template<>
-    inline u32_t hashmap_hash(const String& key)
+    inline u32_t hash(const String& key)
     {
         return string_hash(key).hash;
+    };
+
+    // String_Hash implemenentation
+    template<>
+    inline u32_t hash(const String_Hash& key)
+    {
+        return key.hash;
     };
 
     template<typename Value_Type>
@@ -111,7 +121,7 @@ namespace bdc
     void hashmap_init(
         T& hashmap, 
         Allocator* allocator = default_allocator(),
-        typename T::Hash_Proc_Type hash_proc = &hashmap_hash<Hash_Map_Key<T>, Hash_Map_Hash<T>>)
+        typename T::Hash_Proc_Type hash_proc = &hash<Hash_Map_Key<T>, Hash_Map_Hash<T>>)
     {
         hashmap.allocator = allocator;
         hashmap.size      = 0;

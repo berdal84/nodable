@@ -30,8 +30,8 @@ namespace ndbl {
         Token_Type_keyword_bool,
         Token_Type_keyword_any,     // like TypeScript's
         Token_Type_keyword_unknown, // like TypeScript's
-        Token_Type_keyword_FIRST  = Token_Type_keyword_string,
-        Token_Type_keyword_LAST   = Token_Type_keyword_unknown,
+        Token_Type_keyword_type_FIRST  = Token_Type_keyword_string,
+        Token_Type_keyword_type_LAST   = Token_Type_keyword_unknown,
         //----- literals -----
         Token_Type_literal_string,
         Token_Type_literal_double,
@@ -53,7 +53,7 @@ namespace ndbl {
     /** Check if a given keyword is a type (ex: bool, int, double,...)*/
 	static constexpr bool is_a_type_keyword(Token_Type _token_t)
     {
-        return Token_Type_keyword_FIRST <= _token_t && _token_t <= Token_Type_keyword_LAST;
+        return Token_Type_keyword_type_FIRST <= _token_t && _token_t <= Token_Type_keyword_type_LAST;
     }
 
 }

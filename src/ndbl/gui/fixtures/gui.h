@@ -11,18 +11,13 @@
 
 namespace testing
 {
+    using namespace tools;
+    using namespace bdc;
+
     class Gui: public Test
     {
     public:
-        Gui()
-        {
-            // Override app label with test name
-            const TestInfo* test_info = ::testing::UnitTest::GetInstance()->current_test_info();
-            bdc::String label = "Test | ";
-            label += test_info->test_suite_name();
-            label += " - ";
-            label += test_info->name();
-        }
+        Gui() {};
 
         /**
          * run some loops for a given iteration count

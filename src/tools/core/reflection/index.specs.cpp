@@ -55,7 +55,7 @@ TEST(Reflection, is_convertible__incompatible_types)
 TEST(Reflection, is_ptr)
 {
     EXPECT_FALSE( type_get<bool>()->is_ptr() );
-    EXPECT_TRUE( type_get<bool*>()->is_ptr() );
+    EXPECT_TRUE ( type_get<bool*>()->is_ptr() );
 }
 
 TEST(Reflection, is_child_of)
@@ -63,15 +63,15 @@ TEST(Reflection, is_child_of)
     class Base {};
     class Derived: public Base {};
 
-    type_Initializer<Derived>("Derived").extends<Base>();
+    Type_Initializer<Derived>("Derived").extends<Base>();
 
-    EXPECT_TRUE(type_get_class<Derived>()->is_child_of<Base>());
-    EXPECT_FALSE(type_get_class<Base>()->is_child_of<Derived>());
+    EXPECT_TRUE ( type_get<Derived>()->class_is_child_of<Base>() );
+    EXPECT_FALSE( type_get<Base>()->class_is_child_of<Derived>() );
 }
 
 TEST(Reflection, pass_by_ref)
 {
-   Type_Descriptor f;
-   f.init<void(double &d)>("function");
-   EXPECT_TRUE(f.arg_at(0).pass_by_ref );
+   Type_Descriptor type;
+   type_init<void(double &d)>(&type, "function");
+   EXPECT_TRUE( type.function.args[0].pass_by_ref );
 }

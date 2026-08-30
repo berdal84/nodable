@@ -17,6 +17,8 @@ void node_slot_init(
 )
 {
     VERIFY( !HAS_FLAGS(flags, Node_Slot::Flag_IS_FULL), "Node_Slot::Flag_IS_FULL is for readonly use" );
+
+    array_init(slot->adjacent);
     
     if (capacity == 0)
     {
@@ -28,6 +30,13 @@ void node_slot_init(
     slot->position = position;
     slot->capacity = capacity;
     slot->flags    = flags;
+    slot->property = nullptr;
+    slot->view     = nullptr;
+}
+
+void node_slot_release(Node_Slot* slot)
+{
+    memset((void*)slot, 0, sizeof(Node_Slot));
 }
 
 Node_Slot* node_slot_adjacent_at(const Node_Slot* slot, u8_t pos)
@@ -40,6 +49,7 @@ Node_Slot* node_slot_adjacent_at(const Node_Slot* slot, u8_t pos)
 
 void node_slot_add_adjacent(Node_Slot* slot, Node_Slot* other)
 {
+    ASSERT(slot != nullptr);
     ASSERT(other != nullptr);
     VERIFY(other != slot, "Reflexive edge not handled" );
     VERIFY(slot->type() == other->type() , "Node_Slot must have common type" );

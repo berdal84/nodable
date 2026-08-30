@@ -29,7 +29,7 @@ namespace ndbl
      */
 	struct Token
 	{
-        size_t      index;       // in parent Token_Ribbon
+        size_t      index; // in parent Token_Ribbon
         Token_Type  type;
         
         bdc::String buffer; // original source code (not owned), might be replaced by custom data in case used edits a value.
@@ -39,22 +39,18 @@ namespace ndbl
         bdc::String word_view;
         bdc::String suffix_view;
 
-        Token() = default;
-        Token(Token_Type type);
-        Token(Token_Type type, const bdc::String& buffer);
-        Token(Token_Type type, const bdc::String& buffer, const bdc::String& word);
-        Token(const Token& other) = default;
-        Token(Token&& other) = default;
-
-        explicit    operator bool () const;
-        Token&      operator=(const Token& other);
-        Token&      operator=(Token&&) = default;
+        Token(): Token(Token_Type_NULL) {}
+        Token(Token_Type type): Token(type, "") {}
+        Token(Token_Type type, bdc::String buffer);
+        Token(const Token& other) { *this = other; };
 
         ~Token() = default;
 
+        inline explicit operator bool () const { return type != Token_Type_NULL; }
+        Token&          operator=(const Token& other);
+
         void        clear();
         bool        has_buffer()const { return !buffer.empty(); }; 
-        bdc::String string() const { return bdc::string_view(buffer); }
         void        set_offset(size_t new_offset);
 
         void        prefix_reset(size_t size = 0);      // preserves word
@@ -83,38 +79,5 @@ namespace ndbl
         static const Token s_end_of_instruction;
     };
 
-    static_assert( std::is_trivially_constructible_v<Token>, "Token should be trivially constructible!");
-
-    inline Token::Token(Token_Type type)
-    : type( type )
-    {}
-
-
-    inline Token::Token(
-        Token_Type            type,
-        const bdc::String&    buffer
-    )
-    : type(type)
-    , buffer(buffer)
-    , word_view(buffer)
-    {
-    }
-
-    inline Token::Token(
-        Token_Type            type,
-        const bdc::String&    buffer,
-        const bdc::String&    word
-    )
-    : type(type)
-    , buffer(buffer)
-    , word_view(word)
-    {
-        assert((u64_t)word.data <= ((u64_t)buffer.data + buffer.size) && "word starts after buffer's end!");
-        assert((u64_t)word.data + word.size <= ((u64_t)buffer.data + buffer.size) && "word ends after buffer's end!");
-    }
-
-    inline Token::operator bool () const
-    {
-        return type != Token_Type_NULL;
-    }
+    static_assert( std::is_default_constructible_v<Token> );
 }

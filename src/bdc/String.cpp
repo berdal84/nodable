@@ -77,12 +77,13 @@ namespace bdc
 
     String string_rsplit(const String& str, u32_t index)
     {
-        assert(index < str.size && "Out of bounds");
+        assert(index <= str.size && "Out of bounds");
 
-        if( index == 0)
+        if( index == 0 )
         {
-            return str;
+            return { str.data, 0 };
         }
+
 
         String result = str;
         result.data += index;

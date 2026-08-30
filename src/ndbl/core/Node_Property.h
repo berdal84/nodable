@@ -29,6 +29,9 @@ namespace ndbl
         const tools::Type_Descriptor*    type;
         Flags                            flags;
         bdc::Resizable_Array<Node_Slot*> slots;
+
+        Node_Property() = default;
+        ~Node_Property() = default;
     };
 
     void property_init      (Node_Property*, Node* /* owner */, const tools::Type_Descriptor*, Node_Property::Flags, const bdc::String _name); // must be called once before use

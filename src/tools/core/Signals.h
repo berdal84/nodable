@@ -95,9 +95,6 @@ namespace tools
     {
         using Delegate_Type = Delegate<Result_Type(Args_Types...)>; // the expected delegate type to connect with
 
-        Broadcast_Signal() = default;
-        Broadcast_Signal(const Broadcast_Signal&) = delete;
-
         // TMethod: the address to a member function
         // object_ptr: the instance to call the member with
         // Inserting multiple times the same method for the same pointer is undefined behavior.

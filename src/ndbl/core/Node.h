@@ -175,10 +175,6 @@ namespace ndbl
         Node_Type                               type = {};
         Node_Flags                              flags = {};
         Node_View*                              view = {};
-              
-        mutable std::unordered_map<
-            Node_Slot::Flags,
-            std::vector<Node*>>                 adjacent_nodes_cache;
 
         Node() { /* we don't intialize the tagged union here */ } ;
         ~Node();

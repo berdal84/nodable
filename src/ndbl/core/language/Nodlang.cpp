@@ -63,9 +63,9 @@ namespace ndbl
             { ')',  Token_Type_parenthesis_close},
             { '{',  Token_Type_scope_begin},
             { '}',  Token_Type_scope_end},
-            { '\n', Token_Type_NULL},
-            { '\t', Token_Type_NULL},
-            { ' ',  Token_Type_NULL},
+            { '\n', Token_Type_ignore},
+            { '\t', Token_Type_ignore},
+            { ' ',  Token_Type_ignore},
             { ';',  Token_Type_end_of_instruction},
             { ',',  Token_Type_list_separator}
         };
@@ -132,7 +132,7 @@ namespace ndbl
 
         for( auto [keyword, token_t] : language->definition.keywords)
         {
-            language->token_type_by_keyword.insert({Hash::hash(keyword), token_t});
+            language->token_type_by_keyword.insert({string_hash(keyword).hash, token_t});
             language->keyword_by_token_type.insert({token_t, keyword});
         }
 
@@ -140,7 +140,7 @@ namespace ndbl
         {
             language->keyword_by_token_type.insert({token_t, keyword});
             language->keyword_by_type_id.insert({type->id, keyword});
-            language->token_type_by_keyword.insert({Hash::hash(keyword), token_t});
+            language->token_type_by_keyword.insert({string_hash(keyword).hash, token_t});
             language->token_type_by_type_id.insert({type->id, token_t});
             language->type_descriptor_by_token_type.insert({token_t, type});
         }
@@ -642,8 +642,9 @@ namespace ndbl
         // To preserve any ignored characters stored in the global token
         // we put the prefix and suffix in resp. token_begin and end.
         Token& tok = lang.ribbon.global_token;
-        scope->token_begin.prefix_push_front( tok.prefix_view );
-        scope->token_end.suffix_push_back( tok.suffix_view );
+
+        if(tok.prefix_view.size) scope->token_begin.prefix_push_front( tok.prefix_view );
+        if(tok.suffix_view.size) scope->token_end.suffix_push_back( tok.suffix_view );
 
         if ( lang.ribbon.can_eat( ) )
         {
@@ -855,6 +856,7 @@ namespace ndbl
 
     bool lang_tokenize(Language& lang, const bdc::String& str)
     {
+        lang.buffer = str;
         lang.ribbon.reset( str );
         return lang_tokenize(lang);
     }
@@ -880,9 +882,9 @@ namespace ndbl
             }
 
             // accumulate ignored chars (see else case to know why)
-            if(new_token.type == Token_Type_NULL)
+            if(new_token.type == Token_Type_ignore)
             {
-                if (  lang.ribbon.empty() )
+                if ( lang.ribbon.empty() )
                 {
                     lang.ribbon.global_token.prefix_end_grow(new_token.buffer.size );
                     continue;
@@ -899,7 +901,7 @@ namespace ndbl
                 if ( _lang_accepts_suffix(lang, back.type) )
                 {
                     back.suffix_end_grow(ignored_chars_count);
-                    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", back.string().c_str() );
+                    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", back.buffer.c_str() );
                 }
                 // case 2: increase prefix of the new_token up to wrap the ignored chars
                 else if ( new_token )
@@ -910,7 +912,7 @@ namespace ndbl
             }
 
             lang.ribbon.push(new_token);
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", new_token.index, new_token.string().c_str() );
+            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", new_token.index, new_token.buffer.c_str() );
         }
 
         // Append remaining ignored chars to the ribbon's suffix
@@ -933,35 +935,31 @@ namespace ndbl
         // comments
         if ( buffer[0] == '/' && buffer.size > 1)
         {
-            bdc::String remainder = bdc::string_rsplit(buffer, 1);
+            bdc::String word = bdc::string_rsplit(buffer, 1);
 
-            if (remainder[0] == '*' || remainder[0] == '/')
+            if (word[0] == '*' || word[0] == '/')
             {
                 // multi-line comment
-                if (remainder[1] == '*')
+                if (word[1] == '*')
                 {
-                    while ( remainder.size != 0 && !(remainder[0] == '/' && remainder[0] == '*'))
+                    while ( word.size != 0 && !(word[0] == '/' && word[0] == '*'))
                     {
-                        remainder = string_rsplit(remainder, 1);
+                        word.size += 1;
                     }
                 }
                 // single-line comment
                 else
                 {
-                    while (remainder.size != buffer.size && remainder[remainder.size-1] != '\n' )
+                    while (word.size != buffer.size && word[word.size-1] != '\n' )
                     {
-                        remainder.size += 1;
+                        word.size += 1;
                     }
                 }
-                remainder.size += 1;
-
+                word.size += 1;
                 
-                Token token{Token_Type_NULL};
-                token.replace_word(remainder);
-                
-                bdc::string_advance(buffer, remainder.size);
+                bdc::string_advance(buffer, word.size);
 
-                return token;
+                return Token{ Token_Type_ignore, word };
             }
         }
 
@@ -969,14 +967,11 @@ namespace ndbl
         auto single_char_found = lang.token_type_by_single_char.find(buffer[0]); // index lookup
         if( single_char_found != lang.token_type_by_single_char.end() )
         {
-            // Generate token
-            Token token{};
-            token.type = single_char_found->second;
-            token.replace_word( bdc::string_lsplit( buffer, 1) );
+            String word = bdc::string_lsplit( buffer, 1);
 
-            bdc::string_advance(buffer, 1);
+            bdc::string_advance(buffer, word.size );
 
-            return token;
+            return Token{ single_char_found->second, word };
         }
 
         // operators
@@ -984,20 +979,21 @@ namespace ndbl
         {
             case '=':
             {
+                bdc::String word;
+
                 // Double char operators starting with "=" ("=>" or "==")
                 if (buffer.size >= 1 && (buffer[1] == '>' || buffer[1] == '='))
                 {
-                    bdc::String word = bdc::string_lsplit(buffer, 2);
-
-                    string_advance(buffer, 2);
-
-                    return Token{Token_Type_operator, buffer, word };
+                    word = bdc::string_lsplit(buffer, 2);
+                }
+                // "="
+                else
+                {
+                    word = bdc::string_lsplit(buffer, 1);
                 }
 
-                // "="
-                bdc::String word = bdc::string_lsplit(buffer, 2);
-                string_advance(buffer, 1);
-                return Token{Token_Type_operator, buffer, word };
+                string_advance(buffer, word.size);
+                return Token{ Token_Type_operator, word };
             }
 
             case '!':
@@ -1017,23 +1013,23 @@ namespace ndbl
                     if (buffer.size > 2 && buffer[0] == '<'  && buffer[1] == '=' && buffer[2] == '>'  )
                     {
                         bdc::String word = bdc::string_lsplit(buffer, 3);
-                        bdc::string_advance(buffer, 3);
-                        return Token{ Token_Type_operator, buffer, word };
+                        bdc::string_advance(buffer, word.size);
+                        return Token{ Token_Type_operator, word };
                     }
 
                     // 2-chars operators: >=, <= += -=, etc.
                     if (buffer[1] == '=')
                     {                    
                         bdc::String word = bdc::string_lsplit(buffer, 2);
-                        bdc::string_advance(buffer, 2);
-                        return Token{ Token_Type_operator, buffer, word };
+                        bdc::string_advance(buffer, word.size);
+                        return Token{ Token_Type_operator, word };
                     }
                 }
 
                 // single char operator
                 bdc::String word = bdc::string_lsplit(buffer, 1);
                 bdc::string_advance(buffer, 1);
-                return Token{ Token_Type_operator, buffer, word };
+                return Token{ Token_Type_operator, word };
             }
         }
 
@@ -1068,7 +1064,7 @@ namespace ndbl
             }
             bdc::String word = bdc::string_lsplit(buffer, cursor);
             bdc::string_advance(buffer, cursor);
-            return Token{type, buffer, word };
+            return Token{type, word };
         }
 
         // double-quoted string
@@ -1089,7 +1085,7 @@ namespace ndbl
             ++cursor;
             bdc::String word = bdc::string_lsplit(buffer, cursor);
             bdc::string_advance(buffer, cursor);
-            return Token{Token_Type_literal_string, buffer, word};
+            return Token{Token_Type_literal_string, word};
         }
 
         // symbol (identifier or keyword)
@@ -1097,7 +1093,7 @@ namespace ndbl
         {
             // parse symbol
             u32_t cursor = 1;
-            while (cursor != buffer.size && std::isalnum( buffer[cursor]) || buffer[cursor] == '_' )
+            while (cursor < buffer.size && (std::isalnum( buffer[cursor]) || buffer[cursor] == '_') )
             {
                 ++cursor;
             }
@@ -1106,15 +1102,15 @@ namespace ndbl
             bdc::string_advance(buffer, cursor);
 
             // symbol might be a reserved keyword, let's seach in the keyword index...
-            const auto identifier_hash = Hash::hash( buffer.data, cursor );
-            auto keyword_found = lang.token_type_by_keyword.find( identifier_hash );
+            String_Hash word_hash = string_hash(word);
+            auto keyword_found = lang.token_type_by_keyword.find( word_hash.hash );
             if (keyword_found != lang.token_type_by_keyword.end())
             {            
-                return Token{ keyword_found->second, buffer, word};
+                return Token{ keyword_found->second, word };
             }
 
             // ...otherwise, symbol is an identifier
-            return Token{ Token_Type_identifier, buffer, word};
+            return Token{ Token_Type_identifier, word};
             
         }
         return Token{ Token_Type_NULL };
@@ -1476,7 +1472,7 @@ namespace ndbl
 
             // declaration with assignment ?
             Token operator_token = lang.ribbon.eat_if(Token_Type_operator);
-            if (operator_token && operator_token.word_view.size == 1 && operator_token.word_view.size == '=')
+            if (operator_token && operator_token.word_view == "=")
             {
                 // an expression is expected
                 if ( Node_Slot* expression_out = lang_parse_expression(lang, parent_scope) )
@@ -1657,7 +1653,7 @@ namespace ndbl
         if ( slot->adjacent.size != 0 )
         {
             if ( _node->variable_data.operator_token )
-                string_builder_append(out, _node->variable_data.operator_token.string());
+                string_builder_append(out, _node->variable_data.operator_token.buffer);
             else
                 string_builder_append(out, " = ");
 
@@ -1978,7 +1974,7 @@ namespace ndbl
                 && type != Token_Type_parenthesis_close;  // "(" are lost when creating AST
     }
 
-    Token_Type lang_to_literal_token(const Language& lang, const Type_Descriptor *type)
+    Token_Type lang_type_to_literal_token_type(const Language& lang, const Type_Descriptor *type)
     {
         if (type == type_get<double>() )
             return Token_Type_literal_double;
@@ -2017,7 +2013,7 @@ namespace ndbl
                 block->suffix = tok;
             }
 
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Block found (class %s)\n", block->get_class()->name.c_str() );
+            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Block found (class \"%s\")\n", block->get_class()->name.c_str() );
             return block;
         }
 

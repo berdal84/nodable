@@ -66,6 +66,9 @@ namespace ndbl
         
         static const Node_Slot                  null;
 
+        Node_Slot() {}
+        ~Node_Slot() {};
+
         Node_Slot::Flags    type() const { return this->flags & Node_Slot::Flag_TYPE_MASK;}
         Node_Slot::Flags    type_and_order() const { return this->flags & (Node_Slot::Flag_TYPE_MASK | Node_Slot::Flag_ORDER_MASK); }
         Node_Slot::Flags    order() const{return this->flags & Node_Slot::Flag_ORDER_MASK;}
@@ -75,6 +78,7 @@ namespace ndbl
     };
 
     void                    node_slot_init(Node_Slot*, Node_Slot::Flags = {}, u32_t capacity = 0 /* 0 => maxsize */, u32_t position = 0);
+    void                    node_slot_release(Node_Slot*);
     Node_Slot*              node_slot_adjacent_at(const Node_Slot*, u8_t /* position */);
     inline Node_Slot::Flags node_slot_flags_toggle_order(Node_Slot::Flags flags) { return (i8_t)(flags ^ Node_Slot::Flag_ORDER_MASK); }
     void                    node_slot_add_adjacent(Node_Slot*, Node_Slot* /* other */);

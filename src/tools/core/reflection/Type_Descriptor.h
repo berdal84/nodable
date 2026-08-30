@@ -56,8 +56,8 @@ namespace tools
     template<typename T> std::type_index            type_get_primitive_id();
     template<typename T> const char*                type_get_compiler_name();
     template<typename T> Type_Flags                 type_get_flags();
-    template<typename T> const Type_Descriptor*     type_get();
-    template<typename T> const Type_Descriptor*     type_get(T value) { return type_get<T>(); }
+    template<typename T> Type_Descriptor*           type_get();
+    template<typename T> Type_Descriptor*           type_get(T value) { return type_get<T>(); }
 
     //
     // Simple object to store a named function argument
@@ -182,7 +182,7 @@ namespace tools
     void Type_Descriptor::function_push_nth_arg()
     {
         using NTH_ARG = std::tuple_element_t<N, ArgsAsTuple>;
-        function_push_arg( type_get<NTH_ARG>(), std::is_reference_v<NTH_ARG> );
+        this->function_push_arg( type_get<NTH_ARG>(), std::is_reference_v<NTH_ARG> );
     }
 
     template<typename ...Args>
@@ -193,14 +193,14 @@ namespace tools
 
         // note: I duplicate instead of using template recursion hell. :)
 
-        if constexpr (ARG_COUNT > 0 ) function_push_nth_arg<0, Args...>();
-        if constexpr (ARG_COUNT > 1 ) function_push_nth_arg<1, Args...>();
-        if constexpr (ARG_COUNT > 2 ) function_push_nth_arg<2, Args...>();
-        if constexpr (ARG_COUNT > 3 ) function_push_nth_arg<3, Args...>();
-        if constexpr (ARG_COUNT > 4 ) function_push_nth_arg<4, Args...>();
-        if constexpr (ARG_COUNT > 5 ) function_push_nth_arg<5, Args...>();
-        if constexpr (ARG_COUNT > 6 ) function_push_nth_arg<6, Args...>();
-        if constexpr (ARG_COUNT > 7 ) function_push_nth_arg<7, Args...>();
+        if constexpr (ARG_COUNT > 0 ) this->function_push_nth_arg<0, Args...>();
+        if constexpr (ARG_COUNT > 1 ) this->function_push_nth_arg<1, Args...>();
+        if constexpr (ARG_COUNT > 2 ) this->function_push_nth_arg<2, Args...>();
+        if constexpr (ARG_COUNT > 3 ) this->function_push_nth_arg<3, Args...>();
+        if constexpr (ARG_COUNT > 4 ) this->function_push_nth_arg<4, Args...>();
+        if constexpr (ARG_COUNT > 5 ) this->function_push_nth_arg<5, Args...>();
+        if constexpr (ARG_COUNT > 6 ) this->function_push_nth_arg<6, Args...>();
+        if constexpr (ARG_COUNT > 7 ) this->function_push_nth_arg<7, Args...>();
     }
 
     template<typename T>
@@ -211,9 +211,7 @@ namespace tools
     Type_Descriptor* type_create(const char* name)
     {
         Type_Descriptor* type = new Type_Descriptor();
-
-        type_init<T>(type);
-        type->name = name;
+        type_init<T>(type, name);
 
         return type;
     }
@@ -257,7 +255,14 @@ namespace tools
     }
 
     template<typename T>
-    const Type_Descriptor* type_get()
+    void type_init(Type_Descriptor* type, const char* name)
+    {
+        type_init<T>(type);
+        type->name = name;
+    }
+
+    template<typename T>
+    Type_Descriptor* type_get()
     {
         auto id = type_get_id<T>();
 
@@ -272,6 +277,8 @@ namespace tools
 
         return descriptor;
     }
+
+    static_assert( std::is_function_v<void()>);
 
     template<typename T>
     Type_Flags type_get_flags()

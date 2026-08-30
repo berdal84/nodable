@@ -123,7 +123,7 @@ namespace ndbl
 
     bool                            lang_is_operator(const Language&, const tools::Type_Descriptor*);
     const tools::Operator*          lang_find_operator(const Language&,  const tools::Operator& op); // op.precedence is ignored in operator== for tools::Operator
-    Token_Type                      lang_to_literal_token(const Language&, const tools::Type_Descriptor*);
+    Token_Type                      lang_type_to_literal_token_type(const Language&, const tools::Type_Descriptor*);
     int                             lang_get_precedence(const Language&, const tools::Type_Descriptor*);         // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
     const tools::Type_Descriptor*   lang_get_type(const Language&, Token_Type _token);                               // Get the type corresponding to a given token_t (must be a type keyword)
 

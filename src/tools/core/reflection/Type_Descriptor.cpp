@@ -111,14 +111,14 @@ void Type_Descriptor::class_add_child(std::type_index _child)
 
 void Type_Descriptor::function_push_arg( const Type_Descriptor* _type, bool _pass_by_ref )
 {
-    assert( _type->flags & Type_Flags_IS_FUNCTION );
+    assert( this->flags & Type_Flags_IS_FUNCTION );
     Function_Arg_Descriptor arg{};
     arg.type         = _type;
     arg.pass_by_ref  = _pass_by_ref;
     
     arg.name = bdc::string_printf( "arg_%i", function.args.size );
 
-    array_append(function.args, arg);
+    array_append(this->function.args, arg);
 }
 
 bool Type_Descriptor::function_is_exactly(const Type_Descriptor* _other) const

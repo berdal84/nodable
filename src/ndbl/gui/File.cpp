@@ -16,20 +16,19 @@
 #include "ndbl/gui/Command_Manager.h"
 #include "ndbl/gui/Node_View.h"
 
-using namespace ndbl;
-using namespace tools;
-
 namespace ndbl
 {
-    void _file_set_text_dirty(File* file)
-    {
-        file->flags |= File_Flag_TEXT_IS_DIRTY;
-    }
+using namespace tools;
+using namespace bdc;
+
+void _file_set_text_dirty(File* file)
+{
+    file->flags |= File_Flag_TEXT_IS_DIRTY;
 }
 
-void ndbl::file_init(File* file)
+void file_init(File* file)
 {
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "Constructor being called ...\n");
+    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "File", "Constructor being called ...\n");
 
     file->flags = File_Flag_NEEDS_TO_BE_SAVED | File_Flag_GRAPH_IS_DIRTY; // A File is text-based by default, so we set the graph dirty to force it to be refreshed from the text.
 
@@ -55,15 +54,15 @@ void ndbl::file_init(File* file)
 
     file->view.signal_change.connect<&file_handle_file_view_change>(file);
 
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "View built, creating History ...\n");
+    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "File", "View built, creating History ...\n");
 
     // History
     Text_Editor_Undo_Buffer* text_editor_buf = command_manager_configure_text_editor_undo_buffer(&file->view.text_editor);
     fileview_set_undo_buffer(&file->view, text_editor_buf);
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File", "Constructor being called.\n");
+    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "File", "Constructor being called.\n");
 }
 
-void ndbl::file_deinit(File* file)
+void file_deinit(File* file)
 {
     assert(file->graph->signal_change.disconnect<&_file_set_text_dirty>(file));
     
@@ -75,7 +74,7 @@ void ndbl::file_deinit(File* file)
     file->graph = nullptr;
 }
 
-void ndbl::file_update_text_from_graph(File* file, bool isolation_on)
+void file_update_text_from_graph(File* file, bool isolation_on)
 {
     if ( auto* root_node = graph_root( file->graph ) )
     {
@@ -87,11 +86,11 @@ void ndbl::file_update_text_from_graph(File* file, bool isolation_on)
     }
     else
     {
-        TOOLS_LOG(tools::Verbosity_Warning, "File", "Unable to update text from graph: no root found in the Graph.\n");
+        TOOLS_LOG(Verbosity_Warning, "File", "Unable to update text from graph: no root found in the Graph.\n");
     }
 }
 
-void ndbl::file_update(File* file, bool isolation_on)
+void file_update(File* file, bool isolation_on)
 {
     //
     // When history is dirty we update the graph from the text.
@@ -128,7 +127,7 @@ void ndbl::file_update(File* file, bool isolation_on)
     }
 }
 
-void ndbl::file_update_graph_from_text(File* file, bool isolation_on)
+void file_update_graph_from_text(File* file, bool isolation_on)
 {
     // Parse source code
     // note: File owns the parsed text buffer
@@ -138,27 +137,23 @@ void ndbl::file_update_graph_from_text(File* file, bool isolation_on)
     SET_FLAGS(file->graph->view->flags, Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT);
 }
 
-size_t ndbl::file_size(const File* file)
+size_t file_size(const File* file)
 {
     return fileview_size(&file->view);
 }
 
-const char* ndbl::file_name(const File* file)
+const char* file_name(const File* file)
 {
     return file->path.filename().c_str();
 }
 
-bool ndbl::file_write(File* file, const tools::Path& path)
+bool file_write(File* file, const Path& path)
 {
-    if( path.empty() )
-    {
-        TOOLS_LOG(tools::Verbosity_Error, "File", "No path defined, unable to save file\n");
-        return false;
-    }
+    TOOLS_LOG(Verbosity_Diagnostic, "File", "\"%s\" writing... (%s).\n", path.filename().c_str(), path.c_str());
 
     if ( !HAS_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED) && path == file->path )
     {
-        TOOLS_LOG(tools::Verbosity_Diagnostic, "File", "Nothing to save\n");
+        TOOLS_LOG(Verbosity_Diagnostic, "File", "Nothing to save\n");
         return true;
     }
 
@@ -166,63 +161,45 @@ bool ndbl::file_write(File* file, const tools::Path& path)
     bdc::String content = fileview_get_text(&file->view, false );
 
     // write bytes
-    std::ofstream out_fstream(path.c_str());
-    out_fstream.write(content.data, content.size); // TODO: size can exceed fstream!
+    File_Write_Result result = file_write(path, content);
+
+    if( !result.ok )
+    {
+        TOOLS_LOG(Verbosity_Error, "File", "%s\n", result.error.c_str() );
+        return false;
+    }
 
     // update file
     UNSET_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
     file->path = path;
 
-    TOOLS_LOG(tools::Verbosity_Message, "File", "%s saved\n", file_name(file) );
+    TOOLS_LOG(Verbosity_Message, "File", "%s saved\n", file_name(file) );
 
     return true;
 }
 
-bool ndbl::file_read( File* file, const tools::Path& path)
+bool file_read( File* file, const Path& path)
 {
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "File", "\"%s\" loading... (%s).\n", path.filename().c_str(), path.c_str());
-    if(path.empty() )
+    TOOLS_LOG(Verbosity_Diagnostic, "File", "\"%s\" loading... (%s).\n", path.filename().c_str(), path.c_str());
+
+    File_Read_Result result = file_read(path, temp_allocator() );
+
+    if( !result.ok )
     {
-        TOOLS_LOG(tools::Verbosity_Error, "File", "Path is empty \"%s\"\n", path.c_str());
+        TOOLS_LOG(Verbosity_Error, "File", "%s\n", result.error.c_str() );
         return false;
     }
 
-    std::ifstream file_stream( path.c_str() );
-
-    if (!file_stream.is_open())
-    {
-        TOOLS_LOG(tools::Verbosity_Error, "File", "Unable to load \"%s\"\n", path.c_str());
-        return false;
-    }
-
-    bdc::String_Builder sb{};
-    string_builder_init(sb);
-
-    const int MAX_LINE_LENGTH = 256;
-    char buffer[MAX_LINE_LENGTH];
-    while (file_stream.getline(buffer, MAX_LINE_LENGTH))
-    {
-        std::streamsize bytes_read = file_stream.gcount();
-        String str = string_copy( String{buffer, (u32_t)bytes_read}, temp_allocator() );
-        string_builder_append(sb, str);
-    }
-
-    if (file_stream.eof() == false && file_stream.fail())
-    {
-        TOOLS_LOG(tools::Verbosity_Warning, "File", "Line exceeded buffer size!\n");
-        file_stream.clear();
-    }
-
-    fileview_set_text(&file->view, string_builder_build_string(sb, bdc::heap_allocator() ), false);
+    fileview_set_text(&file->view, result.content, false);
     UNSET_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
     file->path = path;
 
-    TOOLS_LOG(tools::Verbosity_Message, "File", "%s loaded\n", path.filename().c_str(), path.c_str());
+    TOOLS_LOG(Verbosity_Message, "File", "%s loaded\n", path.filename().c_str(), path.c_str());
 
     return true;
 }
 
-void ndbl::file_handle_file_view_change(File* file, File_View_Event_Type type)
+void file_handle_file_view_change(File* file, File_View_Event_Type type)
 {
     switch ( type )
     {
@@ -238,3 +215,5 @@ void ndbl::file_handle_file_view_change(File* file, File_View_Event_Type type)
             TOOLS_UNREACHABLE("Unhandled File_View_Event_Type (value: %i)\n", type);
     }
 }
+
+} // namespace ndbl

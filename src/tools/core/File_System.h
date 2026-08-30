@@ -1,6 +1,7 @@
 #pragma once
 #include <filesystem>
 #include "bdc/String.hpp"
+#include "bdc/Allocators.hpp"
 
 namespace tools
 {
@@ -53,4 +54,21 @@ namespace tools
     private:
         std::filesystem::path m_path;
     };
+
+    struct File_Read_Result
+    {
+        bool        ok;
+        bdc::String content;
+        bdc::String error;
+    };
+
+    File_Read_Result file_read(const tools::Path& path, bdc::Allocator* = bdc::default_allocator() );
+
+    struct File_Write_Result
+    {
+        bool        ok;
+        bdc::String error;
+    };
+
+    File_Write_Result file_write(const Path& path, const bdc::String& content);
 }

@@ -359,6 +359,40 @@ int main()
     }
     TEST_SUITE_END
 
+    TEST_SUITE_BEGIN( Inlined_Array<int> )
+    {
+        TEST_BEGIN( initialisation )
+        {
+            memory_manager_init();
+
+            Inlined_Array<int, 16> arr;
+            TEST_EXPECTS(arr.size == 0);
+            TEST_EXPECTS(arr.capacity() == 16);
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+
+        TEST_BEGIN( array_append )
+        {
+            memory_manager_init();
+
+            Inlined_Array<int, 16> arr;
+            
+            array_append(arr, 42);
+            TEST_EXPECTS(arr.size == 1);
+            TEST_EXPECTS(arr[0] == 42);
+
+            array_append(arr, 43);
+            TEST_EXPECTS(arr.size == 2);
+            TEST_EXPECTS(arr[0] == 42);
+            TEST_EXPECTS(arr[1] == 43);
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+    }
+    TEST_SUITE_END
 
     TEST_SUITE_BEGIN( String_Builder )
     {

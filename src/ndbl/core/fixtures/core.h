@@ -9,60 +9,56 @@
 #include <fstream>
 #include <filesystem>
 
-using namespace ndbl;
-
 namespace testing
 {
+using namespace tools;
+using namespace bdc;
+
 class Core : public Test
 {
 public:
-    App_Headless_State state;
+    App_Headless_State app;
 
     void SetUp() override
     {
-        nodable_init(&state);
+        nodable_init(&app);
 
-        set_log_verbosity( tools::Verbosity_Message );
-        set_log_verbosity( "Parser", tools::Verbosity_Diagnostic );
+        set_log_verbosity( Verbosity_Message );
+        set_log_verbosity( "Parser", Verbosity_Diagnostic );
     }
 
     void TearDown() override
     {
-        nodable_deinit(&state);
+        nodable_deinit(&app);
     }
 
-    bdc::String parse_and_serialize(const bdc::String &_source_code)
+    String parse_and_serialize(const String &code)
     {
-        TOOLS_DEBUG_LOG(tools::Verbosity_Message, "core.h", "parse_and_serialize parsing \"%s\"\n", _source_code.c_str());
+        TOOLS_DEBUG_LOG(Verbosity_Message, __FILE__, "parse_and_serialize parsing \"%s\"\n", code.c_str());
 
-        // parse
-        nodable_parse(&state, _source_code);
+        nodable_parse(&app, code);
+        String result = nodable_serialize(&app);
 
-        // serialize
-        bdc::String result;
-        nodable_serialize(&state, result );
-        TOOLS_DEBUG_LOG(tools::Verbosity_Message, "core.h", "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
+        TOOLS_DEBUG_LOG(Verbosity_Message, __FILE__, "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
 
         return result;
     }
 
     // load a file relative to executable directory
-    bdc::String load_file(const bdc::String path)
+    String load_file(const Path& path)
     {
-        tools::Path _path = tools::Path::get_executable_path().parent_path() / path;
-        std::ifstream file_stream( _path.c_str() );
-        if(!file_stream.is_open())
+        File_Read_Result result = file_read(path.c_str(), temp_allocator() );
+        if(!result.ok)
         {
-            TOOLS_LOG(tools::Verbosity_Message, "core.h", "Can't open '%s'\n", _path.string().c_str() );
+            TOOLS_LOG(Verbosity_Error, __FILE__, "%s\n", result.error.c_str() );
             ASSERT(false && "Unable to open file!" );
         }
-        bdc::String program((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
-        return program;
+        return result.content;
     }
     
     void log_ribbon() const
     {
-        TOOLS_LOG(tools::Verbosity_Message, "fixture::core", "%s\n\n", get_language()->_state.string().c_str());
+        TOOLS_LOG(Verbosity_Message, "fixture::core", "%s\n\n", language().ribbon.to_string().c_str());
     }
 };
 }

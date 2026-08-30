@@ -6,7 +6,7 @@ int main(int argc, char **argv)
 {
     ndbl::init_with_gui();
     tools::set_log_verbosity(tools::Verbosity_Message);
-    tools::Type_Register::log_statistics();
+    tools::type_register_log_statistics();
 
     ::testing::InitGoogleTest(&argc, argv);
 

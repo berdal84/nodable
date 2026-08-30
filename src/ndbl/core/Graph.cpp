@@ -31,7 +31,7 @@ void ndbl::graph_init(Graph* graph)
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initializing ...\n");
     ASSERT( graph->nodes.size == 0 ); // Did you call graph_init multiple times? Did you forgot to call graph_deinit() after each graph_init() ?
 
-    hashmap_init(graph->node_index_by_name);
+    hashmap_init(graph->node_index_by_id);
 
     graph_clear(graph);
 
@@ -41,7 +41,7 @@ void ndbl::graph_init(Graph* graph)
 void ndbl::graph_deinit(Graph* graph)
 {
     graph_clear(graph);
-    hashmap_release(graph->node_index_by_name);
+    hashmap_release(graph->node_index_by_id);
     
     if( graph->view )
     {
@@ -56,15 +56,12 @@ void ndbl::graph_clear(Graph* graph)
 
     // Delete existing nodes
     // (from last to first (which is the root))
-    if( graph->nodes.size > 0)
+    for(u32_t i = graph->nodes.size; i > 0; --i)
     {
-        for(size_t i = graph->nodes.size-1; i >= 0; --i)
-        {
-            Node& node = graph->nodes[i];
-            graph_clean_node(&node);
-            _graph_remove_node_from_index(graph, &node);       
-            node_deinit(&node);
-        }
+        Node& node = graph->nodes[i-1];
+        graph_clean_node(&node);
+        _graph_remove_node_from_index(graph, &node);       
+        node_deinit(&node);
     }
 
     array_resize(graph->nodes, 0);
@@ -161,27 +158,22 @@ void ndbl::_graph_add_node(Graph* graph, Node* node, Scope* scope)
 
 void ndbl::_graph_add_node_to_index(Graph* graph, Node* node, size_t position)
 {
-    bdc::String_Hash id{};
-    id.hash     = (u64_t)node; // TEMP: we use the current node address as hash
-    id.string   = "temp address";
-
-    node->id = id;
-
-    bdc::hashmap_add(graph->node_index_by_name, node->id.hash, position );
+    node->id = string_hash( get_next_GUID("node") );
+    bdc::hashmap_add(graph->node_index_by_id, node->id, position );
 
     graph->signal_add_node.emit(node); 
 }
 
 void ndbl::_graph_remove_node_from_index(Graph* graph, Node* node)
 {
-    bdc::hashmap_remove(graph->node_index_by_name, node->id.hash );
+    bdc::hashmap_remove(graph->node_index_by_id, node->id );
     
     graph->signal_remove_node.emit(node); 
 }
 
 ndbl::Node* ndbl::graph_find_node(Graph* graph, const bdc::String_Hash& id)
 {
-    auto result = hashmap_find(graph->node_index_by_name, id.hash);
+    auto result = hashmap_find(graph->node_index_by_id, id);
     if ( !result.ok )
     {
         return nullptr;
@@ -297,6 +289,8 @@ void ndbl::graph_find_and_destroy_node(Graph* graph, Node* node)
 void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
 {
     // Guards
+    assert(tail != nullptr);
+    assert(head != nullptr);
     ASSERT(HAS_FLAGS(head->flags, Node_Slot::Flag_INPUT ) );
     ASSERT(!head->is_full());
     ASSERT(HAS_FLAGS(tail->flags, Node_Slot::Flag_OUTPUT ) );
@@ -349,6 +343,9 @@ void ndbl::graph_connect(const std::set<Node_Slot*>& tails, Node_Slot* head, Gra
 
 void ndbl::graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
 {
+    assert(tail != nullptr);
+    assert(head != nullptr);
+
     // DirectedEdge is just data, we must add manually cross-references to each end of the edge
     node_slot_add_adjacent( tail, head );
     node_slot_add_adjacent( head, tail );
@@ -707,7 +704,7 @@ void ndbl::graph_flag_node_to_delete(Node *node, Graph_Flags flags)
 
 bool ndbl::graph_contains(const Graph* graph, Node* node)
 {
-    return hashmap_find(graph->node_index_by_name, node->id.hash);
+    return hashmap_find(graph->node_index_by_id, node->id).ok;
 }
 
 ndbl::Node* ndbl::graph_get_latest_created_node(Graph* graph)

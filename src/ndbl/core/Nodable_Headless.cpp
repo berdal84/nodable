@@ -1,4 +1,5 @@
 #include "Nodable_Headless.h"
+#include "bdc/String_Builder.hpp"
 #include "core/Graph.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "tools/core/Task_Manager.h"
@@ -27,14 +28,18 @@ void ndbl::nodable_deinit(App_Headless_State* state)
     language_shutdown();
 }
 
-bdc::String_Builder& ndbl::nodable_serialize(const App_Headless_State* state, bdc::String_Builder& out )
+bdc::String ndbl::nodable_serialize(const App_Headless_State* state )
 {
-    return lang_serialize_graph(language(), out, state->graph);
+    String_Builder sb;
+    string_builder_init(sb);
+    lang_serialize_graph(language(), sb, state->graph);
+    return string_builder_build_string(sb);
 }
 
 Graph* ndbl::nodable_parse(const App_Headless_State* state,  const bdc::String& in_code )
 {
-    lang_parse(language(), state->graph, in_code );
+    if( !lang_parse(language(), state->graph, in_code ) )
+        return nullptr;
     return state->graph;
 }
 

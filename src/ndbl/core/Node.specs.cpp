@@ -7,7 +7,7 @@
 
 using namespace ndbl;
 
-TEST(Node, constructor_destructor)
+TEST(Node, ctor_and_dtor )
 {
     {
         Node node;
@@ -16,11 +16,21 @@ TEST(Node, constructor_destructor)
     }
 }
 
-TEST(Node, init_default_node)
+TEST(Node, init_a_Node_Type_NULL)
 {
     Node node;
     node_init(&node, Node_Type_NULL, "My Node");
     EXPECT_STREQ(node.name.c_str(), "My Node");
     EXPECT_TRUE(node.flags & Node_Flag_IS_INITIALIZED);
     node_deinit(&node);
+}
+
+TEST(Node, copy)
+{
+    Node node;
+    node_init(&node, Node_Type_NULL, "My Node");
+    
+    Node copy = node;
+    EXPECT_STREQ(copy.name.c_str(), "My Node");
+    EXPECT_TRUE(copy.flags & Node_Flag_IS_INITIALIZED);
 }

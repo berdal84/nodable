@@ -10,7 +10,7 @@
 		{
 			"label": 	"tests:build-linux-debug",
 			"type": 	"shell",
-			"command": 	"rake -j 1 tests:build",
+			"command": 	"rake tests:build",
 			"group":	{ "kind": "build" },
 			"options": {
 				"env": {
