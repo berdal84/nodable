@@ -221,7 +221,7 @@ void ndbl::config_shutdown()
 {
     VERIFY_NDBLCONFIG_IS_INITIALIZED();
     tools::config_shutdown();
-    delete g_config;
+    bdc::memory_delete(g_config);
     g_config = nullptr;
 }
 

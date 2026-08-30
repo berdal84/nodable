@@ -66,8 +66,7 @@ namespace bdc
 
     enum Hash_Map_Slot_State
     {
-        Hash_Map_Slot_State_NULL      = 0,
-        Hash_Map_Slot_State_FREE      = Hash_Map_Slot_State_NULL,
+        Hash_Map_Slot_State_FREE      = 0,
         Hash_Map_Slot_State_OCCUPIED  = 1
     };
 

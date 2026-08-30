@@ -251,7 +251,7 @@ namespace bdc
         std::free(g_memory_manager_ctx->temp_allocator_buffer.data);
         g_memory_manager_ctx->temp_allocator_buffer.data = nullptr;
 
-        delete g_memory_manager_ctx;        
+        bdc::memory_delete(g_memory_manager_ctx);        
         g_memory_manager_ctx = nullptr;
     }
 

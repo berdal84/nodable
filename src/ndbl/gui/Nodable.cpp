@@ -107,7 +107,7 @@ void ndbl::app_shutdown()
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::App", "Delete file %s ...\n", each_file->path.c_str());
         file_deinit(each_file);
-        delete each_file;
+        bdc::memory_delete(each_file);
     }
 
     // Shutdown managers & co.
@@ -117,7 +117,7 @@ void ndbl::app_shutdown()
     ndbl::appview_shutdown();
     ndbl::config_shutdown();
 
-    delete g_app;
+    bdc::memory_delete(g_app);
     g_app = nullptr;
 
     TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_deinit " TOOLS_OK "\n");
@@ -154,7 +154,7 @@ void ndbl::app_update()
     {
         TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file_name(file) );
         file_deinit(file);
-        delete file;
+        bdc::memory_delete(file);
     }
     app->files_to_delete.clear();
 
@@ -488,7 +488,7 @@ File* ndbl::app_open_file(const tools::Path& _path)
     }
 
     file_deinit(file);
-    delete file;
+    bdc::memory_delete(file);
     TOOLS_LOG(tools::Verbosity_Error, "File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
     return nullptr;
 }

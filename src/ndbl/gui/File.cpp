@@ -70,7 +70,7 @@ void file_deinit(File* file)
     file->view.signal_change.disconnect();
 
     graph_deinit(file->graph);
-    delete file->graph;
+    bdc::memory_delete(file->graph);
     file->graph = nullptr;
 }
 

@@ -17,7 +17,7 @@ tools::Config* tools::config_init()
 void tools::config_shutdown()
 {
     VERIFY(g_config, "tools::Config is not initialized! Did you cann tools::config_init() ? ");
-    delete g_config;
+    bdc::memory_delete(g_config);
     g_config = nullptr;
 }
 

@@ -21,19 +21,19 @@ namespace ndbl
 
     struct Scope
     {
-        bdc::String                     name;
+        bdc::String                     name = "Scope";
         std::set<Node*>                 children;
         std::set<Node*>                 variables;
         mutable std::vector<Node*>      _cached_backbone;
         Token                           token_begin;
         Token                           token_end;
-        Node*                           head; // backbone's start
-        Scope*                          parent;
-        Scope_View*                     view;
+        Node*                           head    = nullptr; // backbone's start
+        Scope*                          parent  = nullptr;
+        Scope_View*                     view    = nullptr;
         mutable size_t                  _cached_depth;
         mutable bool                    _cached_backbone_dirty;
         mutable bool                    _cached_depth_dirty;
-        Node*                           node;
+        Node*                           node = nullptr;
     };
 
     void                                scope_init(Scope*);

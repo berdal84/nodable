@@ -29,7 +29,7 @@ tools::Event_Manager* tools::event_manager()
 void  tools::event_manager_shutdown()
 {
     VERIFY_EVENT_MANAGER_IS_INITIALIZED();
-    delete g_event_manager;
+    bdc::memory_delete(g_event_manager);
     g_event_manager = nullptr;
 }
 

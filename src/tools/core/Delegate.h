@@ -35,60 +35,51 @@ namespace tools
         using Static_Caller_Type = Result_Type(*)(Args_Type...);
         using Method_Caller_Type = Result_Type(*)(void*, Args_Type...);
 
-        Delegate()
-        : _m_static_function_ptr(&_null_function)
-        , _m_type(DELEGATE_TYPE_STATIC)
-        {}
+        Delegate() = default;
 
         Delegate(Result_Type(*func)(Args_Type...)) // static/global functions are easy to handle, we add a constructor.
-        : _m_static_function_ptr(func)
-        , _m_type(DELEGATE_TYPE_STATIC)
+        : static_function_ptr(func)
+        , type(DELEGATE_TYPE_STATIC)
         {
             ASSERT( func != nullptr );
         }
 
         bool is_null() const
         {
-            switch (_m_type)
+            switch (type)
             {
                 case DELEGATE_TYPE_NONE:
                     return true;
                 case DELEGATE_TYPE_STATIC:
-                    return _m_static_function_ptr == &_null_function;
+                    return static_function_ptr == &_null_function;
                 case DELEGATE_TYPE_METHOD:
-                    return _m_method.object_ptr == nullptr || _m_method.function_ptr == nullptr;
+                    return object_ptr == nullptr || method_function_ptr == nullptr;
             }
         }
 
-        const void* object_ptr() const
-        {
-            ASSERT(_m_type == DELEGATE_TYPE_METHOD );
-            return _m_method.object_ptr;
-        }
-        
         bool callable() const
         {
-            if (_m_type == DELEGATE_TYPE_METHOD)
-                return _m_method.object_ptr != nullptr
-                    && _m_method.function_ptr != nullptr;
+            if (type == DELEGATE_TYPE_METHOD)
+                return object_ptr != nullptr
+                    && method_function_ptr != nullptr;
 
             return true; // a static is always callable, it will be &_null_function or any user defined value.
         }
 
-        void bind(void* object_ptr)
+        void bind(void* new_object_ptr)
         {
-            ASSERT( _m_type == DELEGATE_TYPE_METHOD );
-            _m_method.object_ptr = object_ptr;
+            ASSERT( type == DELEGATE_TYPE_METHOD );
+            object_ptr = new_object_ptr;
         }
 
         Result_Type call(Args_Type... args) const
         {
-            switch ( _m_type)
+            switch ( type)
             {
                 case DELEGATE_TYPE_STATIC:
-                    return _m_static_function_ptr(args...);
+                    return static_function_ptr(args...);
                 case DELEGATE_TYPE_METHOD:
-                    return (*_m_method.function_ptr)(_m_method.object_ptr, args...);
+                    return (*method_function_ptr)(object_ptr, args...);
                 case DELEGATE_TYPE_NONE:
                     return;
             }
@@ -96,16 +87,16 @@ namespace tools
 
         bool operator==(const Delegate& other) const
         {
-            if (this->_m_type != other._m_type)
+            if (this->type != other.type)
                 return false;
 
-            switch ( this->_m_type )
+            switch ( this->type )
             {
                 case DELEGATE_TYPE_STATIC:
-                    return this->_m_static_function_ptr == other._m_static_function_ptr;
+                    return this->static_function_ptr == other.static_function_ptr;
                 case DELEGATE_TYPE_METHOD:
-                    return  _m_method.object_ptr   == other._m_method.object_ptr &&
-                            _m_method.function_ptr == other._m_method.function_ptr;
+                    return  object_ptr == other.object_ptr &&
+                            method_function_ptr == other.method_function_ptr;
                 case DELEGATE_TYPE_NONE:
                     return true;
             }
@@ -117,33 +108,27 @@ namespace tools
         static Delegate from(void* object_ptr = nullptr /* we allow to call bind() later on. */)
         {
             Delegate delegate;
-            delegate._m_type              = DELEGATE_TYPE_METHOD; // we consider c-style functions as "methods".
-            delegate._m_method.object_ptr = object_ptr;
+            delegate.type       = DELEGATE_TYPE_METHOD; // we consider c-style functions as "methods".
+            delegate.object_ptr = object_ptr;
 
             if constexpr (std::is_member_function_pointer_v<decltype(Function)>)
             {
                 using Class_Type = typename Function_Trait<decltype(Function)>::Class_Type;
-                delegate._m_method.function_ptr = &_method_caller<Class_Type, Function>;
+                delegate.method_function_ptr = &_method_caller<Class_Type, Function>;
             }
             else
             {
                 using Struct_Type = typename Function_Trait<decltype(Function)>::First_Arg_Type ;
-                delegate._m_method.function_ptr = &_cstyle_method_caller<Struct_Type, Function>;
+                delegate.method_function_ptr = &_cstyle_method_caller<Struct_Type, Function>;
             }
             
             return delegate;
         }
 
-    private:
-        Type _m_type; // We could avoid this, but at some brain damage cost due to "template hell".
-
-        union {
-            Static_Caller_Type _m_static_function_ptr;
-            struct {
-                void*         object_ptr;
-                Method_Caller_Type function_ptr;
-            } _m_method;
-        };
+        Type                type                = DELEGATE_TYPE_NONE; // We could avoid this, but at some brain damage cost due to "template hell".
+        Static_Caller_Type  static_function_ptr = nullptr;
+        Method_Caller_Type  method_function_ptr = nullptr;
+        void*               object_ptr          = nullptr;
 
         // Can convert a methods to a regular static function with 1arg for the object ptr
         static Result_Type _null_function(Args_Type... args)

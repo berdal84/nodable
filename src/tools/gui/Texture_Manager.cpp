@@ -38,7 +38,7 @@ void tools::texture_manager_shutdown()
     VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
     ASSERT(g_texture_manager != nullptr);
     texture_manager_release_all();
-    delete g_texture_manager;
+    bdc::memory_delete( g_texture_manager );
     g_texture_manager = nullptr;
 }
 
@@ -78,7 +78,7 @@ bool tools::texture_manager_release_all()
             }
         }
         bdc::string_release(path);
-        delete texture;
+        bdc::memory_delete(texture);
     }
     g_texture_manager->texture_by_absolute_path.clear();
     return success;
@@ -94,7 +94,7 @@ tools::Texture* tools::_texture_manager_load_png_to_gpu(const Path &path)
     int error = _texture_manager_load_png(path, texture);
     if ( error )
     {
-        delete texture;
+        bdc::memory_delete(texture);
         TOOLS_LOG(tools::Verbosity_Error, "Texture_Manager", "Unable to load png (code %u): %s\n",  error, path.c_str());
         VERIFY(false, "Unable to load png");
     }
@@ -103,7 +103,7 @@ tools::Texture* tools::_texture_manager_load_png_to_gpu(const Path &path)
     error = _texture_manager_load_to_gpu(texture);
     if ( error )
     {
-        delete texture;
+        bdc::memory_delete(texture);
         TOOLS_LOG(tools::Verbosity_Error, "Texture_Manager", "Unable to load texture to GPU (code %u): %s\n",  error, path.c_str());
         return nullptr;
     }

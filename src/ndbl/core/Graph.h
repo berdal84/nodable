@@ -35,12 +35,12 @@ namespace ndbl
         bdc::Hash_Map<bdc::String_Hash, size_t>  node_index_by_id;
         bdc::Inlined_Array<Node, NODE_MAX_COUNT> nodes;
 
-        Graph_View*                         view;
-        tools::Simple_Signal                signal_reset;
-        tools::Simple_Broadcast_Signal      signal_change;
-        tools::Signal<void(Node*)>          signal_add_node;
-        tools::Signal<void(Node*)>          signal_remove_node;
-        tools::Simple_Signal                signal_is_complete; // user defined, usually when parser or user is done
+        Graph_View*                         view                = {};
+        tools::Simple_Signal                signal_reset        = {};
+        tools::Simple_Broadcast_Signal      signal_change       = {};
+        tools::Signal<void(Node*)>          signal_add_node     = {};
+        tools::Signal<void(Node*)>          signal_remove_node  = {};
+        tools::Simple_Signal                signal_is_complete  = {}; // user defined, usually when parser or user is done
 
         struct Scope_Change {
             Node*  node;
@@ -50,8 +50,7 @@ namespace ndbl
         tools::Signal<void(Scope_Change)>   signal_change_scope;
 
         Graph() = default;
-        Graph(const Graph& other) { *this = other; }
-        Graph& operator=(const Graph& other) { if (this != &other) memcpy((void*)this, (void*)&other, sizeof(Graph)); return *this; }
+        ~Graph() = default;
     };
 
     void                    graph_init(Graph*);

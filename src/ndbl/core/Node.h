@@ -95,29 +95,42 @@ namespace ndbl
         friend class Scope;
         friend class Graph;
 
-        struct Switch_Behavior_State // shall remain POD
+        typedef int Component_Type;
+        enum Component_Type_
+        {
+            Component_Type_NULL = 0,
+            Component_Type_BRANCHING,
+            Component_Type_INVOKABLE,
+            Component_Type_VARIABLE,
+            Component_Type_VARIABLE_REF,
+            Component_Type_LITERAL
+        };
+
+        struct Branching_Component
         {
             // Handle any conditionnal structure, for now it only handle 2 branches, but it will be modified to have N branches (like a switch)
 
-            static constexpr size_t                 BRANCH_MAX = 2;
-            Token                                   branch_prefix; // for if|for|while
-            Token                                   branch_suffix; // for else
-            size_t                                  branch_count;
-            Node_Slot*                              branch_slots[BRANCH_MAX];
-            Node_Slot*                              condition_in_slots[BRANCH_MAX - 1];            
-            Node_Slot*                              initialization_slot;
-            Node_Slot*                              iteration_slot;
+            static constexpr size_t BRANCH_MAX = 2;
+            Component_Type          component_type = Component_Type_BRANCHING;
+            Token                   branch_prefix; // for if|for|while
+            Token                   branch_suffix; // for else
+            size_t                  branch_count;
+            Node_Slot*              branch_slots[BRANCH_MAX];
+            Node_Slot*              condition_in_slots[BRANCH_MAX - 1];            
+            Node_Slot*              initialization_slot;
+            Node_Slot*              iteration_slot;
 
-            Node_Slot*          branch_out(Branch branch)                       { ASSERT(branch < branch_count); return branch_slots[branch]; }
-            const Node_Slot*    branch_out(Branch branch) const                 { ASSERT(branch < branch_count); return branch_slots[branch]; }
-            const Node*         condition(Branch branch = Branch_TRUE) const    { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]->first_adjacent_node(); }
-            Node*               condition(Branch branch = Branch_TRUE)          { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]->first_adjacent_node(); }
-            const Node_Slot*    condition_in(Branch branch = Branch_TRUE) const { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]; }
-            Node_Slot*          condition_in(Branch branch = Branch_TRUE)       { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]; }    
+            Node_Slot*              branch_out(Branch branch)                       { ASSERT(branch < branch_count); return branch_slots[branch]; }
+            const Node_Slot*        branch_out(Branch branch) const                 { ASSERT(branch < branch_count); return branch_slots[branch]; }
+            const Node*             condition(Branch branch = Branch_TRUE) const    { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]->first_adjacent_node(); }
+            Node*                   condition(Branch branch = Branch_TRUE)          { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]->first_adjacent_node(); }
+            const Node_Slot*        condition_in(Branch branch = Branch_TRUE) const { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]; }
+            Node_Slot*              condition_in(Branch branch = Branch_TRUE)       { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]; }    
         };
 
-        struct Invokable_State // shall remain POD
+        struct Invokable_Component
         {
+            Component_Type                          component_type = Component_Type_INVOKABLE;
             Token                                   identifier_token;
             tools::Type_Descriptor                  type; // not owned
             bdc::Inlined_Array<Node_Slot*, 8>       argument_slots;
@@ -127,59 +140,59 @@ namespace ndbl
             Node_Slot*                              rvalue_in() const { return argument_slots[1]; }
         };
 
-        struct Variable_State // shall remain POD
+        struct Variable_Component
         { 
-            Token         type_token;       // [int] var  =
-            Token         operator_token;   //  int  var [=]
-            VariableFlags flags;
-            Node_Slot*    decl_out;
-            Node_Slot*    ref_out;
+            Component_Type  component_type = Component_Type_VARIABLE;
+            Token           type_token;       // [int] var  =
+            Token           operator_token;   //  int  var [=]
+            VariableFlags   flags;
+            Node_Slot*      decl_out;
+            Node_Slot*      ref_out;
         };
 
-        struct Variable_Ref_State // shall remain POD
+        struct Variable_Ref_Component
         {
-            Node* variable_node;
+            Component_Type  component_type = Component_Type_VARIABLE_REF;
+            Node*           variable_node;
         };
 
-        struct Literal_State // shall remain POD
+        struct Literal_Component
         {
+            Component_Type                  component_type = Component_Type_LITERAL;
             Token                           token;
             const tools::Type_Descriptor*   type;
         };
 
-        // members are sorted from large to small
-            
-        union // depends on this->type, shall remain POD
-        {            
-            Switch_Behavior_State               switch_data;        // check Node::type before use!
-            Invokable_State                     invokable_data;     // check Node::type before use!
-            Variable_State                      variable_data;      // check Node::type before use!
-            Variable_Ref_State                  variableref_data;   // check Node::type before use!
-            Literal_State                       literal_data;       // check Node::type before use!
-
-            //Type_State() { memset( this, 0, sizeof( Type_State ) ); }
+        union Component
+        {          
+            Component_Type          component_type = 0;  
+            Branching_Component     branching;          // check component_type before to use!
+            Invokable_Component     invokable;          // check component_type before to use!
+            Variable_Component      variable;           // check component_type before to use!
+            Variable_Ref_Component  variableref;        // check component_type before to use!
+            Literal_Component       literal;            // check component_type before to use!
+            Component() = default;
+            Component(const Component& other) { *this = other; }
+            Component& operator=(const Component& other);
+            ~Component();
         };
 
         bdc::String_Hash                        id = {};
-        tools::Simple_Signal                    signal_deinit;      // emit once component_deinit() has been called
+        Component                               component;
+        tools::Simple_Signal                    signal_deinit;      // emit once component.deinit() has been called
         tools::Signal<void(const bdc::String&)> signal_name_change;   
         std::vector<Node_Property*>             props;              // TODO: use bdc::Resizable_Array
         std::vector<Node_Slot*>                 slots;              // TODO: use bdc::Resizable_Array
-        bdc::Hash_Map<bdc::String, Node_Property*>   props_by_name;
+        bdc::Hash_Map<bdc::String_Hash, Node_Property*>   props_by_name;
         bdc::String                             name;
         Token                                   suffix;
-        Graph*                                  graph = {};
-        Node_Property*                          value = {};   // this Node_Property
-        Scope*                                  scope = {}; 
-        Scope*                                  internal_scope = {};
-        Node_Type                               type = {};
-        Node_Flags                              flags = {};
-        Node_View*                              view = {};
-
-        Node() { /* we don't intialize the tagged union here */ } ;
-        ~Node();
-        Node(const Node&);
-        Node& operator=(const Node& other);
+        Graph*                                  graph = nullptr;
+        Node_Property*                          value = nullptr;   // this Node_Property
+        Scope*                                  scope = nullptr; 
+        Scope*                                  internal_scope = nullptr;
+        Node_Type                               type  = 0;
+        Node_Flags                              flags = 0;
+        Node_View*                              view  = nullptr;
 
         Node_Slot*                              value_in();
         const Node_Slot*                        value_in() const;
@@ -212,7 +225,9 @@ namespace ndbl
     void                    node_init_as_literal(Node*, const tools::Type_Descriptor*);
     void                    node_init_internal_scope(Node*);
     void                    node_init_branches(Node*, size_t branch_count);
+    void                    node_init_component(Node::Component*, Node::Component_Type);
     void                    node_deinit(Node*);
+    void                    node_deinit_component(Node::Component*, Node::Component_Type);
     bool                    node_update(Node*);
     void                    node_reset_scope(Node*, Scope*);
     void                    node_variable_ref_clear_variable(Node*);

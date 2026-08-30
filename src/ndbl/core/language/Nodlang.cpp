@@ -173,7 +173,7 @@ namespace ndbl
     void language_shutdown()
     {
         ASSERT(g_language != nullptr);
-        delete g_language;
+        bdc::memory_delete(g_language);
         g_language = nullptr;
     }
 
@@ -291,7 +291,7 @@ namespace ndbl
             bdc::String identifier = _token.word_view;
             if( Node* existing_node = scope_find_variable(parent_scope, identifier) )
             {
-                return existing_node->variable_data.ref_out;
+                return existing_node->component.variable.ref_out;
             }
 
             if ( !lang.strict_mode )
@@ -389,7 +389,7 @@ namespace ndbl
 
             Node* binary_op_node = graph_create_operator( lang.graph, &type, _left->node->scope );
 
-            Node::Invokable_State& binary_op = binary_op_node->invokable_data;
+            Node::Invokable_Component& binary_op = binary_op_node->component.invokable;
 
             binary_op.identifier_token = operator_token;
             binary_op.lvalue_in()->property->token.type = _left->property->token.type;
@@ -451,10 +451,10 @@ namespace ndbl
         type.function.args[0].type = out_atomic->property->type;
 
         Node* node = graph_create_operator(lang.graph, &type, parent_scope );
-        node->invokable_data.identifier_token = operator_token;
-        node->invokable_data.lvalue_in()->property->token.type = out_atomic->property->token.type;
+        node->component.invokable.identifier_token = operator_token;
+        node->component.invokable.lvalue_in()->property->token.type = out_atomic->property->token.type;
 
-        graph_connect_or_merge(out_atomic, node->invokable_data.lvalue_in() );
+        graph_connect_or_merge(out_atomic, node->component.invokable.lvalue_in() );
 
         TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Unary expression parsed:\n%s\n", lang.ribbon.to_string().c_str());
         lang.ribbon.commit();
@@ -1191,10 +1191,10 @@ namespace ndbl
         // Find the prototype in the language library
         Node* fct_node = graph_create_function( lang.graph, &function_type, parent_scope );
 
-        for ( int i = 0; i < fct_node->invokable_data.argument_slots.size; i++ )
+        for ( int i = 0; i < fct_node->component.invokable.argument_slots.size; i++ )
         {
             // Connects each results to the corresponding input
-            graph_connect_or_merge(result_slots.at(i), fct_node->invokable_data.argument_slots[i] );
+            graph_connect_or_merge(result_slots.at(i), fct_node->component.invokable.argument_slots[i] );
         }
 
         lang.ribbon.commit();
@@ -1217,7 +1217,7 @@ namespace ndbl
 
         bool    success  = false;
         Node*   if_node  = graph_create_cond_struct( lang.graph, parent_scope );
-        if_node->switch_data.branch_prefix = lang.ribbon.get_eaten();
+        if_node->component.branching.branch_prefix = lang.ribbon.get_eaten();
 
         graph_connect(flow_out, if_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
@@ -1226,21 +1226,21 @@ namespace ndbl
             TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing conditional structure's condition...\n");
 
             // condition
-            lang_parse_expression_block( lang, if_node->internal_scope, nullptr, if_node->switch_data.condition_in());
+            lang_parse_expression_block( lang, if_node->internal_scope, nullptr, if_node->component.branching.condition_in());
 
             if (lang.ribbon.eat_if(Token_Type_parenthesis_close) )
             {
                 // scope
-                Node* block = lang_parse_atomic_code_block( lang,  if_node->internal_scope, if_node->switch_data.branch_out(Branch_TRUE) );
+                Node* block = lang_parse_atomic_code_block( lang,  if_node->internal_scope, if_node->component.branching.branch_out(Branch_TRUE) );
 
                 if ( block )
                 {
                     // else
                     if ( lang.ribbon.eat_if(Token_Type_keyword_else) )
                     {
-                        if_node->switch_data.branch_suffix = lang.ribbon.get_eaten();
+                        if_node->component.branching.branch_suffix = lang.ribbon.get_eaten();
 
-                        if ( Node* else_block = lang_parse_atomic_code_block( lang,  if_node->internal_scope, if_node->switch_data.branch_out(Branch_FALSE) ) )
+                        if ( Node* else_block = lang_parse_atomic_code_block( lang,  if_node->internal_scope, if_node->component.branching.branch_out(Branch_FALSE) ) )
                         {
                             success = true;
                             TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " else block parsed.\n");
@@ -1293,7 +1293,7 @@ namespace ndbl
             TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing for loop ...\n");
 
             for_node = graph_create_for_loop( lang.graph, parent_scope );
-            for_node->switch_data.branch_prefix = token_for;
+            for_node->component.branching.branch_prefix = token_for;
 
             graph_connect( flow_out, for_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
@@ -1305,14 +1305,14 @@ namespace ndbl
                 // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
 
                 // parse init; condition; iteration or nothing
-                lang_parse_expression_block(lang, for_node->internal_scope, nullptr, for_node->switch_data.initialization_slot)
-                && lang_parse_expression_block(lang, for_node->internal_scope, nullptr, for_node->switch_data.condition_in())
-                && lang_parse_expression_block(lang, for_node->internal_scope, nullptr, for_node->switch_data.iteration_slot);
+                lang_parse_expression_block(lang, for_node->internal_scope, nullptr, for_node->component.branching.initialization_slot)
+                && lang_parse_expression_block(lang, for_node->internal_scope, nullptr, for_node->component.branching.condition_in())
+                && lang_parse_expression_block(lang, for_node->internal_scope, nullptr, for_node->component.branching.iteration_slot);
 
                 // parse parenthesis close
                 if ( Token parenthesis_close = lang.ribbon.eat_if(Token_Type_parenthesis_close) )
                 {
-                    Node* block = lang_parse_atomic_code_block( lang,  for_node->internal_scope, for_node->switch_data.branch_out(Branch_TRUE) ) ;
+                    Node* block = lang_parse_atomic_code_block( lang,  for_node->internal_scope, for_node->component.branching.branch_out(Branch_TRUE) ) ;
 
                     if ( block )
                     {
@@ -1365,7 +1365,7 @@ namespace ndbl
             TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while ...\n");
 
             while_node = graph_create_while_loop( lang.graph, parent_scope );
-            while_node->switch_data.branch_prefix = token_while;
+            while_node->component.branching.branch_prefix = token_while;
 
             graph_connect( flow_out, while_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
@@ -1374,11 +1374,11 @@ namespace ndbl
                 TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while condition ... \n");
 
                 // Parse an optional condition
-                lang_parse_expression_block( lang, while_node->internal_scope, nullptr, while_node->switch_data.condition_in());
+                lang_parse_expression_block( lang, while_node->internal_scope, nullptr, while_node->component.branching.condition_in());
 
                 if (lang.ribbon.eat_if(Token_Type_parenthesis_close) )
                 {
-                    block = lang_parse_atomic_code_block( lang,  while_node->internal_scope, while_node->switch_data.branch_out(Branch_TRUE) );
+                    block = lang_parse_atomic_code_block( lang,  while_node->internal_scope, while_node->component.branching.branch_out(Branch_TRUE) );
                     if ( block )
                     {
                         success = true;
@@ -1466,8 +1466,8 @@ namespace ndbl
             const Type_Descriptor* type = lang_get_type(lang, type_token.type);
             Node* variable_node = graph_create_variable( lang.graph, type, identifier_token.word_view, parent_scope );
 
-            SET_FLAGS(variable_node->variable_data.flags, VariableFlag_DECLARED);
-            variable_node->variable_data.type_token = type_token;
+            SET_FLAGS(variable_node->component.variable.flags, VariableFlag_DECLARED);
+            variable_node->component.variable.type_token = type_token;
             node_set_identifier_token(variable_node, identifier_token );
 
             // declaration with assignment ?
@@ -1480,7 +1480,7 @@ namespace ndbl
                     // expression's out ----> variable's in
                     graph_connect_to_variable(expression_out, variable_node );
 
-                    variable_node->variable_data.operator_token = operator_token;
+                    variable_node->component.variable.operator_token = operator_token;
                     success = true;
                 }
                 else
@@ -1523,10 +1523,10 @@ namespace ndbl
     {
         if (_node->type == Node_Type_OPERATOR )
         {
-            Array<Node_Slot*> args = array_view( _node->invokable_data.argument_slots );
-            int precedence = lang_get_precedence(lang, &_node->invokable_data.type);
+            Array<Node_Slot*> args = array_view( _node->component.invokable.argument_slots );
+            int precedence = lang_get_precedence(lang, &_node->component.invokable.type);
 
-            switch ( _node->invokable_data.type.function.args.size )
+            switch ( _node->component.invokable.type.function.args.size )
             {
                 case 2:
                 {
@@ -1540,8 +1540,8 @@ namespace ndbl
                     }
 
                     // Operator
-                    VERIFY( _node->invokable_data.identifier_token, "identifier token should have been assigned in parse_function_call");
-                    string_builder_append( out, lang_serialize_token( lang, _node->invokable_data.identifier_token ));
+                    VERIFY( _node->component.invokable.identifier_token, "identifier token should have been assigned in parse_function_call");
+                    string_builder_append( out, lang_serialize_token( lang, _node->component.invokable.identifier_token ));
 
                     // Right part of the expression
                     {
@@ -1558,8 +1558,8 @@ namespace ndbl
                 {
                     // operator ( ... innerOperator ... )   ex:   -(a+b)
 
-                    ASSERT( _node->invokable_data.identifier_token );
-                    string_builder_append( out, lang_serialize_token( lang, _node->invokable_data.identifier_token) );
+                    ASSERT( _node->component.invokable.identifier_token );
+                    string_builder_append( out, lang_serialize_token( lang, _node->component.invokable.identifier_token) );
 
                     bool needs_braces    = node_get_connected_function_type(_node, LEFT_VALUE_PROPERTY) != nullptr;
                     Serialization_Flags flags = Serialization_Flag_RECURSE
@@ -1571,7 +1571,7 @@ namespace ndbl
         }
         else
         {
-            lang_serialize_func_call(lang, out, &_node->invokable_data.type, array_view(_node->invokable_data.argument_slots) );
+            lang_serialize_func_call(lang, out, &_node->component.invokable.type, array_view(_node->component.invokable.argument_slots) );
         }
 
         return _node->value_out();
@@ -1633,9 +1633,9 @@ namespace ndbl
         // 1. Serialize variable's type
 
         // If parsed
-        if ( _node->variable_data.type_token )
+        if ( _node->component.variable.type_token )
         {
-            string_builder_append(out, lang_serialize_token( lang, _node->variable_data.type_token) );
+            string_builder_append(out, lang_serialize_token( lang, _node->component.variable.type_token) );
         }
         else // If created in the graph by the user
         {
@@ -1652,8 +1652,8 @@ namespace ndbl
         const Node_Slot* slot = _node->value_in();
         if ( slot->adjacent.size != 0 )
         {
-            if ( _node->variable_data.operator_token )
-                string_builder_append(out, _node->variable_data.operator_token.buffer);
+            if ( _node->component.variable.operator_token )
+                string_builder_append(out, _node->component.variable.operator_token.buffer);
             else
                 string_builder_append(out, " = ");
 
@@ -1732,7 +1732,7 @@ namespace ndbl
 
         // Otherwise, it might be a variable reference, so we serialize the identifier only
         ASSERT(slot->node->type == Node_Type_VARIABLE ); // Can't be another type
-        VERIFY( slot == slot->node->variable_data.ref_out, "Cannot serialize an other slot from a VariableNode");
+        VERIFY( slot == slot->node->component.variable.ref_out, "Cannot serialize an other slot from a VariableNode");
         return string_builder_append( out, node_get_identifier(slot->node) );
     }
 
@@ -1813,7 +1813,7 @@ namespace ndbl
     {
         ASSERT( _for_loop->type == Node_Type_FOR_LOOP );
 
-        string_builder_append( out, lang_serialize_token( lang, _for_loop->switch_data.branch_prefix) );
+        string_builder_append( out, lang_serialize_token( lang, _for_loop->component.branching.branch_prefix) );
         string_builder_append( out, lang_serialize_token_type_default(lang, Token_Type_parenthesis_open) );
         {
             const Node_Slot* init_slot = node_find_slot_by_property_name(_for_loop, INITIALIZATION_PROPERTY, Node_Slot::Flag_INPUT );
@@ -1824,7 +1824,7 @@ namespace ndbl
             lang_serialize_input( lang, out, iter_slot, Serialization_Flag_RECURSE );
         }
         string_builder_append( out, lang_serialize_token_type_default(lang, Token_Type_parenthesis_close) );
-        lang_serialize_node( lang, out, _for_loop->switch_data.branch_out(Branch_TRUE)->first_adjacent_node(), Serialization_Flag_RECURSE );
+        lang_serialize_node( lang, out, _for_loop->component.branching.branch_out(Branch_TRUE)->first_adjacent_node(), Serialization_Flag_RECURSE );
 
         return out;
     }
@@ -1834,15 +1834,15 @@ namespace ndbl
         ASSERT( _while_loop_node->type == Node_Type_WHILE_LOOP );
 
         // while
-        String while_str = lang_serialize_token( lang, _while_loop_node->switch_data.branch_prefix);
+        String while_str = lang_serialize_token( lang, _while_loop_node->component.branching.branch_prefix);
         string_builder_append(out, while_str);
 
         // condition
         Serialization_Flags flags = Serialization_Flag_RECURSE
                             | Serialization_Flag_WRAP_WITH_BRACES;
-        lang_serialize_input( lang, out, _while_loop_node->switch_data.condition_in(), flags );
+        lang_serialize_input( lang, out, _while_loop_node->component.branching.condition_in(), flags );
 
-        if ( const Node* _node = _while_loop_node->switch_data.branch_out(Branch_TRUE)->first_adjacent_node() )
+        if ( const Node* _node = _while_loop_node->component.branching.branch_out(Branch_TRUE)->first_adjacent_node() )
         {
             lang_serialize_node( lang, out, _node, Serialization_Flag_RECURSE);
         }
@@ -1856,20 +1856,20 @@ namespace ndbl
         ASSERT( if_node->type == Node_Type_IF_ELSE );
 
         // if
-        String if_str = lang_serialize_token( lang, if_node->switch_data.branch_prefix );
+        String if_str = lang_serialize_token( lang, if_node->component.branching.branch_prefix );
         string_builder_append(out,  if_str );
 
         // condition
         Serialization_Flags flags = Serialization_Flag_RECURSE
                             | Serialization_Flag_WRAP_WITH_BRACES;
-        lang_serialize_input(lang, out, if_node->switch_data.condition_in(), flags );
+        lang_serialize_input(lang, out, if_node->component.branching.condition_in(), flags );
 
         // when condition is true
-        lang_serialize_node(lang, out, if_node->switch_data.branch_out(Branch_TRUE)->first_adjacent_node(), Serialization_Flag_RECURSE );
+        lang_serialize_node(lang, out, if_node->component.branching.branch_out(Branch_TRUE)->first_adjacent_node(), Serialization_Flag_RECURSE );
 
         // when condition is false
-        string_builder_append(out, lang_serialize_token( lang, if_node->switch_data.branch_suffix) );
-        lang_serialize_node(lang, out, if_node->switch_data.branch_out(Branch_FALSE)->first_adjacent_node(), Serialization_Flag_RECURSE );
+        string_builder_append(out, lang_serialize_token( lang, if_node->component.branching.branch_suffix) );
+        lang_serialize_node(lang, out, if_node->component.branching.branch_out(Branch_FALSE)->first_adjacent_node(), Serialization_Flag_RECURSE );
 
         return out;
     }

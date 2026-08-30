@@ -95,6 +95,8 @@ namespace tools
     {
         using Delegate_Type = Delegate<Result_Type(Args_Types...)>; // the expected delegate type to connect with
 
+        Broadcast_Signal() = default;
+
         // TMethod: the address to a member function
         // object_ptr: the instance to call the member with
         // Inserting multiple times the same method for the same pointer is undefined behavior.
@@ -139,11 +141,11 @@ namespace tools
 
         Result_Type broadcast(Args_Types...args) const // broadcast to all the listeners
         {
-            for(const auto& delegate : _m_delegate )
-                delegate.call(args...);
+            for(size_t i = 0; i < _m_delegate.size(); ++i )
+                _m_delegate[i].call(args...);
         }
 
     private:
-        std::vector<Delegate_Type> _m_delegate;
+        std::vector<Delegate_Type> _m_delegate = {};
     };
 }

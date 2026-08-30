@@ -179,8 +179,8 @@ namespace ndbl
 {
     inline void command_selection_change_release(Command *command)
     {
-       delete command->selection_change.old_selection;
-       delete command->selection_change.new_selection;
+       bdc::memory_delete( command->selection_change.old_selection );
+       bdc::memory_delete( command->selection_change.new_selection );
        memset(command, 0, sizeof(Command));
     }
 }

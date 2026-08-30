@@ -23,7 +23,7 @@ void ndbl::nodable_deinit(App_Headless_State* state)
     ASSERT(state->graph);
     nodable_clear(state);
     graph_deinit(state->graph);
-    delete state->graph;
+    bdc::memory_delete(state->graph);
     tools::task_manager_shutdown();
     language_shutdown();
 }

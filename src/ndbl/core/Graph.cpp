@@ -308,7 +308,7 @@ void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
     if (tail->node == nullptr ) // if dependent is orphan
     {
         property_digest(head->property, tail->property );
-        delete head->property;
+        bdc::memory_delete(head->property);
         // set_dirty(); // no changes on edges/nodes
         return;
     }
@@ -644,7 +644,7 @@ ndbl::Node* ndbl::graph_create_variable_decl(Graph* graph, const tools::Type_Des
 {
     // Create variable
     Node* var_node = graph_create_variable(graph, type, name, scope);
-    SET_FLAGS(var_node->variable_data.flags, VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
+    SET_FLAGS(var_node->component.variable.flags, VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
 
     Token token{
         Token_Type_keyword_operator,
@@ -652,7 +652,7 @@ ndbl::Node* ndbl::graph_create_variable_decl(Graph* graph, const tools::Type_Des
     };
     token.word_move_begin(1);
     token.word_move_end(-1);
-    var_node->variable_data.operator_token = token;
+    var_node->component.variable.operator_token = token;
 
     return var_node;
 }

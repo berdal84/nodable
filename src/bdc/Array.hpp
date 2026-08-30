@@ -16,25 +16,25 @@ namespace bdc
 
         static constexpr u32_t npos = (u32_t)-1; // invalid position, depends on context
 
-        u32_t size; // size must be 1st to be the same type as Inlined_Array
-        i8_t* data;
+        u32_t      size; // size must be 1st to be the same type as Inlined_Array
+        Elem_Type* data;
 
         Array()             = default;
         Array(const Array&) = default;
         ~Array()            = default;
 
-        Array(u32_t _size, i8_t* _data): data((i8_t*)_data), size(_size) {}
+        Array(u32_t _size, Elem_Type* _data): data(_data), size(_size) {}
         Array(const std::initializer_list<Elem_Type>& list)
-        : data( const_cast<i8_t*>(&*list.begin()) )
+        : data( &*list.begin() )
         , size( list.size() )
         {}
 
-        inline const Elem_Type& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
-        inline Elem_Type&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
-        inline Elem_Type*       begin()        { return (Elem_Type*)data; }
-        inline Elem_Type*       end()          { return ((Elem_Type*)data) + size; }
-        inline const Elem_Type* begin() const { return (Elem_Type*)data; }
-        inline const Elem_Type* end() const   { return ((Elem_Type*)data) + size; }
+        inline const Elem_Type& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return data[pos]; }
+        inline Elem_Type&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return data[pos]; }
+        inline Elem_Type*       begin()        { return data; }
+        inline Elem_Type*       end()          { return data + size; }
+        inline const Elem_Type* begin() const { return data; }
+        inline const Elem_Type* end() const   { return data + size; }
     };
     static_assert( std::is_trivially_constructible_v<Array<i8_t>> );
 
@@ -52,7 +52,7 @@ namespace bdc
         using Elem_Type = _Elem_Type;
 
         u32_t       size; // size must be 1st to be the same type as Inlined_Array
-        i8_t*       data;
+        Elem_Type*  data;
         u32_t       capacity;
         Allocator*  allocator;
             
@@ -60,12 +60,12 @@ namespace bdc
         Resizable_Array(const Resizable_Array& ) = default;
         ~Resizable_Array() = default;
 
-        inline const Elem_Type& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
-        inline Elem_Type&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
-        inline Elem_Type*       begin()        { return (Elem_Type*)data; }
-        inline Elem_Type*       end()          { return ((Elem_Type*)data) + size; }
-        inline const Elem_Type* begin() const { return (Elem_Type*)data; }
-        inline const Elem_Type* end() const   { return ((Elem_Type*)data) + size; }
+        inline const Elem_Type& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return data[pos]; }
+        inline Elem_Type&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return data[pos]; }
+        inline Elem_Type*       begin()        { return data; }
+        inline Elem_Type*       end()          { return data + size; }
+        inline const Elem_Type* begin() const { return data; }
+        inline const Elem_Type* end() const   { return data + size; }
     };
     static_assert( std::is_trivially_constructible_v<Resizable_Array<i8_t>> );
 
@@ -77,26 +77,18 @@ namespace bdc
     {
         using Elem_Type = _Elem_Type;
 
-        u32_t   size = 0;
-        i8_t    data[CAPACITY]; // data must be 2nd to match with other arrays
-
-        Inlined_Array()
-        {
-        }
-
-        ~Inlined_Array()
-        {
-        }
+        u32_t     size = 0;
+        Elem_Type data[CAPACITY]; // data must be 2nd to match with other arrays
 
         constexpr u32_t capacity() const
         { return CAPACITY; }
 
-        inline const Elem_Type& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
-        inline Elem_Type&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return *(((Elem_Type*)data) + pos); }
-        inline Elem_Type*       begin()        { return (Elem_Type*)data; }
-        inline Elem_Type*       end()          { return ((Elem_Type*)data) + size; }
-        inline const Elem_Type* begin() const { return (Elem_Type*)data; }
-        inline const Elem_Type* end() const   { return ((Elem_Type*)data) + size; }
+        inline const Elem_Type& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return data[pos]; }
+        inline Elem_Type&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return data[pos]; }
+        inline Elem_Type*       begin()        { return data; }
+        inline Elem_Type*       end()          { return data + size; }
+        inline const Elem_Type* begin() const { return data; }
+        inline const Elem_Type* end() const   { return data + size; }
     };
     static_assert( std::is_default_constructible_v<Inlined_Array<i8_t, 16>> );
     
@@ -113,7 +105,7 @@ namespace bdc
     template<Is_Array Array_Type, typename Elem_Type = Array_Type::Elem_Type>
     inline Array<Elem_Type> array_view(const Array_Type& arr)
     {
-        return Array<Elem_Type>( arr.size, (i8_t*)arr.data );
+        return Array<Elem_Type>( arr.size, (Elem_Type*)arr.data );
     }
 
     template<Is_Array Array_Type, typename Elem_Type = Array_Type::Elem_Type>
@@ -241,6 +233,10 @@ namespace bdc
     void array_resize(Resizable_Array<Elem_Type>& arr, u32_t new_size)
     {
         array_ensure_has_capacity(arr, new_size);
+        for( u32_t i = arr.size; i < new_size; ++i)
+        {
+            new (arr.data + i) Elem_Type();
+        }
         arr.size = new_size;
     }
 
@@ -260,14 +256,14 @@ namespace bdc
         {
             if( arr.data == nullptr )
             {
-                arr.data = memory_malloc_array<i8_t>(new_capacity * sizeof(Elem_Type), arr.allocator);
+                arr.data = memory_malloc_array<Elem_Type>(new_capacity, arr.allocator);
             }
             else
             {
-                arr.data = memory_realloc_array(arr.data, new_capacity * sizeof(Elem_Type), arr.allocator);
+                arr.data = memory_realloc_array<Elem_Type>(arr.data, new_capacity, arr.allocator);
             }
             assert(arr.data != nullptr);
-            memset( (void*)(arr.data + arr.size * sizeof(Elem_Type) ), 0, (new_capacity - arr.size) * sizeof(Elem_Type)); // new elements are zero-initialized
+            memset( (void*)(arr.data + arr.size), 0, new_capacity - arr.size); // new elements are zero-initialized
             arr.capacity = new_capacity;
         }        
     }
@@ -285,8 +281,8 @@ namespace bdc
     {
         Resizable_Array<Elem_Type> result{};
         array_resize(result, a.size + b.size);
-        memcpy( result.data   , a.data, a.size * sizeof(Elem_Type));
-        memcpy(&result[a.size], b.data, b.size * sizeof(Elem_Type));
+        memcpy( result.data   , a.data, a.size);
+        memcpy(&result[a.size], b.data, b.size);
 
         return result;
     }

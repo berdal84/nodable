@@ -99,7 +99,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
     //------------------------------
 
     for(Node_Slot_View* each : nodeview->slot_views )
-        delete each;
+        bdc::memory_delete(each);
     nodeview->slot_views.clear();
 
     auto get_shapetype = [](const Node_Slot* slot)
@@ -173,7 +173,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
     {
         case Node_Type_VARIABLE:
         {
-            if ( Node_Slot* decl_out =  nodeview->node->variable_data.decl_out )
+            if ( Node_Slot* decl_out =  nodeview->node->component.variable.decl_out )
             {
                 if (Node_Slot_View *view = decl_out->view)
                 {
@@ -220,7 +220,7 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
     spatialnode_clear(&nodeview->shape.spatial_node);
 
     for(auto& [_, each] : nodeview->view_by_property )
-        delete each;
+        bdc::memory_delete(each);
     nodeview->view_by_property.clear();
 
     for(auto& vector : nodeview->view_by_property_type )
@@ -228,7 +228,7 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
     // no m_view_by_property_type.clear(), it is an array ;)
 
     for(auto* each : nodeview->slot_views )
-        delete each;
+        bdc::memory_delete(each);
     nodeview->slot_views.clear();
 
     if( nodeview->internal_scopeview != nullptr )

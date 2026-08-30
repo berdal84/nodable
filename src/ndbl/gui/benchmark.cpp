@@ -47,13 +47,13 @@ public:
     {
         language       = &ndbl::Nodlang::get_instance();
         autocompletion = false;
-        graph          = bdc::memory_malloc( Graph(factory);
+        graph          = bdc::memory_new<Graph>();
         log_set_verbosity(Verbosity_Error);
     }
 
     void TearDown(const ::benchmark::State& state)
     {
-        delete graph;
+        bdc::memory_delete(graph);
     }
 
     bdc::String get_random_double_as_string()

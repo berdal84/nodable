@@ -42,7 +42,7 @@ namespace tools
     void action_manager_shutdown()
     {
         ASSERT_ACTION_MANAGER_IS_INITIALIZED();
-        delete g_action_manager;
+        bdc::memory_delete( g_action_manager );
         g_action_manager = nullptr;
     }
 

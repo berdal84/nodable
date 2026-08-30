@@ -20,9 +20,34 @@ namespace ndbl
 using namespace tools;
 using namespace bdc;
 
-void _node_init_tagged_union(Node* node);
-void _node_deinit_tagged_union(Node* node);
+Node::Component_Type to_component_type(Node_Type);
 
+           
+Node::Component& Node::Component::operator=(const Node::Component& other)
+{
+    if( component_type != other.component_type )
+    {
+        node_deinit_component(this, component_type);
+    }
+
+    switch (other.component_type)
+    {
+        case Component_Type_NULL:           component_type = other.component_type;
+        case Component_Type_BRANCHING:      branching   = other.branching;
+        case Component_Type_INVOKABLE:      invokable   = other.invokable;
+        case Component_Type_VARIABLE:       variable    = other.variable;
+        case Component_Type_VARIABLE_REF:   variableref = other.variableref;
+        case Component_Type_LITERAL:        literal     = other.literal;
+    }
+
+    return *this;
+}
+
+Node::Component::~Component()
+{
+    node_deinit_component(this, component_type);
+}
+            
 std::vector<Node*> Node::inputs() const
 {
     return node_get_adjacent_nodes(this, Node_Slot::Flag_INPUT);
@@ -43,29 +68,6 @@ std::vector<Node*> Node::flow_outputs() const
     return node_get_adjacent_nodes(this, Node_Slot::Flag_FLOW_OUT);
 }
 
-Node::Node(const Node& other)
-{
-   *this = other;
-}
-
-Node& Node::operator=(const Node& other)
-{
-    if( &other == this )
-    {
-        return *this;
-    }
-    
-    #warning Not implemented yet!
-    memcpy((void*)this, (void*)&other, sizeof(Node) );
-
-    return *this;
-}
-
-Node::~Node()
-{
-    #warning Not implemented yet!
-}
-
 void node_init(Node* node, Node_Type type, const String& label)
 {
     ASSERT( node != nullptr );
@@ -77,60 +79,9 @@ void node_init(Node* node, Node_Type type, const String& label)
     node->value = node_add_prop<any>(node, DEFAULT_PROPERTY, Node_Property::Flag_IS_NODE_VALUE );
     
     node_set_name(node, label);
-    _node_init_tagged_union(node);
+    node_init_component(&node->component, to_component_type(node->type) );
 
     node->flags |= Node_Flag_IS_INITIALIZED;
-}
-
-void _node_init_tagged_union(Node* node)
-{
-    switch (node->type)
-    {
-        case Node_Type_IF_ELSE:    [[fallthrough]];     
-        case Node_Type_WHILE_LOOP: [[fallthrough]];
-        case Node_Type_FOR_LOOP:
-        {
-            new (&node->switch_data) Node::Switch_Behavior_State();
-            break;
-        }
-
-        case Node_Type_LITERAL:
-        {
-            new (&node->literal_data) Node::Literal_State();            
-            break;
-        }
-
-        case Node_Type_OPERATOR: [[fallthrough]];
-        case Node_Type_FUNCTION:
-        {
-            new (&node->invokable_data) Node::Invokable_State();
-            break;
-        }
-
-        case Node_Type_VARIABLE_REF:
-        {
-            new (&node->variableref_data) Node::Variable_Ref_State();
-            break;
-        }
-
-        case Node_Type_VARIABLE:
-        {
-            new (&node->variableref_data) Node::Variable_State();
-            break;
-        }
-
-        case Node_Type_RETURN:            [[fallthrough]];
-        case Node_Type_ROOT:              [[fallthrough]];
-        case Node_Type_SCOPE:             [[fallthrough]];
-        case Node_Type_EMPTY_INSTRUCTION: [[fallthrough]];
-        case Node_Type_NULL:
-            // Those types do not have a dedicated data struct in the union
-            break;
-
-        default:
-            // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            TOOLS_UNREACHABLE("Unhandled Node_Type (value: %i)\n", node->type);
-    }
 }
 
 void node_deinit(Node* node)
@@ -141,7 +92,7 @@ void node_deinit(Node* node)
 
     while( !node->props.empty() )
     {
-        auto result = hashmap_remove( node->props_by_name, node->props.back()->name );
+        auto result = hashmap_remove( node->props_by_name, string_hash(node->props.back()->name) );
         ASSERT( result.ok );
         property_release(node->props.back());
         node->props.pop_back();
@@ -154,7 +105,7 @@ void node_deinit(Node* node)
         node->slots.pop_back();
     }
 
-    _node_deinit_tagged_union(node);
+    node_deinit_component(&node->component, to_component_type(node->type) );
 
     if( node->view )
     {
@@ -171,43 +122,61 @@ void node_deinit(Node* node)
     node->signal_deinit.emit();
 }
 
-void _node_deinit_tagged_union(Node* node)
+void node_init_component(Node::Component* component, Node::Component_Type component_type) 
 {
-switch (node->type)
+    switch (component_type)
     {
-        case Node_Type_IF_ELSE:    [[fallthrough]];
+        case Node::Component_Type_NULL:           break;
+        case Node::Component_Type_BRANCHING:      new (&component->branching)   Node::Branching_Component();    break;
+        case Node::Component_Type_LITERAL:        new (&component->literal)     Node::Literal_Component();      break;
+        case Node::Component_Type_INVOKABLE:      new (&component->invokable)   Node::Invokable_Component();    break;
+        case Node::Component_Type_VARIABLE_REF:   new (&component->variableref) Node::Variable_Ref_Component(); break;
+        case Node::Component_Type_VARIABLE:       new (&component->variable)    Node::Variable_Component();     break;
+        default:
+            // If it breaks here, that's because a new type has been added but this function does not take it in account.
+            TOOLS_UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
+    }
+}
+
+void node_deinit_component(Node::Component* component, Node::Component_Type component_type)
+{
+    switch (component_type)
+    {
+        case Node::Component_Type_NULL:           break;
+        case Node::Component_Type_BRANCHING:      component->branching.~Branching_Component();       break;
+        case Node::Component_Type_LITERAL:        component->literal.~Literal_Component();           break;
+        case Node::Component_Type_INVOKABLE:      component->invokable.~Invokable_Component();       break;
+        case Node::Component_Type_VARIABLE_REF:   component->variableref.~Variable_Ref_Component();  break;
+        case Node::Component_Type_VARIABLE:       component->variable.~Variable_Component();         break;
+        default:
+            // If it breaks here, that's because a new type has been added but this function does not take it in account.
+            TOOLS_UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
+    }
+
+    component->component_type = 0;
+}
+
+Node::Component_Type to_component_type(Node_Type type)
+{
+    switch (type)
+    {
+        case Node_Type_IF_ELSE:    [[fallthrough]];     
         case Node_Type_WHILE_LOOP: [[fallthrough]];
         case Node_Type_FOR_LOOP:
-        {
-            node->switch_data.~Switch_Behavior_State();
-            break;
-        }
+            return Node::Component_Type_BRANCHING;
 
         case Node_Type_LITERAL:
-        {
-            node->literal_data.~Literal_State();
-            break;
-        }
+            return Node::Component_Type_LITERAL;           
 
         case Node_Type_OPERATOR: [[fallthrough]];
         case Node_Type_FUNCTION:
-        {
-            node->invokable_data.~Invokable_State();
-            break;
-        }
+            return Node::Component_Type_INVOKABLE;
 
         case Node_Type_VARIABLE_REF:
-        {
-            node_variable_ref_clear_variable(node);
-            node->variableref_data.~Variable_Ref_State();
-            break;
-        }
+            return Node::Component_Type_VARIABLE_REF;
 
         case Node_Type_VARIABLE:
-        {
-            node->variable_data.~Variable_State();
-            break;
-        }
+            return Node::Component_Type_VARIABLE;
 
         case Node_Type_RETURN:            [[fallthrough]];
         case Node_Type_ROOT:              [[fallthrough]];
@@ -215,10 +184,11 @@ switch (node->type)
         case Node_Type_EMPTY_INSTRUCTION: [[fallthrough]];
         case Node_Type_NULL:
             // Those types do not have a dedicated data struct in the union
-            break;
+            return Node::Component_Type_NULL;
 
         default:
-            TOOLS_UNREACHABLE("Unhandled Node_Type (value: %i)\n", node->type);
+            // If it breaks here, that's because a new type has been added but this function does not take it in account.
+            TOOLS_UNREACHABLE("Unhandled Node_Type (value: %i)\n", type);
     }
 }
 
@@ -230,7 +200,7 @@ const Type_Descriptor* node_get_connected_function_type(const Node* node, const 
 
     if ( adjacent_slot )
         if ( node_is_invokable(adjacent_slot->node) )
-            return &adjacent_slot->node->invokable_data.type;
+            return &adjacent_slot->node->component.invokable.type;
 
     return nullptr;
 }
@@ -498,7 +468,7 @@ void node_reset_scope(Node* node, Scope* scope)
 
 bool node_has_prop(const Node* node, const String& name)
 {
-    return hashmap_find(node->props_by_name, name);
+    return hashmap_find(node->props_by_name, string_hash(name));
 }
 
 Node_Property* node_add_prop(Node* node, const Type_Descriptor* type, const String name, Node_Property::Flags flags )
@@ -512,7 +482,7 @@ Node_Property* node_add_prop(Node* node, const Type_Descriptor* type, const Stri
 
     // register / index
     node->props.push_back(new_property);
-    auto result = hashmap_add(node->props_by_name, new_property->name, new_property);
+    auto result = hashmap_add(node->props_by_name, string_hash(new_property->name), new_property);
     ASSERT(result.ok);
 
     return new_property;
@@ -538,12 +508,12 @@ const Node_Property* node_find_first_prop(const Node* node, Node_Property::Flags
 
 const Node_Property* node_find_prop_by_name(const Node* node, const String& name)
 {
-    HASHMAP_WALK( entry, node->props_by_name )        
-        if( entry.key == name )
-        {
-            return entry.value;
-        }
-    HASHMAP_WALK_END
+    bdc::Result<Node_Property*> result = hashmap_find(node->props_by_name, string_hash(name) );
+
+    if( result.ok )
+    {
+        return result.value;
+    }
 
     ASSERT(false);
     return nullptr;
@@ -555,13 +525,13 @@ void node_init_as_invokable(Node* node, const Type_Descriptor* function_desc, No
     ASSERT(node_type == Node_Type_OPERATOR || node_type == Node_Type_FUNCTION );
 
     node_init(node, node_type, function_desc->name);
-    node->invokable_data.type = *function_desc;
-    node->invokable_data.identifier_token = {
+    node->component.invokable.type = *function_desc;
+    node->component.invokable.identifier_token = {
             Token_Type_identifier,
             function_desc->name
     };
-    array_resize( node->invokable_data.argument_slots, function_desc->function.args.size);
-    array_resize( node->invokable_data.argument_props, function_desc->function.args.size);
+    array_resize( node->component.invokable.argument_slots, function_desc->function.args.size);
+    array_resize( node->component.invokable.argument_props, function_desc->function.args.size);
 
     switch ( node->type )
     {
@@ -616,8 +586,8 @@ void node_init_as_invokable(Node* node, const Type_Descriptor* function_desc, No
 
         SET_FLAGS_VALUE(property->flags, Node_Property::Flag_IS_REF, arg.pass_by_ref);
 
-        node->invokable_data.argument_slots[i]  = node_add_slot(node, property, Node_Slot::Flag_INPUT, 1);
-        node->invokable_data.argument_props[i] = property;
+        node->component.invokable.argument_slots[i]  = node_add_slot(node, property, Node_Slot::Flag_INPUT, 1);
+        node->component.invokable.argument_props[i] = property;
     }
 }
 
@@ -635,11 +605,11 @@ void node_init_as_variable(Node* node, const Type_Descriptor* _type, const Strin
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
 
-    node->variable_data.type_token        = {Token_Type_keyword_unknown }; // [int] var  =
-    node->variable_data.operator_token    = {Token_Type_operator };       //  int  var [=]
-    node->variable_data.flags             = VariableFlag_NONE;
-    node->variable_data.decl_out = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT, 1); // as declaration
-    node->variable_data.ref_out  = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT); // as reference
+    node->component.variable.type_token        = {Token_Type_keyword_unknown }; // [int] var  =
+    node->component.variable.operator_token    = {Token_Type_operator };       //  int  var [=]
+    node->component.variable.flags             = VariableFlag_NONE;
+    node->component.variable.decl_out = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT, 1); // as declaration
+    node->component.variable.ref_out  = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT); // as reference
 }
 
 void node_init_as_variable_ref(Node* node)
@@ -660,21 +630,21 @@ void node_init_as_variable_ref(Node* node)
 void node_variable_ref_set_variable(Node* node, Node* variable_node)
 {
     ASSERT_DEBUG_ONLY(variable_node != nullptr);
-    VERIFY( node->variableref_data.variable_node == nullptr, "Can't call twice");
+    VERIFY( node->component.variableref.variable_node == nullptr, "Can't call twice");
 
-    node->variableref_data.variable_node = variable_node;
+    node->component.variableref.variable_node = variable_node;
 
     property_set_type(node->value, node_variable_type(variable_node) );
     node->value->token.replace_word( node_get_identifier(variable_node).c_str() );
 
     // bind signals
-    node->variableref_data.variable_node->signal_name_change.connect< &node_variable_ref_handle_name_change>(node);
-    node->variableref_data.variable_node->signal_deinit.connect<&node_variable_ref_clear_variable>(node);
+    node->component.variableref.variable_node->signal_name_change.connect< &node_variable_ref_handle_name_change>(node);
+    node->component.variableref.variable_node->signal_deinit.connect<&node_variable_ref_clear_variable>(node);
 }
 
 void node_variable_ref_clear_variable(Node* node)
 {
-    Node* variable_node = node->variableref_data.variable_node; 
+    Node* variable_node = node->component.variableref.variable_node; 
     if ( variable_node == nullptr )
         return;
 
@@ -699,18 +669,18 @@ void node_init_as_literal(Node* node, const Type_Descriptor* type_descriptor)
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
     node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT   , 1);
     
-    node->literal_data.token = {Token_Type_literal_any};
-    node->literal_data.type  = nullptr;
+    node->component.literal.token = {Token_Type_literal_any};
+    node->component.literal.type  = nullptr;
 }
 
 
 void node_init_branches(Node* node, size_t branch_count)
 {
-    VERIFY( 1 < branch_count && branch_count <= Node::Switch_Behavior_State::BRANCH_MAX, "branch_count is out of range");
+    VERIFY( 1 < branch_count && branch_count <= Node::Branching_Component::BRANCH_MAX, "branch_count is out of range");
     VERIFY( node_has_switch_behavior(node), "Node does not have a switch behavior" );
 
 
-    node->switch_data.branch_count = branch_count;
+    node->component.branching.branch_count = branch_count;
 
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);      // accepts N inputs
     node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1); // accepts 0 or 1 output
@@ -718,14 +688,14 @@ void node_init_branches(Node* node, size_t branch_count)
     // add 1 slot per branch
     for(size_t branch = 0; branch < branch_count; ++branch )
     {
-        node->switch_data.branch_slots[branch] = node_add_slot(node, node->value, Node_Slot::Flag_FLOW_ENTER, 1, branch);
+        node->component.branching.branch_slots[branch] = node_add_slot(node, node->value, Node_Slot::Flag_FLOW_ENTER, 1, branch);
     }
 
     // add 1 condition per branch except for the default branch
     for(size_t branch = 1; branch < branch_count; ++branch )
     {
         auto condition_property = node_add_prop<any>(node, CONDITION_PROPERTY);
-        node->switch_data.condition_in_slots[branch-1]  = node_add_slot(node, condition_property, Node_Slot::Flag_INPUT, 1, branch);
+        node->component.branching.condition_in_slots[branch-1]  = node_add_slot(node, condition_property, Node_Slot::Flag_INPUT, 1, branch);
     }
 }
 
@@ -734,18 +704,18 @@ void node_init_as_cond_struct(Node* node)
     node_init(node, Node_Type_IF_ELSE, "If");
     node_init_internal_scope(node);
     node_init_branches(node, 2);
-    node->switch_data.branch_prefix = Token_Type_keyword_if;
+    node->component.branching.branch_prefix = Token_Type_keyword_if;
 }
 
 void node_init_as_for_loop(Node* node)
 {
     node_init(node, Node_Type_FOR_LOOP, "For");
 
-    node->switch_data.branch_prefix = Token_Type_keyword_for;
+    node->component.branching.branch_prefix = Token_Type_keyword_for;
 
     // add initialization property and slot
     Node_Property* init_prop = node_add_prop<any>(node, INITIALIZATION_PROPERTY);
-    node->switch_data.initialization_slot = node_add_slot(node, init_prop, Node_Slot::Flag_INPUT, 1);
+    node->component.branching.initialization_slot = node_add_slot(node, init_prop, Node_Slot::Flag_INPUT, 1);
 
     // add conditional-related properties and slots
     node_init_internal_scope(node);
@@ -753,7 +723,7 @@ void node_init_as_for_loop(Node* node)
 
     // add iteration property and slot
     Node_Property* iter_prop = node_add_prop<any>(node, ITERATION_PROPERTY);
-    node->switch_data.iteration_slot = node_add_slot(node, iter_prop, Node_Slot::Flag_INPUT, 1);
+    node->component.branching.iteration_slot = node_add_slot(node, iter_prop, Node_Slot::Flag_INPUT, 1);
 }
 
 void node_init_as_while_loop(Node* node)
@@ -761,7 +731,7 @@ void node_init_as_while_loop(Node* node)
     node_init(node, Node_Type_WHILE_LOOP, "While");
     node_init_internal_scope(node);
     node_init_branches(node, 2);
-    node->switch_data.branch_prefix = {Token_Type_keyword_while};
+    node->component.branching.branch_prefix = {Token_Type_keyword_while};
 }
 
 void node_init_as_return(Node* node, const Type_Descriptor* type_descriptor)
@@ -860,7 +830,7 @@ bool node_could_be_instruction(const Node* node)
 bool node_is_unary_operator(const Node* node)
 {
     if (node->type == Node_Type_OPERATOR )
-        if (node->invokable_data.type.function.args.size == 1 )
+        if (node->component.invokable.type.function.args.size == 1 )
             return true;
     return false;
 }
@@ -868,7 +838,7 @@ bool node_is_unary_operator(const Node* node)
 bool node_is_binary_operator(const Node* node)
 {
     if (node->type == Node_Type_OPERATOR )
-        if (node->invokable_data.type.function.args.size == 2 )
+        if (node->component.invokable.type.function.args.size == 2 )
             return true;
     return false;
 }
@@ -899,7 +869,7 @@ bool node_is_output_node_in_expression(const Node* input_node, const Node* outpu
     {
         if ( input_node->type == Node_Type_VARIABLE )
         {
-            const Node_Slot* declaration_out = input_node->variable_data.decl_out;
+            const Node_Slot* declaration_out = input_node->component.variable.decl_out;
             return declaration_out->first_adjacent_node() == output_node;
         }
         return false;

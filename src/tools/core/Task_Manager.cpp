@@ -31,7 +31,7 @@ void tools::task_manager_shutdown()
 {
     VERIFY_TASKMANAGER_IS_INITIALIZED();
     VERIFY(g_task_manager != nullptr, "Task_Manager must be initialised. Did you call init_task_manager()?");
-    delete g_task_manager;
+    bdc::memory_delete( g_task_manager );
     g_task_manager = nullptr;
 }
 

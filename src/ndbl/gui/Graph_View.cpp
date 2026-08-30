@@ -190,7 +190,7 @@ void ndbl::_graphview_handle_change_scope(Graph_View* graphview, Graph::Scope_Ch
     // Note: we were previously remove/add_child from/to parent, but now we want all Node_View
     //       to be child of the Graph_View instead.
 
-    // auto* node.view = componentbag_get<Node_View>(&change.node->component_bag);
+    // auto* node.view = componentbag_get<Node_View>(&change.node->component.bag);
     // VERIFY(node.view, "a node.view must be present since we are in a Graph_View");
 
     // // Un-parent from old scope's spatial node
@@ -403,7 +403,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
                 // Draw transparent some "variable--->ref" wires in certain cases
                 if (node_out.type == Node_Type_VARIABLE ) // from a variable
                 {
-                    if (slot_out == node_out.variable_data.ref_out ) // from a reference slot (can't be a declaration link)
+                    if (slot_out == node_out.component.variable.ref_out ) // from a reference slot (can't be a declaration link)
                         if (!HAS_FLAGS(node_view_out->flags, View_Flag_SELECTED) && !HAS_FLAGS(node_view_in->flags, View_Flag_SELECTED) )
                             style.color.w *= 0.25f;
                 }
@@ -649,14 +649,14 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graphview, Node_View* no
         // propagate on switch branches
         if( node_has_switch_behavior(node))
         {
-            if( node->switch_data.branch_count > 1)
+            if( node->component.branching.branch_count > 1)
             {
                 Rect parent_rect = nodeview_get_rect(nodeview);
                 layout_begin_row();
                 layout_set_padding( cfg->ui_node_gap(tools::Size_SM).x, 0,0,0); // TODO: the container must be centered horizontally, we cannot do that currently with layout
                 layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x * 2.f );
 
-                for( Node_Slot* branch_slot : node->switch_data.branch_slots )
+                for( Node_Slot* branch_slot : node->component.branching.branch_slots )
                 {
                     if ( Node* adjacent_node = branch_slot->first_adjacent_node() )
                     {

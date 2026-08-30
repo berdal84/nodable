@@ -226,7 +226,7 @@ void Variant::init_mem()
     if( m_type == Type_string && ((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY) == 0) )
     {
         // bdc::String is the only class we handle the instantiation, we use otherwise pointers to allocated memory
-        m_data.ptr = new bdc::String();
+        m_data.ptr = bdc::memory_new<bdc::String>();
     }
 
     m_flags |=  Flag_OWNS_HEAP_ALLOCATED_MEMORY; // set flag to 1
@@ -238,7 +238,7 @@ void Variant::release_mem()
     {
         ASSERT(m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY );
         // bdc::String is the only class we handle the instantiation, we use otherwise pointers to allocated memory
-        delete ((bdc::String*)m_data.ptr);
+        bdc::memory_delete((bdc::String*)m_data.ptr);
         m_data.ptr = nullptr;
     }
     m_flags &= ~Flag_OWNS_HEAP_ALLOCATED_MEMORY; // set flags to 0

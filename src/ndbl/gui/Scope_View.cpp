@@ -170,7 +170,7 @@ void ndbl::TreeNode_Node(Node* node)
         case Node_Type_FUNCTION:
         {
             bdc::String_Builder sb;
-            lang_serialize_func_sig(language(), sb, &node->invokable_data.type);
+            lang_serialize_func_sig(language(), sb, &node->component.invokable.type);
             char str[255];
             open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name.c_str(), bdc::string_builder_build_string(sb).c_str() );
             break;
