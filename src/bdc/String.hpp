@@ -5,10 +5,11 @@
 #include <cstring>
 #include <ctype.h> // for toupper / tolower
 #include "Types.hpp"
+#include "Type_Traits.hpp"
 
 namespace bdc 
 {
-    typedef u32_t String_Flags;
+    typedef u8_t String_Flags;
     enum String_Flags_
     {
         String_Flags_NONE                 = 0,
@@ -32,11 +33,11 @@ namespace bdc
     {
         static constexpr u32_t invalid_pos = (u32_t)-1; // depends on context
         
-        u32_t           size; // string size ALWAYS excludes the null terminator, allocated buffer might be larger IF AND ONLY IF flags has String_Flags_IS_NULL_TERMINATED
+        u32_t           size = 0; // string size ALWAYS excludes the null terminator, allocated buffer might be larger IF AND ONLY IF flags has String_Flags_IS_NULL_TERMINATED
                               // size must be 1st, because it has to match with Array, Resizable_Array, and Inlined_Array memory layout.
                               // it costs memory (8 bytes) but it is convenient when threating String as an Array<i8_t>.
-        i8_t*           data; // may be a valid const char* IF AND ONLY IF flags has String_Flags_IS_NULL_TERMINATED
-        String_Flags    flags;
+        i8_t*           data = nullptr; // may be a valid const char* IF AND ONLY IF flags has String_Flags_IS_NULL_TERMINATED
+        String_Flags    flags = 0;
 
         // note: constexpr constructor must be defined in the header (just below string_xxx API)
         constexpr       String() = default;
@@ -60,7 +61,6 @@ namespace bdc
         inline bool     empty() const { return size == 0; }
     };
     static_assert( sizeof(String) == 24, "String has an unexpected size!" );
-    static_assert( std::is_trivially_constructible_v<String> );
 
     void            string_reset(String&);
     void            string_release(String&, Allocator* release_allocator = default_allocator());

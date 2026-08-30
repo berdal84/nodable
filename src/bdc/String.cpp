@@ -37,7 +37,8 @@ namespace bdc
 
     void string_reset(String& str)
     {
-        str = {};
+        str.data = nullptr;
+        str.size = 0;
     }
 
     void string_release(String& str, Allocator* release_allocator )

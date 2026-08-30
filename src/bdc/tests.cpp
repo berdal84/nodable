@@ -135,18 +135,17 @@ int main()
     {
         memory_manager_init();
 
-        TEST_BEGIN( String s )
+        TEST_BEGIN( default_ctor )
         {
-            String s;
-            // undefined behavior!
+            String s{};
+            TEST_EXPECTS( is_zero_initialized(s) );
         }
         TEST_END
 
-        TEST_BEGIN( String{} )
+        TEST_BEGIN( braces_init )
         {
             String s{};
-            TEST_EXPECTS(s.data == nullptr);
-            TEST_EXPECTS(s.size == 0);
+            TEST_EXPECTS( is_zero_initialized(s) );
         }
         TEST_END
 
@@ -283,6 +282,13 @@ int main()
 
     TEST_SUITE_BEGIN( Array<int> )
     {
+        TEST_BEGIN( is_zero_initialized )
+        {
+            Resizable_Array<int> arr{};
+            TEST_EXPECTS( is_zero_initialized(arr) );
+        }
+        TEST_END;
+
         TEST_BEGIN( array_append(int) )
         {
             memory_manager_init();
@@ -365,7 +371,9 @@ int main()
         {
             memory_manager_init();
 
-            Inlined_Array<int, 16> arr;
+            Inlined_Array<int, 16> arr{};
+            TEST_EXPECTS(is_zero_initialized(arr));
+
             TEST_EXPECTS(arr.size == 0);
             TEST_EXPECTS(arr.capacity() == 16);
 
@@ -400,7 +408,9 @@ int main()
         {
             memory_manager_init();
 
-            String_Builder sb;
+            String_Builder sb{};
+            TEST_EXPECTS(is_zero_initialized(sb));
+
             string_builder_init(sb);
             TEST_EXPECTS(sb.allocator == temp_allocator()); // a String_Builder is designed too be used in short period of time, to build a string. By default it is allocated on temp memory.
 
@@ -460,7 +470,8 @@ int main()
 
         TEST_BEGIN( "Hash_Map<String, ...> init/release" )
         {
-            Hash_Map<String, Data> hashmap;
+            Hash_Map<String, Data> hashmap{};
+            TEST_EXPECTS( is_zero_initialized(hashmap) );
             hashmap_init(hashmap, temp_allocator() );
 
             TEST_EXPECTS(hashmap.capacity > 0);
@@ -564,6 +575,8 @@ int main()
 
             hashmap_print(hashmap);
             hashmap_release(hashmap);
+
+            TEST_EXPECTS(false);
 
             TEST_EXPECTS(!hashmap.entries.size);
         }

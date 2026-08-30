@@ -2,6 +2,7 @@
 #include "String.hpp"
 #include "Allocators.hpp"
 #include "Types.hpp"
+#include "Type_Traits.hpp"
 
 namespace bdc
 {
@@ -10,7 +11,6 @@ namespace bdc
         Resizable_Array<String> buffer;
         Allocator*              allocator; // will be used for data.allocator and any append / appendf
     };
-    static_assert( std::is_trivially_constructible_v<String_Builder> );
 
     void            string_builder_init(String_Builder&);
     void            string_builder_release(String_Builder&);

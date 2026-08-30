@@ -178,4 +178,15 @@ namespace bdc
     //     memory_free( ptr, allocator );
     // }
 
+    template<typename Type>
+    bool is_zero_initialized(const Type& obj)
+    {
+        constexpr size_t size = sizeof(Type);
+        const char* bytes = reinterpret_cast<const char*>(&obj);
+        for (size_t i = 0; i < size; ++i)
+            if (bytes[i] != 0)
+                return false;
+        return true;
+    };
+
 } // namespace bdc

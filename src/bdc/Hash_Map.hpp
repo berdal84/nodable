@@ -1,7 +1,7 @@
 #pragma once
 #include "Types.hpp"
 #include "String_Hash.hpp"
-#include <type_traits>
+#include "Type_Traits.hpp"
 
 #define HASHMAP_WALK(it, hash_map) \
 for(u32_t i = 0; i < (hash_map).entries.size; ++i ) \
@@ -96,7 +96,6 @@ namespace bdc
         Allocator*                      allocator;
         Hash_Proc_Type                  hash_proc;
     };
-    static_assert( std::is_trivially_constructible_v<Hash_Map<String, String>> );
 
     // Some templates to deduce if a type is an Hash_Map and get its sub types
     // template<typename T>

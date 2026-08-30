@@ -168,9 +168,9 @@ namespace bdc
 
     Memory_Manager_Context* memory_manager_init(size_t temp_buffer_size)
     {
-        BDC_LOG_DEBUG("allocators_init() ...\n");
+        BDC_LOG_DEBUG("memory_manager_init() ...\n");
 
-        BDC_LOG_DEBUG(" -- No context provided, using a default statically allocated one\n");
+        // has to be allocated with new, cannot use memory_new
         Memory_Manager_Context* context = new Memory_Manager_Context();
 
         BDC_LOG_DEBUG(" -- Configuring allocators ...\n");
@@ -251,7 +251,8 @@ namespace bdc
         std::free(g_memory_manager_ctx->temp_allocator_buffer.data);
         g_memory_manager_ctx->temp_allocator_buffer.data = nullptr;
 
-        bdc::memory_delete(g_memory_manager_ctx);        
+        // has to be deleted, cannot use memory_delete
+        delete g_memory_manager_ctx;        
         g_memory_manager_ctx = nullptr;
     }
 

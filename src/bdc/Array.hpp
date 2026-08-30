@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstring>
 #include <initializer_list>
+#include "Type_Traits.hpp"
 
 namespace bdc
 {
@@ -25,7 +26,7 @@ namespace bdc
 
         Array(u32_t _size, Elem_Type* _data): data(_data), size(_size) {}
         Array(const std::initializer_list<Elem_Type>& list)
-        : data( &*list.begin() )
+        : data(const_cast<Elem_Type*>(&*list.begin()) )
         , size( list.size() )
         {}
 
@@ -36,8 +37,6 @@ namespace bdc
         inline const Elem_Type* begin() const { return data; }
         inline const Elem_Type* end() const   { return data + size; }
     };
-    static_assert( std::is_trivially_constructible_v<Array<i8_t>> );
-
 
     // Simply declare array_join, user must implement it. Only array_join for String is implement in String.hpp.
     template<typename Elem_Type>
@@ -51,10 +50,10 @@ namespace bdc
     {
         using Elem_Type = _Elem_Type;
 
-        u32_t       size; // size must be 1st to be the same type as Inlined_Array
-        Elem_Type*  data;
-        u32_t       capacity;
-        Allocator*  allocator;
+        u32_t       size = 0; // size must be 1st to be the same type as Inlined_Array
+        Elem_Type*  data = 0;
+        u32_t       capacity = 0;
+        Allocator*  allocator = 0;
             
         Resizable_Array() = default;
         Resizable_Array(const Resizable_Array& ) = default;
@@ -67,7 +66,6 @@ namespace bdc
         inline const Elem_Type* begin() const { return data; }
         inline const Elem_Type* end() const   { return data + size; }
     };
-    static_assert( std::is_trivially_constructible_v<Resizable_Array<i8_t>> );
 
     //
     // Inlined_Array is like a fixed-capacity Array<T> that is aware of its (fixed-)capacity.

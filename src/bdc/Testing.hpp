@@ -80,8 +80,10 @@ do \
     if ( !(__VA_ARGS__) ) \
     { \
         g_test_expect_failures++; \
-        printf("    -- [KO] TEST_EXPECTS(%s) was evaluated false.\n", #__VA_ARGS__); \
-        printf("            See code in file %s line %i\n", __FILE__, __LINE__); \
+        printf( \
+            "\n\n" \
+            "-- [KO] TEST_EXPECTS(%s) was evaluated false.\n" \
+            "        See code in file %s line %i\n\n", #__VA_ARGS__, __FILE__, __LINE__); \
         /* assert( (__VA_ARGS__) ); */ \
     } \
 } while(0)
