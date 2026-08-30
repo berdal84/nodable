@@ -935,29 +935,36 @@ namespace ndbl
         // comments
         if ( buffer[0] == '/' && buffer.size > 1)
         {
-            bdc::String word = bdc::string_rsplit(buffer, 1);
+            u32_t cursor = 1;
 
-            if (word[0] == '*' || word[0] == '/')
+            if (buffer[cursor] == '*' || buffer[cursor] == '/')
             {
                 // multi-line comment
-                if (word[1] == '*')
+                if (buffer[cursor] == '*')
                 {
-                    while ( word.size != 0 && !(word[0] == '/' && word[0] == '*'))
+                    while ( buffer.size < cursor && !(buffer[cursor] == '/' && buffer[cursor] == '*'))
                     {
-                        word.size += 1;
+                        cursor += 1;
                     }
                 }
                 // single-line comment
                 else
                 {
-                    while (word.size != buffer.size && word[word.size-1] != '\n' )
+                    while ( buffer.size < cursor && buffer[cursor] != '\n' )
                     {
-                        word.size += 1;
+                        cursor += 1;
                     }
                 }
-                word.size += 1;
+                cursor += 1;
                 
-                bdc::string_advance(buffer, word.size);
+                String word = buffer;
+                word.size = cursor;
+
+                buffer.data += word.size;
+                if( word.size > buffer.size )
+                {
+                    buffer.size = 0;
+                }
 
                 return Token{ Token_Type_ignore, word };
             }

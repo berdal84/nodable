@@ -48,7 +48,7 @@ namespace bdc
         if ( allocation_size > ring_buffer.size - size_used )
         {
             BDC_LOG("temp_allocator_acquire() - WARNING: ring_buffer has not enough space left (usage %zu/%zu Bytes) or is too small to allocate %zu Bytes.\n", size_used, ring_buffer.size, size);
-            return nullptr;
+            assert(false && "temp buffer is full!");
         }
 
         auto ptr = (Allocation_Header*)ring_buffer.head;
@@ -114,6 +114,7 @@ namespace bdc
         
         Allocation_Header* dest_header = temp_allocator_buffer_acquire(size);
         void*              dest_ptr    = get_pointer(dest_header);
+        assert(dest_ptr && "Unable to acquire memory from temp buffer is nullptr!");
 
         if( src_ptr != dest_ptr )
         {

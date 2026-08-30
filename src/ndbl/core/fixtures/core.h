@@ -21,6 +21,7 @@ public:
 
     void SetUp() override
     {
+        memory_manager_init();
         nodable_init(&app);
 
         set_log_verbosity( Verbosity_Message );
@@ -30,7 +31,7 @@ public:
     void TearDown() override
     {
         nodable_deinit(&app);
-        temp_allocator_buffer_reset();
+        memory_manager_shutdown();
     }
 
     String parse_and_serialize(const String &code)

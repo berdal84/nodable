@@ -183,27 +183,33 @@ void Token::replace_word(const String& new_word)
 
 void Token::prefix_push_front(const String& str)
 {
-    if ( !owns_buffer )
-    {
-        assert(false && "Not implemented yet:");
-        // TODO: create a new buffer
-    }
-    
-    assert(false && "Not implemented yet:");
-    // TODO: update views
-}
-
-void Token::suffix_push_back(const String& str)
-{
+    String new_buffer = string_printf("%.*s%.*s", str.size, str.data, buffer.size, buffer.data );
     if ( owns_buffer )
     {
         // Currently we do not allocate more that needed, so when we resize we must release our buffer
         string_release(buffer);
     }
-    
-    buffer      = string_printf("%.*s%.*s", buffer.size, buffer.data, str.size, str.data );
+    buffer = new_buffer;
     owns_buffer = true;
+    
+    // make sure views points to the new buffer address
+    prefix_view.data  = buffer.data;
+    prefix_view.size += str.size;
+    word_view.data    = buffer.data + prefix_view.size;
+    suffix_view.data  = buffer.data + prefix_view.size + word_view.size;
+}
 
+void Token::suffix_push_back(const String& str)
+{
+    String new_buffer = string_printf("%.*s%.*s", buffer.size, buffer.data, str.size, str.data );
+    if ( owns_buffer )
+    {
+        // Currently we do not allocate more that needed, so when we resize we must release our buffer
+        string_release(buffer);
+    }
+    buffer = new_buffer;
+    owns_buffer = true;
+    
     // make sure views points to the new buffer address
     prefix_view.data  = buffer.data;
     word_view.data    = buffer.data + prefix_view.size;
@@ -273,22 +279,18 @@ void Token::suffix_end_grow(size_t size)
 
 void Token::suffix_begin_grow(size_t l_amount)
 {
-    assert(false && "Not implemented yet:");
-    // TODO: update views
-
-    // ASSERT( word_size >= l_amount );
-    // word_size   -= l_amount;
-    // suffix_size += l_amount;
+    ASSERT( word_view.size >= l_amount );
+    word_view.size   -= l_amount;
+    suffix_view.data -= l_amount;
+    suffix_view.size += l_amount;
 }
 
 void Token::prefix_end_grow(size_t r_amount)
 {
-    assert(false && "Not implemented yet:");
-    // TODO: update views
-
-    // ASSERT( r_amount <= word_size);
-    // prefix_size += r_amount;
-    // word_size   -= r_amount;
+    ASSERT( r_amount <= word_view.size);
+    prefix_view.size += r_amount;
+    word_view.data   += r_amount;
+    word_view.size   -= r_amount;
 }
 
 } // namespace ndbl

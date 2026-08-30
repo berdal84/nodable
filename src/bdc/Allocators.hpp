@@ -84,7 +84,7 @@ namespace bdc
         #endif
     };
     
-    Memory_Manager_Context*     memory_manager_init(size_t temp_buffer_size = 4096);
+    Memory_Manager_Context*     memory_manager_init(size_t temp_buffer_size = 5 * 1024 * 1024 /* 5M*/);
     void                        memory_manager_clear_trackers();
     void                        memory_manager_shutdown();
     Memory_Manager_Report*      memory_manager_generate_report(Memory_Manager_Report* report = nullptr);
