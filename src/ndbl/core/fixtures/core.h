@@ -30,6 +30,7 @@ public:
     void TearDown() override
     {
         nodable_deinit(&app);
+        temp_allocator_buffer_reset();
     }
 
     String parse_and_serialize(const String &code)

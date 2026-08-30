@@ -156,7 +156,8 @@ namespace bdc
         // allocate
         assert(required_alloc_size < String::invalid_pos);
         i8_t* string_data = memory_malloc_array<i8_t>(required_alloc_size, allocator);
-        
+        assert(string_data && "Unable to allocate memory for string_printf!");
+
         // print
         u32_t string_len = (u32_t)required_alloc_size;
         snprintf( string_data, string_len, fmt, std::forward<decltype(args)>(args)...);
