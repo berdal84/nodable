@@ -60,7 +60,10 @@ namespace ndbl
 
         void        reset_lengths(); // buffer and offset won't change
         bool        is_keyword_type() { return ndbl::is_a_type_keyword(type); } // Check if whether this token is a keyword type
+        
         void        take_prefix_suffix_from(Token *source); // Transfer the prefix and suffix of a given token to this token
+        void        remove_suffix_and_prefix();
+
         bdc::String json()const;
         void        suffix_push_back(const bdc::String&);
         void        prefix_push_front(const bdc::String&);

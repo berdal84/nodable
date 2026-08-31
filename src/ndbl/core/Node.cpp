@@ -111,12 +111,14 @@ void node_deinit(Node* node)
     {
         nodeview_deinit(node->view);
         memory_free(node->view);
+        node->view = nullptr;
     }
 
     if( node->internal_scope )
     {
         scope_deinit(node->internal_scope);
         memory_free(node->internal_scope);
+        node->internal_scope = nullptr;
     }
 
     node->signal_deinit.emit();

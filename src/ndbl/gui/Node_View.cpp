@@ -211,6 +211,8 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
     {
         auto* scopeview = bdc::memory_new<Scope_View>();
         scopeview_init(scopeview, internal_scope);
+        internal_scope->view         = scopeview;
+        #warning TODO: remove this duplicated state, we could get the internal_scopeview with a getter (having nullptr conditions)
         nodeview->internal_scopeview = scopeview;
     }
 }

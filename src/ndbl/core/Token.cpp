@@ -72,9 +72,15 @@ void Token::take_prefix_suffix_from(Token* source)
     prefix_size = source->prefix_size;
     suffix_size = source->suffix_size;
 
-    // Remove prefix and suffix on the source
-    source->suffix_reset();
-    source->prefix_reset();
+    source->remove_suffix_and_prefix();
+}
+
+void Token::remove_suffix_and_prefix()
+{
+    assert(!owns_data && "Not possible when Token owns data, data ptr would be lost");
+    data        += suffix_size;
+    suffix_size  = 0;
+    prefix_size  = 0; 
 }
 
 void Token::clear()
@@ -166,7 +172,7 @@ void Token::prefix_push_front(const String& str)
 
 void Token::suffix_push_back(const String& str)
 {
-    i8_t* new_data = string_printf("%s%s", str.c_str(), view().c_str() ).data;
+    i8_t* new_data = string_printf("%s%s", view().c_str(), str.c_str() ).data;
     if ( owns_data )
     {
         // Currently we do not allocate more that needed, so when we resize we must release our buffer

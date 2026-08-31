@@ -15,15 +15,12 @@ using namespace tools;
 void ndbl::scopeview_init(Scope_View* scope_view, Scope* scope)
 {
     ASSERT(scope != nullptr);
-
     scope_view->scope   = scope;
-    scope->view         = scope_view;
 }
 
 void ndbl::scopeview_deinit(Scope_View* scope_view)
 {
-    scope_view->scope->view = nullptr;
-    scope_view->scope       = nullptr;
+    scope_view->scope = nullptr;
 }
 
 Scope_View* ndbl::scopeview_get_parent(const Scope_View* scope_view)

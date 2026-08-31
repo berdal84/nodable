@@ -60,6 +60,8 @@ TEST(Reflection, is_ptr)
 
 TEST(Reflection, is_child_of)
 {
+    memory_manager_init();
+
     class Base {};
     class Derived: public Base {};
 
@@ -67,11 +69,17 @@ TEST(Reflection, is_child_of)
 
     EXPECT_TRUE ( type_get<Derived>()->class_is_child_of<Base>() );
     EXPECT_FALSE( type_get<Base>()->class_is_child_of<Derived>() );
+
+    memory_manager_shutdown();
 }
 
 TEST(Reflection, pass_by_ref)
 {
+   memory_manager_init();
+
    Type_Descriptor type;
    type_init<void(double &d)>(&type, "function");
    EXPECT_TRUE( type.function.args[0].pass_by_ref );
+
+   memory_manager_shutdown();
 }

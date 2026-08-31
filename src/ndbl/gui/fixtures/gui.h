@@ -19,6 +19,16 @@ namespace testing
     public:
         Gui() {};
 
+        void SetUp() override
+        {
+            memory_manager_init();
+        }
+
+        void TearDown() override
+        {
+            memory_manager_shutdown();
+        }
+        
         /**
          * run some loops for a given iteration count
          */
