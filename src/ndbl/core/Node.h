@@ -237,7 +237,7 @@ namespace ndbl
     inline const Token&     node_get_identifier_token(const Node* node) { return node->value->token; }
     inline Token&           node_get_identifier_token(Node* node) { return node->value->token; }
     inline void             node_set_identifier_token(Node* node, const Token& tok) { node->value->token = tok; }
-    inline bdc::String      node_get_identifier(const Node* node) { return node_get_identifier_token(node).word_view; }
+    inline bdc::String      node_get_identifier(const Node* node) { return node_get_identifier_token(node).word_view(); }
     void                    node_set_name(Node* node, const bdc::String& _name);
     
     // Slot-related

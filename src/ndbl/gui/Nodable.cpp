@@ -434,7 +434,7 @@ void ndbl::app_update()
                     // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
                     if (node_is_instruction(out->node ) && out->type() == Node_Slot::Flag_TYPE_FLOW )
                     {
-                        if ( bdc::string_rfind( out->node->suffix.buffer, '\n') == bdc::String::invalid_pos )
+                        if ( bdc::string_rfind( out->node->suffix.view(), '\n') == bdc::String::invalid_pos )
                         {
                             out->node->suffix.suffix_push_back("\n");
                         }

@@ -314,7 +314,7 @@ void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
     }
 
     // case 2: merge literals when not connected to a variable
-    if (tail->node->type == Node_Type_LITERAL && tail->property->token.word_view.size < 16 )
+    if (tail->node->type == Node_Type_LITERAL && tail->property->token.word_size < 16 )
         if (head->node->type != Node_Type_VARIABLE )
         {
             property_digest(head->property, tail->property );

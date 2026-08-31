@@ -55,7 +55,7 @@ String Token_Ribbon::to_string() const
             string_builder_append(sb, "."); // no transaction
         }
 
-        string_builder_appendf(sb, "%5zu) \"%s\"", token.index, token.word_view.c_str() );
+        string_builder_appendf(sb, "%5zu) \"%s\"", token.index, token.word_view().c_str() );
       
         if ( token.index == cursor )
         {
@@ -79,7 +79,7 @@ Token Token_Ribbon::eat_if(Token_Type expectedType)
 
 Token Token_Ribbon::eat()
 {
-    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Eat token (idx %i) %s \n", cursor, peek().buffer.c_str() );
+    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Eat token (idx %i) %s \n", cursor, peek().view().c_str() );
     return tokens.at(cursor++);
 }
 
@@ -128,7 +128,7 @@ String Token_Ribbon::range_to_string(size_t begin, size_t end) const
     String_Builder sb;
     for( size_t i = begin; i < end; ++i )
     {
-        string_builder_append(sb, tokens[i].buffer );
+        string_builder_append(sb, tokens[i].view() );
     }
     return string_builder_build_string(sb);
 }

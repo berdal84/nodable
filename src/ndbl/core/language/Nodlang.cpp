@@ -251,7 +251,7 @@ namespace ndbl
     {
         Token token = lang_parse_token( lang, buffer);
         if (token.type == Token_Type_literal_bool )
-            return token.word_view== "true";
+            return token.word_view() == "true";
         return default_value;
     }
 
@@ -261,7 +261,7 @@ namespace ndbl
 
         if (token.type == Token_Type_literal_double )
         {
-            return std::stod(token.word_view.c_str());
+            return std::stod( token.word_view().c_str() );
         }
 
         return default_value;
@@ -288,7 +288,7 @@ namespace ndbl
     {
         if (_token.type == Token_Type_identifier)
         {
-            bdc::String identifier = _token.word_view;
+            bdc::String identifier = _token.word_view();
             if( Node* existing_node = scope_find_variable(parent_scope, identifier) )
             {
                 return existing_node->component.variable.ref_out;
@@ -298,13 +298,13 @@ namespace ndbl
             {
                 // Insert a VariableNodeRef with "any" type
                 TOOLS_LOG(Verbosity_Warning,  "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
-                            _token.word_view.c_str() );
+                            _token.word_view().c_str() );
                 Node* ref = graph_create_variable_ref( lang.graph, parent_scope );
                 ref->value->token = _token;
                 return ref->value_out();
             }
 
-            TOOLS_LOG(Verbosity_Error,  "Parser", "%s is not declared (strict mode) \n", _token.word_view.c_str() );
+            TOOLS_LOG(Verbosity_Error,  "Parser", "%s is not declared (strict mode) \n", _token.word_view().c_str() );
             return nullptr;
         }
 
@@ -324,14 +324,14 @@ namespace ndbl
         {
             TOOLS_DEBUG_LOG(
                 Verbosity_Diagnostic, "Parser", TOOLS_OK " Token %s converted to a Literal %s\n",
-                _token.word_view.c_str(),
+                _token.word_view().c_str(),
                 literal->value->type->name.c_str()
             );
             literal->value->token = _token;
             return literal->value_out();
         }
 
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Unable to run token_to_slot with token %s!\n", _token.word_view.c_str());
+        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Unable to run token_to_slot with token %s!\n", _token.word_view().c_str());
         return nullptr;
     }
 
@@ -361,10 +361,10 @@ namespace ndbl
             return nullptr;
         }
 
-        const Operator *ope = lang_find_operator(lang, Operator{ operator_token.word_view, Operator_Type::Binary} );
+        const Operator *ope = lang_find_operator(lang, Operator{ operator_token.word_view(), Operator_Type::Binary} );
         if (ope == nullptr)
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Operator %s not found\n", operator_token.word_view.c_str());
+            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Operator %s not found\n", operator_token.word_view().c_str());
             lang.ribbon.rollback();
             return nullptr;
         }
@@ -447,7 +447,7 @@ namespace ndbl
         // Create a function signature
         Type_Descriptor type;
         type_init<any(any)>(&type);
-        type.name = operator_token.word_view;
+        type.name = operator_token.word_view();
         type.function.args[0].type = out_atomic->property->type;
 
         Node* node = graph_create_operator(lang.graph, &type, parent_scope );
@@ -522,7 +522,7 @@ namespace ndbl
             {
                 TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s \n", lang.ribbon.to_string().c_str());
                 TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Parenthesis close expected\n",
-                            token.word_view.c_str());
+                            token.word_view().c_str());
                 lang.ribbon.rollback();
             }
             else
@@ -643,8 +643,9 @@ namespace ndbl
         // we put the prefix and suffix in resp. token_begin and end.
         Token& tok = lang.ribbon.global_token;
 
-        if(tok.prefix_view.size) scope->token_begin.prefix_push_front( tok.prefix_view );
-        if(tok.suffix_view.size) scope->token_end.suffix_push_back( tok.suffix_view );
+        #warning TODO try to resize prefix/word/suffix instead of pushing stuff (which imply an allocation)
+        if(tok.prefix_size) scope->token_begin.prefix_push_front( tok.prefix_view() );
+        if(tok.suffix_size) scope->token_end.suffix_push_back( tok.suffix_view() );
 
         if ( lang.ribbon.can_eat( ) )
         {
@@ -886,11 +887,11 @@ namespace ndbl
             {
                 if ( lang.ribbon.empty() )
                 {
-                    lang.ribbon.global_token.prefix_end_grow(new_token.buffer.size );
+                    lang.ribbon.global_token.prefix_end_grow(new_token.size() );
                     continue;
                 }
 
-                ignored_chars_count += new_token.buffer.size;
+                ignored_chars_count += new_token.size();
                 continue;
             }
 
@@ -901,7 +902,7 @@ namespace ndbl
                 if ( _lang_accepts_suffix(lang, back.type) )
                 {
                     back.suffix_end_grow(ignored_chars_count);
-                    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", back.buffer.c_str() );
+                    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", back.view().c_str() );
                 }
                 // case 2: increase prefix of the new_token up to wrap the ignored chars
                 else if ( new_token )
@@ -912,7 +913,7 @@ namespace ndbl
             }
 
             lang.ribbon.push(new_token);
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", new_token.index, new_token.buffer.c_str() );
+            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", new_token.index, new_token.view().c_str() );
         }
 
         // Append remaining ignored chars to the ribbon's suffix
@@ -1143,7 +1144,7 @@ namespace ndbl
         if (token_0.type == Token_Type_identifier &&
             token_1.type == Token_Type_parenthesis_open)
         {
-            function_identifier = token_0.word_view;
+            function_identifier = token_0.word_view();
             TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Regular function pattern detected.\n");
         }
         else // Try to parse operator like (ex: operator==(..,..))
@@ -1152,7 +1153,7 @@ namespace ndbl
 
             if (token_0.type == Token_Type_keyword_operator && token_1.type == Token_Type_operator && token_2.type == Token_Type_parenthesis_open)
             {
-                function_identifier = token_1.word_view;// operator
+                function_identifier = token_1.word_view();// operator
                 TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Operator function-like pattern detected.\n");
             }
             else
@@ -1471,7 +1472,7 @@ namespace ndbl
         if (type_token.is_keyword_type() && identifier_token.type == Token_Type_identifier)
         {
             const Type_Descriptor* type = lang_get_type(lang, type_token.type);
-            Node* variable_node = graph_create_variable( lang.graph, type, identifier_token.word_view, parent_scope );
+            Node* variable_node = graph_create_variable( lang.graph, type, identifier_token.word_view(), parent_scope );
 
             SET_FLAGS(variable_node->component.variable.flags, VariableFlag_DECLARED);
             variable_node->component.variable.type_token = type_token;
@@ -1479,7 +1480,7 @@ namespace ndbl
 
             // declaration with assignment ?
             Token operator_token = lang.ribbon.eat_if(Token_Type_operator);
-            if (operator_token && operator_token.word_view == "=")
+            if (operator_token && operator_token.word_view() == "=")
             {
                 // an expression is expected
                 if ( Node_Slot* expression_out = lang_parse_expression(lang, parent_scope) )
@@ -1494,7 +1495,7 @@ namespace ndbl
                 {
                     TOOLS_DEBUG_LOG(
                         Verbosity_Diagnostic, "Parser", 
-                        TOOLS_KO "  Initialization expression expected for %s\n", identifier_token.word_view.c_str());
+                        TOOLS_KO "  Initialization expression expected for %s\n", identifier_token.word_view().c_str());
                 }
             }
                 // Declaration without assignment
@@ -1507,14 +1508,14 @@ namespace ndbl
             {
                 TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Variable declaration: %s %s\n",
                             variable_node->value->type->name.c_str(),
-                            identifier_token.word_view.c_str());
+                            identifier_token.word_view().c_str());
                 lang.ribbon.commit();
                 return variable_node->value_out();
             }
 
             TOOLS_DEBUG_LOG(
                 Verbosity_Diagnostic, "Parser", 
-                TOOLS_KO "  Initialization expression expected for %s\n", identifier_token.word_view.c_str());
+                TOOLS_KO "  Initialization expression expected for %s\n", identifier_token.word_view().c_str());
             graph_find_and_destroy_node(lang.graph, variable_node);
         }
 
@@ -1660,7 +1661,7 @@ namespace ndbl
         if ( slot->adjacent.size != 0 )
         {
             if ( _node->component.variable.operator_token )
-                string_builder_append(out, _node->component.variable.operator_token.buffer);
+                string_builder_append(out, _node->component.variable.operator_token.view());
             else
                 string_builder_append(out, " = ");
 
@@ -1712,14 +1713,14 @@ namespace ndbl
             VERIFY( _flags & Serialization_Flag_RECURSE, "Why would you call serialize_input without RECURSE flag?");
             // Append token prefix?
             if (adjacent_property->token)
-                string_builder_append(out, adjacent_property->token.prefix_view);
+                string_builder_append(out, adjacent_property->token.prefix_view());
 
             // Serialize adjacent slot
             lang_serialize_value_out(lang, out, adjacent_slot, Serialization_Flag_RECURSE);
 
             // Append token suffix?
             if (adjacent_property->token )
-                    string_builder_append(out, adjacent_property->token.suffix_view);
+                    string_builder_append(out, adjacent_property->token.suffix_view());
         }
 
         // Append close brace?
@@ -1787,7 +1788,7 @@ namespace ndbl
         if ( token.type == Token_Type_NULL )
             return {};
 
-        return token.buffer;
+        return token.view();
     }
 
     bdc::String_Builder& lang_serialize_graph(const Language& lang, bdc::String_Builder& out, const Graph* graph )

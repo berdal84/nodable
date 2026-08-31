@@ -20,15 +20,12 @@ Token::Token(
     String      _buffer
 )
 : type(_type)
-, buffer(_buffer)
-, word_view(_buffer)
-, prefix_view( string_lsplit(_buffer, 0))
-, suffix_view( string_rsplit(_buffer, _buffer.size))
-, owns_buffer(false)
-{
-    assert((u64_t)word_view.data <= ((u64_t)buffer.data + buffer.size) && "word starts after buffer's end!");
-    assert((u64_t)word_view.data + word_view.size <= ((u64_t)buffer.data + buffer.size) && "word ends after buffer's end!");
-}
+, data(_buffer.data)
+, prefix_size(0)
+, word_size(_buffer.size)
+, suffix_size(0)
+, owns_data(false)
+{}
 
 String Token::json() const
 {
@@ -40,9 +37,9 @@ String Token::json() const
 
     assert(false && "TODO: implement push_allocator(Allocator*) (with auto pop and scope end)");
     string_builder_append(sb, string_printf(temp_allocator(), "\ttype: %i,\n", type));
-    string_builder_append(sb, string_printf(temp_allocator(),"\tprefix_view: \"%s\",\n", prefix_view.c_str() ) );
-    string_builder_append(sb, string_printf(temp_allocator(),"\tword_view: \"%s\",\n", word_view.c_str() ) );
-    string_builder_append(sb, string_printf(temp_allocator(),"\tsuffix: \"%s\",\n", suffix_view.c_str() ) );
+    string_builder_append(sb, string_printf(temp_allocator(),"\tprefix_view: \"%s\",\n", prefix_view().c_str() ) );
+    string_builder_append(sb, string_printf(temp_allocator(),"\tword_view: \"%s\",\n", word_view().c_str() ) );
+    string_builder_append(sb, string_printf(temp_allocator(),"\tsuffix: \"%s\",\n", suffix_view().c_str() ) );
 
     string_builder_append(sb, " }");
 
@@ -58,39 +55,22 @@ void Token::take_prefix_suffix_from(Token* source)
     string_builder_init(sb);
 
     // copy prefix from source
-    if( !source->prefix_view.empty() )
+    string_builder_append(sb, source->prefix_view() );
+    string_builder_append(sb, word_view() );
+    string_builder_append(sb, source->suffix_view() );
+
+    i8_t* new_data = string_builder_build_string(sb, heap_allocator()).data;
+
+    if( owns_data )
     {
-        string_builder_append(sb, source->prefix_view);
+        memory_free(data);
     }
 
-    // reassign word
-    if( !word_view.empty() )
-    {
-        string_builder_append(sb, word_view );
-    }
+    data      = new_data;
+    owns_data = true;
 
-    // copy suffix from source
-    if( !source->suffix_view.empty() )
-    {
-        string_builder_append(sb, source->suffix_view );
-    }
-
-    String new_buffer = string_builder_build_string(sb, heap_allocator());
-
-    if( owns_buffer )
-    {
-        string_release(buffer);
-    }
-
-    buffer      = new_buffer;
-    owns_buffer = true;
-
-    prefix_view.data = buffer.data;
-    prefix_view.size = source->prefix_view.size;
-    word_view.data   = buffer.data + source->prefix_view.size;
-    // word_view.size   = ... unchanged
-    suffix_view.data = buffer.data + source->prefix_view.size + source->word_view.size;
-    suffix_view.size = source->suffix_view.size;
+    prefix_size = source->prefix_size;
+    suffix_size = source->suffix_size;
 
     // Remove prefix and suffix on the source
     source->suffix_reset();
@@ -101,18 +81,15 @@ void Token::clear()
 {
     index       = 0;
     type        = 0;
-    prefix_view = "";
-    word_view   = "";
-    suffix_view = "";
-
-    assert(false && "TODO: free existing buffer if owned");
+    prefix_size = 0;
+    word_size   = 0;
+    suffix_size = 0;
 }
 
 u32_t Token::char_position() const
 {
-    u64_t offset = (u64_t)word_view.data - (u64_t)buffer.data;
-    assert(offset < String::invalid_pos && "Need to use a larger string, buffer goes beyond String::size!");
-    return (u32_t)offset;
+    #warning This was previously returning the position of the token word on the global parsed string, now it does not. We should change that.
+    return suffix_size;
 }
 
 Token& Token::operator=(const Token& other)
@@ -120,12 +97,12 @@ Token& Token::operator=(const Token& other)
     if( this == &other) return *this;
 
     index       = other.index;
-    prefix_view = other.prefix_view;
-    word_view   = other.word_view;
-    suffix_view = other.suffix_view;
+    prefix_size = other.prefix_size;
+    word_size   = other.word_size;
+    suffix_size = other.suffix_size;
     type        = other.type;
-    buffer      = other.buffer;
-    owns_buffer = false;
+    data        = other.data;
+    owns_data   = other.owns_data; // That is user's responsibility to release the data once
 
     return *this;
 }
@@ -134,98 +111,78 @@ void Token::replace_buffer(const String& _buffer, bool external_only )
 {
     // here, we consider that the whole buffer will be into the "word" part, no suffix/prefix.
 
-    if( owns_buffer )
+    if( owns_data )
     {
-        string_release( buffer );
-        owns_buffer = false;
+        memory_free(data);
+        owns_data = false;
     }
 
     if( external_only )
     {
-        this->buffer = _buffer;
+        this->data = _buffer.data;
     }
     else
     {
-        this->buffer = string_copy(_buffer);
-        owns_buffer = true;
+        this->data = string_copy(_buffer).data;
+        owns_data = true;
     }
 
-    prefix_view.data    = buffer.data;
-    prefix_view.size    = 0;
-    word_view.data      = buffer.data + prefix_view.size;
-    word_view.size      = buffer.size;
-    suffix_view.data    = buffer.data + word_view.size;
-    suffix_view.size    = 0;
+    prefix_size    = 0;
+    word_size      = _buffer.size;
+    suffix_size    = 0;
 }
 
 void Token::replace_word(const String& new_word)
 {
     // print a new buffer, and update the views
-    String new_buffer = string_printf("%s%s%s", prefix_view.c_str(), new_word.c_str(), suffix_view.c_str() );
+    i8_t* new_data = string_printf("%s%s%s", prefix_view().c_str(), new_word.c_str(), suffix_view().c_str() ).data;
 
-    if( owns_buffer )
+    if( owns_data )
     {
-        string_release(buffer);
+        memory_free(data);
     }
 
-    buffer = new_buffer;
-    owns_buffer = true;
-
-    prefix_view.data    = buffer.data;
-    // prefix_view.size    = ... no change
-
-    word_view.data      = buffer.data + prefix_view.size;
-    word_view.size      = new_word.size;
-
-    suffix_view.data    = buffer.data + prefix_view.size + word_view.size;
-    // suffix_view.size    = ... no change
+    data            = new_data;
+    owns_data       = true;
+    // prefix_size  = (no change)
+    word_size       = new_word.size;
+    // suffix_size  = (no change)
 }
 
 void Token::prefix_push_front(const String& str)
 {
-    String new_buffer = string_printf("%.*s%.*s", str.size, str.data, buffer.size, buffer.data );
-    if ( owns_buffer )
+    i8_t* new_data = string_printf("%s%s", str.c_str(), view().c_str() ).data;
+    if ( owns_data )
     {
         // Currently we do not allocate more that needed, so when we resize we must release our buffer
-        string_release(buffer);
+        memory_free(data);
     }
-    buffer = new_buffer;
-    owns_buffer = true;
-    
-    // make sure views points to the new buffer address
-    prefix_view.data  = buffer.data;
-    prefix_view.size += str.size;
-    word_view.data    = buffer.data + prefix_view.size;
-    suffix_view.data  = buffer.data + prefix_view.size + word_view.size;
+    data            = new_data;
+    owns_data       = true;
+    prefix_size    += str.size;
+    // word_size    = (no change)
+    // suffix_size  = (no change)
 }
 
 void Token::suffix_push_back(const String& str)
 {
-    String new_buffer = string_printf("%.*s%.*s", buffer.size, buffer.data, str.size, str.data );
-    if ( owns_buffer )
+    i8_t* new_data = string_printf("%s%s", str.c_str(), view().c_str() ).data;
+    if ( owns_data )
     {
         // Currently we do not allocate more that needed, so when we resize we must release our buffer
-        string_release(buffer);
+        memory_free(data);
     }
-    buffer = new_buffer;
-    owns_buffer = true;
-    
-    // make sure views points to the new buffer address
-    prefix_view.data  = buffer.data;
-    word_view.data    = buffer.data + prefix_view.size;
-    suffix_view.data  = buffer.data + prefix_view.size + word_view.size;
-    suffix_view.size += str.size;
+    data            = new_data;
+    owns_data       = true;
+    // prefix_size  = (no change)
+    // word_size    = (no change)
+    suffix_size    += str.size;
 }
 
 void Token::prefix_reset(size_t new_size )
 {
-    assert(!owns_buffer);
-
-    int diff = (int)new_size - (int)prefix_view.size;
-    // Instead of erasing chars, we prefer to simply "move the cursor to the right"
-    buffer.data      += diff;
-    prefix_view.data += diff;
-    prefix_view.size  = new_size;
+    assert(!owns_data);
+    prefix_size  = new_size;
 }
 
 void Token::reset_lengths()
@@ -236,18 +193,16 @@ void Token::reset_lengths()
 
 void Token::word_move_begin(int amount)
 {
-    #warning TODO: add bound checks
-    prefix_view.size += amount;
-    word_view.data   += amount;
-    word_view.size   -= amount;
+    if( amount < 0) assert(prefix_size >= -amount);
+    prefix_size += amount;
+    word_size   -= amount;
 }
 
 void Token::word_move_end(int amount)
 {
-    #warning TODO: add bound checks
-    word_view.size   += amount;
-    suffix_view.data += amount;
-    suffix_view.size -= amount;
+    if( amount > 0) assert(suffix_size >= amount);
+    word_size   += amount;
+    suffix_size -= amount;
 }
 
 void Token::set_offset(size_t pos)
@@ -258,39 +213,34 @@ void Token::set_offset(size_t pos)
 
 void Token::suffix_reset(size_t size)
 {
-    assert(!owns_buffer);
-    suffix_view.size = size;
-    buffer.size      = prefix_view.size + word_view.size + suffix_view.size;
+    assert(!owns_data);
+    suffix_size = size;
 }
 
 void Token::prefix_begin_grow(size_t l_amount)
 {
-    assert(!owns_buffer && "Only allowed when token does not owns the buffer");
-    buffer.data      -= l_amount;
-    buffer.size      += l_amount;
-    prefix_view.data -= l_amount;
-    prefix_view.size += l_amount;
+    assert(!owns_data && "Only allowed when token does not owns the buffer");
+    data        -= l_amount;
+    prefix_size += l_amount;
 }
 
 void Token::suffix_end_grow(size_t size)
 {
-    suffix_reset(suffix_view.size + size);
+    suffix_reset(suffix_size + size);
 }
 
 void Token::suffix_begin_grow(size_t l_amount)
 {
-    ASSERT( word_view.size >= l_amount );
-    word_view.size   -= l_amount;
-    suffix_view.data -= l_amount;
-    suffix_view.size += l_amount;
+    ASSERT( word_size >= l_amount );
+    word_size   -= l_amount;
+    suffix_size += l_amount;
 }
 
 void Token::prefix_end_grow(size_t r_amount)
 {
-    ASSERT( r_amount <= word_view.size);
-    prefix_view.size += r_amount;
-    word_view.data   += r_amount;
-    word_view.size   -= r_amount;
+    ASSERT( r_amount <= word_size);
+    prefix_size += r_amount;
+    word_size   -= r_amount;
 }
 
 } // namespace ndbl

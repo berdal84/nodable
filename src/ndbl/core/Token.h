@@ -12,32 +12,21 @@
 namespace ndbl
 {
     /**
-     * A token is a view over a portion of parsed string.
+     * What is a Token?
      *
-     * The text viewed by a Token can be split in 3 parts:
-     * - prefix
-     * - word
-     * - suffix
-     *
-     * For example, if we parsed the text "   my_var ", those part will contain:
-     * - prefix: "   "
-     * - word:   "my_var"
-     * - suffix: " "
-     *
-     * The data is in buffer, it can be owner or not. prfix, word, and suffix are views over this data.
-     * When user edits something, the buffer portion that is pointed by prefix/word/suffix gets duplicated
+     * - by default, it is a view over a given buffer split in 3 parts (prefix, word, suffix)
+     * - Token::length() is ALWAYS equals to prefix_size + word_size + suffix_size
+     * - Token::prefix(), ::word(), and ::suffix() ALWAYS return a view over the buffer.
      */
 	struct Token
 	{
         size_t      index; // in parent Token_Ribbon
         Token_Type  type;
-        
-        bdc::String buffer; // original source code (not owned), might be replaced by custom data in case used edits a value.
-        bool        owns_buffer;
-        
-        bdc::String prefix_view;
-        bdc::String word_view;
-        bdc::String suffix_view;
+        i8_t*       data; // might be owned or not, check owns_data flag.
+        bool        owns_data;        
+        u32_t       prefix_size;
+        u32_t       word_size;
+        u32_t       suffix_size;
 
         Token(): Token(Token_Type_NULL) {}
         Token(Token_Type type): Token(type, "") {}
@@ -46,11 +35,16 @@ namespace ndbl
 
         ~Token() = default;
 
-        inline explicit operator bool () const { return type != Token_Type_NULL; }
-        Token&          operator=(const Token& other);
+        explicit    operator bool () const { return type != Token_Type_NULL; }
+        Token&      operator=(const Token&);
 
+        bdc::String view() const            { return { data, size()}; }
+        bdc::String prefix_view() const     { return { data, prefix_size }; }
+        bdc::String word_view() const       { return { data + prefix_size, word_size }; }
+        bdc::String suffix_view() const     { return { data + prefix_size + word_size, suffix_size }; }
+        u32_t       size() const            { return prefix_size + word_size + suffix_size; }  
+        bool        empty() const           { return size() == 0; }
         void        clear();
-        bool        has_buffer()const { return !buffer.empty(); }; 
         void        set_offset(size_t new_offset);
 
         void        prefix_reset(size_t size = 0);      // preserves word
@@ -68,7 +62,6 @@ namespace ndbl
         bool        is_keyword_type() { return ndbl::is_a_type_keyword(type); } // Check if whether this token is a keyword type
         void        take_prefix_suffix_from(Token *source); // Transfer the prefix and suffix of a given token to this token
         bdc::String json()const;
-        bool        empty() const { return buffer.empty(); }
         void        suffix_push_back(const bdc::String&);
         void        prefix_push_front(const bdc::String&);
         void        replace_buffer(const bdc::String& buffer, bool external_only = false);

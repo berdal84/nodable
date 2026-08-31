@@ -36,12 +36,12 @@ public:
 
     String parse_and_serialize(const String &code)
     {
-        TOOLS_DEBUG_LOG(Verbosity_Message, __FILE__, "parse_and_serialize parsing \"%s\"\n", code.c_str());
+        TOOLS_DEBUG_LOG(Verbosity_Message, __FILE_NAME__, "parse_and_serialize parsing \"%s\"\n", code.c_str());
 
         nodable_parse(&app, code);
         String result = nodable_serialize(&app);
 
-        TOOLS_DEBUG_LOG(Verbosity_Message, __FILE__, "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
+        TOOLS_DEBUG_LOG(Verbosity_Message, __FILE_NAME__, "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
 
         return result;
     }
@@ -52,7 +52,7 @@ public:
         File_Read_Result result = file_read(path.c_str(), temp_allocator() );
         if(!result.ok)
         {
-            TOOLS_LOG(Verbosity_Error, __FILE__, "%s\n", result.error.c_str() );
+            TOOLS_LOG(Verbosity_Error, __FILE_NAME__, "%s\n", result.error.c_str() );
             ASSERT(false && "Unable to open file!" );
         }
         return result.content;

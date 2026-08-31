@@ -180,7 +180,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
                 case Node_Type_VARIABLE_REF:
                 {
                     const Token &connected_property_token = connected_slot->property->token;
-                    bdc::String buf = bdc::string_copy( connected_property_token.word_view, bdc::temp_allocator());
+                    bdc::String buf = bdc::string_copy( connected_property_token.word_view(), bdc::temp_allocator());
                     float w = nodepropertyview_calc_input_width(buf);
                     ImGui::PushItemWidth(w);
                     Node_View* nodeview = connected_slot->node->view;
@@ -204,8 +204,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
     if ( compact_mode )
     {
-        bdc::String token_word = property_token.word_view;
-        float w = nodepropertyview_calc_input_width(token_word.c_str());
+        float w = nodepropertyview_calc_input_width( property_token.word_view().c_str() );
         ImGui::PushItemWidth(w);
     }
 
@@ -214,7 +213,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
     {
         case Token_Type_identifier:
         {
-            bdc::String buf = bdc::string_copy(property_token.word_view.c_str(), bdc::temp_allocator());
+            bdc::String buf = bdc::string_copy(property_token.word_view().c_str(), bdc::temp_allocator());
             flags = 0; // ReadOnly always OFF. ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
             if (ImGui::InputText(label.c_str(), buf.data, buf.size, flags))
             {
@@ -227,7 +226,8 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
         case Token_Type_literal_double:
         {
 
-            double value = lang_parse_double_or(language(), property_token.word_view, 0);
+            String word  = property_token.word_view();
+            double value = lang_parse_double_or(language(), word, 0);
 
             if (ImGui::InputDouble(label.c_str(), &value, 0.0, 0.0, "%.6f", flags))
             {
@@ -240,7 +240,8 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
         case Token_Type_literal_int:
         {
-            i32_t value = lang_parse_int_or( language(), property_token.word_view, 0);
+            String word = property_token.word_view();
+            i32_t value = lang_parse_int_or( language(), word, 0);
 
             if (ImGui::InputInt(label.c_str(), &value, 0, 0, flags))
             {
@@ -253,13 +254,13 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
         case Token_Type_literal_bool:
         {
-            bdc::String value_str = property_token.word_view;
-            bool value = lang_parse_bool_or(language(), value_str, false);
+            bdc::String word = property_token.word_view();
+            bool value = lang_parse_bool_or(language(), word, false);
 
             if (ImGui::Checkbox(label.c_str(), &value))
             {
-                bdc::String new_value_str = lang_serialize_bool(language(), value);
-                property_token.replace_word( new_value_str );
+                bdc::String new_word = lang_serialize_bool(language(), value);
+                property_token.replace_word( new_word );
                 changed = true;
             }
             break;
@@ -267,7 +268,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
         default:
         {
-            bdc::String value_str = string_copy( property_token.word_view, bdc::temp_allocator() );
+            bdc::String value_str = string_copy( property_token.word_view(), bdc::temp_allocator() );
 
             if (ImGui::InputText(label.c_str(), value_str.data, value_str.size, flags))
             {
