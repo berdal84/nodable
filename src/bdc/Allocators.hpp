@@ -8,9 +8,28 @@
 #include "Types.hpp"
 
 #ifdef BDC_DEBUG_ALLOCATORS
+
 #include <vector>    // to store allocation metadata in a container that is outside 
 #include <algorithm> // for std::find
+
+#include <stacktrace>
+#include <exception>
+#include <iostream>
+
+#define BDC_PRINT_STACKTRACE() \
+std::stacktrace st = std::stacktrace::current(); \
+std::cout << st << std::endl;
+
+#define BDC_PRINT_STACKTRACE_BECAUSE( fmt, ... ) \
+printf("Printing stacktrace because: "); \
+printf(fmt, __VA_ARGS__); \
+BDC_PRINT_STACKTRACE();
+
+#else
+#define BDC_PRINT_STACKTRACE()
+#define BDC_PRINT_STACKTRACE_BECAUSE()
 #endif // BDC_DEBUG_ALLOCATORS
+
 
 namespace bdc
 {
@@ -104,16 +123,20 @@ namespace bdc
 
     [[nodiscard]] inline void* memory_malloc(size_t size, Allocator* allocator = default_allocator() )
     {
-        return allocator->proc_malloc( size );
+        void* ptr = allocator->proc_malloc( size );
+        BDC_PRINT_STACKTRACE_BECAUSE( "Allocated address %p", ptr );
+        return ptr;
     }
 
     inline void memory_free(void* ptr, Allocator* allocator = default_allocator() )
     {
+        BDC_PRINT_STACKTRACE_BECAUSE( "Freeing address %p", ptr );
         return allocator->proc_free( ptr );
     }
 
     [[nodiscard]] inline void* memory_realloc(void* ptr, size_t size, Allocator* allocator = default_allocator() )
     {
+        BDC_PRINT_STACKTRACE_BECAUSE( "Reallocating address %p", ptr );
         return allocator->proc_realloc(ptr, size);
     }
 
@@ -126,12 +149,14 @@ namespace bdc
     template<typename Type>
     [[nodiscard]] inline Type* memory_malloc(Allocator* allocator = default_allocator() )
     {
+        BDC_PRINT_STACKTRACE();
         return reinterpret_cast<Type*>( memory_malloc( sizeof(Type), allocator ));
     }
     
     template<typename Type>
     [[nodiscard]] inline Type* memory_realloc( Type* ptr, Allocator* allocator = default_allocator() )
     {
+        BDC_PRINT_STACKTRACE();
         return reinterpret_cast<Type*>(allocator->proc_realloc( ptr, sizeof(Type) ));
     }
 
