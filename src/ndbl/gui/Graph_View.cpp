@@ -149,7 +149,7 @@ void ndbl::graphview_deinit(Graph_View* graphview)
 
 void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
 {
-    // view
+    // create a Node_View fo the new node
     node->view = bdc::memory_new<Node_View>();
     nodeview_init(node->view, node);
     node->view->shape.set_size({80.f, 35.f});
@@ -165,14 +165,14 @@ void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
 
 void ndbl::_graphview_handle_remove_node(Graph_View* graphview, Node* node)
 {
-    // clean node.view
+    // clean and delete the Node_View from the removed Node
     VERIFY(node->view, "Should have been created from _handle_add_node()");
-
+    
     if ( Scope_View* scopeview = node->view->internal_scopeview )
     {
         scopeview->signal_hover.disconnect(); // I'm not sure if this is a good approach...
     }
-
+ 
     if( node->view->shape.spatial_node.parent )
     {
         spatialnode_remove_child(node->view->shape.spatial_node.parent, &node->view->shape.spatial_node );

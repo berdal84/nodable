@@ -218,8 +218,6 @@ namespace bdc
             return;
         }
         
-        assert(arr.allocator != nullptr);
-        
         memory_free(arr.data, arr.allocator);
 
         arr.data     = nullptr;

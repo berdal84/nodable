@@ -83,6 +83,7 @@ namespace bdc
         Allocation_Header* header = temp_allocator_buffer_acquire(size);
 
         #ifdef BDC_DEBUG_ALLOCATORS
+            header->owners += 1;
             temp_allocator_tracker().after_malloc(get_pointer(header), size);
         #endif     
 
@@ -96,7 +97,15 @@ namespace bdc
         Allocation_Header* header = get_header(ptr);
         if( header )
         {
-            header->size = 0;
+            header->size    = 0;
+
+            #ifdef BDC_DEBUG_ALLOCATORS
+                header->owners -= 1;
+                if( header->owners < 0 )
+                {
+                    BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE("Address was freed more than malloc at %p\n", ptr);
+                }
+            #endif
         }
     }
 
@@ -105,6 +114,10 @@ namespace bdc
         assert(src_ptr != nullptr);
         
         Allocation_Header* src_header = get_header(src_ptr);
+        
+        #ifdef BDC_DEBUG_ALLOCATORS
+            src_header->owners -= 1;
+        #endif
 
         // When ptr was previously aquired, we can simply extend it
         if ( src_header == temp_allocator_buffer().prev_acquired )
@@ -122,6 +135,7 @@ namespace bdc
         }
 
         #ifdef BDC_DEBUG_ALLOCATORS
+            dest_header->owners += 1;
             temp_allocator_tracker().after_realloc(src_ptr, dest_ptr, size);
         #endif
 

@@ -109,9 +109,9 @@ void node_deinit(Node* node)
 
     if( node->view )
     {
-        nodeview_deinit(node->view);
-        memory_free(node->view);
-        node->view = nullptr;
+        // pass
+        
+        // Note: this is not the responsibility of a Node to free its view. The Graph_View adds Node_Views to Nodes, he handle that.
     }
 
     if( node->internal_scope )

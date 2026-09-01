@@ -23,6 +23,7 @@ def base_target(name, type)
     target = target(
         name,
         type,
+        CXXSTD23 # required by <stacktrace>
     )
     
     target.unity_build_on = true
@@ -48,7 +49,8 @@ def base_target(name, type)
         "CPPTRACE_STATIC_DEFINE", #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
 
-    target.cxx_flags |= [              
+    target.cxx_flags |= [    
+        "-fsized-deallocation", # required for <stackstrace>          
         "-fno-char8_t", # related to ImGui and font awesome (const char* and concatenation would fail without it)
     ]
 
@@ -79,7 +81,7 @@ def base_target(name, type)
             "-s USE_FREETYPE=1",
             "-s USE_SDL=2",
             "-sNO_DISABLE_EXCEPTION_CATCHING",
-			"-gsource-map",
+			"-gsource-map",            
         ]
 
         target.linker_flags |= [
@@ -108,7 +110,8 @@ def base_target(name, type)
         ]
 
         target.linker_flags |= [
-            "-lstdc++", # note: -llibstdc++ was not working, it requires to be installed.
+            "-lstdc++exp", # required for <stacktrace>
+            "-lstdc++",    # note: -llibstdc++ was not working, it requires to be installed.
         ]
 
         if LINUX
