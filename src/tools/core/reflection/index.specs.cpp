@@ -1,9 +1,5 @@
 #include <gtest/gtest.h>
 
-// Hack to avoid adding friend to classes
-#define private public
-#define protected public
-
 #include "index.h"
 #include "../Log.h"
 

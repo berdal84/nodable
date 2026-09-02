@@ -1,8 +1,5 @@
 #include <gtest/gtest.h>
 
-// Hack to access private fields
-#define private public
-
 #include "ndbl/core/Node.h"
 
 using namespace ndbl;
