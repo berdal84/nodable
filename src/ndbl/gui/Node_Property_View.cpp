@@ -37,7 +37,8 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
     }
 
     bool            changed            = false;
-    Node_Type       node_type          = view->node()->type;
+    Node*           node               = view->node();
+    assert(node);
 
     /*
      * Handle input visibility
@@ -47,8 +48,8 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
         case View_Detail_COMPACT:
         {
             view->show = false;
-            view->show |= node_type == Node_Type_VARIABLE;
-            view->show |= node_type == Node_Type_VARIABLE_REF;
+            view->show |= node->type == Node_Type_VARIABLE;
+            view->show |= node->type == Node_Type_VARIABLE_REF;
             break;
         }
 
@@ -56,9 +57,9 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
         {
             // When untouched, it depends...
 
-            view->show |= node_type == Node_Type_LITERAL;
-            view->show |= node_type == Node_Type_VARIABLE;
-            view->show |= node_type == Node_Type_VARIABLE_REF;
+            view->show |= node->type == Node_Type_LITERAL;
+            view->show |= node->type == Node_Type_VARIABLE;
+            view->show |= node->type == Node_Type_VARIABLE_REF;
 
             // Always show when connected to a variable
             if ( const Node_Slot* slot = view->connected_slot() )
@@ -124,9 +125,8 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
     // Update position and size
     // We want the rectangle to fit the Node_View in height,
     // but we resize it to fit the property input field in width.
-    Node_View* nodeview = view->node()->view;
-
-    Rect new_rect  = nodeview->shape.rect(WORLD_SPACE);
+    assert(node->view);
+    Rect new_rect  = node->view->shape.rect(WORLD_SPACE);
     new_rect.min.x = ImGui::GetItemRectMin().x;
     new_rect.max.x = ImGui::GetItemRectMax().x;
 

@@ -227,7 +227,7 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
 
     for(auto& vector : nodeview->view_by_property_type )
         vector.clear();
-    // no m_view_by_property_type.clear(), it is an array ;)
+    // no m_view_by_property_type.clear(), it is an std::array
 
     for(auto* each : nodeview->slot_views )
         bdc::memory_delete(each);
@@ -238,6 +238,9 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
         scopeview_deinit(nodeview->internal_scopeview);
     }
     nodeview->hovered_slotview = nullptr;
+
+    nodeview->node  = nullptr;
+    nodeview->flags = 0;
 }
 
 bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)
