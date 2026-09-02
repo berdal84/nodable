@@ -7,7 +7,7 @@
 
 void ndbl::init_with_gui()
 {
-    bdc::memory_manager_init(1024 * 1024 * 1);
+    bdc::memory_manager_init(1024 * 1024 * 10);
     ndbl::init_reflection();
     
     DEFINE_REFLECT(ndbl::Node_View);
