@@ -363,7 +363,7 @@ void ndbl::appview_draw()
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {5.0f, 5.0f});
 
-        if ( ImGui::Begin( config()->ui_toolbar_window_label.c_str(), NULL, flags ) )
+        if ( ImGui::Begin( config()->ui_toolbar_window_label.data, NULL, flags ) )
         {
             const Vec2&   button_size   = config()->ui_toolButton_size;
 
@@ -408,7 +408,7 @@ void ndbl::appview_draw()
             ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
             bool open        = true;
-            bool uncollapsed = ImGui::Begin( file_name(file), &open, window_flags);
+            bool uncollapsed = ImGui::Begin( file->name.data, &open, window_flags);
 
             ImGui::PopStyleVar();
             ImGui::PopStyleColor(1);
@@ -435,7 +435,7 @@ void ndbl::appview_draw()
         // Draw file info panel
         //----------------------------------------------------------------------------------------
         
-        if ( current_file != nullptr && ImGui::Begin( config()->ui_file_info_window_label.c_str() ))
+        if ( current_file != nullptr && ImGui::Begin( config()->ui_file_info_window_label.data ))
         {
             // Basic inFormation
             ImGui::Text("Current file:");
@@ -466,7 +466,7 @@ void ndbl::appview_draw()
 
         if( HAS_FLAGS( tools::config()->debug_flags, Debug_Flags_SHOW_IMGUI_CONFIG_WINDOW) )
         {
-            if (ImGui::Begin( config()->ui_imgui_config_window_label.c_str() ))
+            if (ImGui::Begin( config()->ui_imgui_config_window_label.data ))
             {
                 ImGui::ShowStyleEditor();
             }
@@ -477,7 +477,7 @@ void ndbl::appview_draw()
         // Draw configuration window (to edit tools::Config and ndbl::Config)
         //----------------------------------------------------------------------------------------
 
-        if (ImGui::Begin( config()->ui_config_window_label.c_str() ))
+        if (ImGui::Begin( config()->ui_config_window_label.data ))
         {
             const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth;
 
@@ -601,7 +601,7 @@ void ndbl::appview_draw()
         // Draw node properties window
         //----------------------------------------------------------------------------------------
 
-        if (ImGui::Begin( config()->ui_node_properties_window_label.c_str() ))
+        if (ImGui::Begin( config()->ui_node_properties_window_label.data ))
         {
             if( app_state()->current_file )
             {
@@ -635,7 +635,7 @@ void ndbl::appview_draw()
         // Draw help window
         //----------------------------------------------------------------------------------------
         {
-        if (ImGui::Begin( config()->ui_help_window_label.c_str() ))
+        if (ImGui::Begin( config()->ui_help_window_label.data ))
         {
             ImGui::PushFont(font_manager_get_by_slot(Font_Slot_Heading));
             ImGui::Text("Welcome to Nodable!");
@@ -679,7 +679,7 @@ void ndbl::appview_draw()
         ImGui::SetNextWindowDockID(ds_root, ImGuiCond_Always);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3f, 0.3f, 0.3f, 1.f));
 
-        ImGui::Begin( config()->ui_startup_window_label.c_str() );
+        ImGui::Begin( config()->ui_startup_window_label.data );
         {
             ImGui::PopStyleColor();
 

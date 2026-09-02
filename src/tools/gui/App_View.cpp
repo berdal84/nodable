@@ -540,12 +540,10 @@ void tools::appview_end(App_View_State* view)
     TOOLS_DEBUG_LOG( TOOLS_DIAG, "tools::App_View", "dt: %f sec, %i msec \n", view->dt_in_s, view->dt_in_ms);
 
     // Format nice title
-    char title[256];
-    snprintf(title, 256, "%s | %4.0ffps %s", view->title.c_str(), view->smoothed_fps, cfg->fps_limit_on ? "" : "unlimited!");
-    title[255] = '\0';
+    bdc::String title = string_printf("%s | %4.0ffps %s", view->title.data, view->smoothed_fps, cfg->fps_limit_on ? "" : "unlimited!");
 
     // Update window title
-    SDL_SetWindowTitle(view->sdl_window, title);
+    SDL_SetWindowTitle(view->sdl_window, title.data);
 }
 
 #ifdef NDBL_DESKTOP
@@ -600,7 +598,7 @@ ImGuiID tools::appview_get_dockspace(App_View_State* view, Dockspace dockspace)
 
 void tools::appview_dock_window(App_View_State* view, const bdc::String& window_name, Dockspace dockspace)
 {
-    ImGui::DockBuilderDockWindow(window_name.c_str(), view->dockspaces[dockspace]);
+    ImGui::DockBuilderDockWindow(window_name.data, view->dockspaces[dockspace]);
 }
 
 void tools::appview_draw_splashscreen(App_View_State* view)
@@ -672,8 +670,8 @@ void tools::appview_save_screenshot(const App_View_State* view, const tools::Pat
     TOOLS_LOG(tools::Verbosity_Message, "tools::App", "Save screenshot " TOOLS_OK " (%s)\n", path.c_str());
 }
 
-void tools::appview_set_title(App_View_State* view, const bdc::String title )
+void tools::appview_set_title(App_View_State* view, const bdc::String& title )
 {
     view->title = title;
-    SDL_SetWindowTitle( view->sdl_window, view->title.c_str() );
+    SDL_SetWindowTitle( view->sdl_window, view->title.data );
 }

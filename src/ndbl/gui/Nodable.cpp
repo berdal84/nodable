@@ -152,7 +152,7 @@ void ndbl::app_update()
     // Delete flagged files
     for( File* file : app->files_to_delete )
     {
-        TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file_name(file) );
+        TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file->name.data );
         file_deinit(file);
         bdc::memory_delete(file);
     }
@@ -511,7 +511,7 @@ void ndbl::app_save_file(File* file)
 
 	if ( !file_write(file, file->path) )
     {
-        TOOLS_LOG(tools::Verbosity_Error, "ndbl::App", "Unable to save %s (%s)\n", file_name(file), file->path.c_str());
+        TOOLS_LOG(tools::Verbosity_Error, "ndbl::App", "Unable to save %s (%s)\n", file->name.data, file->path.c_str());
         return;
     }
     TOOLS_LOG(tools::Verbosity_Message, "ndbl::App", "File saved: %s\n", file->path.c_str());

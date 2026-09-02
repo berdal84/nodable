@@ -54,6 +54,8 @@ void file_init(File* file)
 
     file->view.signal_change.connect<&file_handle_file_view_change>(file);
 
+    string_release(file->name);
+
     TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "File", "View built, creating History ...\n");
 
     // History
@@ -68,6 +70,7 @@ void file_deinit(File* file)
     
     file->graph->view->signal_change.disconnect();
     file->view.signal_change.disconnect();
+    fileview_deinit(&file->view);
 
     graph_deinit(file->graph);
     bdc::memory_delete(file->graph);
@@ -142,11 +145,6 @@ size_t file_size(const File* file)
     return fileview_size(&file->view);
 }
 
-const char* file_name(const File* file)
-{
-    return file->path.filename().c_str();
-}
-
 bool file_write(File* file, const Path& path)
 {
     TOOLS_LOG(Verbosity_Diagnostic, "File", "\"%s\" writing... (%s).\n", path.filename().c_str(), path.c_str());
@@ -173,7 +171,7 @@ bool file_write(File* file, const Path& path)
     UNSET_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
     file->path = path;
 
-    TOOLS_LOG(Verbosity_Message, "File", "%s saved\n", file_name(file) );
+    TOOLS_LOG(Verbosity_Message, "File", "%s saved\n", file->name.data );
 
     return true;
 }
@@ -193,6 +191,8 @@ bool file_read( File* file, const Path& path)
     fileview_set_text(&file->view, result.content, false);
     UNSET_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
     file->path = path;
+    string_release(file->name);
+    file->name = string_copy( { path.filename().c_str() });
 
     TOOLS_LOG(Verbosity_Message, "File", "%s loaded\n", path.filename().c_str(), path.c_str());
 

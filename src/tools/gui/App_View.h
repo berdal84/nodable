@@ -73,7 +73,7 @@ namespace tools
     void        appview_save_screenshot(const App_View_State*, const tools::Path& ); // Save an LCT_RGBA PNG image to path
     bool        appview_is_fullscreen(const App_View_State*);
     void        appview_set_fullscreen(App_View_State*, bool b );
-    void        appview_set_title(App_View_State*, const bdc::String string );
+    void        appview_set_title(App_View_State*, const bdc::String& string );
     std::vector<unsigned char> appview_take_screenshot(const App_View_State*);
     
     bool        pick_file_path(tools::Path& _out_path, Dialog_Type); // pick a file and store its path in _out_path

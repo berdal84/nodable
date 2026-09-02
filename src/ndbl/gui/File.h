@@ -35,6 +35,7 @@ namespace ndbl
      */
 	struct File
     {
+        bdc::String            name;
         tools::Path            path;        // file path on disk
         File_View              view;
         bdc::String            parsed_text; // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
@@ -49,7 +50,6 @@ namespace ndbl
     void                    file_deinit(File*);
     void                    file_update(File*, bool isolation_on); // to call each frame
     void                    file_handle_file_view_change(File*, File_View_Event_Type type);
-    const char*             file_name(const File*);
     size_t                  file_size(const File*);
     void                    file_update_graph_from_text(File*, bool isolation_on);
     void                    file_update_text_from_graph(File*, bool isolation_on);

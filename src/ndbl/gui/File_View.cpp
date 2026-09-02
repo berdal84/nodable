@@ -22,8 +22,8 @@ void ndbl::fileview_init(File_View* file_view, File* file)
     Config* cfg = config();
 
     file_view->file = file;
-    file_view->text_overlay_window_name  = bdc::string_printf( bdc::temp_allocator(), "%s_text_overlay" , file_name(file));
-    file_view->graph_overlay_window_name = bdc::string_printf( bdc::temp_allocator(), "%s_graph_overlay", file_name(file));
+    file_view->text_overlay_window_name  = bdc::string_printf( heap_allocator(), "%s_text_overlay" , file->name.data );
+    file_view->graph_overlay_window_name = bdc::string_printf( heap_allocator(), "%s_graph_overlay", file->name.data );
 
 	file_view->text_editor.SetImGuiChildIgnored(true);
 	file_view->text_editor.SetPalette( cfg->ui_text_textEditorPalette );
@@ -32,6 +32,12 @@ void ndbl::fileview_init(File_View* file_view, File* file)
     file_view->graph_view = file->graph->view;
 
     VERIFY( file_view->file->graph->view, "A Graph_View component is required by File_View" );
+}
+
+void ndbl::fileview_deinit(File_View* file_view)
+{
+    string_release(file_view->text_overlay_window_name );
+    string_release(file_view->graph_overlay_window_name);
 }
 
 void ndbl::fileview_update(File_View* file_view, float dt)
@@ -186,7 +192,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
             // overlay
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
             overlay_rect.expand( -cfg->ui_textview_padding );
-            fileview_draw_overlay(file_view->text_overlay_window_name, file_view->overlay_data[File_View_Overlay_Type_TEXT], overlay_rect, Vec2(0, 1));
+            fileview_draw_overlay(file_view->text_overlay_window_name.data, file_view->overlay_data[File_View_Overlay_Type_TEXT], overlay_rect, Vec2(0, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             if ( HAS_FLAGS(cfg->flags, Config_Flag_EXPERIMENTAL_MULTI_SELECTION) )
@@ -224,7 +230,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
             // Draw overlay: shortcuts
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
             overlay_rect.expand( -cfg->ui_textview_padding );
-            fileview_draw_overlay(file_view->graph_overlay_window_name, file_view->overlay_data[File_View_Overlay_Type_GRAPH], overlay_rect, Vec2(1, 1));
+            fileview_draw_overlay(file_view->graph_overlay_window_name.data, file_view->overlay_data[File_View_Overlay_Type_GRAPH], overlay_rect, Vec2(1, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
@@ -343,7 +349,7 @@ void ndbl::fileview_draw_overlay(const bdc::String& title, const std::vector<Fil
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
                                    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMouseInputs;
 
-    if (ImGui::Begin(title.c_str(), &show, flags) )
+    if (ImGui::Begin(title.data, &show, flags) )
     {
         ImGui::Indent( cfg->ui_overlay_indent);
         std::for_each(overlay_data.begin(), overlay_data.end(), [](const File_View_Overlay_Data& _data) {

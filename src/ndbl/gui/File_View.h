@@ -85,7 +85,8 @@ namespace ndbl
         bool                    is_history_dragged                  = false;
     };
 
-    void                            fileview_init(File_View*, File*); // TODO: No fileview_deinit(File*) ?!
+    void                            fileview_init(File_View*, File*);
+    void                            fileview_deinit(File_View*);
     void                            fileview_update(File_View*, float dt);
     void                            fileview_draw(File_View*, float dt);
     bdc::String                     fileview_get_text(const File_View*, bool isolation_on = false);
