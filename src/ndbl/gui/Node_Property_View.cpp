@@ -24,7 +24,9 @@ constexpr float PROPERTY_INPUT_SIZE_MIN  = 12.0f;
 
 void ndbl::nodepropertyview_init(Node_Property_View* view, Node_Property* property)
 {
-    view->shape = Vec2{10.f, 10.f}; // can't be 0,0
+    assert(property);
+    view->shape    = Vec2{10.f, 10.f}; // can't be 0,0
+    view->property = property;
 }
 
 bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
@@ -86,7 +88,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
     if ( view->show )
     {
         const bool compact_mode = true;
-        changed = nodepropertyview_draw_input(view, compact_mode, nullptr);
+        changed = nodepropertyview_draw_input(view, compact_mode);
 
         if ( ImGui::IsItemFocused() )
         {
@@ -150,7 +152,7 @@ float ndbl::nodepropertyview_calc_input_width(const bdc::String& buf)
     return PROPERTY_INPUT_PADDING + std::max(ImGui::CalcTextSize(buf.c_str()).x, PROPERTY_INPUT_SIZE_MIN);
 }
 
-bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mode, const bdc::String& override_label)
+bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mode, bdc::String override_label)
 {
     Token&              property_token = view->property->token;
     const Node_Slot*    connected_slot = view->connected_slot();
@@ -159,7 +161,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
     bdc::String_Builder label_sb;
 
     // Create a label (everything after ## will not be displayed)
-    if ( !override_label.empty() )
+    if ( override_label.size )
         bdc::string_builder_append(label_sb, override_label);
     else
         bdc::string_builder_appendf(label_sb, "##%s", view->property->name.c_str() );
