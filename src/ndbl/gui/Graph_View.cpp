@@ -181,7 +181,7 @@ void ndbl::_graphview_handle_remove_node(Graph_View* graphview, Node* node)
     if( node->view)
     {
         nodeview_deinit(node->view);
-        bdc::memory_free(node->view);
+        bdc::memory_delete(node->view);
     }
 }
 
