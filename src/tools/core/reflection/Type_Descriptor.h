@@ -74,7 +74,7 @@ namespace tools
      *
      * @example @code
      * const TypeDesc* t = type_get<int>();
-     * assert( t->is_ptr() == false );
+     * ASSERT( t->is_ptr() == false );
      */
     struct Type_Descriptor
     {

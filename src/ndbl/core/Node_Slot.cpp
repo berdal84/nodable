@@ -34,7 +34,7 @@ void node_slot_init(
     slot->view     = nullptr;
 }
 
-void node_slot_release(Node_Slot* slot)
+void node_slot_deinit(Node_Slot* slot)
 {
     memset((void*)slot, 0, sizeof(Node_Slot));
 }

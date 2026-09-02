@@ -435,6 +435,8 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
     // Draw Node_Views
     for (Node& node : graphview->graph->nodes  )
     {
+        TODO("Some elements in graph->nodes may have been deleted! We must add a flag on the Nodes, or swap element with last");
+        
         if ( node.view == nullptr || HAS_FLAGS(node.view->flags, View_Flag_HIDDEN) )
         {
             continue;

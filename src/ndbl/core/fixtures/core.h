@@ -53,7 +53,7 @@ public:
         if(!result.ok)
         {
             TOOLS_LOG(Verbosity_Error, __FILE_NAME__, "%s\n", result.error.c_str() );
-            ASSERT(false && "Unable to open file!" );
+            VERIFY(false, "Unable to open file!" );
         }
         return result.content;
     }

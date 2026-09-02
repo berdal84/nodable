@@ -15,9 +15,9 @@ namespace ndbl
         const bdc::String       name
     )
     {
-        VERIFY( node != nullptr             , "node is required!");
-        VERIFY( property->type == nullptr   , "must be initialized once");
-        VERIFY( type != nullptr             , "type can't be nullptr"   );
+        VERIFY( node    , "node is can't be nullptr");
+        VERIFY( property, "property is can't be nullptr");
+        VERIFY( type    , "type can't be nullptr"   );
 
         property->node  = node;
         property->flags = flags;
@@ -28,7 +28,7 @@ namespace ndbl
         property_set_type(property, type);
     }
 
-    void property_release( Node_Property* property)
+    void property_deinit( Node_Property* property)
     {
         array_release(property->slots);
         property->node  = nullptr;

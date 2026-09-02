@@ -19,7 +19,7 @@ namespace ndbl
     //
     static String get_next_GUID(const String& salt)
     {
-        assert( 0 < salt.size && salt.size <= 64 && "salt.size must be in ]1, 32]");
+        VERIFY( 0 < salt.size && salt.size <= 64, "salt.size must be in ]1, 32]");
 
         // Get current time
         auto now = std::chrono::system_clock::now();
@@ -30,11 +30,11 @@ namespace ndbl
         std::tm* local_tm = nullptr;
 
     #if defined(_WIN32) || defined(_MSC_VER)
-        assert(localtime_s(&time_buf, &now_time_t) == 0);
+        ASSERT(localtime_s(&time_buf, &now_time_t) == 0);
         local_tm = &time_buf;
     #else
         local_tm = localtime_r(&now_time_t, &time_buf);
-        assert(local_tm);
+        ASSERT(local_tm);
     #endif
 
         String result = string_printf(

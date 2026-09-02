@@ -3,6 +3,7 @@
 #include "bdc/String.hpp"
 #include "bdc/String_Builder.hpp"
 #include "bdc/Types.hpp"
+#include "tools/core/Asserts.h"
 #include <cassert>
 #include <cstddef>
 #include <cstring>
@@ -35,7 +36,7 @@ String Token::json() const
 
     string_builder_append(sb, "{\n");
 
-    assert(false && "TODO: implement push_allocator(Allocator*) (with auto pop and scope end)");
+    VERIFY(false, "TODO: implement push_allocator(Allocator*) (with auto pop and scope end)");
     string_builder_append(sb, string_printf(temp_allocator(), "\ttype: %i,\n", type));
     string_builder_append(sb, string_printf(temp_allocator(),"\tprefix_view: \"%s\",\n", prefix_view().c_str() ) );
     string_builder_append(sb, string_printf(temp_allocator(),"\tword_view: \"%s\",\n", word_view().c_str() ) );
@@ -77,7 +78,7 @@ void Token::take_prefix_suffix_from(Token* source)
 
 void Token::remove_suffix_and_prefix()
 {
-    assert(!owns_data && "Not possible when Token owns data, data ptr would be lost");
+    VERIFY(!owns_data, "Not possible when Token owns data, data ptr would be lost");
     data        += suffix_size;
     suffix_size  = 0;
     prefix_size  = 0; 
@@ -94,7 +95,7 @@ void Token::clear()
 
 u32_t Token::char_position() const
 {
-    #warning This was previously returning the position of the token word on the global parsed string, now it does not. We should change that.
+    VERIFY(false, "This was previously returning the position of the token word on the global parsed string, now it does not. We should change that.")
     return suffix_size;
 }
 
@@ -187,45 +188,45 @@ void Token::suffix_push_back(const String& str)
 
 void Token::prefix_reset(size_t new_size )
 {
-    assert(!owns_data);
+    ASSERT(!owns_data);
     prefix_size  = new_size;
 }
 
 void Token::reset_lengths()
 {
-    assert(false && "Not implemented yet:");
+    TODO("Not implemented yet:");
     // TODO: update views
 }
 
 void Token::word_move_begin(int amount)
 {
-    if( amount < 0) assert(prefix_size >= -amount);
+    if( amount < 0) ASSERT(prefix_size >= -amount);
     prefix_size += amount;
     word_size   -= amount;
 }
 
 void Token::word_move_end(int amount)
 {
-    if( amount > 0) assert(suffix_size >= amount);
+    if( amount > 0) ASSERT(suffix_size >= amount);
     word_size   += amount;
     suffix_size -= amount;
 }
 
 void Token::set_offset(size_t pos)
 {
-    assert(false && "Not implemented yet:");
+    TODO("Not implemented yet:");
     // TODO: update views
 }
 
 void Token::suffix_reset(size_t size)
 {
-    assert(!owns_data);
+    ASSERT(!owns_data);
     suffix_size = size;
 }
 
 void Token::prefix_begin_grow(size_t l_amount)
 {
-    assert(!owns_data && "Only allowed when token does not owns the buffer");
+    VERIFY(!owns_data, "Only allowed when token does not owns the buffer");
     data        -= l_amount;
     prefix_size += l_amount;
 }

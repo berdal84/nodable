@@ -35,7 +35,7 @@ namespace ndbl
     };
 
     void property_init      (Node_Property*, Node* /* owner */, const tools::Type_Descriptor*, Node_Property::Flags, const bdc::String _name); // must be called once before use
-    void property_release   (Node_Property*);
+    void property_deinit   (Node_Property*);
     void property_set_type  (Node_Property*, const tools::Type_Descriptor* /* new_type */ );
     void property_digest    (Node_Property*, Node_Property* /* other */);
 }

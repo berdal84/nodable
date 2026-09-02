@@ -1,5 +1,6 @@
 #pragma once
 #include "tools/core/Log.h"
+#include "bdc/Allocators.hpp"
 
 #ifndef TOOLS_ASSERTIONS_ENABLE
 #define TOOLS_ASSERTIONS_ENABLE true // When false, any ASSERT/VERIFY macros are disable
@@ -23,11 +24,19 @@
             static_assert(false, "VERIFY_ is reserved for tools, it should not be defined here.")
         #endif
 
-        #define VERIFY_(expression, message_if_fails )\
-        if(!(expression)) { tools::flush(); throw std::runtime_error(message_if_fails); }
+        #define VERIFY_(expression, message_if_fails, throw_on_failure )\
+        if( !(expression) ) \
+        { \
+            BDC_PRINT_STACKTRACE(); \
+            printf("VERIFY: %s was evaluated false. Message: %s\n", #expression, message_if_fails ); \
+            tools::flush(); \
+            if ( throw_on_failure ) \
+                throw std::runtime_error(message_if_fails); \
+            assert( false ); \
+        }
 
-        #define ASSERT(expression) VERIFY_( (expression), "Assertion failed: " #expression" is false" )
-        #define VERIFY(expression, message) VERIFY_( (expression), message )
+        #define ASSERT(expression)          VERIFY_( (expression), "Assertion failed: " #expression" is false", false )
+        #define VERIFY(expression, message) VERIFY_( (expression), message                                    , true )
 
         #endif // !TOOLS_NOEXCEPT
 
@@ -48,10 +57,17 @@
 
 #define TOOLS_UNREACHABLE( ... ) \
 do { \
-    char message[500];\
-    message[sizeof(message)-1]; \
-    snprintf(message, 500-1, __VA_ARGS__); \
-    printf( "ERR: Unreachable code in %s at line %i\n -- Reason: %s\n", __FILE__, __LINE__, message ); \
+    BDC_PRINT_STACKTRACE(); \
+    printf("UNREACHABLE: %s\n", #__VA_ARGS__); \
     tools::flush(); \
-    assert(false); \
+    assert( false ); \
 } while(0)
+
+#define TODO( message ) \
+do { \
+    BDC_PRINT_STACKTRACE(); \
+    printf("TODO: %s\n", #message); \
+    tools::flush(); \
+    assert( false ); \
+} while(0)
+

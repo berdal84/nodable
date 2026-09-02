@@ -8,8 +8,8 @@
 tools::Spatial_Node::~Spatial_Node()
 {
     spatialnode_clear(this);
-    assert( parent == nullptr ); // remove this instance from its parent before to delete it.
-    assert( this->children.empty() ); // _parent is responsible for removing its children before they get delete.
+    ASSERT( parent == nullptr ); // remove this instance from its parent before to delete it.
+    ASSERT( this->children.empty() ); // _parent is responsible for removing its children before they get delete.
 }
 
 const glm::mat3& tools::Spatial_Node::world_matrix() const

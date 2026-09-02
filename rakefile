@@ -64,8 +64,8 @@ def base_target(name, type)
     if CONFIG_DEBUG or CONFIG_OPTIMIZED
 
         target.defines |= [
-            #"BDC_ENABLE_LOGS",
-            "BDC_DEBUG_ALLOCATORS",
+            # "BDC_ENABLE_LOGS",
+            # "BDC_DEBUG_ALLOCATORS",
         ]
 
     end

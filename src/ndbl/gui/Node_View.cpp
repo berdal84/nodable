@@ -35,7 +35,7 @@ using namespace tools;
 
 void ndbl::nodeview_init(Node_View* nodeview, Node* node)
 {
-    assert(node);    
+    ASSERT(node);    
     nodeview->node = node;
 
     Config* cfg = config();
