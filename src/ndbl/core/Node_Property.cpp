@@ -31,6 +31,9 @@ namespace ndbl
     void property_release( Node_Property* property)
     {
         array_release(property->slots);
+        property->node  = nullptr;
+        property->flags = 0;
+        property->name  = "released";
     }
 
     void property_digest(Node_Property* property, Node_Property* other)
