@@ -151,7 +151,14 @@ namespace bdc
 
     int string_compare(const String& a, const String& b)
     {
-        return a.size == b.size && strncmp(a.data, b.data, a.size) == 0;
+        const u32_t size_min = a.size > b.size ? b.size : a.size;
+         
+        int n = strncmp(a.data, b.data, size_min);
+        if ( n == 0 )
+        {
+            return  a.size < b.size ? 1 : -1;
+        }
+        return n;
     }
 
     String string_case_insensitive_find(const String& haystack, const String& needle)
