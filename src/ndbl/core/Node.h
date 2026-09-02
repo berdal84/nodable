@@ -177,6 +177,9 @@ namespace ndbl
             ~Component();
         };
 
+        Node() {};
+        ~Node() = default;
+        
         bdc::String_Hash                        id = {};
         Component                               component;
         tools::Simple_Signal                    signal_deinit;      // emit once component.deinit() has been called
