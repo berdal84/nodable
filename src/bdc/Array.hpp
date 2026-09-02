@@ -207,7 +207,7 @@ namespace bdc
         arr.data        = nullptr;
         arr.capacity    = 0;
         arr.allocator   = allocator;
-        array_ensure_has_capacity(arr, initial_capacity);
+        array_reserve_capacity_at_least(arr, initial_capacity);
     }
 
     template<typename Elem_Type>
@@ -228,7 +228,7 @@ namespace bdc
     template<typename Elem_Type>
     void array_resize(Resizable_Array<Elem_Type>& arr, u32_t new_size)
     {
-        array_ensure_has_capacity(arr, new_size);
+        array_reserve_capacity_at_least(arr, new_size);
         for( u32_t i = arr.size; i < new_size; ++i)
         {
             new (arr.data + i) Elem_Type();
@@ -237,39 +237,42 @@ namespace bdc
     }
 
     template<typename Elem_Type>
-    void array_ensure_has_capacity(Resizable_Array<Elem_Type>& arr, u32_t new_capacity)
+    void array_reserve_capacity_at_least(Resizable_Array<Elem_Type>& arr, u32_t mininal_required_capacity)
     {
         //
-        // TODO: exponential capacity grow.
-        //       currently an allocation is done each time we resize!!!
+        // TODO: I might want to implement an exponential realloc here.
+        //       But consider this:
+        //       - Resizable_Array>T> user might need to precisely set a capacity manually.
+        //         Making this function exponential would makes this impossible.
+        //       - Why not providing a Resize_Strategy enum ?
+        //       I don't know yet...
         //
 
-        assert(new_capacity >= arr.capacity);
+        if( mininal_required_capacity <= arr.capacity )
+        {
+            return;
+        }
+
         assert(arr.allocator != nullptr);
 
-        // needs to allocate/reallocate?
-        if( new_capacity > arr.capacity )
+        if( arr.data == nullptr )
         {
-            if( arr.data == nullptr )
-            {
-                arr.data = memory_malloc_array<Elem_Type>(new_capacity, arr.allocator);
-            }
-            else
-            {
-                arr.data = memory_realloc_array<Elem_Type>(arr.data, new_capacity, arr.allocator);
-            }
-            assert(arr.data != nullptr);
-            memset( (void*)(arr.data + arr.size), 0, new_capacity - arr.size); // new elements are zero-initialized
-            arr.capacity = new_capacity;
-        }        
+            arr.data = memory_malloc_array<Elem_Type>(mininal_required_capacity, arr.allocator);
+        }
+        else
+        {
+            arr.data = memory_realloc_array<Elem_Type>(arr.data, mininal_required_capacity, arr.allocator);
+        }
+        assert(arr.data != nullptr);
+        memset( (void*)(arr.data + arr.capacity), 0, mininal_required_capacity - arr.capacity); // new elements are zero-initialized
+        arr.capacity = mininal_required_capacity;
     }
 
     template<typename Elem_Type>
     void array_append(Resizable_Array<Elem_Type>& arr, const Elem_Type& elem)
     {
-        u32_t index = arr.size;
         array_resize( arr, arr.size + 1 );
-        arr[index] = elem;
+        arr[arr.size-1] = elem;
     }
 
     template<typename Elem_Type>
