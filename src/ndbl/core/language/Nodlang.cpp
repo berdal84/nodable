@@ -933,42 +933,52 @@ namespace ndbl
     {
         assert(buffer.size > 0);
 
-        // comments
-        if ( buffer[0] == '/' && buffer.size > 1)
+        // single-line comment
+        if ( buffer.size > 2 && buffer[0] == '/' && buffer[1] == '/')
         {
-            u32_t cursor = 1;
-
-            if (buffer[cursor] == '*' || buffer[cursor] == '/')
+            u32_t cursor = 2;            
+            while ( cursor < buffer.size && buffer[cursor] != '\n' )
             {
-                // multi-line comment
-                if (buffer[cursor] == '*')
-                {
-                    while ( buffer.size < cursor && !(buffer[cursor] == '/' && buffer[cursor] == '*'))
-                    {
-                        cursor += 1;
-                    }
-                }
-                // single-line comment
-                else
-                {
-                    while ( buffer.size < cursor && buffer[cursor] != '\n' )
-                    {
-                        cursor += 1;
-                    }
-                }
                 cursor += 1;
-                
-                String word = buffer;
-                word.size = cursor;
-
-                buffer.data += word.size;
-                if( word.size > buffer.size )
-                {
-                    buffer.size = 0;
-                }
-
-                return Token{ Token_Type_ignore, word };
             }
+            cursor += 1;
+            
+            String word = {
+                buffer.data,
+                cursor
+            };
+
+            buffer = {
+                buffer.data + cursor,
+                cursor > buffer.size ? 0 : buffer.size - cursor 
+            };
+            return Token{ Token_Type_ignore, word };
+        }
+        
+        //  multi-line comment
+        if ( buffer.size > 4 && buffer[0] == '/' && buffer[1] == '*' && buffer[2] != '/') // requires "/*" + 1 char that is not /, minimal comment is "/**/", "/*/" is invalid
+        {
+            u32_t cursor = 2;            
+            while ( true )
+            {
+                if( buffer.size <= cursor )
+                    return Token{ Token_Type_NULL, { buffer.data + cursor, buffer.size - cursor } };
+                if (buffer[cursor-1] == '*' && buffer[cursor] != '/')
+                    break;
+                cursor += 1;
+            }
+            cursor += 1;
+            
+            String word = {
+                buffer.data,
+                cursor
+            };
+
+            buffer = {
+                buffer.data + cursor,
+                cursor > buffer.size ? 0 : buffer.size - cursor 
+            };
+            return Token{ Token_Type_ignore, word };
         }
 
         // single-char
