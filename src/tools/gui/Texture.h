@@ -1,13 +1,12 @@
 #pragma once
 
-#include "gl3w/GL/gl3w.h"
-
+#include "tools/gui/GL_Helpers.h"
 #include "tools/gui/geometry/Vec2.h"
-#include "tools/core/types.h"
+#include "bdc/Types.hpp"
 
 namespace tools
 {
-    struct Texture  //  Simple data structure to store OpenGL texture information
+    struct Texture  //  Simple data structure to store OpenGL texture inFormation
     {
         Texture(): Texture({}, 0, 0)
         {}

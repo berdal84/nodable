@@ -1,144 +1,181 @@
 #include "Scope.h"
 
 #include <stack>
-#include <cstring>
-#include <algorithm> // for std::find_if
+#include "bdc/String.hpp"
 
-#include "tools/core/log.h"
-#include "tools/core/memory/memory.h"
+#include "core/Asserts.h"
+#include "tools/core/Log.h"
 
-#include "ForLoopNode.h"
-#include "IfNode.h"
-#include "VariableNode.h"
-#include "Utils.h"
+#include "Node.h"
+#include "Graph.h"
 
-using namespace ndbl;
+namespace ndbl
+{
+
 using namespace tools;
 
-REFLECT_STATIC_INITIALIZER
-(
-    DEFINE_REFLECT(Scope).extends<NodeComponent>();
-)
+void    _scope_update_backbone_cache(const Scope*);
+void    _scope_update_depth_cache(const Scope*);
+void    _scope_set_depth_cache_dirty(const Scope*);
 
-Scope::~Scope()
+void scope_init(Scope* scope)
 {
-    // clear nodes
-    clear();
-
-    // clear partitions
-    for(Scope* partition : m_partition)
-        partition->reset_parent(nullptr, ScopeFlags_PREVENT_EVENTS ); // why preventing events? => will be destroyed soon, unnecessary to emit some
-    m_partition.clear();
-
-    // checks
-    assert(m_related.empty());
-    assert(m_variable.empty());
-    assert(m_child.empty());
-    assert(m_partition.empty());
 }
 
-VariableNode* Scope::_find_var_ex(const std::string& _identifier, ScopeFlags flags )
+void scope_deinit(Scope* scope)
 {
+    VERIFY(scope->parent == nullptr, "Remove this scope from parent first");
+    VERIFY(scope->children.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
+    scope_reset_head(scope);
+    ASSERT(scope->head == nullptr);
+    ASSERT(scope->children.empty());
+    ASSERT(scope->variables.empty());
+}
+
+void _scope_update_backbone_cache(const Scope* scope)
+{
+    if ( !scope->_cached_backbone_dirty )
+        return;
+
+    scope->_cached_backbone.clear();
+    Node* curr_node = scope->head;
+    while( curr_node != nullptr && curr_node->scope == scope )
+    {
+        // add current
+        scope->_cached_backbone.push_back(curr_node );
+
+        // get next
+        ASSERT( curr_node->flow_out()->capacity == 1 );
+        Node_Slot* out = curr_node->flow_out();
+        curr_node = out->first_adjacent_node();
+    }
+    scope->_cached_backbone_dirty = false;
+}
+
+Node* scope_find_variable(Scope* scope, const bdc::String& identifier, Scope_Flags flags )
+{
+    using namespace bdc;
+
     // Try first to find in this scope
-    for(auto it = m_variable.begin(); it != m_variable.end(); it++)
-        if ( (*it)->get_identifier() == _identifier )
-            return *it;
+    for(Node* node : scope->variables)
+        if ( identifier == node_get_identifier(node) )
+            return node;
 
     // not found? => recursive call in parent ...
-    if ( m_parent && flags & ScopeFlags_RECURSE )
-        return m_parent->_find_var_ex(_identifier, flags);
+    if ( scope->parent && flags & Scope_Flag_RECURSE_PARENT_SCOPES )
+        return scope_find_variable(scope->parent, identifier, flags);
 
     return nullptr;
 }
 
-void Scope::_push_back_ex(Node *node, ScopeFlags flags)
+void scope_append(Scope* scope, Node *node)
 {
+    scope->_cached_backbone_dirty = true;
+
+    const Scope* previous_scope = node->scope;
     ASSERT(node);
-    _push_back(node, flags);
+    VERIFY(previous_scope == nullptr, "Node should have no scope");
+    VERIFY(node != scope->node, "Can't add a node into its own internal scope" );
 
-    if ( ( flags & ScopeFlags_RECURSE) && !node->has_internal_scope() )
+    // Insert
+    const auto& [_, ok] = scope->children.insert(node); ASSERT(ok);
+
+    // insert as variable?
+    if (node->type == Node_Type_VARIABLE )
     {
-        ScopeFlags flags_non_primary = flags & ~ScopeFlags_AS_PRIMARY_CHILD;
-        for ( Node* input : node->inputs() )
-            if ( !Utils::is_instruction(input) )
-                _push_back_ex(input, flags_non_primary );
-
-        for ( Node* next : node->flow_outputs() )
-            _push_back_ex(next, flags);
+        if (scope_find_variable( scope, node_get_identifier(node)) != nullptr )
+        {
+            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already exists in the same internal_scopeview.\n", node_get_identifier(node).c_str());
+            // we do not return, graph is abstract, it just won't compile ...
+        }
+        else if ( node->scope )
+        {
+            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already declared in another internal_scopeview. Remove it first.\n", node_get_identifier(node).c_str());
+            // we do not return, graph is abstract, it just won't compile ...
+        }
+        else
+        {
+            TOOLS_LOG(tools::Verbosity_Diagnostic, "Scope", "Add '%s' variable to the internal_scopeview\n", node_get_identifier(node).c_str() );
+            scope->variables.insert(node);
+        }
     }
+
+    // Insert inputs recursively
+    for ( Node* input : node->inputs() )
+        if ( input->type != Node_Type_VARIABLE ) // variables must be manually added
+            if (input->scope == previous_scope )
+                scope_append(scope, input);
+
+    node_reset_scope(node, scope);
 }
 
-std::vector<Node*> Scope::leaves()
+std::vector<Node*> scope_get_leaves(Scope* scope)
 {
     std::vector<Node*> result;
-    _leaves_ex(result);
-    if ( result.empty() )
-        result.push_back( node() );
+    scope_get_leaves_ex(result, scope);
+    if ( result.empty() && scope->node != nullptr )
+        result.push_back( scope->node );
     return result;
 }
 
-std::vector<Node*>& Scope::_leaves_ex(std::vector<Node*>& out)
+std::vector<Node*>& scope_get_leaves_ex(std::vector<Node*>& out, Scope* scope)
 {
-    if ( !m_partition.empty() )
+    Node* node = scope->head;
+    while( node != nullptr )
     {
-        for( Scope* partition : m_partition )
-            partition->_leaves_ex(out);
-        return out; // when a scope as sub scopes, we do not consider its node as potential leaves since they are usually secondary nodes, so we return early.
-    }
+        if (node->internal_scope != nullptr )
+        {
+            scope_get_leaves_ex(out, node->internal_scope);
+        }
 
-    if ( !m_child.empty() )
-    {
-        for( Node* _child_node : m_child )
-            if (_child_node->has_internal_scope() )
-                _child_node->internal_scope()->_leaves_ex(out); // Recursive call on nested scopes
-
-        if ( !m_child.back()->has_internal_scope() )
-            out.push_back(m_child.back() );
+        auto outputs = node->flow_outputs();
+        if ( outputs.empty() )
+        {
+            out.push_back( node );
+            node = nullptr;
+        }
+        else
+        {
+            ASSERT(outputs.size() == 1); // Should happen?
+            node = outputs.front();
+        }
     }
 
     return out;
 }
 
-void Scope::_erase_ex(Node* node, ScopeFlags flags)
+void scope_remove(Scope* scope, Node *node)
 {
-    ASSERT(node != nullptr);
-    _erase(node);
+    ASSERT( node );
+    VERIFY( node->scope == scope, "node can't be inside its own Scope");
 
-    // recursive call(s)
-    if ( ( flags & ScopeFlags_RECURSE) && !node->has_internal_scope() )
+    scope->_cached_backbone_dirty = true;
+
+    // inputs first
+    for ( Node* inputnode : node->inputs() )
+        if ( inputnode->scope == scope )
+            if ( inputnode->type != Node_Type_VARIABLE ) // variables must be manually removed
+                scope_remove(scope, inputnode);
+
+    // erase node + side effects
+    scope->children.erase( node );
+    if (scope->head == node )
     {
-        for ( Node* input : node->inputs() )
-            if ( !Utils::is_instruction(input) )
-                _erase_ex(input, flags & ~ScopeFlags_AS_PRIMARY_CHILD);
-
-        for ( Node* next : node->flow_outputs() )
-            _erase_ex(next, flags);
+        scope_reset_head(scope);
     }
+    node_reset_scope(node, nullptr);
+
+    if ( node->type == Node_Type_VARIABLE )
+    {
+        scope->variables.erase(node);
+    }
+
+    ASSERT( node->scope == nullptr);
 }
 
-void Scope::clear()
+bool scope_is_empty(const Scope* scope, Scope_Flags flags)
 {
-    while( !m_related.empty() )
-    {
-        _erase_ex(*m_related.begin(), ScopeFlags_NONE);
-    }
-
-    ASSERT(m_related.size() == 0);
-    ASSERT(m_variable.size() == 0);
-    ASSERT(m_child.size() == 0);
-
-    on_clear.emit();
-}
-
-bool Scope::empty_ex(ScopeFlags flags) const
-{
-    bool is_empty = empty();
-
-    if ( flags & ScopeFlags_RECURSE )
-        for( const Scope* partition : m_partition )
-            is_empty &= partition->empty_ex( flags );
-
-    return is_empty;
+    return scope->children.empty();
 }
 
 std::stack<Scope*> get_path(Scope* s)
@@ -147,24 +184,23 @@ std::stack<Scope*> get_path(Scope* s)
     path.push(s);
     while( path.top() != nullptr )
     {
-        path.push( path.top()->parent() );
+        path.push( path.top()->parent );
     }
     return path;
 }
 
-Scope* Scope::lowest_common_ancestor(const std::vector<Scope*>& scopes)
+Scope* scope_find_lowest_common_ancestor(const std::set<Scope*>& scopes)
 {
-    if ( scopes.empty() )
-        return nullptr;
-    Scope* result = *scopes.begin();
-    for(auto it = scopes.begin()+1; it != scopes.end(); ++it)
+    Scope* lca_scope = nullptr;
+    for( Scope* curr_scope : scopes )
     {
-        result = lowest_common_ancestor( result, *it);
+        lca_scope = lca_scope ? scope_lowest_common_ancestor( lca_scope, curr_scope )
+                              : curr_scope;
     }
-    return result;
+    return lca_scope;
 }
 
-Scope* Scope::lowest_common_ancestor(Scope* s1, Scope* s2)
+Scope* scope_lowest_common_ancestor(Scope* s1, Scope* s2)
 {
     if ( s1 == s2 )
     {
@@ -185,128 +221,90 @@ Scope* Scope::lowest_common_ancestor(Scope* s1, Scope* s2)
     return common;
 }
 
-std::set<Scope*>& Scope::get_descendent_ex(std::set<Scope*>& out, Scope* scope, size_t level_max, ScopeFlags flags)
+std::set<Scope*>& scope_get_descendent_ex(std::set<Scope*>& out, Scope* scope, size_t level_max, Scope_Flags flags)
 {
-    if ( flags & ScopeFlags_INCLUDE_SELF )
+    ASSERT(scope != nullptr);
+
+    if ( flags & Scope_Flag_INCLUDE_SELF )
     {
         out.insert( scope );
     }
 
     if ( level_max-1 == 0 )
-        return out;
-
-    for ( Scope* partition : scope->m_partition )
     {
-        out.insert( partition );
-        get_descendent_ex(out, partition, level_max - 1 );
+        return out;
     }
 
-    for( Node* _child_node : scope->m_child )
+    std::vector<Node*> backbone = scope_get_backbone(scope);
+    for(Node* backbone_node : backbone )
     {
-        if ( Scope* internal_scope = _child_node->internal_scope() )
+        if ( backbone_node->internal_scope != nullptr )
         {
-            out.insert( internal_scope );
-            get_descendent_ex(out, internal_scope, level_max - 1, ScopeFlags_INCLUDE_SELF );
+            scope_get_descendent_ex(out, backbone_node->internal_scope, level_max - 1, Scope_Flag_INCLUDE_SELF );
         }
+
+        for(auto* output_node: backbone_node->flow_outputs())
+            if ( output_node->internal_scope != nullptr )
+                scope_get_descendent_ex(out, output_node->internal_scope, level_max - 1, Scope_Flag_INCLUDE_SELF );
     }
 
     return out;
 }
 
-void Scope::change_node_scope( Node* node, Scope* desired_scope )
+void scope_reset_parent(Scope* scope, Scope* new_parent)
 {
-    if ( Scope* current_scope = node->scope() )
-    {
-        current_scope->erase(node);
-    }
-
-    if ( desired_scope )
-    {
-        desired_scope->push_back(node);
-    }
+    VERIFY(new_parent != scope->parent, "new_parent is expected to be different than the current one");
+    scope->parent = new_parent;
+    _scope_set_depth_cache_dirty(scope);
 }
 
-bool Scope::_erase(Node *node)
+void _scope_set_depth_cache_dirty(const Scope* scope)
 {
-    VERIFY( node->scope() == this, "Node does not have this as scope");
-    if ( m_related.erase(node ) == 0 )
-        return false;
+    scope->_cached_depth_dirty = true;
 
-    auto it = std::find(m_child.begin(), m_child.end(), node );
-    if (it != m_child.end() )
-    {
-        m_child.erase(it );
-
-        if ( node->type() == NodeType_VARIABLE )
-            m_variable.erase(static_cast<VariableNode*>(node) );
-    }
-
-    node->m_parent_scope = nullptr;
-    if ( node->has_internal_scope() )
-        node->internal_scope()->reset_parent();
-    on_change.emit();
-    on_remove.emit(node);
-    return true;
+    // recurse
+    for(Node* child : scope->children)
+        if (Scope* child_scope = child->internal_scope )
+            _scope_set_depth_cache_dirty(child_scope);
 }
 
-void Scope::_push_back(Node* node, ScopeFlags flags)
+bool scope_contains(const Scope* scope, Node* node)
 {
-    VERIFY(node->scope() == nullptr, "Node should have no scope");
-
-    if (flags & ScopeFlags_AS_PRIMARY_CHILD )
-    {
-        m_child.push_back(node );
-
-        if ( node->type() == NodeType_VARIABLE )
-        {
-            auto variable_node = static_cast<VariableNode*>( node );
-            if (find_variable_recursively(variable_node->get_identifier()) != nullptr )
-            {
-                LOG_ERROR("Scope", "Unable to _push_back variable '%s', already exists in the same internal_scope.\n", variable_node->get_identifier().c_str());
-                // we do not return, graph is abstract, it just won't compile ...
-            }
-            else if (variable_node->scope() )
-            {
-                LOG_ERROR("Scope", "Unable to _push_back variable '%s', already declared in another internal_scope. Remove it first.\n", variable_node->get_identifier().c_str());
-                // we do not return, graph is abstract, it just won't compile ...
-            }
-            else
-            {
-                LOG_VERBOSE("Scope", "Add '%s' variable to the internal_scope\n", variable_node->get_identifier().c_str() );
-                m_variable.insert(variable_node);
-            }
-        }
-    }
-    node->m_parent_scope = this;
-    if ( node->has_internal_scope() )
-        node->internal_scope()->reset_parent( this );
-    m_related.insert(node );
-    on_change.emit();
-    on_add.emit(node);
+    return scope->children.contains( node );
 }
 
-void Scope::reset_parent( Scope* new_parent, ScopeFlags flags )
+void scope_reset_head(Scope* scope, Node* new_head)
 {
-    m_parent = new_parent;
-    m_depth  = new_parent ? new_parent->m_depth + 1 : 0;
-
-    if ( (flags & ScopeFlags_PREVENT_EVENTS) == 0 )
-        on_reset_parent.emit(new_parent );
+#ifdef TOOLS_DEBUG
+    VERIFY( !new_head      || new_head->scope      == scope, "Node must be from this scope");
+    VERIFY( !scope->head || scope->head->scope == scope, "node as backbone head should never be removed before to reset backbone head")
+#endif
+    scope->head = new_head;
 }
 
-void Scope::init_partition(std::vector<Scope*>& partition )
+void _scope_update_depth_cache(const Scope* scope)
 {
-    VERIFY(partition.size() > 0, "Count must be greater than 0");
-    VERIFY(m_partition.empty(), "Scope::init_partition() must be called once");
+    if ( !scope->_cached_depth_dirty )
+        return;
 
-    m_partition = partition;
-
-    size_t i = 0;
-    for(Scope* _scope : m_partition )
-    {
-        std::string partition_name = m_name
-                                   + " (part " + std::to_string(i++) + "/" + std::to_string(partition.size()) + ")";
-        _scope->reset_name(partition_name);
-        _scope->reset_parent(this);
-    }
+    scope->_cached_depth       = scope->parent ? scope_get_depth(scope->parent) + 1 : 0;
+    scope->_cached_depth_dirty = false;
 }
+
+size_t scope_get_depth(const Scope* scope)
+{
+    _scope_update_depth_cache(scope); return scope->_cached_depth;
+};
+
+const std::vector<Node*>& scope_get_backbone(const Scope* scope)
+{
+    _scope_update_backbone_cache(scope);
+    return scope->_cached_backbone;
+}
+
+std::set<Scope*>& scope_get_descendent(std::set<Scope*>& out, Scope* scope, Scope_Flags flags )
+{
+    return scope_get_descendent_ex(out, scope, -1, flags);
+}
+
+} // namespace ndbl

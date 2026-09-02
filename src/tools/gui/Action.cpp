@@ -1,17 +1,21 @@
 #include "Action.h"
-#include "tools/core/EventManager.h"
-#include "tools/core/assertions.h"
+#include "SDL_keyboard.h"
+#include "bdc/String_Builder.hpp"
 
-using namespace tools;
-
-void IAction::trigger() const
+namespace tools
 {
-    EventManager* event_manager = get_event_manager();
-    ASSERT(event_manager != nullptr);
-    event_manager->dispatch( make_event() );
-}
+    using namespace bdc;
 
-IEvent* IAction::make_event() const
-{
-    return new IEvent(event_id);
-}
+    String tools::Shortcut::to_string() const
+    {
+        String_Builder sb;
+        string_builder_init(sb);
+
+        if( mod & KMOD_CTRL )       string_builder_append( sb, "Ctrl + ");
+        if( mod & KMOD_ALT )        string_builder_append( sb, "Alt + ");
+        if( key )                   string_builder_append( sb, SDL_GetKeyName(key));
+        if( !description.empty() )  string_builder_append( sb, description);
+
+        return string_builder_build_string(sb);
+    }
+} // namespace tools

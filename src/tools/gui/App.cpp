@@ -1,102 +1,114 @@
 #include "App.h"
 
-#include "tools/core/TaskManager.h"
-#include "tools/core/memory/memory.h"
-#include "tools/core/System.h"
+#include "core/Asserts.h"
+#include "tools/core/Task_Manager.h"
 
-#include "AppView.h"
+#include "App_View.h"
 #include "Config.h"
-#include "ImGuiEx.h"
-#include "TextureManager.h"
 
-using namespace tools;
+#define VERIFY_APPSTATE_IS_INITIALIZED() VERIFY(tools::g_app_state != nullptr, "App_State is not initialized, did you call nodableview_init() ?")
 
-void App::init()
+// private
+namespace tools
+{
+    static App_State* g_app_state = {};
+}
+
+tools::App_State* tools::app_state()
+{
+    VERIFY_APPSTATE_IS_INITIALIZED();
+    return g_app_state;
+}
+
+void tools::app_init(App_State* app)
 {
     // Create and initialize a view
-    auto* view = new AppView();
-    view->init(this);
-    m_flags |= Flag_OWNS_VIEW_MEMORY;
+    auto* view = bdc::memory_new<App_View_State>();
+    appview_init(view, app);
+    app->flags |= App_Flag_OWNS_VIEW_MEMORY;
 
     // Initialize a config
-    Config* config = init_config();
-    m_flags |= Flag_OWNS_CONFIG_MEMORY;
+    Config* config = config_init();
+    app->flags |= App_Flag_OWNS_CONFIG_MEMORY;
 
     // Perform additional initialization
-    init_ex(m_view, config);
+    app_init_ex(app, view, config);
 }
 
-void App::init_ex(AppView* _view, Config* _config)
+void tools::app_init_ex(App_State* app, App_View_State* view, Config* config)
 {
     // Guards
-    VERIFY(m_view == nullptr, "A view already exist. Did you call reset_name twice?");
-    VERIFY(m_config == nullptr, "A config already exist. Did you call reset_name twice?");
-    VERIFY(_config != nullptr, "You must provide a config");
-    VERIFY(_view != nullptr, "You must provide a view");
+    VERIFY(app->view == nullptr, "A view already exist. Did you call set_name twice?");
+    VERIFY(app->config == nullptr, "A config already exist. Did you call set_name twice?");
+    VERIFY(config != nullptr, "You must provide a config");
+    VERIFY(view != nullptr, "You must provide a view");
 
     // Store existing data
-    m_view   = _view;
-    m_config = _config;
+    app->view   = view;
+    app->config = config;
 
     // Initialize managers
-    m_task_manager    = init_task_manager();
+    task_manager_init();
+
+    g_app_state = app;
 }
 
-void App::shutdown()
+void tools::app_main_loop()
+{   
+    App_State* app = app_state();
+
+    while( !app_should_stop() )
+    {
+        app_update();
+        appview_begin(app->view);        
+        //
+        // Insert any ImGui code here
+        //
+        appview_end(app->view);
+    }
+}
+
+void tools::app_shutdown()
 {
-    LOG_MESSAGE("tools::BaseApp", "Shutting down ...\n");
+    App_State* app = app_state();
+
+    TOOLS_LOG(tools::Verbosity_Message, "tools::BaseApp", "Shutting down ...\n");
 
     // Optionally shutdown view
-    if (m_flags & Flag_OWNS_VIEW_MEMORY )
+    if (app->flags & App_Flag_OWNS_VIEW_MEMORY )
     {
-        m_view->shutdown();
+        appview_deinit(app->view);
     }
 
     // Optionally shutdown config
-    if (m_flags & Flag_OWNS_CONFIG_MEMORY )
+    if (app->flags & App_Flag_OWNS_CONFIG_MEMORY )
     {
-        ASSERT(m_config != nullptr);
-        shutdown_config(m_config);
+        ASSERT(app->config != nullptr);
+        config_shutdown();
+        app->config = nullptr;
     }
 
     // managers
-    shutdown_task_manager(m_task_manager);
+    task_manager_shutdown();
 
-    LOG_MESSAGE("tools::BaseApp", "Shutdown OK\n");
+    TOOLS_LOG(tools::Verbosity_Message, "tools::BaseApp", "Shutdown OK\n");
 }
 
-void App::update()
+void tools::app_update()
 {
-    m_view->update();
-    m_task_manager->update();
+    App_State* app = app_state();
+    appview_update(app->view);
+    task_manager_update();
+} 
+
+bool tools::app_should_stop()
+{
+    App_State* app = app_state();
+    return app->flags & App_Flag_SHOULD_STOP;
 }
 
-void App::draw()
+void tools::app_request_stop()
 {
-    m_view->begin_draw();
-    //
-    // You can add some ImGui stuff here to debug
-    //
-    m_view->end_draw();
-}
-
-double App::get_time()
-{
-    return ImGui::GetTime();
-}
-
-
-Path& App::make_absolute(Path& _path)
-{
-    if ( _path.is_absolute() )
-        return _path;
-    _path = Path::get_executable_path().parent_path() / "assets" / _path;
-    return _path;
-}
-
-Path App::get_absolute_asset_path(const char* _str)
-{
-    Path asset_path{_str};
-    App::make_absolute(asset_path);
-    return asset_path;
+    App_State* app = app_state();
+    app->flags |= App_Flag_SHOULD_STOP;
 }

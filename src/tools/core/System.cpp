@@ -1,46 +1,59 @@
 #include "System.h"
 #include <cstdlib>    // for ::system
 #include <thread>     // for std::thread
-
-#include "log.h"
+#include "Log.h"
+#include "bdc/Allocators.hpp"
+#include "bdc/String.hpp"
 
 using namespace tools;
 
-void System::open_url_async(std::string _URL)
+#ifdef NDBL_DESKTOP
+int tools::system_run_command(const bdc::String& command)
 {
-    auto open_url = [](std::string _URL)
+    int exit_code = ::system(command.c_str() );
+    if ( exit_code != 0 )
     {
-#ifdef WIN32
-        std::string command("start");
-#elif __APPLE__
-        std::string command("open");
-#elif __linux__
-        std::string command("x-www-browser"); // TODO: does not work on all distros
-#else
-#       error "Unknown operating system."
-#endif
+        TOOLS_LOG(tools::Verbosity_Error, "tools::system", "Command failed: %s", command.c_str() );
+    }
+    return exit_code;
+};
 
-        std::string op = command + " " + _URL;
-        auto result = ::system(op.c_str());
-
-        if (result != 0)
-        {
-            LOG_ERROR( "tools::system", "Unable to open %s. Because the command %s is not available on your system.",
-                       _URL.c_str(), command.c_str());
-        }
-
-        return result;
-    };
-
-    std::thread(open_url, _URL).detach();
-}
-
-void System::clear_console() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
+void tools::system_open_url_async(const bdc::String& url)
 {
-#if defined _WIN32
-    const char* command = "cls";
-#elif defined (__LINUX__) || defined(__gnu_linux__) || defined(__linux__) || defined (__APPLE__)
-    const char* command = "clear";
-#endif
-    if(std::system(command)) LOG_ERROR("tools::system::console", "Unable to clear console");
+    bdc::String command = bdc::string_printf( bdc::temp_allocator(), "x-www-browser %s", url.c_str());
+    std::thread thread( system_run_command, command );
+    thread.detach();
 }
+
+void tools::system_clear_console() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
+{
+    if( std::system("clear") )
+    {
+        TOOLS_LOG(tools::Verbosity_Error, "System", "Unable to reset console");
+    }
+}
+
+#elif __EMSCRIPTEN__
+#include <emscripten.h>
+
+EM_JS(void, call_clear_console, (), {
+  alert('call_clear_console not implemented yet');
+  throw 'all done';
+});
+
+EM_JS(void, call_open_url, (), {
+  alert('call_open_url not implemented yet');
+  throw 'all done';
+});
+
+void tools::system_open_url_async(const bdc::String url)
+{
+    call_open_url();
+}
+
+void tools::system_clear_console() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
+{
+    call_clear_console();
+}
+
+#endif

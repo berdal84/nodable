@@ -1,10 +1,14 @@
 #pragma once
-#include <functional>
-#include "tools/core/assertions.h"
-#include "tools/core/reflection/FunctionTraits.h"
+#include <tuple>
+#include <type_traits>
+#include "tools/core/Asserts.h"
+#include "tools/core/reflection/Function_Traits.h"
 
 namespace tools
 {
+    template<typename Function_Type>
+    struct Delegate;
+
     //
     // struct Delegate is able to wrap a method and call it later on a given object_ptr
     // It does not rely on std::function, and is made from this code https://www.codeproject.com/Articles/11015/The-Impossibly-Fast-C-Delegates
@@ -19,46 +23,138 @@ namespace tools
     // b.bind(my_class_instance_ptr);
     // d.call();
     //
-    template<typename R, typename ...Args>
-    struct Delegate
+    template<typename Result_Type, typename ...Args_Type>
+    struct Delegate<Result_Type(Args_Type...)>
     {
-        using TFunction = R(void*, Args...);
+        enum Type {
+            DELEGATE_TYPE_NONE   = 0,
+            DELEGATE_TYPE_STATIC = 1,
+            DELEGATE_TYPE_METHOD = 2
+        };
 
-        void*      _object_ptr        = nullptr;
-        TFunction* _method_caller_ptr = &_method_caller_null;
+        using Static_Caller_Type = Result_Type(*)(Args_Type...);
+        using Method_Caller_Type = Result_Type(*)(void*, Args_Type...);
 
-        template<auto TMethod, class T = typename FunctionTrait<decltype(TMethod)>::class_t>
-        static Delegate<R, Args...> from_method(void* object_ptr = nullptr)
+        Delegate() = default;
+
+        Delegate(Result_Type(*func)(Args_Type...)) // static/global functions are easy to handle, we add a constructor.
+        : static_function_ptr(func)
+        , type(DELEGATE_TYPE_STATIC)
         {
-            Delegate<R, Args...> d{};
-            d._object_ptr   = object_ptr;
-            d._method_caller_ptr = &_method_caller<T, TMethod>; // <-- get address of a static function able to call the method
-            return d;
+            ASSERT( func != nullptr );
         }
 
-        inline void bind(void* object_ptr)
-        { _object_ptr = object_ptr; }
-
-        inline R call(Args... args) const
-        { return (*_method_caller_ptr)(_object_ptr, args...); }
-
-        // To act as a null method called
-        inline static R _method_caller_null(void* object_ptr, Args... args)
+        bool is_null() const
         {
-            if constexpr ( !std::is_void_v<R> )
+            switch (type)
+            {
+                case DELEGATE_TYPE_NONE:
+                    return true;
+                case DELEGATE_TYPE_STATIC:
+                    return static_function_ptr == &_null_function;
+                case DELEGATE_TYPE_METHOD:
+                    return object_ptr == nullptr || method_function_ptr == nullptr;
+            }
+        }
+
+        bool callable() const
+        {
+            if (type == DELEGATE_TYPE_METHOD)
+                return object_ptr != nullptr
+                    && method_function_ptr != nullptr;
+
+            return true; // a static is always callable, it will be &_null_function or any user defined value.
+        }
+
+        void bind(void* new_object_ptr)
+        {
+            ASSERT( type == DELEGATE_TYPE_METHOD );
+            object_ptr = new_object_ptr;
+        }
+
+        Result_Type call(Args_Type... args) const
+        {
+            switch ( type)
+            {
+                case DELEGATE_TYPE_STATIC:
+                    return static_function_ptr(args...);
+                case DELEGATE_TYPE_METHOD:
+                    return (*method_function_ptr)(object_ptr, args...);
+                case DELEGATE_TYPE_NONE:
+                    return;
+            }
+        }
+
+        bool operator==(const Delegate& other) const
+        {
+            if (this->type != other.type)
+                return false;
+
+            switch ( this->type )
+            {
+                case DELEGATE_TYPE_STATIC:
+                    return this->static_function_ptr == other.static_function_ptr;
+                case DELEGATE_TYPE_METHOD:
+                    return  object_ptr == other.object_ptr &&
+                            method_function_ptr == other.method_function_ptr;
+                case DELEGATE_TYPE_NONE:
+                    return true;
+            }
+
+        }
+
+       
+        template<auto Function>
+        static Delegate from(void* object_ptr = nullptr /* we allow to call bind() later on. */)
+        {
+            Delegate delegate;
+            delegate.type       = DELEGATE_TYPE_METHOD; // we consider c-style functions as "methods".
+            delegate.object_ptr = object_ptr;
+
+            if constexpr (std::is_member_function_pointer_v<decltype(Function)>)
+            {
+                using Class_Type = typename Function_Trait<decltype(Function)>::Class_Type;
+                delegate.method_function_ptr = &_method_caller<Class_Type, Function>;
+            }
+            else
+            {
+                using Struct_Type = typename Function_Trait<decltype(Function)>::First_Arg_Type ;
+                delegate.method_function_ptr = &_cstyle_method_caller<Struct_Type, Function>;
+            }
+            
+            return delegate;
+        }
+
+        Type                type                = DELEGATE_TYPE_NONE; // We could avoid this, but at some brain damage cost due to "template hell".
+        Static_Caller_Type  static_function_ptr = nullptr;
+        Method_Caller_Type  method_function_ptr = nullptr;
+        void*               object_ptr          = nullptr;
+
+        // Can convert a methods to a regular static function with 1arg for the object ptr
+        static Result_Type _null_function(Args_Type... args)
+        {
+            if constexpr ( !std::is_void_v<Result_Type>) {
                 return {};
+            }
             return;
         }
 
-        template <class T,  R(T::*TMethod)(Args...)>
-        inline static R _method_caller(void* object_ptr, Args... args)
+        // Can convert a methods to a regular static function with 1arg for the object ptr
+        template <class TClass,  Result_Type(TClass::*Method)(Args_Type...)>
+        static Result_Type _method_caller(void* ptr, Args_Type... args)
         {
-            T* p = static_cast<T*>(object_ptr);
-            VERIFY(p != nullptr, "object_ptr is null, did you provided it?");
-            return (p->*TMethod)(args...); // The trick is here, the method IS A TYPE!
+            TClass* object_ptr = static_cast<TClass*>(ptr);
+            return (object_ptr->*Method)(args...); // The trick is here, the method IS A TYPE!
+        }
+
+        template <typename First_Arg_Type,  Result_Type(*CStyle_Method)(First_Arg_Type, Args_Type...)>
+        static Result_Type _cstyle_method_caller(void* ptr, Args_Type... args)
+        {
+            auto* data_ptr = static_cast<First_Arg_Type>(ptr);
+            return (*CStyle_Method)(data_ptr, args...);
         }
     };
 
     // define few alias
-    typedef Delegate<void> Delegate_NoArgs;
+    using Simple_Delegate = Delegate<void()>;
 }

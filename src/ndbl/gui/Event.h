@@ -1,104 +1,51 @@
 #pragma once
-#include <utility>
 
-#include "tools/core/memory/memory.h"
-#include "tools/core/EventManager.h"
-
-#include "ndbl/core/Graph.h"
-
-#include "Event.h"
-#include "FrameMode.h"
-#include "SlotView.h"
+#include "core/Event.h"
+#include "core/Graph.h"
+#include "bdc/Types.hpp"
+#include "ndbl/gui/View.h"
+#include "tools/core/reflection/Type_Descriptor.h"
+#include "tools/gui/geometry/Vec2.h"
 
 namespace ndbl
 {
     // forward declaration
-    class NodeView;
+    struct Node_View;
+    struct Node_Slot;
+    struct Node;
+    struct Graph;
     using tools::Vec2;
-    using tools::FunctionDescriptor;
+    using tools::Type_Descriptor;
 
-    enum EventID_ : tools::EventID
+    typedef tools::Event_Type Event_Type; // alias under different namespace
+    enum Event_Type_ : tools::Event_Type
     {
-        EventID_DELETE_NODE = tools::EventID_USER_DEFINED, // operation on nodes
-        EventID_ARRANGE_NODE,
-        EventID_SELECT_NEXT,
-        EventID_TOGGLE_FOLDING,
-        EventID_REQUEST_CREATE_NODE,
-        EventID_REQUEST_CREATE_BLOCK,
-        EventID_REQUEST_FRAME_SELECTION,
-        EventID_MOVE_SELECTION,
-        EventID_TOGGLE_ISOLATION_FLAGS,
-        EventID_SLOT_DROPPED,
-        EventID_SLOT_DISCONNECT_ALL,
-        EventID_SELECTION_CHANGE,
-        EventID_DELETE_EDGE,
-        EventID_RESET_GRAPH,
+        Event_Type_RESET_LAYOUT = tools::Event_Type_USER, // we must start from this value to make sure we're not using existing values from tools::Event_Type
+        Event_Type_DELETE_ALL_LINKS,
+        Event_Type_DELETE_LINK,
+        Event_Type_DELETE,
+        Event_Type_MOVE,
+        Event_Type_NEW_NODE,
+        Event_Type_FRAME_SELECTION,
+        Event_Type_RESET_GRAPH_VIEW,
+        Event_Type_SELECT_NEXT,
+        Event_Type_SELECTION_CHANGE,
+        Event_Type_SLOT_DROPPED_ONTO_ANOTHER,
+        Event_Type_TOGGLE_FOLDING,
+        Event_Type_TOGGLE_ISOLATION_FLAGS,
     };
 
-    using Event_ToggleIsolationFlags = tools::Event<EventID_TOGGLE_ISOLATION_FLAGS>;
-    using Event_MoveSelection        = tools::Event<EventID_MOVE_SELECTION>;
-
-    class GraphView;
-    struct EventPayload_FrameNodeViews
+    struct Event_Data__Selection
     {
-        FrameMode  mode;
-        EventPayload_FrameNodeViews(FrameMode mode)
-        : mode(mode)
-        {}
+        View_Selection selected_items = {};
     };
-    using Event_FrameSelection = tools::Event<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
 
-    struct EventPayload_SlotPair {
-        Slot* first;
-        Slot* second;
-        EventPayload_SlotPair(Slot* first = {}, Slot* second = {})
-        : first(first)
-        , second(second)
-        {}
-    };
-    using Event_SlotDisconnectAll = tools::Event<EventID_SLOT_DISCONNECT_ALL, EventPayload_SlotPair>;
-    using Event_SlotDropped       = tools::Event<EventID_SLOT_DROPPED, EventPayload_SlotPair>;
-
-    struct EventPayload_Node
+    struct Event_Data__Create_Node
     {
-        Node* node;
+        Node_State              node_state;
+        Node_Slot_View*         active_slotview;    // The slot view being dragged.
+        Vec2                    desired_screen_pos; // The desired position for the new node view
+        Type_Descriptor*    function_type;
     };
-    using Event_DeleteEdge  = tools::Event<EventID_DELETE_EDGE, EventPayload_SlotPair>;
-    using Event_DeleteSelection  = tools::Event<EventID_DELETE_NODE, EventPayload_Node>;
-    using Event_ArrangeSelection     = tools::Event<EventID_ARRANGE_NODE>;
-    using Event_SelectNext  = tools::Event<EventID_SELECT_NEXT, EventPayload_Node>;
-
-    enum ToggleFoldingMode
-    {
-        NON_RECURSIVELY = 0,
-        RECURSIVELY     = 1,
-    };
-    struct EventPayload_ToggleFoldingEvent
-    {
-        ToggleFoldingMode mode;
-    };
-    using Event_ToggleFolding = tools::Event<EventID_TOGGLE_FOLDING, EventPayload_ToggleFoldingEvent>;
-
-    struct EventPayload_CreateNode
-    {
-        CreateNodeType       node_type;          // The note type to create
-        const FunctionDescriptor*      node_signature;     // The signature of the node that must be created
-        SlotView*            active_slotview;    // The slot view being dragged.
-        Graph*               graph;              // The graph to create the node into
-        Vec2                 desired_screen_pos; // The desired position for the new node view
-
-        explicit EventPayload_CreateNode(CreateNodeType node_type )
-        : node_type(node_type)
-        , node_signature(nullptr)
-        , active_slotview(nullptr)
-        , graph(nullptr)
-        {}
-
-        EventPayload_CreateNode(CreateNodeType node_type, const tools::FunctionDescriptor* signature )
-        : node_type(node_type)
-        , node_signature(signature)
-        {}
-    };
-    using Event_CreateNode  = tools::Event<EventID_REQUEST_CREATE_NODE, EventPayload_CreateNode>;
 
 }// namespace ndbl

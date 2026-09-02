@@ -1,13 +1,16 @@
 #include "ImGuiEx.h"
 
-#include "tools/core/log.h"
-#include "tools/core/assertions.h"
+#include "core/Event.h"
+#include "gui/Action.h"
+#include "gui/Action_Manager.h"
+#include "gui/geometry/Bezier_Curve_Segment_2D.h"
+#include "tools/core/Log.h"
+#include "tools/core/Asserts.h"
 
-#include "tools/core/EventManager.h"
+#include "tools/core/Event_Manager.h"
 #include "Texture.h"
 #include "Color.h"
-#include "tools/gui/geometry/LineSegment2D.h"
-#include "tools/gui/geometry/Axis.h"
+#include "tools/gui/geometry/Line_Segment_2D.h"
 
 #define DEBUG_BEZIER_ENABLE 0
 
@@ -72,41 +75,41 @@ void ImGuiEx::DrawRectShadow (const Vec2& _topLeftCorner, const Vec2& _bottomRig
     }
 }
 
-void ImGuiEx::ShadowedText(const Vec2& _offset, const Vec4& _shadowColor, const char* _format, ...)
+void ImGuiEx::ShadowedText(const Vec2& offset, const Vec4& shadow_color, const char* fmt, ...)
 {
     va_list args;
-    va_start(args, _format);
+    va_start(args, fmt);
     ImGui::BeginGroup();
     // shadow
     auto p = ImGui::GetCursorScreenPos();
-    ImGui::SetCursorScreenPos(Vec2(p.x + _offset.x, p.y + _offset.y));
-    ImGui::TextColored(_shadowColor, _format, args);
+    ImGui::SetCursorScreenPos(Vec2(p.x + offset.x, p.y + offset.y));
+    ImGui::TextColored(shadow_color, fmt, args);
     // text
     ImGui::SetCursorScreenPos(p);
-    ImGui::Text(_format, args);
+    ImGui::Text(fmt, args);
     ImGui::EndGroup();
     va_end(args);
 }
 
-void ImGuiEx::ColoredShadowedText(const Vec2& _offset, const Vec4& _textColor, const Vec4& _shadowColor, const char* _format, ...)
+void ImGuiEx::ColoredShadowedText(const Vec2& offset, const Vec4& text_color, const Vec4& shadow_color, const char*  fmt, ...)
 {
     // draw first the shadow
     auto p = ImGui::GetCursorPos();
-    ImGui::SetCursorPos(Vec2(p.x + _offset.x, p.y + _offset.y));
+    ImGui::SetCursorPos(Vec2(p.x + offset.x, p.y + offset.y));
 
     va_list args;
-    va_start(args, _format);
-    ImGui::TextColored(_shadowColor, _format, args);
+    va_start(args, fmt);
+    ImGui::TextColored(shadow_color, fmt, args);
     ImGui::SetCursorPos(p);
-    ImGui::TextColored(_textColor, _format, args);
+    ImGui::TextColored(text_color, fmt, args);
     va_end(args);
 }
 
 void ImGuiEx::DrawWire(
-        ImGuiID id,
         ImDrawList *draw_list,
-        const BezierCurveSegment2D& curve,
-        const WireStyle& style
+        const Bezier_Curve_Segment_2D& curve,
+        const WireStyle& style,
+        bool* hovered
      )
 {
     if ( style.color.z == 0)
@@ -117,19 +120,19 @@ void ImGuiEx::DrawWire(
     // Line
     // Generate curve
     std::vector<Vec2> fill_path;
-    BezierCurveSegment2D::tesselate(&fill_path, curve);
+    beziercurve_tesselate(&fill_path, &curve);
 
     if ( fill_path.size() == 1) return;
 
     // Shadow
-    BezierCurveSegment2D shadow_curve = curve;
-    shadow_curve.translate({ 1.f, 1.f });
+    Bezier_Curve_Segment_2D shadow_curve = curve;
+    beziercurve_translate(&shadow_curve, { 1.f, 1.f });
     shadow_curve.p2 = curve.p2 + Vec2(0.f, 10.f);
     shadow_curve.p3 = curve.p3 + Vec2(0.f, 10.f);
 
     // Generate curve
     std::vector<Vec2> shadow_path;
-    BezierCurveSegment2D::tesselate(&shadow_path, shadow_curve);
+    beziercurve_tesselate(&shadow_path, &shadow_curve);
 
     // 2) draw the shadow
 
@@ -139,11 +142,10 @@ void ImGuiEx::DrawWire(
     // 3) draw the curve
 
     // Mouse behavior
-    MultiSegmentLineBehavior(id, &fill_path, BezierCurveSegment2D::bbox(curve), style.thickness );
+    if( hovered != nullptr)
+        MultiSegmentLineBehavior(&fill_path, beziercurve_bbox(&curve), style.thickness + 6.f, hovered );
 
     // Draw the path
-    if ( ImGui::GetHoveredID() == id )
-        DrawPath(draw_list, &fill_path, style.hover_color, CalcSegmentHoverMinDist(style.thickness) * 2.0f); // outline on hover
     DrawPath(draw_list, &fill_path, style.color, style.thickness);
 }
 
@@ -238,15 +240,15 @@ float ImGuiEx::CalcSegmentHoverMinDist(float line_thickness )
 }
 
 void ImGuiEx::MultiSegmentLineBehavior(
-    ImGuiID id,
     const std::vector<Vec2>* path,
     Rect bbox,
-    float thickness)
+    float thickness,
+    bool* hovered)
 {
     if ( path->size() == 1) return;
 
     const float hover_min_distance = ImGuiEx::CalcSegmentHoverMinDist(thickness);
-    bbox.expand(Vec2{hover_min_distance});
+    bbox.expand(hover_min_distance);
     const Vec2 mouse_pos = ImGui::GetMousePos();
 
 #if DEBUG_BEZIER_ENABLE
@@ -257,17 +259,11 @@ void ImGuiEx::MultiSegmentLineBehavior(
 
     // test each segment
     int i = 0;
-    bool hovered = false;
-    while( hovered == false && i < path->size() - 1 )
+    while( !*hovered && i < path->size() - 1 )
     {
-        const float mouse_distance = LineSegment2D::point_minimum_distance(LineSegment2D{(*path)[i], (*path)[i + 1]}, mouse_pos );
-        hovered = mouse_distance < hover_min_distance;
+        const float mouse_distance = Line_Segment_2D::point_minimum_distance(Line_Segment_2D{(*path)[i], (*path)[i + 1]}, mouse_pos );
+        *hovered = mouse_distance < hover_min_distance;
         ++i;
-    }
-
-    if( hovered )
-    {
-        ImGui::SetHoveredID(id);
     }
 }
 
@@ -294,15 +290,15 @@ void ImGuiEx::Grid(const Rect& region, float grid_size, int subdiv_count, ImU32 
         if ( axis == AXIS_HORIZONTAL )
         {
             line_len         = region.width();
-            line_dir         = X_AXIS;
-            line_distrib_dir = Y_AXIS;
+            line_dir         = Vec2(1.f, 0.f);
+            line_distrib_dir = Vec2(0.f, 1.f);
             line_count       = (int)(region.height() / subdiv_size);
         }
         else
         {
             line_len         = region.height();
-            line_dir         = Y_AXIS;
-            line_distrib_dir = X_AXIS;
+            line_dir         = Vec2(0.f, 1.f);
+            line_distrib_dir = Vec2(1.f, 0.f);
             line_count       = (int) (region.width() / subdiv_size);
         }
 
@@ -320,3 +316,38 @@ void ImGuiEx::Grid(const Rect& region, float grid_size, int subdiv_count, ImU32 
         }
     }
 }
+
+const Action* ImGuiEx::MenuItem_for_event_user_code(Event_User_Code code, bool selected, bool enable)
+{
+    // TODO: we do not index actions based on Event_User_Code
+    //       we only do it for Event_Type
+    //       perhaps we should have an additionnal index, OR Event_User_Code should be a subset of Event_Type!
+    const Action* action = nullptr;
+    for(const Action& each_action : action_manager()->actions )
+    {
+        if( each_action.event.type == Event_Type_USER && each_action.event.user.code == code )
+        {
+            action = &each_action;
+        }
+    }
+
+    ASSERT(action != nullptr);
+
+    if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
+    {
+        return action;
+    }
+
+    return nullptr;
+}
+
+const Action* ImGuiEx::MenuItem_for_event_type(Event_Type event_type, bool selected, bool enable)
+{
+    const Action* action = action_manager_get_action_with_event_type(event_type);
+
+    if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
+    {
+        return action;
+    }
+    return nullptr;
+};

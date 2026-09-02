@@ -1,119 +1,146 @@
 #include <gtest/gtest.h>
 
-#include "tools/core/reflection/Type.h"
+#include "tools/core/reflection/Type_Descriptor.h"
 
 #include "Graph.h"
-#include "FunctionNode.h"
 #include "Node.h"
-#include "LiteralNode.h"
-#include "VariableNode.h"
 #include "Scope.h"
-#include "DirectedEdge.h"
 
 #include "fixtures/core.h"
-#include "Utils.h"
 
-using namespace ndbl;
 using namespace tools;
 typedef ::testing::Core Graph_;
+
+TEST_F(Graph_, constructor)
+{
+    EXPECT_TRUE( graph_is_empty(app.graph));
+    EXPECT_NE(graph_root(app.graph), nullptr );
+}
+
+TEST_F(Graph_, create_node)
+{
+    Node* node = graph_create_node(app.graph) ;
+    EXPECT_EQ(node->scope, graph_root_scope(app.graph));
+}
 
 TEST_F(Graph_, connect)
 {
     // Prepare
-    Graph* graph = app.get_graph();
-    auto* node_1 = graph->create_node();
-    auto* prop_1 = node_1->add_prop<bool>("prop_1");
-    auto* slot_1 = node_1->add_slot(prop_1, SlotFlag_OUTPUT, 1);
+    Node*           node_1 = graph_create_node(app.graph);
+    Node_Property*  prop_1 = node_add_prop<bool>(node_1, "prop_1");
+    Node_Slot*      slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
-    auto* node_2 = graph->create_node();
-    auto* prop_2 = node_2->add_prop<bool>("prop_2");
-    auto* slot_2 = node_2->add_slot(prop_2, SlotFlag_INPUT, 1);
+    Node*           node_2 = graph_create_node(app.graph);
+    Node_Property*  prop_2 = node_add_prop<bool>(node_2, "prop_2");
+    Node_Slot*      slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
     // Act
-    DirectedEdge edge = graph->connect_or_merge( slot_1, slot_2 );
+    graph_connect_or_merge(slot_1, slot_2 );
 
     // Verify
-    EXPECT_EQ(edge.tail->property, prop_1 );
-    EXPECT_EQ(edge.head->property, prop_2 );
-    EXPECT_EQ(graph->get_edge_registry().size(), 1);
+    EXPECT_EQ(slot_1->property, prop_1 );
+    EXPECT_EQ(slot_2->property, prop_2 );
  }
 
 TEST_F(Graph_, disconnect)
 {
     // Prepare
-    Graph* graph = app.get_graph();
-    auto node_1 = graph->create_node();
-    auto prop_1 = node_1->add_prop<bool>("prop_1");
-    auto slot_1 = node_1->add_slot(prop_1, SlotFlag_OUTPUT, 1);
+    Graph* graph = app.graph;
+    Node*           node_1 = graph_create_node(app.graph);
+    Node_Property*  prop_1 = node_add_prop<bool>(node_1, "prop_1");
+    Node_Slot*      slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
-    auto node_2 = graph->create_node();
-    auto prop_2 = node_2->add_prop<bool>("prop_2");
-    auto slot_2 = node_2->add_slot(prop_2, SlotFlag_INPUT, 1);
+    Node*           node_2 = graph_create_node(app.graph);
+    Node_Property*  prop_2 = node_add_prop<bool>(node_2, "prop_2");
+    Node_Slot*      slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
-    EXPECT_EQ(graph->get_edge_registry().size(), 0);
-    DirectedEdge edge = graph->connect_or_merge( slot_1, slot_2 );
-    EXPECT_EQ(graph->get_edge_registry().size(), 1);
+    graph_connect_or_merge(slot_1, slot_2 );
 
     // Act
-    graph->disconnect(edge, ConnectFlag_ALLOW_SIDE_EFFECTS );
+    graph_disconnect(slot_1, slot_2, Graph_Flag_ALLOW_SIDE_EFFECTS );
 
     // Check
-    EXPECT_EQ(graph->get_edge_registry().size() , 0);
-    EXPECT_EQ( node_1->adjacent_slot_count( SlotFlag_OUTPUT ), 0);
-    EXPECT_EQ( node_2->adjacent_slot_count( SlotFlag_INPUT ) , 0);
+    EXPECT_EQ( node_adjacent_slot_count( node_2, Node_Slot::Flag_OUTPUT ), 0);
+    EXPECT_EQ( node_adjacent_slot_count( node_2, Node_Slot::Flag_INPUT ) , 0);
 }
 
 TEST_F(Graph_, clear)
 {
-    Graph* graph = app.get_graph();
-    EXPECT_TRUE(graph->nodes().empty() );
-    EXPECT_TRUE( graph->get_edge_registry().empty() );
+    Graph* graph = app.graph;
+    EXPECT_TRUE( graph_is_empty(app.graph) );
 
-    FunctionDescriptor  f;
-    f.init<int(int, int)>("+");
-    const IInvokable*   invokable = app.get_language()->find_operator_fct_exact(&f);
-    VariableNode*       variable  = graph->create_variable(type::get<int>(), "var");
+    Type_Descriptor  f;
+    type_init<int(int, int)>(&f, "+");
 
-    EXPECT_TRUE(invokable != nullptr);
-    auto operator_node = graph->create_operator(f);
+    Node* variable      = graph_create_variable(graph, type_get<int>(), "var");
+    Node* operator_node = graph_create_operator(graph, &f);
 
-    EXPECT_TRUE( graph->get_edge_registry().empty() );
 
-    graph->connect(
+    graph_connect(
             operator_node->value_out(),
             variable->value_in(),
-            ConnectFlag_ALLOW_SIDE_EFFECTS);
+            Graph_Flag_ALLOW_SIDE_EFFECTS);
 
-    EXPECT_FALSE(graph->nodes().empty() );
-    EXPECT_FALSE( graph->get_edge_registry().empty() );
+    EXPECT_FALSE(graph_is_empty(app.graph));
 
     // act
-    graph->clear();
+    graph_reset(graph);
 
     // test
-    EXPECT_TRUE(graph->nodes().empty() );
-    EXPECT_TRUE( graph->get_edge_registry().empty() );
+    EXPECT_TRUE( graph_is_empty(app.graph) );
+    EXPECT_TRUE( graph->nodes.size == 1 && &graph->nodes[0] == graph_root(graph) );
 }
 
 
 TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
-    Graph* graph = app.get_graph();
-    auto& edges = graph->get_edge_registry();
-    EXPECT_EQ(edges.size(), 0);
-    auto node_1 = graph->create_literal<int>();
-    EXPECT_EQ(edges.size(), 0);
-    auto node_2 = graph->create_variable( type::get<int>(), "a" );
+    Node* node_1 = graph_create_literal<int>(app.graph);
+    Node* node_2 = graph_create_variable<int>(app.graph, "a" );
 
     // Act and test
 
     // INPUT (and by reciprocity OUTPUT)
-    EXPECT_EQ(edges.size(), 0);
-    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_VALUE ).size(), 0);
-    DirectedEdge edge_1 = graph->connect( node_1->value_out(), node_2->value_in());
-    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_VALUE ).size(), 1);
-    EXPECT_EQ(edges.size(), 1);
-    graph->disconnect(edge_1);
-    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_VALUE ).size(), 0);
+    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 0);
+    graph_connect(node_1->value_out(), node_2->value_in());
+    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 1);
+    graph_disconnect(node_1->value_out(), node_2->value_in());
+    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 0);
+}
+
+TEST_F(Graph_, erase_node_from_non_root_scope)
+{
+    // prepare
+    Node* scope_node = graph_create_scope(app.graph);
+    graph_connect(graph_root(app.graph)->flow_enter(), scope_node->flow_in());
+    Node* child = graph_create_node(app.graph, scope_node->internal_scope);
+
+    EXPECT_EQ(child->scope, scope_node->internal_scope );
+
+    graph_find_and_destroy_node(app.graph, child);
+
+    EXPECT_FALSE( graph_contains(app.graph, child ) );
+    EXPECT_TRUE( scope_is_empty(scope_node->internal_scope) );
+}
+
+
+TEST_F(Graph_, erase_first_node_of_a_scope_with_another_child_after)
+{
+    // prepare
+    Node* scope_node = graph_create_scope( app.graph );
+    Node* child1     = graph_create_node( app.graph );
+    Node* child2     = graph_create_node( app.graph );
+
+    graph_connect( scope_node->flow_enter(), child1->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+    graph_connect( child1->flow_out(), child2->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+
+    EXPECT_EQ(child1->scope, scope_node->internal_scope );
+    EXPECT_EQ(child1->scope, child2->scope);
+
+    graph_find_and_destroy_node( app.graph, child1 );
+
+    EXPECT_FALSE(graph_contains( app.graph, child1 ));
+    EXPECT_TRUE(graph_contains( app.graph, child2 ));
+    EXPECT_FALSE(scope_contains(scope_node->internal_scope, child1) );
+    EXPECT_TRUE(scope_contains(scope_node->internal_scope, child2 ) );
 }

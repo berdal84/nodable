@@ -10,86 +10,50 @@ on:
   pull_request:
     branches: [master]
 
+
+
 jobs:
   build:
+
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-22.04, windows-2022, macos-13] # macos-12 is deprecated https://github.com/actions/runner-images/issues/10721
-      fail-fast: false # see https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#handling-failures
-    runs-on: ${{ matrix.os }}
+        # see https://github.com/actions/runner-images?tab=readme-ov-file
+        includes:
+          - platform: windows
+            os: windows-2025-vs2026
+          - platform: web
+            os: windows-2025-vs2026 # do not change: tested on windows only
+          - platform: linux
+            os: ubuntu-24.04
+
+    runs-on: ${{ matrix.includes.os }}
     env:
-      BUILD_TYPE: Release # possible options: MinSizeRel Release, Debug, RelWithDebInfo
-      BUILD_PATH: cmake-build
-      INSTALL_PATH: out
+      PLATFORM:       ${{matrix.includes.platform}}
+      CONFIG:         "release"
+      BUILD_DIR:      "build"
+      HEADLESS_TESTS: 1
     steps:
-      - name: Install dependencies (Linux)
-        if: runner.os == 'Linux' # see https://docs.github.com/en/actions/learn-github-actions/contexts#runner-context
-        run: sudo apt-get update && sudo apt-get install libegl1-mesa-dev libdbus-1-dev libgtk-3-dev
-
-      - name: Install dependencies (macOS)
-        if: runner.os == 'macOS' # see https://docs.github.com/en/actions/learn-github-actions/contexts#runner-context
-        run: brew install mesalib-glw
-
-      - name: Git Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4 # no submodules (libs are in the sources, see ./vcpkg and ./extern)
         with:
-          submodules: true
+          fetch-tags:  true # Tag history is needed to generate nodable version and..
+          fetch-depth: 100  # ..we also need some commits to generate the version name (uses `git describe --tags`), until now this value was enough.
 
-      - name: Create Build Environment
-        # Some projects don't allow in-source building, so create a separate build directory
-        # We'll use this as our working directory for all subsequent commands
-        run: cmake -E make_directory ${{env.BUILD_PATH}}
+      - run: rake ci
 
-      - name: Configure CMake
-        shell: bash
-        working-directory: ${{env.BUILD_PATH}}
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGITHUB_REF_NAME=${{github.ref_name}} -DGITHUB_SHA=${{github.sha}}
+      - if: env.PLATFORM == 'web'
+        run: |
+          extern/emsdk/emsdk_env.ps1
+          rake build
 
-      - name: Build
-        working-directory: ${{env.BUILD_PATH}}
-        shell: bash
-        run: cmake --build . --config ${{env.BUILD_TYPE}} --target install
+      - if: env.PLATFORM != 'web'
+        run: rake build
 
-      - name: CTest
-        working-directory: ${{env.BUILD_PATH}}
-        shell: bash
-        run: ctest -C ${{env.BUILD_TYPE}} --verbose  --output-on-failure
+      - run: rake test
 
-      - name: CPack
-        working-directory: ${{env.BUILD_PATH}}
-        shell: bash
-        run: cpack -C ${{env.BUILD_TYPE}}
+      - run: rake nodable:zip
 
-      - name: Binary Artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
-          name: nodable-${{ runner.os }}
-          path: ${{env.INSTALL_PATH}}/app/*
-
-      - name: Package Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: nodable-package-${{ runner.os }}
-          path: |
-            !${{env.INSTALL_PATH}}/package/_CPack_Packages
-            ${{env.INSTALL_PATH}}/package/*.*
-
-  doxygen:
-    runs-on: [ubuntu-20.04]
-    needs: [build]
-    if: ${{ success() }} # see https://docs.github.com/en/actions/learn-github-actions/expressions#status-check-functions
-    steps:
-      - name: Git recursive checkout
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: sudo apt-get update && sudo apt-get install doxygen
-
-      - name: Generate documentation
-        run: cd docs && doxygen
-
-      - name: Upload documentation artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: Nodable-Technical-Documentation
-          path: ${{runner.workspace}}/Nodable/docs/doxygen
+          path:    "dist/nodable-${{env.PLATFORM}}-${{env.CONFIG}}.zip"
+          archive: false # This is already done

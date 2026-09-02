@@ -2,7 +2,7 @@
 #include <random>
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/Graph.h"
-#include "ndbl/core/NodeFactory.h"
+#include "ndbl/core/NodeUtils.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/string.h"
 
@@ -33,7 +33,6 @@ using namespace tools;
 class NodlangFixture : public benchmark::Fixture {
 public:
     Nodlang*           language;
-    NodeFactory*       factory;
     Graph*             graph;
     std::random_device random_device;  // Will be used to obtain a seed for the random number engine
     std::mt19937       generator; // Standard mersenne_twister_engine
@@ -47,26 +46,24 @@ public:
     void SetUp(const ::benchmark::State& state)
     {
         language = init_language();;
-        factory  = init_node_factory();
-        graph    = new Graph(factory);
-        log::set_verbosity(log::Verbosity_Error);
+        graph    = bdc::memory_new<Graph>();
+        log_set_verbosity(Verbosity_Error);
     }
 
     void TearDown(const ::benchmark::State& state)
     {
-        delete graph;
-        shutdown_node_factory(nullptr);
-        shutdown_language(nullptr);
+        bdc::memory_delete(graph);
+        shutdown_language(language);
     }
 
-    inline std::string get_random_double_as_string()
+    bdc::String get_random_double_as_string()
     {
         return std::to_string( distribution(generator) );
     }
 };
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_double)(benchmark::State& state) {
-    std::array<std::string, 500> double_as_str;
+    std::array<bdc::String, 500> double_as_str;
     for(size_t i = 0; i < double_as_str.size(); ++i)
     {
         double_as_str[i] = get_random_double_as_string();
@@ -109,7 +106,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_char)(benchmark::State&
 }
 
 BENCHMARK_DEFINE_F(NodlangFixture, tokenize__some_code_to_graph)(benchmark::State& state) {
-    std::string code = "double a = 10.400012;"
+    bdc::String code = "double a = 10.400012;"
                        "double b = 5.564478;"
                        "if(a>b){"
                        " print(\"a>b\");"

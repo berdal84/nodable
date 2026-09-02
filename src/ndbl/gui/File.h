@@ -1,72 +1,59 @@
 #pragma once
 
-#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
-#include <string>
+#include "bdc/String.hpp"
 
-#include "tools/core/reflection/reflection"
-#include "tools/core/log.h"
-
-#include "Isolation.h"
-#include "ndbl/core/NodeFactory.h"
-#include "ndbl/gui/FileView.h"
-#include "ndbl/gui/History.h"
+#include "tools/core/File_System.h"
+#include "ndbl/gui/File_View.h"
 #include "ndbl/gui/Nodable.h"
-#include "ndbl/gui/types.h"
 
 namespace ndbl
 {
     // forward declarations
-    class Node;
-    class Graph;
-    class GraphView;
-    class History;
+    struct Node;
+    struct Graph;
+    struct Graph_View;
+    struct History;
+
+    typedef int File_Flags;
+    enum File_Flag_
+    {
+        File_Flag_NONE                    = 0,
+        File_Flag_NEEDS_TO_BE_SAVED       = 1 << 0,
+        File_Flag_TEXT_IS_DIRTY           = 1 << 1,
+        File_Flag_GRAPH_IS_DIRTY          = 1 << 2,
+        File_Flag_IS_DIRTY_MASK           = File_Flag_GRAPH_IS_DIRTY | File_Flag_TEXT_IS_DIRTY,
+    };
 
     /**
-     * Class representing a file in both textual and nodal paradigm.
+     * Struct to store a nodable file (in both textual and nodal paradigm).
      * It contains:
      * - the source code
      * - the graph equivalent
-     * - the history of changes
+     * - the history of changes (TODO: this is probably not a good idea to have the history in the file, we should have one history for the currrent session only)
      */
-	class File
+	struct File
     {
-	public:
-        typedef int Flags;
-        enum Flags_
-        {
-            Flags_NONE                    = 0,
-            Flags_NEEDS_TO_BE_SAVED       = 1 << 0,
-            Flags_TEXT_IS_DIRTY           = 1 << 1,
-            Flags_GRAPH_IS_DIRTY          = 1 << 2,
-            Flags_IS_DIRTY_MASK           = Flags_GRAPH_IS_DIRTY | Flags_TEXT_IS_DIRTY,
-        };
+        bdc::String            name;
+        tools::Path            path;        // file path on disk
+        File_View              view;
+        bdc::String            parsed_text; // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
+        Graph*                 graph;       // graphical representation
+        File_Flags             flags;        
 
-        File();
-        ~File();
-
-        tools::Path            path; // file path on disk
-        FileView               view;
-        History                history; // history of changes
-    private:
-        Isolation              _isolation = Isolation_OFF;
-        Graph*                 _graph; // graphical representation
-        std::string            _parsed_text; // last parsed text buffer
-        Flags                  _flags = Flags_NONE;
-        void                   _update_graph_from_text();
-        void                   _update_text_from_graph();
-    public:
-        bool                   needs_to_be_saved() const { return _flags & Flags_NEEDS_TO_BE_SAVED; }
-        void                   update(); // to call each frame
-        void                   set_graph_dirty() { _flags |= Flags_GRAPH_IS_DIRTY; }
-        void                   set_text_dirty() {_flags |= Flags_TEXT_IS_DIRTY; }
-        Graph&                 graph() { return *_graph; };
-        std::string            filename() const;
-        void                   set_isolation(Isolation mode);
-        size_t                 size() const;
-
-        static bool            read( File& file, const tools::Path& source ); // Read an File from a given path and update file's path.
-        static bool            write( File& file, const tools::Path& dest );  // Write an File to a given path and update file's path.
+        inline void            set_flags(File_Flags _flags) { flags |= _flags; }
+        inline bool            has_flags(File_Flags _flags) { return (flags & _flags) == _flags; }
     };
+
+    void                    file_init(File*);
+    void                    file_deinit(File*);
+    void                    file_update(File*, bool isolation_on); // to call each frame
+    void                    file_handle_file_view_change(File*, File_View_Event_Type type);
+    size_t                  file_size(const File*);
+    void                    file_update_graph_from_text(File*, bool isolation_on);
+    void                    file_update_text_from_graph(File*, bool isolation_on);
+    bool                    file_read(File* file, const tools::Path& source ); // Read an File from a given path and update file's path.
+    bool                    file_write(File* file, const tools::Path& dest );  // Write an File to a given path and update file's path.
+
 }

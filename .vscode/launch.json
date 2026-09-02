@@ -1,0 +1,46 @@
+{
+    "version": "0.2.0",
+    "inputs": [
+		{
+            "id":           "PLATFORM",
+            "type":         "pickString",
+            "description": "Select a platform",
+            "options":      ["linux", "windows"],
+            "default":      "linux"
+		},
+        {
+            "id":           "CONFIG",
+            "type":         "pickString",
+            "description":  "Select a build config",
+            "options":      ["debug", "optimized", "release"],
+            "default":      "debug"
+		}
+	],
+    "configurations": [
+        {
+            "name": "tests",
+            "type": "lldb",
+            "request": "launch",
+            "args": ["--gtest_break_on_failure"],
+            "preLaunchTask": "tests:build-${input:PLATFORM}-${input:CONFIG}",
+            "linux":    { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/tests/bin/tests" },
+            "windows":  { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/tests/bin/tests.exe" },
+        },
+        {
+            "name": "nodable",
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "nodable:build-${input:PLATFORM}-${input:CONFIG}",
+            "linux":    { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable/bin/nodable" },
+            "windows":  { "program": "${workspaceFolder}/build-${input:PLATFORM}-${input:CONFIG}/nodable/bin/nodable.exe" },
+
+        },
+        {
+            "name": "bdc",
+            "type": "lldb",
+            "request": "launch",
+            "preLaunchTask": "bdc:build",
+            "program": "a.out"
+        }
+    ]
+}   

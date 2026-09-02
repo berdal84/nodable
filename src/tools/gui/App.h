@@ -1,48 +1,34 @@
 #pragma once
 
-#include <future>
-#include <memory>
-#include <string>
-#include "tools/core/FileSystem.h"
-#include "tools/core/types.h"
-#include "AppView.h"
-
 namespace tools
 {
-    class PoolManager;
-    struct TaskManager;
+    struct Task_Manager;
     struct Config;
+    struct App_View_State;
 
-    /*
-     * Application class
-     * Written to be wrapped. See /src/tools/gui-example for usage.
-     */
-	class App
+    typedef int App_Flags;
+    enum App_Flag_ : int
     {
-	public:
-        void           init(); // default init, an AppView and a Config will be created internally
-        void           init_ex(AppView* , Config*); // extended init, allows to provide an existing AppView and/or Config.
-        void           shutdown();
-        void           update();
-        void           draw(); // Consider overriding AppView::draw instead of App::draw
-        inline bool    should_stop() const { return m_flags & Flag_SHOULD_STOP; }
-        inline void    request_stop() { m_flags |= Flag_SHOULD_STOP; }
-
-        static double  get_time() ;  // Get the elapsed time in seconds
-        static Path&   make_absolute(Path &_path); // return an absolute asset path given a relative asset path
-        static Path    get_absolute_asset_path(const char* _relative_path); // return an absolute asset path given a relative asset path
-    protected:
-        typedef int Flags;
-        enum Flag_
-        {
-            Flag_NONE               = 0,
-            Flag_OWNS_CONFIG_MEMORY = 1 << 0, // Since some data (view and config) might be owned or not, those flags are there to keep track of it.
-            Flag_OWNS_VIEW_MEMORY   = 1 << 1, // ... same ...
-            Flag_SHOULD_STOP        = 1 << 2  // when set, app will stop next frame.
-        };
-        Flags           m_flags           = Flag_NONE;
-        Config*         m_config          = nullptr; // owned or not depending on m_flags
-        AppView*        m_view            = nullptr; // owned or not depending on m_flags
-        TaskManager*    m_task_manager    = nullptr;
+        App_Flag_NONE               = 0,
+        App_Flag_OWNS_CONFIG_MEMORY = 1 << 0, // Since some data (view and config) might be owned or not, those flags are there to keep track of it.
+        App_Flag_OWNS_VIEW_MEMORY   = 1 << 1, // ... same ...
+        App_Flag_SHOULD_STOP        = 1 << 2  // when set, app will stop next frame.
     };
+
+    struct App_State
+    {
+        App_Flags       flags           = App_Flag_NONE;
+        Config*         config          = nullptr; // owned or not depending on flags
+        App_View_State* view            = nullptr; // owned or not depending on flags
+    };
+
+    void        app_init(App_State* app);
+    void        app_init_ex(App_State* app, App_View_State* , Config*);
+    void        app_shutdown();
+    App_State*  app_state();
+    void        app_main_loop();
+    void        app_update();
+    void        app_draw();
+    bool        app_should_stop();
+    void        app_request_stop();
 }

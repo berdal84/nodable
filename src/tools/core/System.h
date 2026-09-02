@@ -1,11 +1,14 @@
 #pragma once
-#include <string>
+
+// forward declarations
+namespace bdc
+{
+    struct String;
+}
 
 namespace tools
 {
-    namespace System // multi-platform static functions
-    {
-        extern void  open_url_async(std::string /* url */); // Browse a given URL asynchronously
-        extern void  clear_console();
-    };
+    void system_open_url_async(const bdc::String& /* url */); // Browse a given URL asynchronously
+    void system_clear_console();
+    int  system_run_command(const bdc::String& /* command */);
 }

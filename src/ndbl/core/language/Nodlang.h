@@ -1,220 +1,137 @@
 #pragma once
 
-#include <string>
 #include <vector>
-#include <stack>
-#include <exception>
 
-#include "tools/core/reflection/reflection"
-#include "tools/core/System.h"
-#include "tools/core/Hash.h"
-#include "tools/core/Optional.h"
+#include "bdc/String.hpp"
+#include "bdc/String_Builder.hpp"
+#include "bdc/Array.hpp"
 
-#include "ndbl/core/VariableNode.h"
+#include "core/reflection/Operator.h"
+
 #include "ndbl/core/Token.h"
-#include "ndbl/core/TokenRibbon.h"
+#include "ndbl/core/Token_Ribbon.h"
 #include "ndbl/core/Graph.h"
 
-namespace ndbl{
-
+namespace ndbl
+{
     // forward declarations
-    class IfNode;
-    class ForLoopNode;
-    class IScope;
-    class InstructionNode;
-    class FunctionNode;
     class Scope;
-    class WhileLoopNode;
     class Node;
-    class Property;
-    class VariableNode;
-    class VariableRefNode;
+    class Node_Property;
 
-    typedef int SerializeFlags;
-    enum SerializeFlag_
+    typedef int Serialization_Flags;
+    enum Serialization_Flag_
     {
-        SerializeFlag_NONE             = 0,
-        SerializeFlag_RECURSE          = 1 << 0,
-        SerializeFlag_WRAP_WITH_BRACES = 1 << 1
+        Serialization_Flag_NONE             = 0,
+        Serialization_Flag_RECURSE          = 1 << 0,
+        Serialization_Flag_WRAP_WITH_BRACES = 1 << 1
     };
 
-    /**
-	 * Nodlang is Nodable's language.
-	 * This class define Nodlang language, and provide a parser/serializer.
-     * Syntax is pretty close from C/C++
-	 */
-	class Nodlang
+    //
+    // This struct holds the definition of the main Nodable's Language.
+    // Currently the language is not super evolved, but it matches some basics from C/C++
+    //
+	struct Language
     {
-    private:
-        struct FlowPath;
-        typedef std::set<Slot*> FlowPathOut;
-    public:
-        explicit Nodlang(bool _strict = false);
-		~Nodlang();
+        bool                    strict_mode;    // When strict mode is ON, any use of undeclared symbol is rejected.
+                                                // When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
+        bdc::String             buffer;         // TODO: rename, this is the input_buffer, for parsing only.
+        Token_Ribbon            ribbon;         // TODO: rename, this is the ribbon state, for parsing only.
+        std::vector<Node_Slot*> flow_out;       // TODO: rename, this is the last flow out slot known, for parsing only.
+        Graph*                  graph;          // TODO: rename, not owned in/out Graph.
 
-        // Parser /////////////////////////////////////////////////////////////////////
-        bool                            parse(Graph* graph_out, const std::string& code_in); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
-        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        FlowPath                        parse_program();
-        FlowPath                        parse_code_block(const FlowPathOut&);
-        FlowPath                        parse_atomic_code_block(const FlowPathOut&);
-        FlowPath                        parse_scoped_block(const FlowPathOut&);
-        FlowPath                        parse_expression_block(const FlowPathOut&, Slot* value_in = nullptr );
-        FlowPath                        parse_if_block(const FlowPathOut&);
-        FlowPath                        parse_for_block(const FlowPathOut&);
-        FlowPath                        parse_while_block(const FlowPathOut&);
-        FlowPath                        parse_empty_block(const FlowPathOut&);
-        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        tools::Optional<Slot*>          parse_variable_declaration();
-        tools::Optional<Slot*>          parse_function_call();
-        tools::Optional<Slot*>          parse_parenthesis_expression();
-        tools::Optional<Slot*>          parse_unary_operator_expression(u8_t _precedence = 0);
-        tools::Optional<Slot*>          parse_binary_operator_expression(u8_t _precedence, Slot* _left);
-        tools::Optional<Slot*>          parse_atomic_expression();
-        tools::Optional<Slot*>          parse_expression(u8_t _precedence = 0, tools::Optional<Slot*> _left_override = nullptr);
-        tools::Optional<Slot*>          token_to_slot(const Token& _token);
-        //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        bool                            tokenize(); // tokenise from current parser state
-        bool                            tokenize(const std::string& _string); // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
-        Token                           parse_token(const std::string& _string) const;
-        Token                           parse_token(const char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
-        bool                            parse_bool_or(const std::string&, bool default_value ) const;
-        double                          parse_double_or(const std::string&, double default_value ) const;
-        int                             parse_int_or(const std::string&, int default_value ) const;
-        std::string                     remove_quotes(const std::string& _quoted_str) const;
+        // data used to initialize all the indexes
 
-    private:
-        bool                            accepts_suffix(Token_t type) const;
-		bool                            is_syntax_valid(); // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
-
-        struct FlowPath
-        {
-            Slot*   in = nullptr;
-            FlowPathOut out;
-            FlowPath() {}
-            FlowPath(Node* node): in(node->flow_in()), out({node->flow_out()}) {}
-            operator bool() const { return in != nullptr && !out.empty(); }
-        };
-
-    public:
-        struct ParserState
-        {
-            const char*         buffer() const { ASSERT(_buffer.data); return _buffer.data; }
-            size_t              buffer_size() const { return _buffer.size; }
-            void                reset_ribbon(const char* new_buf = nullptr, size_t new_size = 0);
-            void                reset_graph(Graph* new_graph);
-            void                reset_scope_stack();
-            std::string         string() const { return _ribbon.to_string(); }; // Ribbon's
-            Graph*              graph() const { ASSERT(_graph); return _graph; }
-            TokenRibbon&        tokens()  { return _ribbon; }
-            Scope*              current_scope() const { ASSERT( !_scope.empty() ); return _scope.top(); }
-            void                push_scope(Scope* scope) { _scope.push( scope); };
-            void                pop_scope() { _scope.pop(); };
-            const char*         buffer_at(size_t offset) { ASSERT(offset < _buffer.size ); return _buffer.data + offset; }
-            void                start_transaction() { _ribbon.start_transaction(); }
-            void                commit() { _ribbon.commit(); }
-            void                rollback() { _ribbon.rollback(); }
-
-        private:
-            struct Buffer
-            {
-                const char* data = nullptr; // NOT owned
-                size_t      size = 0;
-            };
-
-            Buffer              _buffer;
-            Graph*              _graph = nullptr; // NOT owned
-            TokenRibbon         _ribbon;
-            std::stack<Scope*>  _scope; // nested scopes
-            std::vector<Slot*>  _flow_out; // last flow out slot known
-        } _state;
-
-    private: bool m_strict_mode; // When strict mode is ON, any use of undeclared symbol is rejected.
-                                 // When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
-
-        // Serializer ------------------------------------------------------------------
-    public:
-        std::string& serialize_graph(std::string& _out, const Graph* graph ) const;
-        std::string& serialize_bool(std::string& _out, bool b) const;
-        std::string& serialize_int(std::string& _out, int i) const;
-        std::string& serialize_double(std::string& _out, double d) const;
-        const Slot*  serialize_invokable(std::string&_out, const FunctionNode*) const;
-        std::string& serialize_invokable_sig(std::string& _out, const tools::IInvokable*)const;
-        std::string& serialize_func_call(std::string& _out, const tools::FunctionDescriptor *_signature, const std::vector<Slot*>& inputs)const;
-        std::string& serialize_func_sig(std::string& _out, const tools::FunctionDescriptor*)const;
-        std::string& serialize_default_buffer(std::string& _out, Token_t _token_t)const;
-        std::string& serialize_token(std::string& _out, const Token &) const;
-        std::string& serialize_type(std::string& _out, const tools::TypeDescriptor*) const;
-        std::string  serialize_type(const tools::TypeDescriptor *_type) const;
-        std::string& serialize_input(std::string& _out, const Slot *_slot, SerializeFlags _flags = SerializeFlag_NONE )const;
-        std::string& serialize_value_out(std::string& _out, const Slot *slot, SerializeFlags _flags = SerializeFlag_NONE )const;
-        std::string& serialize_node(std::string &_out, const Node*, SerializeFlags _flags = SerializeFlag_NONE) const;
-        std::string& serialize_scope(std::string& _out, const Scope*)const;
-        std::string& serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;
-        std::string& serialize_while_loop(std::string& _out, const WhileLoopNode *_while_loop_node)const;
-        std::string& serialize_cond_struct(std::string& _out, const IfNode*if_node ) const;
-        std::string& serialize_literal(std::string& _out, const LiteralNode*) const;
-        std::string& serialize_variable(std::string& _out, const VariableNode*) const;
-        std::string& serialize_variable_ref(std::string &_out, const VariableRefNode *_node) const;
-        std::string& serialize_empty_instruction(std::string &_out, const Node *_node) const;
-        std::string& serialize_property(std::string &_out, const Property*) const;
-
-        // Language definition -------------------------------------------------------------------------
-
-    private:
-        const tools::IInvokable* find_function(u32_t _hash) const;
-    public:
-        const tools::IInvokable* find_function(const char* _signature ) const;           // Find a function by signature as string (ex:   "int multiply(int,int)" )
-        const tools::IInvokable* find_function(const tools::FunctionDescriptor*) const;               // Find a function by signature (strict first, then cast allowed)
-        const tools::IInvokable* find_function_exact(const tools::FunctionDescriptor*) const;         // Find a function by signature (no cast allowed).
-        const tools::IInvokable* find_function_fallback(const tools::FunctionDescriptor*) const;      // Find a function by signature (casts allowed).
-        const tools::IInvokable* find_operator_fct(const tools::FunctionDescriptor*) const;           // Find an operator's function by signature (strict first, then cast allowed)
-        const tools::IInvokable* find_operator_fct_exact(const tools::FunctionDescriptor*) const;     // Find an operator's function by signature (no cast allowed).
-        const tools::IInvokable* find_operator_fct_fallback(const tools::FunctionDescriptor*) const;  // Find an operator's function by signature (casts allowed).
-        const tools::Operator* find_operator(const std::string& , tools::Operator_t) const;// Find an operator by symbol and type (unary, binary or ternary).
-        const std::vector<const tools::IInvokable*>& get_api()const { return m_functions; } // Get all the functions registered in the language.
-        Token_t               to_literal_token(const tools::TypeDescriptor*) const;
-        const tools::TypeDescriptor*    get_type(Token_t _token)const;                              // Get the type corresponding to a given token_t (must be a type keyword)
-        void                  add_function(const tools::IInvokable*);                     // Adds a new function (regular or operator's implementation).
-        int                   get_precedence(const tools::FunctionDescriptor*)const;                // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
-
-        template<typename T> void load_library(); // Instantiate a library from its type (uses reflection to get all its static methods).
-    private:
         struct {
-            std::vector<std::tuple<const char*, Token_t>>                  keywords;
-            std::vector<std::tuple<const char*, Token_t, const tools::TypeDescriptor*>> types;
-            std::vector<std::tuple<const char*, tools::Operator_t, int>>      operators;
-            std::vector<std::tuple<char, Token_t>>                         chars;
-        } m_definition; // language definition
+            std::vector<std::tuple<bdc::String, Token_Type>>                                keywords;
+            std::vector<std::tuple<bdc::String, Token_Type, const tools::Type_Descriptor*>> types;
+            std::vector<tools::Operator>                                                    operators;
+            std::vector<std::tuple<char, Token_Type>>                                       chars;
+        } definition; 
 
-        std::vector<const tools::Operator*>               m_operators;                // the allowed operators (!= implementations).
-        std::vector<const tools::IInvokable*>             m_operators_impl;           // operators' implementations.
-        std::vector<const tools::IInvokable*>             m_functions;                // all the functions (including operator's).
-        std::unordered_map<u32_t , const tools::IInvokable*> m_functions_by_signature; // Functions indexed by signature hash
-        std::unordered_map<Token_t, char>                 m_single_char_by_keyword;
-        std::unordered_map<Token_t, const char*>          m_keyword_by_token_t;       // token_t to string (ex: Token_t::keyword_double => "double").
-        std::unordered_map<std::type_index, const char*>  m_keyword_by_type_id;
-        std::unordered_map<char, Token_t>                 m_token_t_by_single_char;
-        std::unordered_map<size_t, Token_t>               m_token_t_by_keyword;       // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
-        std::unordered_map<std::type_index, Token_t>      m_token_t_by_type_id;
-        std::unordered_map<Token_t, const tools::TypeDescriptor*>   m_type_by_token_t;          // token_t to type. Works only if token_t refers to a type keyword.
+        // indexes
+
+        std::vector<tools::Operator>                                    operators;                      // the allowed operators, not their implementations or signature.
+        std::unordered_map<Token_Type, char>                            single_char_by_keyword;
+        std::unordered_map<Token_Type, const bdc::String>               keyword_by_token_type;          // ex: Token_t::keyword_double => "double".
+        std::unordered_map<size_t, Token_Type>                          token_type_by_keyword;          // opposite of keyword_by_token_type
+        std::unordered_map<std::type_index, const bdc::String>          keyword_by_type_id;
+        std::unordered_map<std::type_index, Token_Type>                 token_type_by_type_id;
+        std::unordered_map<char, Token_Type>                            token_type_by_single_char;
+        std::unordered_map<Token_Type, const tools::Type_Descriptor*>   type_descriptor_by_token_type;  // some Token_Type are associated with a Type_Descriptor (ex: Token_Type_LITERAL_STRING)
     };
 
-    template<typename T>
-    void Nodlang::load_library()
-    {
-        T library; // Libraries are static and this will force static code to run. TODO: add load/release methods
+    // Text to Graph ----------------------------------------------------------------------
 
-        auto class_desc = tools::type::get_class<T>();
-        for(const tools::IInvokable* method : class_desc->get_statics() )
-        {
-            add_function(method);
-        }
-    }
+    Token                           lang_parse_token(const Language&, bdc::String&); // parse a single token from position _cursor in _string.
+    bool                            lang_parse_bool_or(const Language&, bdc::String&, bool default_value );
+    double                          lang_parse_double_or(const Language&, bdc::String&, double default_value );
+    int                             lang_parse_int_or(const Language&, bdc::String&, int default_value );
 
-    [[nodiscard]]
-    Nodlang* init_language();
-    Nodlang* get_language();
-    void     shutdown_language(Nodlang*); // undo init_language()
+    void                            lang_reset(Language&, Graph*, bdc::String buffer = "");
+    bool                            lang_parse(Language&, Graph* /* graph (out) */, bdc::String /* code (in) */); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
+    Scope*                          lang_parse_program(Language&);
+    Node*                           lang_parse_code_block(Language&, Scope* parent_scope, Node_Slot* flow_out);
+    Node*                           lang_parse_atomic_code_block(Language&, Scope* parent_scope, Node_Slot* flow_out);
+    Node*                           lang_parse_scoped_block(Language&, Scope* parent_scope, Node_Slot* flow_out);
+    Node*                           lang_parse_expression_block(Language&, Scope* parent_scope, Node_Slot* flow_out, Node_Slot* value_in = nullptr);
+    Node*                           lang_parse_if_block(Language&, Scope* parent_scope, Node_Slot* flow_out);
+    Node*                           lang_parse_for_block(Language&, Scope* parent_scope, Node_Slot* flow_out);
+    Node*                           lang_parse_while_block(Language&, Scope* parent_scope, Node_Slot* flow_out);
+    Node*                           lang_parse_empty_block(Language&, Scope* parent_scope, Node_Slot* flow_out);
+    Node*                           lang_parse_return(Language&, Scope* parent_scope, Node_Slot* flow_out);
+    Node_Slot*                      lang_parse_variable_declaration(Language&, Scope* parent_scope);
+    Node_Slot*                      lang_parse_function_call(Language&, Scope* parent_scope);
+    Node_Slot*                      lang_parse_parenthesis_expression(Language&, Scope* parent_scope);
+    Node_Slot*                      lang_parse_unary_operator_expression(Language&, Language&, Scope* parent_scope, u8_t _precedence = 0);
+    Node_Slot*                      lang_parse_binary_operator_expression(Language&, Scope* parent_scope, u8_t _precedence, Node_Slot* _left);
+    Node_Slot*                      lang_parse_atomic_expression(Language&, Scope* parent_scope);
+    Node_Slot*                      lang_parse_expression(Language&, Scope* parent_scope, u8_t _precedence = 0, Node_Slot* _left_override = nullptr);
+    Node_Slot*                      lang_token_to_slot(const Language&, Scope* parent_scope, const Token& _token);
+    bool                            lang_tokenize(Language&); // tokenise from current parser state
+    bool                            lang_tokenize(Language&, const bdc::String&); // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
+
+    // Graph to Text ------------------------------------------------------------------
+
+    [[nodiscard]] bdc::String       lang_serialize_bool(const Language&, bool b);
+    [[nodiscard]] bdc::String       lang_serialize_int(const Language&, int i);
+    [[nodiscard]] bdc::String       lang_serialize_double(const Language&, double d);
+    [[nodiscard]] bdc::String       lang_serialize_token_type_default(const Language&,Token_Type _token_t);
+    [[nodiscard]] bdc::String       lang_serialize_token(const Language&, const Token &);
+    [[nodiscard]] bdc::String       lang_serialize_type(const Language&, const tools::Type_Descriptor *_type);
+    
+    bdc::String_Builder&            lang_serialize_graph(const Language&, bdc::String_Builder& out, const Graph* in);
+    //const Node_Slot*                lang_serialize_invokable(const Language&, bdc::String_Builder& out, const Node*);
+    //bdc::String_Builder&            lang_serialize_invokable_sig(const Language&, bdc::String_Builder& out, const tools::IInvokable*);
+    bdc::String_Builder&            lang_serialize_func_call(const Language&, bdc::String_Builder& out, const tools::Type_Descriptor *_signature, const bdc::Array<Node_Slot*>& inputs);
+    bdc::String_Builder&            lang_serialize_func_sig(const Language&, bdc::String_Builder& out, const tools::Type_Descriptor*);
+    bdc::String_Builder&            lang_serialize_input(const Language&, bdc::String_Builder& out, const Node_Slot *_slot, Serialization_Flags _flags = Serialization_Flag_NONE );
+    bdc::String_Builder&            lang_serialize_value_out(const Language&, bdc::String_Builder& out, const Node_Slot *slot, Serialization_Flags _flags = Serialization_Flag_NONE );
+    bdc::String_Builder&            lang_serialize_node(const Language&, bdc::String_Builder& out, const Node*, Serialization_Flags _flags = Serialization_Flag_NONE);
+    bdc::String_Builder&            lang_serialize_scope(const Language&, bdc::String_Builder& out, const Scope*);
+    bdc::String_Builder&            lang_serialize_for_loop(const Language&, bdc::String_Builder& out, const Node* _for_loop);
+    bdc::String_Builder&            lang_serialize_while_loop(const Language&, bdc::String_Builder& out, const Node*_while_loop_node);
+    bdc::String_Builder&            lang_serialize_cond_struct(const Language&, bdc::String_Builder& out, const Node* if_node );
+    bdc::String_Builder&            lang_serialize_literal(const Language&, bdc::String_Builder& out, const Node*);
+    bdc::String_Builder&            lang_serialize_variable(const Language&, bdc::String_Builder& out, const Node*);
+    bdc::String_Builder&            lang_serialize_variable_ref(const Language&, bdc::String_Builder& out, const Node *_node);
+    bdc::String_Builder&            lang_serialize_empty_instruction(const Language&, bdc::String_Builder& out, const Node *_node);
+    bdc::String_Builder&            lang_serialize_property(const Language&, bdc::String_Builder& out, const Node_Property*);
+    bdc::String_Builder&            lang_serialize_return(const Language&, bdc::String_Builder& out, const Node*);
+
+    // General read-only procedures -------------------------------------------------------------------------
+
+    bool                            lang_is_operator(const Language&, const tools::Type_Descriptor*);
+    const tools::Operator*          lang_find_operator(const Language&,  const tools::Operator& op); // op.precedence is ignored in operator== for tools::Operator
+    Token_Type                      lang_type_to_literal_token_type(const Language&, const tools::Type_Descriptor*);
+    int                             lang_get_precedence(const Language&, const tools::Type_Descriptor*);         // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
+    const tools::Type_Descriptor*   lang_get_type(const Language&, Token_Type _token);                               // Get the type corresponding to a given token_t (must be a type keyword)
+
+    // Language management -----------------------------------------------------------------------------------
+
+    Language&                       language_init();
+    void                            language_shutdown(); // undo init_language()
+    [[deprecated]] bool             language_is_initialized(); // TODO: this should not exist, user must know if he already initialized a language. The problem comes from the fact some functions in this struct are used by code that do not need a language.
+    Language&                       language();
 }
 

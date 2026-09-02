@@ -1,0 +1,88 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "bdc:build",
+			"type": "shell",
+			"command": "clang++ -std=c++20 -O0 -g src/bdc/tests.cpp"
+		},
+		// DEBUG
+		{
+			"label": 	"tests:build-linux-debug",
+			"type": 	"shell",
+			"command": 	"rake tests:build",
+			"group":	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"debug",
+					"PLATFORM": "linux"
+				}
+			}
+		},
+		{
+			"label": 	"nodable:build-linux-debug",
+			"type": 	"shell",
+			"command": 	"rake build",
+			"group": 	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"debug",
+					"PLATFORM": "linux"
+				}
+			}
+		},
+
+		// OPTIMIZED
+		{
+			"label": 	"tests:build-linux-optimized",
+			"type": 	"shell",
+			"command": 	"rake tests:build",
+			"group":	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"optimized",
+					"PLATFORM": "linux"
+				}
+			}
+
+		},
+		{
+			"label": 	"nodable:build-linux-optimized",
+			"type": 	"shell",
+			"command": 	"rake build",
+			"group": 	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"optimized",
+					"PLATFORM": "linux"
+				}
+			}
+		},
+
+		// RELEASE
+		{
+			"label": 	"tests:build-linux-release",
+			"type": 	"shell",
+			"command": 	"rake tests:build",
+			"group":	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"release",
+					"PLATFORM": "linux"
+				}
+			}
+		},
+		{
+			"label": 	"nodable:build-linux-release",
+			"type": 	"shell",
+			"command": 	"rake build",
+			"group": 	{ "kind": "build" },
+			"options": {
+				"env": {
+					"CONFIG": 	"release",
+					"PLATFORM": "linux"
+				}
+			}
+		}
+	]
+}

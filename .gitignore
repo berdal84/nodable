@@ -1,33 +1,9 @@
 # OS
 .DS_Store
 
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
 # Precompiled Headers
 *.gch
 *.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-#*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-#*.lib
 
 # sublime text workspace
 *.sublime-workspace
@@ -37,12 +13,10 @@
 
 # Nodable
 *.log
-*.json
+compile_commands.json
 
-# Executables
-# *.exe
-# *.out
-# *.app
+# Distribution files
+dist/
 
 # Visual studio
 .vs
@@ -50,17 +24,21 @@
 *\temp
 build/Nodable.vcxproj.user
 
-*.db
+# VCPKG 
+# I keep installed packages, to be able to compile offline
+# vcpkg/
 
+*.db
 _screenshots/
-/_build
 /out
 /install
-/out/build/x64-Debug
-/build
-/nodable/install/
-/bin/
-/cmake-**
+/build-**
 /.idea
 .gitconfig
 .cache
+
+# Generate by rake
+compile_commands.json
+
+# temp binaries
+a.out

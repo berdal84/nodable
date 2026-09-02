@@ -1,28 +1,28 @@
 #include "Config.h"
+#include "core/Asserts.h"
 
-static tools::Config* g_conf{nullptr};
-
-tools::Config* tools::init_config()
+// private
+namespace tools
 {
-    ASSERT(g_conf == nullptr);
-    g_conf = new Config();
-    return g_conf;
+    static Config* g_config = {};
 }
 
-void tools::shutdown_config(Config* _config)
+tools::Config* tools::config_init()
 {
-    ASSERT(g_conf == _config);
-    ASSERT(g_conf != nullptr);
-    delete g_conf;
-    g_conf = nullptr;
+    ASSERT(g_config == nullptr);
+    g_config = bdc::memory_new<Config>();
+    return g_config;
 }
 
-tools::Config* tools::get_config()
+void tools::config_shutdown()
 {
-    return g_conf;
+    VERIFY(g_config, "tools::Config is not initialized! Did you cann tools::config_init() ? ");
+    bdc::memory_delete(g_config);
+    g_config = nullptr;
 }
 
-bool tools::has_config()
+tools::Config* tools::config()
 {
-    return g_conf != nullptr;
+    VERIFY(g_config, "tools::Config is not initialized! Did you cann tools::config_init() ? ");
+    return g_config;
 }

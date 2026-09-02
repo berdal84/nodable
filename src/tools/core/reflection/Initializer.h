@@ -1,84 +1,33 @@
 #pragma once
-#include "Invokable.h"
-#include "Type.h"
-#include "TypeRegister.h"
-#include <vector>
+#include "Type_Descriptor.h"
+#include "Type_Register.h"
 
 namespace tools
 {
-    // Forward declarations
-    template<typename T> class  InvokableStaticFunction;
-
-    namespace type
+    template<typename Type>
+    struct Type_Initializer
     {
-        /**
-         * To reflect a type statically
-         * @tparam T the type to reflect
-         */
-        template<typename T, bool = std::is_class_v<T> >
-        struct Initializer;
+        Type_Descriptor* type;
 
-        // Default implementation
-        template<typename T>
-        struct Initializer<T, false>
+        explicit Type_Initializer(const char *_name)
         {
-            static_assert(!std::is_class_v<T>);
-            TypeDescriptor *m_type;
+            type = type_register_insert_or_merge( type_create<Type>(_name) );
+        }
 
-            explicit Initializer(const char *_name)
-            {
-                TypeDescriptor *type = TypeDescriptor::create<T>(_name);
-                m_type = TypeRegister::insert_or_merge(type);
-            }
-        };
-
-        // Class implementation
-        template<typename T>
-        struct Initializer<T, true>
+        template<typename Base_Type>
+        Type_Initializer& extends()
         {
-            static_assert(std::is_class_v<T>);
-            ClassDescriptor *m_class;
+            static_assert(std::is_class_v<Base_Type>);
+            static_assert(std::is_base_of_v<Base_Type, Type>);
 
-            explicit Initializer(const char *_name)
-            {
-                TypeDescriptor *type = ClassDescriptor::create<T>(_name);
-                m_class = (ClassDescriptor *) TypeRegister::insert_or_merge(type);
-            }
-
-            template<typename F>
-            Initializer &add_method(F* func_ptr, const char *_name, const char *_alt_name = "")
-            {
-                auto *invokable = new InvokableStaticFunction<F>( _name, func_ptr); // TODO: delete?
-                m_class->add_static(_name, invokable);
-
-                if (_alt_name[0] != '\0')
-                    m_class->add_static(_alt_name, invokable);
-
-                return *this;
-            }
-
-            template<typename R, typename C, typename ...Ts>
-            Initializer &add_method(R(C::*func_ptr)(Ts...), const char *_name) // non static
-            {
-                auto *invokable = new InvokableMethod<R(C::*)(Ts...)>(_name, func_ptr);  // TODO: delete?
-                m_class->add_method(_name, invokable);
-                return *this;
-            }
-
-            template<typename BaseClassT>
-            Initializer &extends()
-            {
-                static_assert(std::is_class_v<BaseClassT>);
-                static_assert(std::is_base_of_v<BaseClassT, T>);
-
-                auto base_class = const_cast<ClassDescriptor *>( type::get_class<BaseClassT>()); // get or create
-                m_class->add_parent(base_class->id());
-                base_class->add_child(m_class->id());
-                return *this;
-            }
-        };
-    }
-} // namespace headless
+            Type_Descriptor* base_type = type_get<Base_Type>();
+            type->class_add_parent(base_type->id);
+            base_type->class_add_child(type->id);
+            
+            return *this;
+        }
+    };
+} // namespace tools
 
 #define CAT_IMPL(a, b) a##b
 #define CAT(a, b) CAT_IMPL(a, b)
@@ -102,6 +51,6 @@ static void auto_static_initializer()\
 }
 
 #define DEFINE_REFLECT_WITH_ALIAS( TYPENAME, NAME_STRING )\
-::tools::type::Initializer<TYPENAME>( NAME_STRING )
+::tools::Type_Initializer<TYPENAME>( NAME_STRING )
 
 #define DEFINE_REFLECT( TYPENAME ) DEFINE_REFLECT_WITH_ALIAS( TYPENAME, #TYPENAME )

@@ -1,0 +1,485 @@
+#---------------------------------------------------------------------------
+# NODABLE's BUILD TARGETS & TASKS
+#---------------------------------------------------------------------------
+#
+# This file contains nodable tasks and targets.
+# It relies on a small ruby script rake/build-tools.rb that contains the
+# build tools required to declare and compile/link a build target
+#
+#                                                            Bérenger, 2026.
+#---------------------------------------------------------------------------
+
+require 'fileutils'
+require_relative 'rake/build-tools' # Import my custom tools to build C++ desktop/web clang-based projects.
+
+Rake::TaskManager.record_task_metadata = true
+
+#---------------------------------------------------------------------------
+# BASE TARGET - all targets are created from this one
+#---------------------------------------------------------------------------
+
+def base_target(name, type)
+
+    target = target(
+        name,
+        type,
+        CXXSTD23 # required by <stacktrace>
+    )
+    
+    target.unity_build_on = true
+
+    target.includes = FileList[
+        # internal
+        "src",
+        "src/ndbl",
+        "src/tools",
+        # external
+        "extern",
+        "extern/imgui",
+        "extern/IconFontCppHeaders",
+        "extern/whereami/src",
+    ]
+
+    target.defines |= [
+        "TOOLS_#{CONFIG.upcase}", "TOOLS_#{PLATFORM.upcase}",
+        "NDBL_#{CONFIG.upcase}" , "NDBL_#{PLATFORM.upcase}",
+        "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
+        "NDBL_APP_NAME=\\\"nodable\\\"",
+        "NDBL_BUILD_REF=\\\"#{`git describe --tags HEAD`.chomp}-#{CONFIG}\\\"",        
+        "CPPTRACE_STATIC_DEFINE", #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
+    ]
+
+    target.cxx_flags |= [    
+        "-fsized-deallocation", # required for <stackstrace>          
+        "-fno-char8_t", # related to ImGui and font awesome (const char* and concatenation would fail without it)
+    ]
+
+    # disable some warnings
+    target.cxx_flags |= [
+        LINUX ?  "-Wno-nontrivial-memaccess" : "-Wno-nontrivial-memcall", # imgui/imgui_internal.h:1933:38: warning: first argument in call to 'memset' is a pointer to non-trivially copyable type 'ImGuiStackTool' [-Wnontrivial-memcall]
+        "-Wno-unused-function",    # imstb_rectpack.h:233:16: error: unused function 'stbrp_setup_heuristic' [-Werror,-Wunused-function]  233 | STBRP_DEF void stbrp_setup_heuristic(stbrp_context *context, int heuristic)
+        "-Wno-deprecated-declarations",
+    ]
+
+    if CONFIG_DEBUG or CONFIG_OPTIMIZED
+
+        target.defines |= [
+            # "BDC_ENABLE_LOGS",
+            # "BDC_DEBUG_ALLOCATORS",
+        ]
+
+    end
+
+    if WEB
+
+        target.defines |= [
+            "NDBL_WEB"
+        ]
+
+        target.compiler_flags |= [
+            "-s USE_PTHREADS=1",
+            "-s USE_FREETYPE=1",
+            "-s USE_SDL=2",
+            "-sNO_DISABLE_EXCEPTION_CATCHING",
+			"-gsource-map",            
+        ]
+
+        target.linker_flags |= [
+            "-s PTHREAD_POOL_SIZE='navigator.hardwareConcurrency'",
+            "-s EMBIND_STD_STRING_IS_UTF8=0",
+            "-s ALLOW_MEMORY_GROWTH",
+            "-Wno-pthreads-mem-growth", # emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]
+            "-s MIN_WEBGL_VERSION=2",
+            "-s MAX_WEBGL_VERSION=2",
+            "--emrun"
+        ]
+
+        target.vcpkg = [
+            # "sdl2",
+            # "freetype2",
+            # "opengl",
+            # "nfd",
+            # "gl3w",
+            "lodepng",
+        ]
+
+    else
+
+        target.defines |= [
+            "NDBL_DESKTOP"
+        ]
+
+        target.linker_flags |= [
+            "-lstdc++exp", # required for <stacktrace>
+            "-lstdc++",    # note: -llibstdc++ was not working, it requires to be installed.
+        ]
+
+        if LINUX
+
+            target.vcpkg = [
+                "sdl2",
+                "freetype2",
+                "gl", # equivqlent of opengl for linux
+                "nfd", "dbus-1", # required by nfd (that has no .pc file)
+                "gl3w",
+                "lodepng",
+            ]
+
+        elsif WINDOWS      
+
+            target.vcpkg = [
+                "sdl2",
+                "freetype2",
+                "opengl",
+                "nfd",
+                "gl3w",
+                "lodepng",
+            ]
+
+            target.defines |= [
+                "SDL_MAIN_HANDLED",
+                "NOMINMAX", # avoids windows min/max to collide (see https://stackoverflow.com/questions/11544073/how-do-i-deal-with-the-max-macro-in-windows-h-colliding-with-max-in-std)
+                "__PRFCHWINTRIN_H", # issues with clang (SDL_endian.h:41:1: error: definition of builtin function '_m_prefetch')
+            ]
+
+            target.linker_flags |= [                
+                "-Xlinker /SUBSYSTEM:CONSOLE", # We compile a console tools_app, windows needs to know that main() is the entry point instead of WinMain
+                "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
+            ]
+
+            target.compiler_flags |= [
+                "-D_MT",
+                # "-D_DLL"
+            ]
+        end
+    end
+
+    target
+end
+
+#---------------------------------------------------------------------------
+# TARGETS
+#---------------------------------------------------------------------------
+
+extern = base_target("extern", TARGET_TYPE_OBJECTS)
+
+extern.sources = FileList[
+    # External - ImGui & related
+    "extern/imgui/imgui.cpp",
+    "extern/imgui/imgui_demo.cpp",
+    "extern/imgui/imgui_draw.cpp",
+    "extern/imgui/imgui_tables.cpp",
+    "extern/imgui/imgui_widgets.cpp",
+    "extern/imgui/misc/freetype/imgui_freetype.cpp",
+    "extern/imgui/backends/imgui_impl_sdl2.cpp",
+    "extern/imgui/backends/imgui_impl_opengl3.cpp",
+    "extern/ImGuiColorTextEdit/TextEditor.cpp", # not from imgui, but related to
+]
+
+if DESKTOP
+    extern.sources |= [
+        # External - whereami (to be aware of the binary's path at runtime)
+        "extern/whereami/src/whereami.c"
+    ]
+end
+
+common = base_target("common", TARGET_TYPE_OBJECTS)
+
+common.sources = FileList[
+
+    # BDC
+    "src/bdc/Allocators.cpp",
+    "src/bdc/Array.cpp",
+    "src/bdc/Hash_Map.cpp",
+    "src/bdc/String_Builder.cpp",
+    "src/bdc/String_Hash.cpp",
+    "src/bdc/String.cpp",
+
+    # Tools Core
+    "src/tools/core/index.cpp",
+    "src/tools/core/reflection/QWord.cpp",
+    "src/tools/core/reflection/Type_Descriptor.cpp",
+    "src/tools/core/reflection/Type_Register.cpp",
+    "src/tools/core/reflection/Variant.cpp",
+    "src/tools/core/Event_Manager.cpp",
+    "src/tools/core/File_System.cpp",
+    "src/tools/core/Format.cpp",
+    "src/tools/core/Log.cpp",
+    "src/tools/core/State_Machine.cpp",
+    "src/tools/core/System.cpp",
+    "src/tools/core/Task_Manager.cpp",
+
+    # Tools GUI
+    "src/tools/gui/index.cpp",
+    "src/tools/gui/geometry/Bezier_Curve_Segment_2D.cpp",
+    "src/tools/gui/geometry/Box_2D.cpp",
+    "src/tools/gui/geometry/Rect.cpp",
+    "src/tools/gui/geometry/Spatial_Node.cpp",
+    "src/tools/gui/geometry/Transform_2D.cpp",
+    "src/tools/gui/Action.cpp",
+    "src/tools/gui/Action_Manager.cpp",
+    "src/tools/gui/Action_Manager_View.cpp",
+    "src/tools/gui/App.cpp",
+    "src/tools/gui/App_View.cpp",
+    "src/tools/gui/Config.cpp",
+    "src/tools/gui/Font_Manager.cpp",
+    "src/tools/gui/ImGuiEx.cpp",
+    "src/tools/gui/Texture_Manager.cpp",
+
+    # Nodable Core
+    "src/ndbl/core/index.cpp",
+    "src/ndbl/core/language/Nodlang.cpp",
+    "src/ndbl/core/Node.cpp",
+    "src/ndbl/core/Node_Property.cpp",
+    "src/ndbl/core/Node_Slot.cpp",
+    "src/ndbl/core/Scope.cpp",
+    "src/ndbl/core/Token.cpp",
+    "src/ndbl/core/Token_Ribbon.cpp",
+    "src/ndbl/core/Graph.cpp",
+    "src/ndbl/core/Nodable_Headless.cpp",
+
+    # Nodable GUI
+    "src/ndbl/gui/index.cpp",
+    "src/ndbl/gui/Node_Property_View.cpp",
+    "src/ndbl/gui/Node_Slot_View.cpp",
+    "src/ndbl/gui/Node_View.cpp",
+    "src/ndbl/gui/Node_Search_Input.cpp",
+    "src/ndbl/gui/Scope_View.cpp",
+    "src/ndbl/gui/Command_Manager.cpp",
+    "src/ndbl/gui/Command.cpp",
+    "src/ndbl/gui/Config.cpp",
+    "src/ndbl/gui/File.cpp",
+    "src/ndbl/gui/File_View.cpp",
+    "src/ndbl/gui/Graph_View.cpp",
+    "src/ndbl/gui/Nodable.cpp",
+    "src/ndbl/gui/Nodable_View.cpp",
+]
+
+common.depends_on_target = [extern]
+
+#---------------------------------------------------------------------------
+
+tools_app = base_target("tools-app-example", TARGET_TYPE_EXECUTABLE)
+
+tools_app.sources |= FileList[    
+    "src/tools/gui-example/App_Example.cpp",
+    "src/tools/gui-example/App_View_Example.cpp",
+    "src/tools/gui-example/main.cpp"
+]
+
+tools_assets = FileList[
+    # Fonts
+    "fonts/CenturyGothic.ttf",
+    "fonts/fa-solid-900.ttf",
+    "fonts/JetBrainsMono-*.ttf", # 4 variants
+]
+
+if WEB # TODO: automatize this in build-tools.rb    
+    # Preload assets (they will be compiled in a binary .data)
+    tools_app.linker_flags |= tools_assets.map{|path| "--preload-file #{path}" }
+
+    # Provide headers for deployment (note: requires https when deployed).
+    tools_app.assets = [
+        "http/.htaccess:.htaccess",
+        "http/tools-app-example.html:tools-app-example.html",
+    ]
+else
+    tools_app.assets = tools_assets
+end
+
+tools_app.depends_on_target = [
+    common
+]
+
+#---------------------------------------------------------------------------
+ndbl_app = base_target("nodable", TARGET_TYPE_EXECUTABLE)
+
+ndbl_app.sources = FileList[
+    "src/ndbl/app/main.cpp",
+]
+
+ndbl_assets = FileList[
+    # Examples
+    "examples/arithmetic.cpp",
+    "examples/for-loop.cpp",
+    "examples/if-else.cpp",
+    "examples/multi-instructions.cpp",
+    # Fonts
+    "fonts/CenturyGothic.ttf",
+    "fonts/fa-solid-900.ttf",
+    "fonts/JetBrainsMono-*.ttf", # 4 variants
+    # Images
+    "images/nodable-logo-xs.png",
+]
+
+if WEB # TODO: automatize this in build-tools.rb
+
+    # Preload assets (they will be compiled in a binary .data)
+    ndbl_app.linker_flags |= ndbl_assets.map{|path| "--preload-file #{path}" }
+
+    # Provide headers for deployment (note: requires https when deployed).
+    ndbl_app.assets = [
+        "http/.htaccess:.htaccess",
+        "http/nodable.html:nodable.html",
+    ]
+
+else
+    ndbl_app.assets = ndbl_assets
+end
+
+ndbl_app.depends_on_target = [
+    common
+]
+
+#---------------------------------------------------------------------------
+tests = base_target("tests", TARGET_TYPE_EXECUTABLE)
+
+tests.sources |= FileList[
+    "src/ndbl/core/Node.specs.cpp",
+    "src/ndbl/core/Node_Slot.specs.cpp",
+    "src/ndbl/core/Token.specs.cpp",
+    "src/ndbl/core/Graph.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse0.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse1.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse2.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse3.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse4.specs.cpp",
+    "src/ndbl/test/main.cpp",
+
+    "src/tools/core/Delegate.specs.cpp",
+    "src/tools/core/reflection/index.specs.cpp",
+    "src/tools/gui/geometry/Spatial_Node.specs.cpp",
+    "src/tools/gui/geometry/Rect.specs.cpp",
+]
+
+tests_gui_sources = FileList[
+    "src/ndbl/gui/Nodable.specs.cpp"
+]
+
+tests.assets |= ndbl_app.assets # we load some .cpp files in tests
+
+if HEADLESS_TESTS
+    puts "HEADLESS_TESTS is TRUE, #{tests_gui_sources} won't be included." if VERBOSE
+else
+    tests.sources |= tests_gui_sources
+end
+
+tests.unity_build_slice_size = tests.sources.size
+
+tests.vcpkg |= [
+    "gtest"
+]
+
+tests.depends_on_target = [
+    common
+]
+
+#---------------------------------------------------------------------------
+# HIGH LEVEL TASKS
+#---------------------------------------------------------------------------
+
+desc "Running rake without task"
+task :default => :help
+
+desc "Print this help message"
+task :help do
+    print_help()
+end
+
+desc "Run nodable"
+task :run =>  'nodable:run'
+
+desc "Build nodable"
+multitask :build => 'nodable:build'
+
+desc "Build nodable"
+multitask :build_all => ['nodable:build', 'tools-app-example:build']
+
+if PLATFORM == PLATFORM_WINDOWS or PLATFORM == PLATFORM_LINUX
+    desc "Run all tests"
+    task :test => 'tests:run'
+else
+    desc "Run all tests"
+    task :test do
+        puts "No tests to run when PLATFORM=#{PLATFORM}"
+    end
+end
+
+desc "Clean and Build"
+task :rebuild => [
+    'clean',
+    'build',
+]
+
+desc "Remove intermediate files"
+define_clean_task()
+
+desc "Remove intermediate files and any other files"
+define_clobber_task()
+
+task :rebuild_all do
+    BUILD_CONFIGS.each do |each_config|
+        system("rake -m clean build -- --config=#{each_config} --platform=#{PLATFORM}", exception: true)
+    end
+end
+
+APT_PACKAGES = [
+    "libx11-dev",
+    "libgl1-mesa-dev",
+]
+
+def install_emsdk()
+    system("python extern/emsdk/emsdk.py install latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+end
+
+def activate_emsdk()
+    system("python extern/emsdk/emsdk.py activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+end
+
+task :ci do
+    case PLATFORM
+    when PLATFORM_LINUX            
+        run_sudo_apt_install(APT_PACKAGES)
+    when PLATFORM_WEB  
+        install_emsdk()
+        activate_emsdk()
+    else
+        puts "INFO: Nothing to install on CI for #{PLATFORM}"
+    end    
+end
+
+desc "Install system dependencies"
+task :install do
+    case PLATFORM
+    when PLATFORM_LINUX             
+        run_sudo_apt_install(APT_PACKAGES)    
+    when PLATFORM_WEB
+        install_emsdk()
+        activate_emsdk()
+        puts("emsdk environment has been activated, consider running source extern/emsdk/emdsk_env.sh to get commands (emcc, emrun, etc)")
+    else
+        puts "INFO: Nothing to install on #{PLATFORM}"
+    end
+end
+
+desc "Recompiles vcpkg binaries"
+task :vcpkg_install do
+    vcpkg_install()
+end
+
+desc "Count the lines of code in ./src folder"
+task :count_lines do |t, args|
+    count_lines_of_code('src')
+end
+
+#---------------------------------------------------------------------------
+# TARGETS' TASKS - automatically generated
+#---------------------------------------------------------------------------
+
+target_define_tasks( extern )
+target_define_tasks( common )
+target_define_tasks( tools_app )
+target_define_tasks( ndbl_app )
+target_define_tasks( tests )
+
+#---------------------------------------------------------------------------

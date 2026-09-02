@@ -1,29 +1,34 @@
 #pragma once
 
-#include <string>
+#include "bdc/String.hpp"
+#include "Enum.h"
 
 namespace tools
 {
-    // forward declaration
-    enum class Operator_t;
-
-    /**
-     * Simple structure to define an operator
-     */
-    class Operator
+    enum Operator_Type: int   // To distinguish operator types
     {
-    public:
-
-        Operator() = delete;
-        Operator(const Operator&) = delete;
-        Operator(const std::string& _identifier, Operator_t _type, int _precedence)
-                : identifier(_identifier)
-                , type(_type)
-                , precedence(_precedence)
-        {};
-        const std::string identifier;
-        const int         precedence;
-        const Operator_t  type;
+        Unary   = 1,             // Unary  (ex: "-2", "++i" )
+        Binary  = 2,             // Binary (ex: "1+1", "2*4", "1/2")
+        Ternary = 3,             // Ternary (ex: "<condition> ? <true> : <false> )
     };
+
+    REFLECT_ENUM_CLASS(Operator_Type)
+    (
+        REFLECT_ENUM_CLASS_V(Unary)
+        REFLECT_ENUM_CLASS_V(Binary)
+        REFLECT_ENUM_CLASS_V(Ternary)
+    )
+
+    struct Operator
+    {
+        bdc::String   identifier;
+        Operator_Type type;
+        int           precedence;
+    };
+
+    inline bool operator==(const Operator& a, const Operator& b)
+    {
+        return a.type == b.type && a.identifier == b.identifier; // precedence is not considered as part of the Operator's identity
+    }
 
 }// namespace tools

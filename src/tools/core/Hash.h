@@ -1,7 +1,10 @@
 #pragma once
 
 #include <cstring>
-#include <xxhash/xxhash32.h>
+#include <type_traits>
+#include <xxhash/xxhash64.h>
+
+#include "bdc/Types.hpp"
 
 namespace tools
 {
