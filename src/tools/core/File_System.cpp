@@ -113,31 +113,38 @@ File_Read_Result file_read(const Path& path, bdc::Allocator* allocator)
 
     if (!stream.is_open())
     {
-        return { .ok = false, .error = string_printf("Unable to load \"%s\"", path.c_str()) };
+        return { .ok = false, .error = string_printf( temp_allocator(), "Unable to load \"%s\"", path.c_str()) };
     }
 
-    String_Builder sb{};
-    string_builder_init(sb);
+    Resizable_Array<i8_t> bytes;
+    array_init(bytes, 1024, allocator); // let's use 1K minimum
 
-    const int MAX_LINE_LENGTH = 512;
-    char bytes[MAX_LINE_LENGTH];
-    while ( stream.getline(bytes, MAX_LINE_LENGTH) )
+    while( true )
     {
-        std::streamsize bytes_len = stream.gcount();
-        string_builder_appendf(sb, "%.*s\n", bytes_len, bytes);
-    }
+        char c = stream.get();
+        
+        if( stream.fail() )
+        {
+            if ( stream.eof() )
+            {
+                stream.clear();
+                return { .ok = true, .content = bdc::array_view(bytes) }; 
+            }
+            return { .ok = false, .error = "Line exceeded buffer size!" };
+        }
 
-    if (stream.eof() == false && stream.fail())
-    {
-        stream.clear();
-        return { .ok = false, .error = "Line exceeded buffer size!" };
-    }
-
-    String content = string_builder_build_string(sb, allocator );
-
-    printf("Content: %s\n", content.data);
-    
-    return { .ok = true, .content = content };
+        // Since right now Resizable_Array<i8_t> reallocates linearly, we do a manual exponential resizesing
+        if( bytes.capacity == bytes.size )
+        {
+            u32_t new_capacity = bytes.capacity * 2;
+            if( new_capacity < bytes.capacity)
+            {
+                new_capacity = (u32_t)-1; // max
+            }
+            array_reserve_capacity_at_least( bytes, new_capacity );
+        }
+        array_append(bytes, c);
+    }      
 }
 
 File_Write_Result file_write(const Path& path, const String& content)
