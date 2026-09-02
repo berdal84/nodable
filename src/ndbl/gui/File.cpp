@@ -66,7 +66,7 @@ void file_init(File* file)
 
 void file_deinit(File* file)
 {
-    assert(file->graph->signal_change.disconnect<&_file_set_text_dirty>(file));
+    ASSERT(file->graph->signal_change.disconnect<&_file_set_text_dirty>(file));
     
     file->graph->view->signal_change.disconnect();
     file->view.signal_change.disconnect();

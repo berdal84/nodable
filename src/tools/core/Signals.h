@@ -31,7 +31,7 @@ namespace tools
     //      tools::Signal<void(int)> signal_change;
     //      signal_change.connect<&Number::set_value>(&number); // &Number::set_value has same type as signal template argument
     //      signal_change.emit(42);
-    //      assert(number.value() == 42);
+    //      ASSERT(number.value() == 42);
     //
     //      // note that trying to connect another method will fail, see Broadcast_Signal instead
     //      Number another_number;

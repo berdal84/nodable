@@ -143,7 +143,7 @@ void ndbl::_graph_add_node(Graph* graph, Node* node, Scope* scope)
     {
         VERIFY( node->scope == nullptr, "node must be unscoped, use scope argument instead" );
         VERIFY( scope->node->graph == graph, "the provided scope belong to another graph" );
-        assert(!HAS_FLAGS(node->flags, Node_Flag_WAS_IN_A_SCOPE_ONCE)); // double-check
+        ASSERT(!HAS_FLAGS(node->flags, Node_Flag_WAS_IN_A_SCOPE_ONCE)); // double-check
         scope_append(scope, node);
     }
 
@@ -289,8 +289,8 @@ void ndbl::graph_find_and_destroy_node(Graph* graph, Node* node)
 void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
 {
     // Guards
-    assert(tail != nullptr);
-    assert(head != nullptr);
+    ASSERT(tail != nullptr);
+    ASSERT(head != nullptr);
     ASSERT(HAS_FLAGS(head->flags, Node_Slot::Flag_INPUT ) );
     ASSERT(!head->is_full());
     ASSERT(HAS_FLAGS(tail->flags, Node_Slot::Flag_OUTPUT ) );
@@ -343,8 +343,8 @@ void ndbl::graph_connect(const std::set<Node_Slot*>& tails, Node_Slot* head, Gra
 
 void ndbl::graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
 {
-    assert(tail != nullptr);
-    assert(head != nullptr);
+    ASSERT(tail != nullptr);
+    ASSERT(head != nullptr);
 
     // DirectedEdge is just data, we must add manually cross-references to each end of the edge
     node_slot_add_adjacent( tail, head );

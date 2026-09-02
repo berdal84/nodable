@@ -27,9 +27,9 @@ void scope_deinit(Scope* scope)
     VERIFY(scope->parent == nullptr, "Remove this scope from parent first");
     VERIFY(scope->children.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
     scope_reset_head(scope);
-    assert(scope->head == nullptr);
-    assert(scope->children.empty());
-    assert(scope->variables.empty());
+    ASSERT(scope->head == nullptr);
+    ASSERT(scope->children.empty());
+    ASSERT(scope->variables.empty());
 }
 
 void _scope_update_backbone_cache(const Scope* scope)

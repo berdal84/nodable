@@ -24,7 +24,7 @@ constexpr float PROPERTY_INPUT_SIZE_MIN  = 12.0f;
 
 void ndbl::nodepropertyview_init(Node_Property_View* view, Node_Property* property)
 {
-    assert(property);
+    ASSERT(property);
     view->shape    = Vec2{10.f, 10.f}; // can't be 0,0
     view->property = property;
 }
@@ -40,7 +40,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 
     bool            changed            = false;
     Node*           node               = view->node();
-    assert(node);
+    ASSERT(node);
 
     /*
      * Handle input visibility
@@ -127,7 +127,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
     // Update position and size
     // We want the rectangle to fit the Node_View in height,
     // but we resize it to fit the property input field in width.
-    assert(node->view);
+    ASSERT(node->view);
     Rect new_rect  = node->view->shape.rect(WORLD_SPACE);
     new_rect.min.x = ImGui::GetItemRectMin().x;
     new_rect.max.x = ImGui::GetItemRectMax().x;
@@ -158,15 +158,13 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
     const Node_Slot*    connected_slot = view->connected_slot();
     ImGuiInputTextFlags flags          = ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
 
-    bdc::String_Builder label_sb;
+    bdc::String label;
 
     // Create a label (everything after ## will not be displayed)
     if ( override_label.size )
-        bdc::string_builder_append(label_sb, override_label);
+        label = override_label;
     else
-        bdc::string_builder_appendf(label_sb, "##%s", view->property->name.c_str() );
-    
-    bdc::String label = bdc::string_builder_build_string(label_sb);
+        label = bdc::string_printf(temp_allocator(), "##%s", view->property->name.c_str() );
 
     //
     // Strategy:

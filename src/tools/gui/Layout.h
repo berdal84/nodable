@@ -129,8 +129,8 @@ namespace tools
 
     inline void element_link(Element* a, Element* b)
     {
-        assert(a != nullptr);
-        assert(b != nullptr);
+        ASSERT(a != nullptr);
+        ASSERT(b != nullptr);
 
         b->prev = a;
         a->next = b;
@@ -217,7 +217,7 @@ namespace tools
 
     inline void layout_end()
     {
-        assert(layout()->stack.size() > 0 && "LAYOUT_BEGIN/END mismatch!");
+        VERIFY(layout()->stack.size() > 0, "LAYOUT_BEGIN/END mismatch!");
         auto* current = layout()->stack.top();
         layout()->stack.pop();     
     };
@@ -234,7 +234,7 @@ namespace tools
 
     inline void layout__begin(Axis axis)
     {
-        assert(layout()->elements.size() < layout()->elements.capacity() && "Buffer overflow!");
+        VERIFY(layout()->elements.size() < layout()->elements.capacity(), "Buffer overflow!");
         
         Element* parent = layout()->stack.top();
         Element* elem  = layout_new_container(axis);
@@ -355,8 +355,8 @@ namespace tools
                 continue;
             }
 
-            assert(element.dimension.width != -1);
-            assert(element.dimension.height != -1);
+            ASSERT(element.dimension.width != -1);
+            ASSERT(element.dimension.height != -1);
 
             Vec2 cursor = element.position;
 
@@ -437,16 +437,16 @@ namespace tools
     inline void layout_set_gap(float gap)
     {
         Element* elem = layout()->stack.top();
-        assert(elem->type == Element::Type_CONTAINER);
+        ASSERT(elem->type == Element::Type_CONTAINER);
         elem->container.gap = gap;
     }
 
     inline void layout_push(const Element& elem)
     {
-        assert(layout()->elements.size() < layout()->elements.capacity() && "Buffer overflow!");
+        VERIFY(layout()->elements.size() < layout()->elements.capacity(), "Buffer overflow!");
         
         Element* parent = layout()->stack.top();
-        assert(parent->type == Element::Type_CONTAINER);
+        ASSERT(parent->type == Element::Type_CONTAINER);
 
         Element* new_element = layout_new_elem(elem);
         elem_push_back(parent, new_element);

@@ -90,21 +90,26 @@ void node_deinit(Node* node)
 
     string_release(node->name);
 
-    while( !node->props.empty() )
+    // deinit all props
+    for(auto& prop : node->props )
     {
-        auto result = hashmap_remove( node->props_by_name, string_hash(node->props.back()->name) );
-        ASSERT( result.ok );
-        property_release(node->props.back());
-        node->props.pop_back();
+        property_deinit(prop);
     }
+    // destroy all props
+    node->props.clear();
+
+    // clear the index
     hashmap_release(node->props_by_name);
 
-    while( !node->slots.empty() )
+    // deinit all slots
+    for(auto& slot : node->slots )
     {
-        node_slot_release(node->slots.back());
-        node->slots.pop_back();
+        node_slot_deinit(slot);
     }
+    // destroy all the slots
+    node->slots.clear();
 
+    // clean the index
     node_deinit_component(&node->component, to_component_type(node->type) );
 
     if( node->view )

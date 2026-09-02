@@ -931,7 +931,7 @@ namespace ndbl
 
     Token lang_parse_token(const Language& lang, bdc::String& buffer)
     {
-        assert(buffer.size > 0);
+        ASSERT(buffer.size > 0);
 
         // single-line comment
         if ( buffer.size > 2 && buffer[0] == '/' && buffer[1] == '/')
