@@ -579,11 +579,12 @@ File* ndbl::app_new_file()
 
     app->untitled_file_count++;
 
-    bdc::String temp_name = bdc::string_printf( bdc::temp_allocator(), "Untitled_%i.cpp", app->untitled_file_count);
+    bdc::String temp_name = bdc::string_printf( "Untitled_%i.cpp", app->untitled_file_count);
     
     auto* file = bdc::memory_new<File>();
     file_init(file);
     file->path = temp_name.c_str();
+    file->name = temp_name;
 
     return app_add_file(file);
 }
