@@ -119,13 +119,12 @@ File_Read_Result file_read(const Path& path, bdc::Allocator* allocator)
     String_Builder sb{};
     string_builder_init(sb);
 
-    const int MAX_LINE_LENGTH = 256;
-    char buffer[MAX_LINE_LENGTH];
-    while (stream.getline(buffer, MAX_LINE_LENGTH))
+    const int MAX_LINE_LENGTH = 512;
+    char bytes[MAX_LINE_LENGTH];
+    while ( stream.getline(bytes, MAX_LINE_LENGTH) )
     {
-        std::streamsize bytes_read = stream.gcount();
-        String str = string_copy( String{buffer, (u32_t)bytes_read}, temp_allocator() );
-        string_builder_append(sb, str);
+        std::streamsize bytes_len = stream.gcount();
+        string_builder_appendf(sb, "%.*s\n", bytes_len, bytes);
     }
 
     if (stream.eof() == false && stream.fail())
@@ -134,7 +133,11 @@ File_Read_Result file_read(const Path& path, bdc::Allocator* allocator)
         return { .ok = false, .error = "Line exceeded buffer size!" };
     }
 
-    return { .ok = true, .content = string_builder_build_string(sb, allocator ) };
+    String content = string_builder_build_string(sb, allocator );
+
+    printf("Content: %s\n", content.data);
+    
+    return { .ok = true, .content = content };
 }
 
 File_Write_Result file_write(const Path& path, const String& content)
