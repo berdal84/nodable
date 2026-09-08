@@ -83,50 +83,40 @@ namespace bdc
         char*               head;
         Allocation_Header*  prev_acquired; // usefull in case realloc just after a malloc, we can keep the same adress since there is nothing after that point.
     };
+    extern Allocator*                   allocator; // The current allocator    
+    extern Allocator                    temp_allocator;
+    extern Ring_Buffer                  temp_allocator_buffer;
+    extern Memory_Allocation_Tracker    temp_allocator_tracker;
 
-    struct Memory_Manager_Context
-    {
-        Allocator                   temp_allocator;
-        Ring_Buffer                 temp_allocator_buffer;
-        Allocator                   heap_allocator;
-        Allocator*                  default_allocator;
-        Memory_Allocation_Tracker   heap_allocator_tracker;
-        Memory_Allocation_Tracker   temp_allocator_tracker;
-    };
+    extern Allocator                    heap_allocator;
+    extern Memory_Allocation_Tracker    heap_allocator_tracker;
+
+    void                                memory_manager_init(size_t temp_buffer_size = 5 * 1024 * 1024 /* 5M*/);
+    void                                memory_manager_clear_trackers();
+    void                                memory_manager_shutdown();
+    Memory_Manager_Report*              memory_manager_generate_report(Memory_Manager_Report* report = nullptr);
+    void                                memory_manager_report_print(Memory_Manager_Report* report, bool asserts_no_leaks = true);
+    size_t                              memory_manager_reset_temp_allocator_buffer();
+    void                                push_allocator(Allocator&);
+    void                                pop_allocator();
     
-    Memory_Manager_Context*     memory_manager_init(size_t temp_buffer_size = 5 * 1024 * 1024 /* 5M*/);
-    void                        memory_manager_clear_trackers();
-    void                        memory_manager_shutdown();
-    Memory_Manager_Report*      memory_manager_generate_report(Memory_Manager_Report* report = nullptr);
-    void                        memory_manager_report_print(Memory_Manager_Report* report, bool asserts_no_leaks = true);
-    Memory_Manager_Context*     memory_manager();
-
-    inline Allocator*           temp_allocator()                { return &memory_manager()->temp_allocator;         }
-    size_t                      temp_allocator_buffer_reset();
-    inline Ring_Buffer&         temp_allocator_buffer()         { return memory_manager()->temp_allocator_buffer;   }
-    inline Allocator*           heap_allocator()                { return &memory_manager()->heap_allocator;         }
-    inline Allocator*           default_allocator()             { return memory_manager()->default_allocator;       }
-    
-    inline Memory_Allocation_Tracker& heap_allocator_tracker() { return memory_manager()->heap_allocator_tracker; }
-    inline Memory_Allocation_Tracker& temp_allocator_tracker() { return memory_manager()->temp_allocator_tracker; }
-
-    [[nodiscard]] inline void* memory_malloc(size_t size, Allocator* allocator = default_allocator() )
+    [[nodiscard]] inline void* memory_malloc(size_t size, Allocator* _allocator = allocator )
     {
-        void* ptr = allocator->proc_malloc( size );
+        void* ptr = _allocator->proc_malloc( size );
         BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE( "Allocated address %p", ptr );
         return ptr;
     }
 
-    inline void memory_free(void* ptr, Allocator* allocator = default_allocator() )
+    inline void memory_free(void* ptr, Allocator* _allocator = allocator )
     {
         BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE( "Freeing address %p", ptr );
-        return allocator->proc_free( ptr );
+        return _allocator->proc_free( ptr );
     }
 
-    [[nodiscard]] inline void* memory_realloc(void* ptr, size_t size, Allocator* allocator = default_allocator() )
+    [[nodiscard]] inline void* memory_realloc(void* ptr, size_t size, Allocator* _allocator = allocator )
     {
         BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE( "Reallocating address %p", ptr );
-        return allocator->proc_realloc(ptr, size);
+        return _allocator->proc_realloc(ptr, size);
     }
 
     template<typename Type>
@@ -136,59 +126,44 @@ namespace bdc
     }
 
     template<typename Type>
-    [[nodiscard]] inline Type* memory_malloc(Allocator* allocator = default_allocator() )
+    [[nodiscard]] inline Type* memory_malloc(Allocator* _allocator = allocator )
     {
-        return reinterpret_cast<Type*>( memory_malloc( sizeof(Type), allocator ));
+        return reinterpret_cast<Type*>( memory_malloc( sizeof(Type), _allocator ));
     }
     
     template<typename Type>
-    [[nodiscard]] inline Type* memory_realloc( Type* ptr, Allocator* allocator = default_allocator() )
+    [[nodiscard]] inline Type* memory_realloc( Type* ptr, Allocator* _allocator = allocator )
     {
-        return reinterpret_cast<Type*>(allocator->proc_realloc( ptr, sizeof(Type) ));
+        return reinterpret_cast<Type*>(_allocator->proc_realloc( ptr, sizeof(Type) ));
     }
 
     template<typename Type>
-    [[nodiscard]] inline Type* memory_malloc_array( size_t elem_count , Allocator* allocator = default_allocator() )
+    [[nodiscard]] inline Type* memory_malloc_array( size_t elem_count , Allocator* _allocator = allocator )
     {
-        return reinterpret_cast<Type*>( memory_malloc( sizeof(Type) * elem_count, allocator ) );
+        return reinterpret_cast<Type*>( memory_malloc( sizeof(Type) * elem_count, _allocator ) );
     }
 
     template<typename Type>
-    [[nodiscard]] inline Type* memory_realloc_array( Type* ptr, size_t elem_count, Allocator* allocator = default_allocator() )
+    [[nodiscard]] inline Type* memory_realloc_array( Type* ptr, size_t elem_count, Allocator* _allocator = allocator )
     {
-        return reinterpret_cast<Type*>( memory_realloc( ptr, sizeof(Type) * elem_count, allocator ) );
+        return reinterpret_cast<Type*>( memory_realloc( ptr, sizeof(Type) * elem_count, _allocator ) );
     }
 
     
     template<typename Type>
-    [[nodiscard]] inline Type* memory_new(Allocator* allocator = default_allocator() )
+    [[nodiscard]] inline Type* memory_new(Allocator* _allocator = allocator )
     {
-        Type* ptr = memory_malloc<Type>( allocator );
+        Type* ptr = memory_malloc<Type>( _allocator );
         new (ptr) Type();
         return ptr;
     }
 
     template<typename Type>
-    inline void memory_delete(Type* ptr, Allocator* allocator = default_allocator() )
+    inline void memory_delete(Type* ptr, Allocator* _allocator = allocator )
     {
         ptr->~Type();
-        memory_free( ptr, allocator );
+        memory_free( ptr, _allocator );
     }
-
-    // template<typename Type> inline Type* memory_new_array(size_t elem_count, Allocator* allocator = default_allocator() )
-    // {
-    //     Type* ptr = memory_malloc<Type>( allocator );
-    //     for(size_t i = 0; i < elem_count; ++i)
-    //         new (ptr + i) Type();
-    //     return ptr;
-    // }
-
-    // template<typename Type> inline void memory_delete_array(Type* ptr, size_t elem_count, Allocator* allocator = default_allocator() )
-    // {
-    //     for(size_t i = 0; i < elem_count; ++i)
-    //         (ptr + i)->~Type();
-    //     memory_free( ptr, allocator );
-    // }
 
     template<typename Type>
     bool is_zero_initialized(const Type& obj)

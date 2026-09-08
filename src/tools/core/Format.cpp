@@ -12,19 +12,19 @@ namespace tools
 
     String Format::number(double d)
     {
-        String result = string_printf(temp_allocator(), "%#llx", d);
+        String result = string_tprintf("%#llx", d);
         limit_trailing_zeros(result, 1);
         return result;
     }
 
     String Format::hexadecimal(u64_t _addr)
     {
-        return string_printf(temp_allocator(), "%#llx", _addr);
+        return string_tprintf("%#llx", _addr);
     }
 
     String Format::address(const void* _addr)
     {
-        return string_printf(temp_allocator(), "%p", _addr);
+        return string_tprintf("%p", _addr);
     }
 
     void Format::limit_trailing_zeros(String& str, int _trailing_max)
@@ -48,13 +48,13 @@ namespace tools
 
     }
 
-    String Format::time_point_to_string(const std::chrono::system_clock::time_point &time_point)
+    String Format::tprint_time_point(const std::chrono::system_clock::time_point &time_point)
     {
         std::time_t time = std::chrono::system_clock::to_time_t(time_point);
         std::tm* tm_info = std::localtime(&time);
 
         String result{};
-        result.data  = memory_malloc_array<char>( 32, temp_allocator() );
+        result.data  = memory_malloc_array<char>( 32, &temp_allocator );
         result.size  = std::strftime(result.data, 31, "%Y-%m-%d %H:%M:%S", tm_info);
         result.flags = String_Flags_IS_NULL_TERMINATED;
 
@@ -77,7 +77,7 @@ namespace tools
         string_builder_init(sb);
         string_builder_appendf(sb, "%s%s%s%s%s", padding.c_str(), pre.c_str(), title.c_str(), post.c_str(), padding.c_str() );
         
-        String result = string_builder_build_string(sb);
+        String result = string_builder_build_tstring(sb);
         return result;
     }
 } // namespace bdc

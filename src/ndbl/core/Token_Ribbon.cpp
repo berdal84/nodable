@@ -65,7 +65,7 @@ String Token_Ribbon::to_string() const
         string_builder_append(sb, "\n");
     }
 
-    return string_builder_build_string(sb).c_str();
+    return string_builder_build_tstring(sb).c_str();
 }
 
 Token Token_Ribbon::eat_if(Token_Type expectedType)
@@ -130,7 +130,7 @@ String Token_Ribbon::range_to_string(size_t begin, size_t end) const
     {
         string_builder_append(sb, tokens[i].view() );
     }
-    return string_builder_build_string(sb);
+    return string_builder_build_tstring(sb);
 }
 
 } // namespace ndbl

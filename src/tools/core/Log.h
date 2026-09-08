@@ -140,10 +140,10 @@ namespace tools
         // message
         String_Builder sb{};
         string_builder_init(sb);
-        string_builder_appendf(sb, "[%s|%s|%s] ", Format::time_point_to_string(message.date).c_str(), verbosity_info[verbosity].label, category);
+        string_builder_appendf(sb, "[%s|%s|%s] ", Format::tprint_time_point(message.date).c_str(), verbosity_info[verbosity].label, category);
         string_builder_appendf(sb, fmt, args...);
 
-        message.text = string_builder_build_string(sb);
+        message.text = string_builder_build_tstring(sb);
 
         // print if allowed
         if ( message.verbosity <= get_log_verbosity(category) )

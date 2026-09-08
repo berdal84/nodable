@@ -118,10 +118,10 @@ namespace bdc
     template<Is_Hash_Map T>
     void hashmap_init(
         T& hashmap, 
-        Allocator* allocator = default_allocator(),
+        Allocator* _allocator = nullptr,
         typename T::Hash_Proc_Type hash_proc = &hash<Hash_Map_Key<T>, Hash_Map_Hash<T>>)
     {
-        hashmap.allocator = allocator;
+        hashmap.allocator = _allocator ? _allocator : allocator;
         hashmap.size      = 0;
         hashmap.capacity  = 0;
         hashmap.hash_proc = hash_proc;

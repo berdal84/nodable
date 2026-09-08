@@ -7,6 +7,16 @@
 
 namespace bdc
 {
+    constexpr static size_t      ALLOCATOR_STACK_CAPACITY = 64;
+    static Allocator*            allocator_stack[ALLOCATOR_STACK_CAPACITY];
+    static size_t                allocator_stack_size;
+    Allocator*                   allocator; // The current allocator    
+    Allocator                    temp_allocator;
+    Ring_Buffer                  temp_allocator_buffer;
+    Memory_Allocation_Tracker    temp_allocator_tracker;
+    Allocator                    heap_allocator;
+    Memory_Allocation_Tracker    heap_allocator_tracker;
+
     inline Allocation_Header* get_header(void* fat_pointer)
     {
         if( fat_pointer == nullptr)
@@ -25,14 +35,6 @@ namespace bdc
         return ((char*)header) + sizeof(Allocation_Header::size);
     }
 
-    static Memory_Manager_Context* g_memory_manager_ctx;
-
-    Memory_Manager_Context* memory_manager()
-    {
-        assert(g_memory_manager_ctx && "did you call initialize_context(Context*) ?"); 
-        return g_memory_manager_ctx;
-    }
-
     Allocation_Header* temp_allocator_buffer_acquire(size_t size)
     {
         if ( size == 0 )
@@ -41,32 +43,29 @@ namespace bdc
             return nullptr;
         }
         
-        Ring_Buffer& ring_buffer = temp_allocator_buffer();
         size_t allocation_size = sizeof(Allocation_Header) + size;
-        size_t size_used = (size_t)ring_buffer.head - (size_t)ring_buffer.data;
+        size_t size_used = (size_t)temp_allocator_buffer.head - (size_t)temp_allocator_buffer.data;
 
-        if ( allocation_size > ring_buffer.size - size_used )
+        if ( allocation_size > temp_allocator_buffer.size - size_used )
         {
-            BDC_LOG("temp_allocator_acquire() - WARNING: ring_buffer has not enough space left (usage %zu/%zu Bytes) or is too small to allocate %zu Bytes.\n", size_used, ring_buffer.size, size);
+            BDC_LOG("temp_allocator_acquire() - WARNING: temp_allocator_buffer has not enough space left (usage %zu/%zu Bytes) or is too small to allocate %zu Bytes.\n", size_used, ring_buffer.size, size);
             assert(false && "temp buffer is full!");
         }
 
-        auto ptr = (Allocation_Header*)ring_buffer.head;
+        auto ptr = (Allocation_Header*)temp_allocator_buffer.head;
         ptr->size = size;
 
-        ring_buffer.prev_acquired = ptr;
-        ring_buffer.head += allocation_size;
+        temp_allocator_buffer.prev_acquired = ptr;
+        temp_allocator_buffer.head += allocation_size;
 
         return ptr;
     }
 
-    size_t temp_allocator_buffer_reset()
-    {
-        Ring_Buffer& ring_buffer = temp_allocator_buffer();
-        
-        size_t freed_space        = ring_buffer.head - ring_buffer.data;
-        ring_buffer.head          = ring_buffer.data;
-        ring_buffer.prev_acquired = nullptr;
+    size_t memory_manager_reset_temp_allocator_buffer()
+    {       
+        size_t freed_space                  = temp_allocator_buffer.head - temp_allocator_buffer.data;
+        temp_allocator_buffer.head          = temp_allocator_buffer.data;
+        temp_allocator_buffer.prev_acquired = nullptr;
 
         #ifdef BDC_DEBUG_ALLOCATORS
             temp_allocator_tracker().allocations.clear();
@@ -74,6 +73,22 @@ namespace bdc
 
         return freed_space;
     }
+
+    void push_allocator(Allocator& _allocator_to_push)
+    {
+        assert(allocator_stack_size < ALLOCATOR_STACK_CAPACITY);
+        allocator_stack[allocator_stack_size] = &_allocator_to_push;
+        allocator = &_allocator_to_push;
+        allocator_stack_size++;
+    }
+
+    void pop_allocator()
+    {
+        assert(allocator_stack_size > 0);
+        allocator_stack_size--;
+        allocator = allocator_stack[allocator_stack_size-1];
+    }
+
 
     void* temp_allocator_malloc(size_t size)
     {
@@ -120,9 +135,9 @@ namespace bdc
         #endif
 
         // When ptr was previously aquired, we can simply extend it
-        if ( src_header == temp_allocator_buffer().prev_acquired )
+        if ( src_header == temp_allocator_buffer.prev_acquired )
         {
-            temp_allocator_buffer().head = (char*)temp_allocator_buffer().prev_acquired;
+            temp_allocator_buffer.head = (char*)temp_allocator_buffer.prev_acquired;
         }
         
         Allocation_Header* dest_header = temp_allocator_buffer_acquire(size);
@@ -181,36 +196,31 @@ namespace bdc
         return new_ptr;
     }
 
-    Memory_Manager_Context* memory_manager_init(size_t temp_buffer_size)
+    void memory_manager_init(size_t temp_buffer_size)
     {
         BDC_LOG_DEBUG("memory_manager_init() ...\n");
 
-        // has to be allocated with new, cannot use memory_new
-        Memory_Manager_Context* context = new Memory_Manager_Context();
-
         BDC_LOG_DEBUG(" -- Configuring allocators ...\n");
 
-        context->temp_allocator = {
+        temp_allocator = {
             .name         = "temp_allocator",
             .proc_malloc  = &temp_allocator_malloc,
             .proc_free    = &temp_allocator_free,
             .proc_realloc = &temp_allocator_realloc
         };
 
-        context->heap_allocator = {
+        heap_allocator = {
             .name         = "heap_allocator",
             .proc_malloc  = &heap_allocator_malloc,
             .proc_free    = &heap_allocator_free,
             .proc_realloc = &heap_allocator_realloc
         };
 
-        context->default_allocator = &context->heap_allocator;
-
         // Allocate temporary buffer
         BDC_LOG_DEBUG(" -- Allocating %zu bytes for the temp_allocator_buffer ...\n", temp_buffer_size);
         char* data = reinterpret_cast<char*>(std::malloc(temp_buffer_size));
         assert(data);        
-        context->temp_allocator_buffer = {
+        temp_allocator_buffer = {
             .data = data,
             .size = temp_buffer_size,
             .head = data
@@ -218,18 +228,16 @@ namespace bdc
 
         #ifdef BDC_DEBUG_ALLOCATORS
         BDC_LOG_DEBUG(" -- Setting up heap_allocator_tracker ...\n");
-        context->heap_allocator_tracker = {
-            .allocator = &context->heap_allocator
+        heap_allocator_tracker = {
+            .allocator = &heap_allocator
         };
         BDC_LOG_DEBUG(" -- Setting up temp_allocator_tracker ...\n");
-        context->temp_allocator_tracker = {
-            .allocator = &context->temp_allocator
+        temp_allocator_tracker = {
+            .allocator = &temp_allocator
         };
         #endif
 
-        g_memory_manager_ctx = context;
-
-        return g_memory_manager_ctx;
+        push_allocator(heap_allocator);
     }
 
     Memory_Manager_Report* memory_manager_generate_report(Memory_Manager_Report* report)
@@ -258,23 +266,23 @@ namespace bdc
 
     void memory_manager_shutdown()
     {
-        BDC_LOG_DEBUG("allocators_shutdown() ...\n");
-        assert(g_memory_manager_ctx != nullptr); // Did you call this function twice? Or did you forgot to call allocators_init() ?
+        BDC_LOG_DEBUG("memory_manager_shutdown() ...\n");
+
+        while( allocator_stack_size )
+        {
+            pop_allocator();
+        }
 
         BDC_LOG_DEBUG(" -- Releasing temporary buffer...\n");
         BDC_LOG_DEBUG("    Usage was %zu Byte(s) (total available: %zu Bytes).\n", (size_t)g_memory_manager_ctx->temp_allocator_buffer.head - (size_t)g_memory_manager_ctx->temp_allocator_buffer.data, g_memory_manager_ctx->temp_allocator_buffer.size );
-        std::free(g_memory_manager_ctx->temp_allocator_buffer.data);
-        g_memory_manager_ctx->temp_allocator_buffer.data = nullptr;
-
-        // has to be deleted, cannot use memory_delete
-        delete g_memory_manager_ctx;        
-        g_memory_manager_ctx = nullptr;
+        std::free(temp_allocator_buffer.data);
+        temp_allocator_buffer.data = nullptr;
     }
 
     void memory_manager_clear_trackers()
     {
-        heap_allocator_tracker().allocations.clear();
-        temp_allocator_tracker().allocations.clear();
+        heap_allocator_tracker.allocations.clear();
+        temp_allocator_tracker.allocations.clear();
     }
 
     void memory_manager_report_print(Memory_Manager_Report* report, bool asserts_no_leaks)

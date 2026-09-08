@@ -131,7 +131,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
         else
             lang_serialize_property(language(), sb, view->property);
 
-        ImGui::Text("source: \"%s\"", bdc::string_builder_build_string(sb).c_str());
+        ImGui::Text("source: \"%s\"", bdc::string_builder_build_tstring(sb).c_str());
 
         ImGuiEx::EndTooltip();
     }
@@ -176,7 +176,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
     if ( override_label.size )
         label = override_label;
     else
-        label = bdc::string_printf(temp_allocator(), "##%s", view->property->name.c_str() );
+        label = bdc::string_tprintf("##%s", view->property->name.c_str() );
 
     //
     // Strategy:
@@ -192,7 +192,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
                 case Node_Type_VARIABLE_REF:
                 {
                     const Token &connected_property_token = connected_slot->property->token;
-                    bdc::String buf = bdc::string_copy( connected_property_token.word_view(), bdc::temp_allocator());
+                    bdc::String buf = bdc::string_copy( connected_property_token.word_view());
                     float w = nodepropertyview_calc_input_width(buf);
                     ImGui::PushItemWidth(w);
                     Node_View* nodeview = connected_slot->node->view;
@@ -225,7 +225,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
     {
         case Token_Type_identifier:
         {
-            bdc::String buf = bdc::string_copy(property_token.word_view().c_str(), bdc::temp_allocator());
+            bdc::String buf = bdc::string_tcopy(property_token.word_view().c_str());
             flags = 0; // ReadOnly always OFF. ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
             if (ImGui::InputText(label.c_str(), buf.data, buf.size, flags))
             {
@@ -280,7 +280,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
         default:
         {
-            bdc::String value_str = string_copy( property_token.word_view(), bdc::temp_allocator() );
+            bdc::String value_str = string_tcopy( property_token.word_view() );
 
             if (ImGui::InputText(label.c_str(), value_str.data, value_str.size, flags))
             {

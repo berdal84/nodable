@@ -63,19 +63,20 @@ namespace bdc
     static_assert( sizeof(String) == 24, "String has an unexpected size!" );
 
     void            string_reset(String&);
-    void            string_release(String&, Allocator* release_allocator = default_allocator());
+    void            string_release(String&);
     u32_t           string_rfind(const String&, i8_t c);
     String          string_lsplit(const String&, u32_t index);
     String          string_rsplit(const String&, u32_t index);
     String          string_basename(const String&);
     String          string_stem(const String&);
     const i8_t*     string_cstr(const String&);
-    String          string_copy(const String& source, Allocator* copy_allocator = default_allocator() );
-    String&         string_copy(String& target, const String& source, Allocator* copy_allocator = default_allocator() );
+    String          string_copy(const String& source);
+    String          string_tcopy(const String& source);
+    String&         string_copy(String& target, const String& source);
     int             string_compare(const String&, const String&);
-    String          string_printf(Allocator* allocator, const i8_t* fmt, auto&&...args);
-    String          string_printf(const i8_t* fmt, auto&&...args );
-    String          string_concat(const String& a, const String& b, Allocator* = default_allocator() );
+    String          string_tprintf(const char* fmt, auto&& ...args);
+    String          string_printf(const char* fmt, auto&&...args );
+    String          string_concat(const String& a, const String& b);
     String          string_case_insensitive_find(const String& haystack, const String& needle);
     String          string_unquote(const String&);
     String          string_view(const String&);
@@ -135,12 +136,15 @@ namespace bdc
     , flags(other.flags)
     {}
 
-    String string_printf(const i8_t* fmt, auto&&...args )
+    String string_tprintf(const i8_t* fmt, auto&&...args )
     {
-        return string_printf(temp_allocator(), fmt, std::forward<decltype(args)>(args)...);
+        push_allocator( temp_allocator );
+        String result = string_printf(fmt, std::forward<decltype(args)>(args)...);
+        pop_allocator();
+        return result;
     }
 
-    String string_printf(Allocator* allocator, const i8_t* fmt, auto&&...args )
+    String string_printf(const i8_t* fmt, auto&&...args )
     {   
         static_assert( sizeof...(args) != 0, "No arguments, use string_copy instead.");
 
@@ -155,7 +159,7 @@ namespace bdc
 
         // allocate
         assert(required_alloc_size < String::invalid_pos);
-        i8_t* string_data = memory_malloc_array<i8_t>(required_alloc_size, allocator);
+        i8_t* string_data = memory_malloc_array<i8_t>(required_alloc_size);
         assert(string_data && "Unable to allocate memory for string_printf!");
 
         // print

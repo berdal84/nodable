@@ -33,7 +33,7 @@ bdc::String ndbl::nodable_serialize(const App_Headless_State* state )
     String_Builder sb;
     string_builder_init(sb);
     lang_serialize_graph(language(), sb, state->graph);
-    return string_builder_build_string(sb);
+    return string_builder_build_tstring(sb);
 }
 
 Graph* ndbl::nodable_parse(const App_Headless_State* state,  const bdc::String& in_code )

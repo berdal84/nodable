@@ -55,8 +55,8 @@ bdc::String ndbl::nodeslotview_compute_tooltip(const Node_Slot_View* view)
 
     switch (view->slot->type_and_order())
     {
-        case Node_Slot::Flag_INPUT:  return bdc::string_printf( bdc::temp_allocator(), "%s (in)",  prop_name.c_str());
-        case Node_Slot::Flag_OUTPUT: return bdc::string_printf( bdc::temp_allocator(), "%s (out)", prop_name.c_str());
+        case Node_Slot::Flag_INPUT:  return bdc::string_tprintf( "%s (in)",  prop_name.c_str());
+        case Node_Slot::Flag_OUTPUT: return bdc::string_tprintf( "%s (out)", prop_name.c_str());
     }
 
     return "";

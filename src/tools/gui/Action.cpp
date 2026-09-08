@@ -16,6 +16,6 @@ namespace tools
         if( key )                   string_builder_append( sb, SDL_GetKeyName(key));
         if( !description.empty() )  string_builder_append( sb, description);
 
-        return string_builder_build_string(sb);
+        return string_builder_build_tstring(sb);
     }
 } // namespace tools

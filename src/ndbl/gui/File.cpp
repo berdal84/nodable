@@ -84,7 +84,7 @@ void file_update_text_from_graph(File* file, bool isolation_on)
         bdc::String_Builder out;
         string_builder_init(out);
         lang_serialize_node(language(), out, root_node, Serialization_Flag_RECURSE);
-        bdc::String temp_str = bdc::string_builder_build_string(out); // the TextEditor in FileView will do a copy via an std::string
+        bdc::String temp_str = bdc::string_builder_build_tstring(out); // the TextEditor in FileView will do a copy via an std::string
         fileview_set_text( &file->view, temp_str, isolation_on );
     }
     else
@@ -180,7 +180,9 @@ bool file_read( File* file, const Path& path)
 {
     TOOLS_LOG(Verbosity_Diagnostic, "File", "\"%s\" loading... (%s).\n", path.filename().c_str(), path.c_str());
 
-    File_Read_Result result = file_read(path, temp_allocator() );
+    push_allocator(temp_allocator);
+    File_Read_Result result = file_read(path);
+    pop_allocator();
 
     if( !result.ok )
     {

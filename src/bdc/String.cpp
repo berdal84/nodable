@@ -14,7 +14,7 @@ namespace bdc
         return string_cstr(*this);
     }
 
-    String string_concat(const String& a, const String& b, Allocator* allocator )
+    String string_concat(const String& a, const String& b )
     {
         //printf( "a: '%s' (size: %i)\n", a.c_str(), a.size );
         //printf( "b: '%s' (size: %i)\n", b.c_str(), b.size );
@@ -41,9 +41,9 @@ namespace bdc
         str.size = 0;
     }
 
-    void string_release(String& str, Allocator* release_allocator )
+    void string_release(String& str )
     {
-        release_allocator->proc_free(str.data);
+        allocator->proc_free(str.data);
         string_reset(str);
     }
 
@@ -121,25 +121,33 @@ namespace bdc
             return str.data;
         }
 
-        String result = string_printf(temp_allocator(), "%.*s", str.size, str.data);
+        String result = string_tprintf("%.*s", str.size, str.data);
 
         return result.data;
     }
 
-    String string_copy(const String& source, Allocator* copy_allocator )
+    String string_tcopy(const String& source)
+    {
+        push_allocator(temp_allocator);
+        String result = string_copy(source);
+        pop_allocator();
+        return result;
+    }
+
+    String string_copy(const String& source )
     {
         if( source.size == 0)
             return {};
             
         String result{};
-        string_copy( result, source, copy_allocator);
+        string_copy( result, source);
         return result;
     }
 
 
-    String& string_copy(String& target, const String& source, Allocator* copy_allocator )
+    String& string_copy(String& target, const String& source )
     {
-        target.data = memory_malloc_array<i8_t>(source.size, copy_allocator);
+        target.data = memory_malloc_array<i8_t>(source.size, allocator);
         target.size = source.size;
 
         std::memcpy(target.data, source.data, source.size + 1); // null terminated

@@ -37,14 +37,14 @@ String Token::json() const
     string_builder_append(sb, "{\n");
 
     VERIFY(false, "TODO: implement push_allocator(Allocator*) (with auto pop and scope end)");
-    string_builder_append(sb, string_printf(temp_allocator(), "\ttype: %i,\n", type));
-    string_builder_append(sb, string_printf(temp_allocator(),"\tprefix_view: \"%s\",\n", prefix_view().c_str() ) );
-    string_builder_append(sb, string_printf(temp_allocator(),"\tword_view: \"%s\",\n", word_view().c_str() ) );
-    string_builder_append(sb, string_printf(temp_allocator(),"\tsuffix: \"%s\",\n", suffix_view().c_str() ) );
+    string_builder_append(sb, string_tprintf("\ttype: %i,\n", type));
+    string_builder_append(sb, string_tprintf("\tprefix_view: \"%s\",\n", prefix_view().c_str() ) );
+    string_builder_append(sb, string_tprintf("\tword_view: \"%s\",\n", word_view().c_str() ) );
+    string_builder_append(sb, string_tprintf("\tsuffix: \"%s\",\n", suffix_view().c_str() ) );
 
     string_builder_append(sb, " }");
 
-    return string_builder_build_string(sb);
+    return string_builder_build_tstring(sb);
 }
 
 void Token::take_prefix_suffix_from(Token* source)
@@ -60,7 +60,7 @@ void Token::take_prefix_suffix_from(Token* source)
     string_builder_append(sb, word_view() );
     string_builder_append(sb, source->suffix_view() );
 
-    i8_t* new_data = string_builder_build_string(sb, heap_allocator()).data;
+    i8_t* new_data = string_builder_build_string(sb).data;
 
     if( owns_data )
     {

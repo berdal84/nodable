@@ -62,7 +62,7 @@ namespace tools
         bdc::String error;
     };
 
-    File_Read_Result file_read(const tools::Path& path, bdc::Allocator* = bdc::default_allocator() );
+    File_Read_Result file_read(const tools::Path& path );
 
     struct File_Write_Result
     {

@@ -22,8 +22,8 @@ void ndbl::fileview_init(File_View* file_view, File* file)
     Config* cfg = config();
 
     file_view->file = file;
-    file_view->text_overlay_window_name  = bdc::string_printf( heap_allocator(), "%s_text_overlay" , file->name.data );
-    file_view->graph_overlay_window_name = bdc::string_printf( heap_allocator(), "%s_graph_overlay", file->name.data );
+    file_view->text_overlay_window_name  = bdc::string_printf( "%s_text_overlay" , file->name.data );
+    file_view->graph_overlay_window_name = bdc::string_printf( "%s_graph_overlay", file->name.data );
 
 	file_view->text_editor.SetImGuiChildIgnored(true);
 	file_view->text_editor.SetPalette( cfg->ui_text_textEditorPalette );
@@ -78,7 +78,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
     {
         ImGui::SameLine();
 
-        bdc::String label = bdc::string_printf(bdc::temp_allocator(), "##%i", cmd_pos);
+        bdc::String label = bdc::string_tprintf("##%i", cmd_pos);
 
         // Draw a highlighted button for the current history position
         if (cmd_pos == 0) {

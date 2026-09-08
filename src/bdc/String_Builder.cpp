@@ -4,7 +4,7 @@ namespace bdc
 {
     void string_builder_init(String_Builder& sb)
     {
-        sb.allocator = temp_allocator();
+        sb.allocator = &temp_allocator;
         array_init(sb.buffer, 0, sb.allocator);
     }
 
@@ -31,10 +31,16 @@ namespace bdc
         return sb;
     }
 
-    String string_builder_build_string(String_Builder& sb, String separator, Allocator* allocator)
+    String string_builder_build_tstring(String_Builder& sb, String separator)
     {
-        assert(allocator != nullptr);
+        push_allocator( temp_allocator );
+        String result = string_builder_build_string(sb, separator);
+        pop_allocator();
+        return result;
+    }
 
+    String string_builder_build_string(String_Builder& sb, String separator)
+    {
         // compute the size of the output string
         u32_t size = 0;
 
@@ -80,11 +86,6 @@ namespace bdc
         String result(data, size-1, String_Flags_IS_NULL_TERMINATED);
 
         return result;
-    }
-
-    String string_builder_build_string(String_Builder& sb, Allocator* allocator)
-    {
-        return string_builder_build_string(sb, "", allocator);
     }
 
 } // namespace bdc

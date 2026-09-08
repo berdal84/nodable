@@ -49,7 +49,9 @@ public:
     // load a file relative to executable directory
     String load_file(const Path& path)
     {
-        File_Read_Result result = file_read(path.c_str(), temp_allocator() );
+        push_allocator(temp_allocator);
+        File_Read_Result result = file_read(path.c_str());
+        pop_allocator();
         if(!result.ok)
         {
             TOOLS_LOG(Verbosity_Error, __FILE_NAME__, "%s\n", result.error.c_str() );

@@ -170,7 +170,7 @@ bdc::String ndbl::command_manager_get_cmd_description_at(int _cmd_position)
         }
 	}
 
-	return bdc::string_builder_build_string(sb);
+	return bdc::string_builder_build_tstring(sb);
 }
 
 std::pair<int, int> ndbl::command_manager_get_command_id_range()

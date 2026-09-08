@@ -44,12 +44,12 @@ int main()
         {
             memory_manager_init();
 
-            void* data = temp_allocator()->proc_malloc(sizeof(size_t));
+            void* data = temp_allocator.proc_malloc(sizeof(size_t));
             *(size_t*)data = 42;
 
-            temp_allocator()->proc_malloc(64);
+            temp_allocator.proc_malloc(64);
 
-            data = temp_allocator()->proc_realloc(data, 2*sizeof(size_t) );
+            data = temp_allocator.proc_realloc(data, 2*sizeof(size_t) );
             TEST_EXPECTS( *(size_t*)data == 42 );
 
             memory_manager_shutdown();           
@@ -60,7 +60,7 @@ int main()
         {
             memory_manager_init();
 
-            heap_allocator()->proc_malloc(64); // leak on purpose...
+            heap_allocator.proc_malloc(64); // leak on purpose...
 
             Memory_Manager_Report report{};
             memory_manager_generate_report(&report);
@@ -76,8 +76,8 @@ int main()
         {
             memory_manager_init();
 
-            void* data = heap_allocator()->proc_malloc(64);
-            heap_allocator()->proc_free(data);
+            void* data = heap_allocator.proc_malloc(64);
+            heap_allocator.proc_free(data);
 
             Memory_Manager_Report report{};
             memory_manager_generate_report(&report);
@@ -93,7 +93,7 @@ int main()
         {
             memory_manager_init();
 
-            temp_allocator()->proc_malloc(64); // we don't care this leaks
+            temp_allocator.proc_malloc(64); // we don't care this leaks
 
             Memory_Manager_Report report{};
             memory_manager_generate_report(&report);
@@ -109,13 +109,13 @@ int main()
         {
             memory_manager_init();
 
-            temp_allocator()->proc_malloc( temp_allocator_buffer().size / 3 * 2 );            // take 66%
-            void* data1 = temp_allocator()->proc_malloc( temp_allocator_buffer().size / 2 );    // try to get 50%
+            temp_allocator.proc_malloc( temp_allocator_buffer.size / 3 * 2 );            // take 66%
+            void* data1 = temp_allocator.proc_malloc( temp_allocator_buffer.size / 2 );    // try to get 50%
             TEST_EXPECTS( data1 == nullptr );
 
-            temp_allocator_buffer_reset();
+            memory_manager_reset_temp_allocator_buffer();
 
-            void* data2 = temp_allocator()->proc_malloc( temp_allocator_buffer().size + 1 ); // try to get more than possible
+            void* data2 = temp_allocator.proc_malloc( temp_allocator_buffer.size + 1 ); // try to get more than possible
             TEST_EXPECTS( data2 == nullptr );
 
             Memory_Manager_Report report{};
@@ -230,7 +230,7 @@ int main()
         TEST_BEGIN( string_copy )
         {
             String a = "file a.jpg";
-            String b = string_copy( a, temp_allocator());
+            String b = string_tcopy(a);
 
             TEST_EXPECTS( a.data != b.data);
             TEST_EXPECTS( a.size == b.size);
@@ -265,11 +265,9 @@ int main()
 
         TEST_BEGIN( string_concat )
         {
-            Array<char> arr = string_concat(
-                "Hello", 
-                ", World", 
-                temp_allocator()
-            );            
+            push_allocator(temp_allocator);
+            Array<char> arr = string_concat("Hello", ", World");            
+            pop_allocator();
             TEST_EXPECTS( arr.size == 5 + 7);
             TEST_EXPECTS( arr == "Hello, World") ;
         }
@@ -294,7 +292,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, 0, temp_allocator());
+            array_init(arr, 0, &temp_allocator);
 
             for(int i = 0; i < 10; ++i) array_append(arr, i+1);
             for(int i = 0; i < 10; ++i) TEST_EXPECTS( arr[i] == i+1);
@@ -308,7 +306,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, 0, temp_allocator());
+            array_init(arr, 0, &temp_allocator);
 
             array_append(arr, 10);
             array_append(arr, 42);
@@ -327,7 +325,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, 0, temp_allocator());
+            array_init(arr, 0, &temp_allocator);
 
             array_append(arr, 0);
             array_append(arr, 1);
@@ -346,7 +344,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, 0, temp_allocator());
+            array_init(arr, 0, &temp_allocator);
 
             array_resize(arr, 16);
             for(u32_t i = 0; i < arr.size; ++i)
@@ -412,7 +410,7 @@ int main()
             TEST_EXPECTS(is_zero_initialized(sb));
 
             string_builder_init(sb);
-            TEST_EXPECTS(sb.allocator == temp_allocator()); // a String_Builder is designed too be used in short period of time, to build a string. By default it is allocated on temp memory.
+            TEST_EXPECTS(sb.allocator == &temp_allocator); // a String_Builder is designed too be used in short period of time, to build a string. By default it is allocated on temp memory.
 
             memory_manager_shutdown();
         }
@@ -426,7 +424,7 @@ int main()
             string_builder_init(sb);
             string_builder_append(sb, "Bonjour");
             string_builder_append(sb,  "je m'appelle René.");
-            String str = string_builder_build_string(sb, ", " ); // uses temp_allocator() by default.
+            String str = string_builder_build_tstring(sb, ", " ); // uses temp_allocator() by default.
             printf("\"%s\"\n", str.c_str());
             TEST_EXPECTS( str == "Bonjour, je m'appelle René." );
 
@@ -445,7 +443,7 @@ int main()
             string_builder_init(sb);
             string_builder_appendf(sb, "%s", "Bonjour");
             string_builder_appendf(sb, "%s", "je m'appelle Josiane.");
-            String str = string_builder_build_string(sb, ", " ); // uses temp_allocator() by default.
+            String str = string_builder_build_tstring(sb, ", " ); // uses temp_allocator() by default.
             printf("\"%s\"\n", str.c_str());
             TEST_EXPECTS( str == "Bonjour, je m'appelle Josiane." );
 
@@ -472,7 +470,7 @@ int main()
         {
             Hash_Map<String, Data> hashmap{};
             TEST_EXPECTS( is_zero_initialized(hashmap) );
-            hashmap_init(hashmap, temp_allocator() );
+            hashmap_init(hashmap, &temp_allocator );
 
             TEST_EXPECTS(hashmap.capacity > 0);
             TEST_EXPECTS(hashmap.size == 0);
@@ -487,7 +485,7 @@ int main()
         {
             Hash_Map<String, String> hashmap;
 
-            hashmap_init(hashmap, temp_allocator() );
+            hashmap_init(hashmap, &temp_allocator );
 
             TEST_EXPECTS( hashmap_add(hashmap, "bzh", "Merlin") );
             hashmap_print(hashmap);
@@ -505,7 +503,7 @@ int main()
         {
             Hash_Map<String, String> hashmap;
 
-            hashmap_init(hashmap, temp_allocator() );
+            hashmap_init(hashmap, &temp_allocator );
             hashmap_add(hashmap, "bzh", "Merlin");
 
             TEST_EXPECTS( hashmap_find(hashmap, "bzh") );
@@ -520,7 +518,7 @@ int main()
         {
             Hash_Map<String, String> hashmap;
 
-            hashmap_init(hashmap, temp_allocator() );
+            hashmap_init(hashmap, &temp_allocator );
             hashmap_add(hashmap, "bzh", "Merlin");
             hashmap_print(hashmap);
 
@@ -546,7 +544,7 @@ int main()
             };
 
             Hash_Map<String, String> hashmap;
-            hashmap_init(hashmap, temp_allocator(), Stupid_Hash::hash );
+            hashmap_init(hashmap, &temp_allocator, Stupid_Hash::hash );
 
             hashmap_add(hashmap, "georges-brassens", "Georges Brassens");
             hashmap_add(hashmap, "jean-ferrat", "Jean Ferrat");
@@ -565,12 +563,12 @@ int main()
         TEST_BEGIN( "Hash_Map<String, ...> go above 75% load should increase capacity" )
         {
             Hash_Map<String, String> hashmap;
-            hashmap_init(hashmap, temp_allocator() );
+            hashmap_init(hashmap, &temp_allocator );
 
             const u32_t initial_capacity = hashmap.capacity;
             for(int i = 0; i < initial_capacity; ++i)
             {
-                hashmap_add(hashmap, string_printf(temp_allocator(), "elem-%i", i) , string_printf(temp_allocator(), "Valeur de l'élément %i", i) );
+                hashmap_add(hashmap, string_tprintf("elem-%i", i) , string_tprintf("Valeur de l'élément %i", i) );
             }
 
             hashmap_print(hashmap);

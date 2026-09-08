@@ -12,7 +12,7 @@ using namespace bdc;
 
 const char* Path::c_str() const
 {
-    return m_path.c_str();
+    return string_tprintf("%s", m_path.string().c_str() ).data;
 }
 
 bool Path::is_absolute() const
@@ -58,7 +58,7 @@ Path Path::get_executable_path()
     Path result;
     if (length > 0)
     {
-        path = memory_malloc_array<char>( length + 1, temp_allocator() );
+        path = memory_malloc_array<char>( length + 1, &temp_allocator );
 
         if ( wai_getExecutablePath(path, length, &dirname_length) )
         {
@@ -107,13 +107,13 @@ Path Path::get_asset_path(const String _str)
     return absolute(_str);
 }
 
-File_Read_Result file_read(const Path& path, bdc::Allocator* allocator)
+File_Read_Result file_read(const Path& path)
 {
     std::ifstream stream( path.c_str() );
 
     if (!stream.is_open())
     {
-        return { .ok = false, .error = string_printf( temp_allocator(), "Unable to load \"%s\"", path.c_str()) };
+        return { .ok = false, .error = string_tprintf( "Unable to load \"%s\"", path.c_str()) };
     }
 
     Resizable_Array<i8_t> bytes;

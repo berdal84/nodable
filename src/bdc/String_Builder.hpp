@@ -17,8 +17,8 @@ namespace bdc
     String_Builder& string_builder_append(String_Builder&, const String& str);
     String_Builder& string_builder_append(String_Builder&, const Resizable_Array<String>& arr);
     String_Builder& string_builder_appendf(String_Builder& sb, const char* fmt, auto...args);
-    String          string_builder_build_string(String_Builder&, Allocator* allocator = temp_allocator() );             
-    String          string_builder_build_string(String_Builder&, String separator, Allocator* allocator = temp_allocator() );
+    String          string_builder_build_string(String_Builder& sb, String separator = "");
+    String          string_builder_build_tstring(String_Builder&, String separator = "");
 
     String_Builder& string_builder_appendf(String_Builder& sb, const char* fmt, auto...args)
     {
@@ -30,8 +30,11 @@ namespace bdc
         }
         else
         {
-            const String result = string_printf(sb.allocator, fmt, args...);
-            return string_builder_append(sb, result);
+            push_allocator(*sb.allocator);
+            const String formatted_str = string_printf(fmt, args...);
+            pop_allocator();
+
+            return string_builder_append(sb, formatted_str);
         }
     }
 }

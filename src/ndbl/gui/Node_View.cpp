@@ -456,14 +456,14 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
 
             if ( cfg->ui_node_detail != View_Detail_COMPACT)
             {
-                pre_label  = bdc::string_printf( bdc::temp_allocator(), "%s(", pre_label.c_str() );
+                pre_label  = bdc::string_tprintf( "%s(", pre_label.c_str() );
                 post_label = ")";
             }
             break;
     }
 
     if ( !nodeview->is_expanded )
-        pre_label = bdc::string_printf( bdc::temp_allocator(), "%s " ICON_FA_OBJECT_GROUP, pre_label.c_str() );
+        pre_label = bdc::string_tprintf( "%s " ICON_FA_OBJECT_GROUP, pre_label.c_str() );
 
     // Draw the pre_label when necessary
     if ( !pre_label.empty() ) {
@@ -677,7 +677,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
             Scope* scope = node->scope;
             if (scope)
             {
-                bdc::String label = bdc::string_printf( bdc::temp_allocator(), "%s %p (%s %p)", scope->name.c_str(), scope, scope->node->name.c_str(), scope->node);
+                bdc::String label = bdc::string_tprintf( "%s %p (%s %p)", scope->name.c_str(), scope, scope->node->name.c_str(), scope->node);
                 if ( ImGui::Button(label.c_str()) )
                 {
                     ASSERT(node->graph->view);

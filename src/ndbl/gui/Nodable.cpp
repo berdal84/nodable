@@ -125,7 +125,7 @@ void ndbl::app_shutdown()
 
 void ndbl::app_do_frame()
 {
-    bdc::temp_allocator_buffer_reset(); // the intend of a temporary allocator, is to use data quickly after allocation, we want to clear that buffer at the begining of each frame.
+    bdc::memory_manager_reset_temp_allocator_buffer(); // the intend of a temporary allocator, is to use data quickly after allocation, we want to clear that buffer at the begining of each frame.
     app_update();
     app_draw();
 }
@@ -579,7 +579,7 @@ File* ndbl::app_new_file()
 
     app->untitled_file_count++;
 
-    bdc::String name = bdc::string_printf( heap_allocator(), "Untitled_%i.cpp", app->untitled_file_count);
+    bdc::String name = bdc::string_printf( "Untitled_%i.cpp", app->untitled_file_count);
     
     auto* file = bdc::memory_new<File>();
     file_init(file);

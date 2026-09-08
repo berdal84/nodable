@@ -40,7 +40,7 @@ namespace bdc
 
     // Simply declare array_join, user must implement it. Only array_join for String is implement in String.hpp.
     template<typename Elem_Type>
-    Elem_Type array_join(const Array<Elem_Type>& array, const Elem_Type& separator, Allocator* string_allocator = temp_allocator() );
+    Elem_Type array_join(const Array<Elem_Type>& array, const Elem_Type& separator );
 
     //
     // Resizable_Array<T> is like a Array<T> memory wise, but is aware of its buffer capacity and allocator.
@@ -201,12 +201,12 @@ namespace bdc
     // Resizable_Array API
 
     template<typename Elem_Type>
-    void array_init(Resizable_Array<Elem_Type>& arr, u32_t initial_capacity, Allocator* allocator = default_allocator() )
+    void array_init(Resizable_Array<Elem_Type>& arr, u32_t initial_capacity, Allocator* _allocator = nullptr)
     {
         arr.size        = 0;
         arr.data        = nullptr;
         arr.capacity    = 0;
-        arr.allocator   = allocator;
+        arr.allocator   = _allocator ? _allocator : allocator;
         array_reserve_capacity_at_least(arr, initial_capacity);
     }
 

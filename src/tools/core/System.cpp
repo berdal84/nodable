@@ -20,7 +20,7 @@ int tools::system_run_command(const bdc::String& command)
 
 void tools::system_open_url_async(const bdc::String& url)
 {
-    bdc::String command = bdc::string_printf( bdc::temp_allocator(), "x-www-browser %s", url.c_str());
+    bdc::String command = bdc::string_tprintf( "x-www-browser %s", url.c_str());
     std::thread thread( system_run_command, command );
     thread.detach();
 }

@@ -37,8 +37,7 @@ namespace ndbl
         ASSERT(local_tm);
     #endif
 
-        String result = string_printf(
-            temp_allocator(),
+        String result = string_tprintf(
             "%04d-%02d-%02d-%02dh%02dm%02ds-%s-0x%016llx",
             local_tm->tm_year + 1900,
             local_tm->tm_mon + 1,

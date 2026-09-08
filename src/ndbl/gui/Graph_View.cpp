@@ -203,7 +203,7 @@ void ndbl::_graphview_handle_change_scope(Graph_View* graphview, Graph::Scope_Ch
 
 ImGuiID make_wire_id(const Node_Slot *ptr1, const Node_Slot *ptr2)
 {
-    bdc::String temp = string_printf( bdc::temp_allocator(), "wire %zu->%zu", ptr1, ptr2 );
+    bdc::String temp = string_tprintf( "wire %zu->%zu", ptr1, ptr2 );
     return ImGui::GetID(temp.data);
 }
 
