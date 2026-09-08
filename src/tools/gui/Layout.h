@@ -156,7 +156,7 @@ namespace tools
         size_t   i    = 0;
         while(curr_elem != nullptr)
         {
-            printf("Element %lu: %f x %f px.\n", i, curr_elem->dimension.width, curr_elem->dimension.height );
+            printf("Element %zu: %f x %f px.\n", i, curr_elem->dimension.width, curr_elem->dimension.height );
             ++i;
         }
         printf("--\n");
