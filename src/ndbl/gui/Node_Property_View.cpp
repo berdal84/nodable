@@ -125,6 +125,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
         ImGui::Text("%s %s\n", view->property->type->name.c_str(), view->property->name.c_str());
 
         bdc::String_Builder sb;
+        string_builder_init(sb);
         if( view->property == view->node()->value || node_find_slot_by_property( view->node(), view->property, Node_Slot::Flag_OUTPUT ))
             lang_serialize_node(language(), sb, view->node(), Serialization_Flag_RECURSE);
         else

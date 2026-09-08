@@ -204,7 +204,9 @@ namespace ndbl
     {
         lang.buffer = buffer;
         lang.ribbon.reset( buffer );
+
         lang.graph = graph;
+        graph_reset( lang.graph );
     }
 
     bool lang_parse(Language& lang, Graph* graph_out, bdc::String code)

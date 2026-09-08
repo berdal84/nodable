@@ -211,7 +211,7 @@ void ndbl::appview_draw()
 
         if (ImGui::BeginMenu("Code"))
         {
-            if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Type_TOGGLE_ISOLATION_FLAGS, HAS_FLAGS(config()->flags, Config_Flag_ISOLATION_ON)))
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_ISOLATION_FLAGS, HAS_FLAGS(config()->flags, Config_Flag_ISOLATION_ON)))
             {
                 event_manager_push_event(action->event);
             }
@@ -221,24 +221,24 @@ void ndbl::appview_draw()
         if (ImGui::BeginMenu("Graph"))
         {
 
-            if(const Action* action = ImGuiEx::MenuItem_for_event_user_code( Event_Type_RESET_GRAPH_VIEW) )
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type( Event_Type_RESET_GRAPH_VIEW) )
             {
                 event_manager_push_event( action->event);
             }
 
-            if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Type_RESET_LAYOUT,false, !selection.empty() ) )
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_RESET_LAYOUT,false, !selection.empty() ) )
             {
                 event_manager_push_event(action->event);
             }
 
-            if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Type_TOGGLE_FOLDING, false, !selection.empty() ) )
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_FOLDING, false, !selection.empty() ) )
             {
                 event_manager_push_event(action->event);
             }
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, !selection.empty() ))
             {
-                if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Type_TOGGLE_FOLDING,false, !selection.empty() ))
+                if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_FOLDING,false, !selection.empty() ))
                 {
                     event_manager_push_event(action->event);
                 }
@@ -246,7 +246,7 @@ void ndbl::appview_draw()
 
             ImGui::Separator();
             {
-                if(const Action* action = ImGuiEx::MenuItem_for_event_user_code(Event_Type_TOGGLE_ISOLATION_FLAGS, HAS_FLAGS(config()->flags, Config_Flag_ISOLATION_ON)))
+                if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_ISOLATION_FLAGS, HAS_FLAGS(config()->flags, Config_Flag_ISOLATION_ON)))
                 {
                     event_manager_push_event(action->event);
                 }
@@ -373,7 +373,7 @@ void ndbl::appview_draw()
 
             // reset
             if (ImGui::Button(ICON_FA_UNDO " Reset Graph View", button_size)) {
-                event_manager_push_event(event_from_user_data({Event_Type_RESET_GRAPH_VIEW}) );
+                event_manager_push_event({ Event_Type_RESET_GRAPH_VIEW });
             }
             ImGui::SameLine();
 
@@ -383,7 +383,7 @@ void ndbl::appview_draw()
                 : ICON_FA_CROP " isolation mode: OFF",
                 button_size))
             {
-                event_manager_push_event(event_from_user_data({Event_Type_TOGGLE_ISOLATION_FLAGS}));
+                event_manager_push_event({ Event_Type_TOGGLE_ISOLATION_FLAGS });
             }
             ImGui::SameLine();
             ImGui::EndGroup();

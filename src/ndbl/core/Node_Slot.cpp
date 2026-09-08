@@ -36,7 +36,12 @@ void node_slot_init(
 
 void node_slot_deinit(Node_Slot* slot)
 {
-    memset((void*)slot, 0, sizeof(Node_Slot));
+    array_resize(slot->adjacent, 0); // is inlined
+    slot->position = 0;
+    slot->capacity = 0;
+    slot->flags    = 0;
+    slot->property = nullptr;
+    slot->view     = nullptr;
 }
 
 Node_Slot* node_slot_adjacent_at(const Node_Slot* slot, u8_t pos)
