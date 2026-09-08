@@ -165,23 +165,22 @@ void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
 
 void ndbl::_graphview_handle_remove_node(Graph_View* graphview, Node* node)
 {
-    // clean and delete the Node_View from the removed Node
-    VERIFY(node->view, "Should have been created from _handle_add_node()");
+    // Deinit and delete Node_View related data
+    if( node->view )
+    {
+        if ( Scope_View* scopeview = node->view->internal_scopeview )
+        {
+            scopeview->signal_hover.disconnect(); // I'm not sure if this is a good approach...
+        }
     
-    if ( Scope_View* scopeview = node->view->internal_scopeview )
-    {
-        scopeview->signal_hover.disconnect(); // I'm not sure if this is a good approach...
-    }
- 
-    if( node->view->shape.spatial_node.parent )
-    {
-        spatialnode_remove_child(node->view->shape.spatial_node.parent, &node->view->shape.spatial_node );
-    }
+        if( node->view->shape.spatial_node.parent )
+        {
+            spatialnode_remove_child(node->view->shape.spatial_node.parent, &node->view->shape.spatial_node );
+        }
 
-    if( node->view)
-    {
         nodeview_deinit(node->view);
         bdc::memory_delete(node->view);
+        node->view = nullptr;
     }
 }
 
@@ -435,7 +434,10 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
     // Draw Node_Views
     for (Node& node : graphview->graph->nodes  )
     {
-        TODO("Some elements in graph->nodes may have been deleted! We must add a flag on the Nodes, or swap element with last");
+        if( HAS_FLAGS(node.flags, Node_Flag_IS_DELETED) )
+        {
+            continue;
+        }
         
         if ( node.view == nullptr || HAS_FLAGS(node.view->flags, View_Flag_HIDDEN) )
         {

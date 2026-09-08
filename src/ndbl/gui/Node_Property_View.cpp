@@ -29,6 +29,13 @@ void ndbl::nodepropertyview_init(Node_Property_View* view, Node_Property* proper
     view->property = property;
 }
 
+void ndbl::nodepropertyview_deinit(Node_Property_View* view)
+{
+    ASSERT(view->property);
+    view->property = nullptr;
+}
+
+
 bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 {
     box2d_draw_debug_info(&view->shape);
@@ -40,7 +47,11 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 
     bool            changed            = false;
     Node*           node               = view->node();
-    ASSERT(node);
+    
+    if( !node )
+    {
+        return false;
+    }
 
     /*
      * Handle input visibility

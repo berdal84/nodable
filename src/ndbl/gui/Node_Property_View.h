@@ -30,6 +30,7 @@ namespace ndbl
     };
 
     void  nodepropertyview_init(Node_Property_View*, Node_Property* property);
+    void  nodepropertyview_deinit(Node_Property_View*);
     bool  nodepropertyview_draw(Node_Property_View*, View_Detail); // return true when changed
     void  nodepropertyview_reset(Node_Property_View*);
     bool  nodepropertyview_draw_input(Node_Property_View*, bool _compact_mode, bdc::String _override_label = "");

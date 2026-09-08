@@ -25,19 +25,24 @@ Node::Component_Type to_component_type(Node_Type);
            
 Node::Component& Node::Component::operator=(const Node::Component& other)
 {
+    if( this == &other)
+    {
+        return *this;
+    }
+
     if( component_type != other.component_type )
     {
-        node_deinit_component(this, component_type);
+        node_deinit_component(this, other.component_type);
     }
 
     switch (other.component_type)
     {
-        case Component_Type_NULL:           component_type = other.component_type;
-        case Component_Type_BRANCHING:      branching   = other.branching;
-        case Component_Type_INVOKABLE:      invokable   = other.invokable;
-        case Component_Type_VARIABLE:       variable    = other.variable;
-        case Component_Type_VARIABLE_REF:   variableref = other.variableref;
-        case Component_Type_LITERAL:        literal     = other.literal;
+        case Component_Type_NULL:           component_type  = other.component_type; break;
+        case Component_Type_BRANCHING:      branching       = other.branching;      break;
+        case Component_Type_INVOKABLE:      invokable       = other.invokable;      break;
+        case Component_Type_VARIABLE:       variable        = other.variable;       break;
+        case Component_Type_VARIABLE_REF:   variableref     = other.variableref;    break;
+        case Component_Type_LITERAL:        literal         = other.literal;        break;
     }
 
     return *this;
@@ -460,11 +465,15 @@ bool node_is_expression(const Node* node)
 
 void node_reset_scope(Node* node, Scope* scope)
 {
-#ifdef TOOLS_DEBUG
-    if ( scope == nullptr )
-        VERIFY( node->flags & Node_Flag_WAS_IN_A_SCOPE_ONCE, "This node never been in a scope, why would you reset it to nullptr? (that's the default value)")
-#endif
-    node->flags |= Node_Flag_WAS_IN_A_SCOPE_ONCE;
+    if( node->scope == scope )
+    {
+        return;
+    }
+
+    if( node->scope )
+    {
+        node->flags |= Node_Flag_WAS_IN_A_SCOPE_ONCE;
+    }
     node->scope = scope;
 
     if ( node->internal_scope != nullptr )

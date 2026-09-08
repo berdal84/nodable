@@ -62,6 +62,7 @@ void ndbl::graph_clear(Graph* graph)
         graph_clean_node(&node);
         _graph_remove_node_from_index(graph, &node);       
         node_deinit(&node);
+        SET_FLAGS(node.flags, Node_Flag_IS_DELETED);
     }
 
     array_resize(graph->nodes, 0);
@@ -284,6 +285,8 @@ void ndbl::graph_find_and_destroy_node(Graph* graph, Node* node)
     _graph_remove_node_from_index(graph, node);
     graph->signal_change.broadcast();
     node_deinit(node);
+
+    SET_FLAGS(node->flags, Node_Flag_IS_DELETED);
 }
 
 void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )

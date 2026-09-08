@@ -70,11 +70,9 @@ namespace tools
     };
 
     /**
-     * @class TypeDesc (type descriptor) holds meta data relative to a given type.
-     *
-     * @example @code
-     * const TypeDesc* t = type_get<int>();
-     * ASSERT( t->is_ptr() == false );
+     * Type_Descriptor holds metadata about a given type.
+     * I decided to use a single struct to store any type (from  basic int to classes with inheritance).
+     * Takes more memory but is easier to store in a unique datastructure without allocations if necessary.
      */
     struct Type_Descriptor
     {
@@ -86,39 +84,15 @@ namespace tools
 
         struct Function
         {
-            bdc::Inlined_Array<Function_Arg_Descriptor, 8> args;
+            bdc::Inlined_Array<Function_Arg_Descriptor, 8> args = {0};
             const Type_Descriptor*                         return_type;
-        };
+        } function;
 
         struct Class
         {
             std::unordered_set<std::type_index> parents;
             std::unordered_set<std::type_index> children;
-        };
-
-        union
-        {
-            Function function;
-            Class    clss;
-        };
-
-        Type_Descriptor() {}
-        ~Type_Descriptor()
-        {
-                 if( flags & Type_Flags_IS_CLASS)    clss.~Class();
-            else if( flags & Type_Flags_IS_FUNCTION) function.~Function();
-        }
-
-        Type_Descriptor(const Type_Descriptor& other)
-        {
-            #warning not implemented, handle the tagged union 
-        }
-
-        Type_Descriptor& operator=(const Type_Descriptor& other)
-        {
-            #warning not implemented, handle the tagged union
-            return *this;
-        }
+        } clss;
 
         bool                      is_class() const { return flags & Type_Flags_IS_CLASS; }
         bool                      any_of(std::vector<const Type_Descriptor*> args)const;

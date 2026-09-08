@@ -48,10 +48,11 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
     for (Node_Property* property : nodeview->node->props )
     {
         // Create view
-        auto new_view = bdc::memory_new<Node_Property_View>();
-        nodepropertyview_init(new_view, property);
-        spatialnode_add_child(&nodeview->shape.spatial_node, &new_view->shape.spatial_node);
-        spatialnode_set_position(&new_view->shape.spatial_node, {}, tools::PARENT_SPACE);
+        auto propertyview = bdc::memory_new<Node_Property_View>();
+        nodepropertyview_init(propertyview, property);
+        assert(propertyview->property);
+        spatialnode_add_child(&nodeview->shape.spatial_node, &propertyview->shape.spatial_node);
+        spatialnode_set_position(&propertyview->shape.spatial_node, {}, tools::PARENT_SPACE);
 
         switch ( nodeview->node->type )
         {
@@ -66,7 +67,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
                 // hide THIS property
                 if ( HAS_FLAGS(property->flags, Node_Property::Flag_IS_NODE_VALUE) )
                 {
-                    SET_FLAGS(new_view->flags, View_Flag_HIDDEN);
+                    SET_FLAGS(propertyview->flags, View_Flag_HIDDEN);
                 }
             }
         }
@@ -74,25 +75,25 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
         // Indexing
         if (property == nodeview->node->value )
         {
-            nodeview->value_view = new_view;
+            nodeview->value_view = propertyview;
         }
 
         bool has_in  = node_find_slot_by_property(nodeview->node, property, Node_Slot::Flag_INPUT );
         bool has_out = node_find_slot_by_property(nodeview->node, property, Node_Slot::Flag_OUTPUT );
 
         if ( has_in)
-            nodeview->view_by_property_type[Property_Category_IN].push_back(new_view);
+            nodeview->view_by_property_type[Property_Category_IN].push_back(propertyview);
         if ( has_out)
-            nodeview->view_by_property_type[Property_Category_OUT].push_back(new_view);
+            nodeview->view_by_property_type[Property_Category_OUT].push_back(propertyview);
 
         if ( has_in && has_out )
-            nodeview->view_by_property_type[Property_Category_INOUT_STRICTLY].push_back(new_view);
+            nodeview->view_by_property_type[Property_Category_INOUT_STRICTLY].push_back(propertyview);
         else if ( has_in )
-            nodeview->view_by_property_type[Property_Category_IN_STRICTLY].push_back(new_view);
+            nodeview->view_by_property_type[Property_Category_IN_STRICTLY].push_back(propertyview);
         else if ( has_out )
-            nodeview->view_by_property_type[Property_Category_OUT_STRICTLY].push_back(new_view);
+            nodeview->view_by_property_type[Property_Category_OUT_STRICTLY].push_back(propertyview);
 
-        nodeview->view_by_property.emplace(property, new_view);
+        nodeview->view_by_property.emplace(property, propertyview);
     }
 
     // 2. Create a Node_Slot_View per slot
@@ -222,7 +223,10 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
     spatialnode_clear(&nodeview->shape.spatial_node);
 
     for(auto& [_, each] : nodeview->view_by_property )
+    {
+        nodepropertyview_deinit(each);
         bdc::memory_delete(each);
+    }
     nodeview->view_by_property.clear();
 
     for(auto& vector : nodeview->view_by_property_type )
