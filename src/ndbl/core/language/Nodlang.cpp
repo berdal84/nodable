@@ -264,7 +264,7 @@ namespace ndbl
 
         if (token.type == Token_Type_literal_int )
         {
-            i64_t l = atoll(buffer.c_str());
+            i64_t l = atoll(token.word_view().c_str());
             int n = std::clamp(l, (i64_t)std::numeric_limits<int>::min() , (i64_t)std::numeric_limits<int>::max());
             if( n > (int)l )
             {
