@@ -533,7 +533,7 @@ void appview_draw()
         if (ImGui::BeginMenu("File"))
         {
             bool has_file = current_file != nullptr;
-            bool is_current_file_content_dirty = current_file != nullptr && current_file->has_flags(File_Flag_NEEDS_TO_BE_SAVED);
+            bool is_current_file_content_dirty = current_file != nullptr && HAS_FLAGS(current_file->flags, File_Flag_NEEDS_TO_BE_SAVED);
 
             if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_NEW))
                 event_manager_push_event(action->event);
@@ -819,7 +819,7 @@ void appview_draw()
         {
             ImGui::SetNextWindowDockID(ds_root, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
             ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar
-                                        | ImGuiWindowFlags_UnsavedDocument * file->has_flags(File_Flag_NEEDS_TO_BE_SAVED);
+                                        | ImGuiWindowFlags_UnsavedDocument * HAS_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
 
             auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
             child_bg.w = 0;
@@ -1044,7 +1044,7 @@ void appview_draw()
 
                 if ( node_properties_changed )
                 {
-                    app_state()->current_file->set_flags(File_Flag_TEXT_IS_DIRTY);
+                    SET_FLAGS(app_state()->current_file->flags, File_Flag_TEXT_IS_DIRTY);
                 }
             }
         }

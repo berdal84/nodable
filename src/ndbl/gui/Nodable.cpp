@@ -276,7 +276,7 @@ void app_update()
                 config()->flags ^= Config_Flag_ISOLATION_ON;
                 if(app->current_file)
                 {
-                    app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
+                    SET_FLAGS(app->current_file->flags, File_Flag_GRAPH_IS_DIRTY);
                 }
                 break;
             }
@@ -565,7 +565,7 @@ void app_reset_current_graph()
     }
 
     // n.b. nodable is still text oriented
-    app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
+    SET_FLAGS(app->current_file->flags, File_Flag_GRAPH_IS_DIRTY);
 }
 
 File* app_new_file()
