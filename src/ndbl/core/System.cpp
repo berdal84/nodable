@@ -5,10 +5,10 @@
 #include "bdc/Allocators.hpp"
 #include "bdc/String.hpp"
 
+#ifdef NDBL_DESKTOP
+
 namespace ndbl
 {
-
-#ifdef NDBL_DESKTOP
 int system_run_command(const bdc::String& command)
 {
     int exit_code = ::system(command.c_str() );
@@ -34,8 +34,13 @@ void system_clear_console() /* cf: https://stackoverflow.com/questions/6486289/h
     }
 }
 
+} // namespace ndbl
+
 #elif __EMSCRIPTEN__
 #include <emscripten.h>
+
+namespace ndbl
+{
 
 EM_JS(void, call_clear_console, (), {
   alert('call_clear_console not implemented yet');
@@ -47,7 +52,7 @@ EM_JS(void, call_open_url, (), {
   throw 'all done';
 });
 
-void system_open_url_async(const bdc::String url)
+void system_open_url_async(const bdc::String& url)
 {
     call_open_url();
 }
@@ -57,6 +62,6 @@ void system_clear_console() /* cf: https://stackoverflow.com/questions/6486289/h
     call_clear_console();
 }
 
-#endif
-
 } // namespace ndbl
+
+#endif
