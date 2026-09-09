@@ -68,6 +68,7 @@ void file_deinit(File* file)
 {
     ASSERT(file->graph->signal_change.disconnect<&_file_set_text_dirty>(file));
     
+    string_release(file->temp_text_buffer);
     file->graph->view->signal_change.disconnect();
     file->view.signal_change.disconnect();
     fileview_deinit(&file->view);
@@ -134,8 +135,8 @@ void file_update_graph_from_text(File* file, bool isolation_on)
 {
     // Parse source code
     // note: File owns the parsed text buffer
-    file->parsed_text = fileview_get_text(&file->view, isolation_on );
-    lang_parse(language(), file->graph, file->parsed_text);
+    file->temp_text_buffer = fileview_get_text(&file->view, isolation_on );
+    lang_parse(language(), file->graph, file->temp_text_buffer);
 
     SET_FLAGS(file->graph->view->flags, Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT);
 }
@@ -180,9 +181,7 @@ bool file_read( File* file, const Path& path)
 {
     NDBL_LOG(Verbosity_Diagnostic, "File", "\"%s\" loading... (%s).\n", path.filename().c_str(), path.c_str());
 
-    push_allocator(temp_allocator);
     File_Read_Result result = file_read(path);
-    pop_allocator();
 
     if( !result.ok )
     {

@@ -36,14 +36,11 @@ namespace ndbl
 	struct File
     {
         bdc::String            name;
-        Path            path;        // file path on disk
+        Path                   path; // file path on disk
         File_View              view;
-        bdc::String            parsed_text; // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
-        Graph*                 graph;       // graphical representation
+        bdc::String            temp_text_buffer; // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
+        Graph*                 graph;// graphical representation
         File_Flags             flags;        
-
-        inline void            set_flags(File_Flags _flags) { flags |= _flags; }
-        inline bool            has_flags(File_Flags _flags) { return (flags & _flags) == _flags; }
     };
 
     void                    file_init(File*);
