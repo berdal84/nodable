@@ -574,8 +574,6 @@ int main()
             hashmap_print(hashmap);
             hashmap_release(hashmap);
 
-            TEST_EXPECTS(false);
-
             TEST_EXPECTS(!hashmap.entries.size);
         }
         TEST_END

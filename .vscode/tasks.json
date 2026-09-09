@@ -4,7 +4,7 @@
 		{
 			"label": "bdc:build",
 			"type": "shell",
-			"command": "clang++ -std=c++20 -O0 -g src/bdc/tests.cpp"
+			"command": "clang++ -std=c++23 -O0 -g src/bdc/tests.cpp -lstdc++exp -lstdc++"
 		},
 		// DEBUG
 		{

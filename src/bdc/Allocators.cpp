@@ -51,7 +51,7 @@ namespace bdc
             BDC_LOG("temp_allocator_acquire() - WARNING: temp_allocator_buffer has not enough space left"
                     " (usage %zu/%zu Bytes) or is too small to allocate %zu Bytes.\n",
                     size_used, temp_allocator_buffer.size, size );
-            assert(false && "temp buffer is full!");
+            return nullptr;
         }
 
         auto ptr = (Allocation_Header*)temp_allocator_buffer.head;
@@ -98,13 +98,17 @@ namespace bdc
             return nullptr;
 
         Allocation_Header* header = temp_allocator_buffer_acquire(size);
+        void*              ptr    = get_pointer(header);
 
         #ifdef BDC_DEBUG_ALLOCATORS
+        if( header )
+        {
             header->owners += 1;
-            temp_allocator_tracker.after_malloc(get_pointer(header), size);
+            temp_allocator_tracker.after_malloc( ptr, size);
+        }
         #endif     
 
-        return get_pointer(header);
+        return ptr;
     }
 
     void temp_allocator_free(void* ptr)
