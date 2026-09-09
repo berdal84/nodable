@@ -42,11 +42,13 @@ jobs:
       - run: rake ci
 
       - if: env.PLATFORM == 'web'
+        name: Run rake build (web)
         run: |
           extern/emsdk/emsdk_env.ps1
           rake build
 
-      - if: env.PLATFORM != 'web'
+      - if: env.PLATFORM == 'windows' || env.PLATFORM == 'linux'
+        name: Run rake build (desktop)
         run: rake build
 
       - run: rake test
