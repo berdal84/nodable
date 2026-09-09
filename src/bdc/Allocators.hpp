@@ -8,19 +8,20 @@
 #include "Types.hpp"
 #include <vector>    // to store allocation metadata in a container that is outside 
 #include <algorithm> // for std::find
-#include <stacktrace>
 #include <exception>
 #include <iostream>
 
-#define BDC_PRINT_STACKTRACE() \
-std::stacktrace st = std::stacktrace::current(); \
-std::cout << st << std::endl;
-
 #ifdef BDC_DEBUG_ALLOCATORS
+    #define BDC_PRINT_STACKTRACE() \
+        std::stacktrace st = std::stacktrace::current(); \
+        std::cout << st << std::endl;
+
+    #include <stacktrace>
     #define BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE( fmt, ... ) \
-    printf("Printing stacktrace because: " fmt "\n", __VA_ARGS__); \
-    BDC_PRINT_STACKTRACE();
+        printf("Printing stacktrace because: " fmt "\n", __VA_ARGS__); \
+        BDC_PRINT_STACKTRACE();
 #else
+    #define BDC_PRINT_STACKTRACE() /* BDC_PRINT_STACKTRACE is disabled */
     #define BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE( fmt, ... ) /* BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE is disabled */
 #endif // BDC_DEBUG_ALLOCATORS
 
