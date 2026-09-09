@@ -1345,11 +1345,11 @@ bool appview_pick_file_path(Path& _out_path, Dialog_Type _dialog_type)
 
 #elif __EMSCRIPTEN__
 
-EM_JS(void, call_pick_file_path, (bool), {
-  alert('pick_file_path_impl not implemented yet');
+EM_JS(void, call_appview_pick_file_path, (bool), {
+  alert('appview_pick_file_path not implemented yet');
   throw 'all done';
 });
-bool pick_file_path(Path& _out_path, Dialog_Type _dialog_type)
+bool appview_pick_file_path(Path& _out_path, Dialog_Type _dialog_type)
 {
     bool result;
     call_pick_file_path(result);
