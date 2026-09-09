@@ -108,11 +108,14 @@ def base_target(name, type)
         ]
 
         target.linker_flags |= [
-            "-lstdc++exp", # required for <stacktrace>
             "-lstdc++",    # note: -llibstdc++ was not working, it requires to be installed.
         ]
 
         if LINUX
+
+            target.linker_flags |= [
+                "-lstdc++exp", # required for <stacktrace>
+            ]
 
             target.vcpkg = [
                 "sdl2",
