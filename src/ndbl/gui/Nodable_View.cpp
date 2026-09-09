@@ -1312,9 +1312,12 @@ void appview_update()
     }
 }
 
-#ifdef NDBL_DESKTOP
 bool appview_pick_file_path(Path& _out_path, Dialog_Type _dialog_type)
 {
+#if __EMSCRIPTEN__
+    NDBL_LOG(Verbosity_Error, __FILE__, "Not implemented yet!");
+    return false;
+#else
     nfdchar_t *picked_path;
     nfdresult_t result;
 
@@ -1341,21 +1344,8 @@ bool appview_pick_file_path(Path& _out_path, Dialog_Type _dialog_type)
             NDBL_LOG(Verbosity_Error, __FILE__, "%s\n", NFD_GetError());
             return false;
     }
+#endif // !__EMSCRIPTEN__
 }
-
-#elif __EMSCRIPTEN__
-
-EM_JS(void, call_appview_pick_file_path, (bool), {
-  alert('appview_pick_file_path not implemented yet');
-  throw 'all done';
-});
-bool appview_pick_file_path(Path& _out_path, Dialog_Type _dialog_type)
-{
-    bool result;
-    call_pick_file_path(result);
-    return result;
-}
-#endif
 
 ImGuiID _nodableview_get_dockspace(Dockspace dockspace)
 {
