@@ -187,17 +187,9 @@ Node::Component_Type to_component_type(Node_Type type)
         case Node_Type_VARIABLE:
             return Node::Component_Type_VARIABLE;
 
-        case Node_Type_RETURN:            [[fallthrough]];
-        case Node_Type_ROOT:              [[fallthrough]];
-        case Node_Type_SCOPE:             [[fallthrough]];
-        case Node_Type_EMPTY_INSTRUCTION: [[fallthrough]];
-        case Node_Type_NULL:
+        default:
             // Those types do not have a dedicated data struct in the union
             return Node::Component_Type_NULL;
-
-        default:
-            // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            UNREACHABLE("Unhandled Node_Type (value: %i)\n", type);
     }
 }
 
