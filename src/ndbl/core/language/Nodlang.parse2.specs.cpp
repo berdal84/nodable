@@ -1,10 +1,10 @@
-#include "../fixtures/core.h"
+#include "test/fixtures/nodable_headless_test.h"
 #include <gtest/gtest.h>
 #include <iostream>
 
 using namespace ndbl;
 
-typedef ::testing::Core Language_tokenize;
+typedef ::testing::Nodable_Headless_Test Language_tokenize;
 
 //////////////////////////// Identifiers ///////////////////////////////////////////////////////////////////////////////
 

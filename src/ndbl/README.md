@@ -4,11 +4,11 @@ Contains the nodable app and its libraries.
 
 ### `./core`
 
-Nodable core library based on [tools-core](../tools/core).
+Nodable core library based on [tools-core](../ndbl/core).
 
 ### `./gui`
 
-Nodable graphic user interface library based on [tools-gui](../tools/gui).
+Nodable graphic user interface library based on [tools-gui](../ndbl/gui).
 
 ### `./app`
 

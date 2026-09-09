@@ -1,15 +1,14 @@
 #include <gtest/gtest.h>
 
-#include "tools/core/reflection/Type_Descriptor.h"
+#include "ndbl/core/reflection/Type_Descriptor.h"
+#include "ndbl/core/Graph.h"
+#include "ndbl/core/Node.h"
+#include "ndbl/core/Scope.h"
 
-#include "Graph.h"
-#include "Node.h"
-#include "Scope.h"
+#include "test/fixtures/nodable_headless_test.h"
 
-#include "fixtures/core.h"
-
-using namespace tools;
-typedef ::testing::Core Graph_;
+using namespace ndbl;
+typedef ::testing::Nodable_Headless_Test Graph_;
 
 TEST_F(Graph_, constructor)
 {

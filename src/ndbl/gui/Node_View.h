@@ -1,14 +1,14 @@
 #pragma once
 
-#include "bdc/String.hpp"
 #include <unordered_map>
 
-#include "gui/Config.h"
-#include "gui/geometry/Spatial_Node.h"
-#include "tools/core/reflection/GETTERS_SETTERS.h"
-#include "tools/gui/geometry/Box_2D.h"
-#include "tools/gui/View_Flags.h"
+#include "bdc/String.hpp"
+#include "ndbl/core/reflection/GETTERS_SETTERS.h"
 #include "ndbl/core/Node_Property.h"
+#include "geometry/Spatial_Node.h"
+#include "geometry/Box_2D.h"
+#include "View_Flags.h"
+#include "Config.h"
 #include "Node_Property_View.h"
 #include "Node_Slot_View.h"
 
@@ -54,9 +54,9 @@ namespace ndbl
 
     struct Node_View
 	{
-        tools::Box_2D                               shape;
-        tools::View_Flags                           flags  = 0;
-        std::array<const tools::Vec4*, Color_COUNT> colors = {&tools::Config::COLOR_ERROR};
+        Box_2D                               shape;
+        View_Flags                           flags  = 0;
+        std::array<const Vec4*, Color_COUNT> colors = {&Config::COLOR_ERROR};
         std::vector<Node_Slot_View*>                slot_views;
         std::unordered_map<
             const Node_Property*,
@@ -73,7 +73,7 @@ namespace ndbl
         bool                                        is_expanded             = true;
         Node*                                       node;
 
-        GETTER(tools::Spatial_Node&, spatial_node, shape.spatial_node);
+        GETTER(Spatial_Node&, spatial_node, shape.spatial_node);
     };
 
     void                    nodeview_init(Node_View* view, Node* owner);
@@ -83,8 +83,8 @@ namespace ndbl
     void                    nodeview_update(Node_View*, float);
     void                    nodeview_arrange_recursively(Node_View*, bool smoothly = true);
     bdc::String             nodeview_get_label(const Node_View*);
-    inline tools::Rect      nodeview_get_rect(const Node_View* node_view, tools::Space space = tools::WORLD_SPACE) { return node_view->shape.rect(space); }
-    tools::Rect             nodeview_get_rect_ex(const Node_View*, tools::Space, Node_View_Flags);
+    inline Rect      nodeview_get_rect(const Node_View* node_view, Space space = WORLD_SPACE) { return node_view->shape.rect(space); }
+    Rect             nodeview_get_rect_ex(const Node_View*, Space, Node_View_Flags);
     void                    nodeview_set_visible_recursively(Node_View*, bool);
     void                    nodeview_toggle_expandcollapse(Node_View*);
     void                    nodeview_reset_all_properties(Node_View*);
@@ -94,7 +94,7 @@ namespace ndbl
     void                    nodeview_handle_deinit(Node_View*);
     Node_Property_View*     nodeview_find_property_view(Node_View*, const Node_Property*);
     void                    nodeview_draw_slot(Node_View*, Node_Slot_View*);
-    void                    nodeview_draw_node_rect(tools::Rect rect,
-                                                    tools::Vec4 color, tools::Vec4 border_highlight_col, tools::Vec4 shadow_col, tools::Vec4 border_col,
+    void                    nodeview_draw_node_rect(Rect rect,
+                                                    Vec4 color, Vec4 border_highlight_col, Vec4 shadow_col, Vec4 border_col,
                                                     float border_radius, float border_width);
 }

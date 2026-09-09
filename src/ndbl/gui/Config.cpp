@@ -1,27 +1,23 @@
 #include "Config.h"
 #include "IconsFontAwesome5.h"
-#include "core/Event.h"
-#include "core/Node.h"
-#include "gui/Event.h"
-#include "gui/File_View.h"
-#include "gui/Layout.h"
-#include "tools/gui/Config.h"
+#include "ndbl/core/Event.h"
+#include "ndbl/core/Node.h"
+#include "ndbl/gui/Event.h"
+#include "ndbl/gui/File_View.h"
+#include "ndbl/gui/Layout.h"
 
-// private
 namespace ndbl
 {
-    static Config* g_config = {};
-};
 
-#define VERIFY_NDBLCONFIG_IS_INITIALIZED() VERIFY(ndbl::g_config != nullptr, "ndbl::Config is not initialized, did you call ndbl::config_init() ?")
+static Config* g_config = {};
 
-ndbl::Config* ndbl::config_init()
+#define VERIFY_NDBLCONFIG_IS_INITIALIZED() VERIFY(g_config != nullptr, "Config is not initialized, did you call config_init() ?")
+
+Config* config_init()
 {
     ASSERT(g_config == nullptr);
     
-    g_config            = bdc::memory_new<Config>();
-    g_config->tools_cfg = tools::config_init();
-
+    g_config = bdc::memory_new<Config>();
     config_reset();
 
     // (to create functions/operators from the API)
@@ -30,9 +26,64 @@ ndbl::Config* ndbl::config_init()
     return g_config;
 }
 
-void ndbl::config_reset()
+void config_reset()
 {
-    auto tools_cfg = g_config->tools_cfg;
+    g_config->app_default_title         = "Default App Title";
+    g_config->debug_flags               = Debug_Flags_NONE;
+    g_config->fps_limit_on              = true;
+    g_config->fps_limit                 = 60;
+    g_config->dt_cap                    = 1000 / 60; // in ms
+    g_config->background_color          = {0,0,0};
+    g_config->button_activeColor        = { 0.98f, 0.73f, 0.29f, 0.95f}; // orange
+    g_config->button_hoveredColor       = { 0.70f, 0.70f, 0.70f, 0.95f}; // light grey
+    g_config->button_color              = {0.50f, 0.50f, 0.50f, 0.63f}; // grey
+    g_config->splashscreen_window_label = "##Splashscreen";
+    g_config->show_splashscreen_default = true;
+    g_config->imgui_demo                = false;
+    g_config->dockspace_bottom_size     = 120.f;
+    g_config->dockspace_top_size        = 48.f;
+    g_config->dockspace_right_ratio     = 0.3f;
+    g_config->log_message_display_max_count = 500;
+
+    g_config->size_factor = {
+        0.5f, // SM
+        1.0f,
+        1.25f,
+        2.0f, // LG
+    };
+
+    g_config->log_color = {
+        Vec4(0.5f, 0.0f, 0.0f, 1.0f), // red
+        Vec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
+        Vec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
+        Vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
+    };
+
+    g_config->font_manager = {
+        {{
+            "default",                  // id
+            "fonts/CenturyGothic.ttf",  // path
+            18.0f,                      // size in px.
+            true,                       // include icons?
+            18.0f                       // icons size in px.
+        }},
+        {
+            "default", // Font_Slot_Paragraph
+            "default", // Font_Slot_Heading
+            "default", // Font_Slot_Code
+            "default"  // Font_Slot_ToolBtn
+        },
+        {
+            "FA-solid-900",           // Icon font name
+            "fonts/fa-solid-900.ttf"  // Icon font path
+        },
+        1.0f  // subsampling
+    };
+    g_config->padding         = { 10.0f, 10.0f };
+    g_config->antialiased     = true;
+    g_config->window_rounding = 0.f;
+    g_config->frame_rounding  = 3.f;
+    g_config->border_size     = 1.f;
 
     g_config->ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
     g_config->ui_text_textEditorPalette       = {
@@ -134,7 +185,7 @@ void ndbl::config_reset()
     g_config->ui_interpreter_window_label           = "VM";
 
     // Scopes
-    g_config->ui_scope_padding                      = tools::padding(10.f);
+    g_config->ui_scope_padding                      = padding(10.f);
     g_config->ui_scope_border_radius                = 7.f;
     g_config->ui_scope_border_thickness             = 3.f;
     g_config->ui_scope_gap_base                     = 10.f;
@@ -153,16 +204,16 @@ void ndbl::config_reset()
     g_config->graph_view_unfold_duration            = 1.0f; // in sec.
 
     // NodableView
-    tools_cfg->dockspace_right_ratio       = 0.25f;
-    tools_cfg->dockspace_top_size          = 36.f;
-    tools_cfg->dockspace_bottom_size       = 110.f;
+    g_config->dockspace_right_ratio       = 0.25f;
+    g_config->dockspace_top_size          = 36.f;
+    g_config->dockspace_bottom_size       = 110.f;
 
     const char *k_paragraph = "Paragraph";
     const char *k_heading   = "Heading 1";
     const char *k_code      = "Code";
     const char *k_tool      = "Tool Button";
 
-    tools_cfg->font_manager.text = {
+    g_config->font_manager.text = {
         // id          , font_path                           , size , icons? , icons size
         { k_paragraph  , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
         { k_heading    , "fonts/JetBrainsMono-Bold.ttf"      , 20.0f, true   , 20.0f      },
@@ -170,15 +221,13 @@ void ndbl::config_reset()
         { k_tool       , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true   , 16.0f      }
     };
 
-    using namespace tools;
-
-    tools_cfg->font_manager.defaults[Font_Slot_Paragraph] = k_paragraph;
-    tools_cfg->font_manager.defaults[Font_Slot_Heading]   = k_heading;
-    tools_cfg->font_manager.defaults[Font_Slot_Code]      = k_code;
-    tools_cfg->font_manager.defaults[Font_Slot_ToolBtn]   = k_tool;
-    tools_cfg->font_manager.subsamples                   = 1.0f;
-    tools_cfg->font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
-    tools_cfg->app_default_title = NDBL_APP_NAME " " NDBL_BUILD_REF " - Built " __DATE__ " at " __TIME__;
+    g_config->font_manager.defaults[Font_Slot_Paragraph] = k_paragraph;
+    g_config->font_manager.defaults[Font_Slot_Heading]   = k_heading;
+    g_config->font_manager.defaults[Font_Slot_Code]      = k_code;
+    g_config->font_manager.defaults[Font_Slot_ToolBtn]   = k_tool;
+    g_config->font_manager.subsamples                   = 1.0f;
+    g_config->font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
+    g_config->app_default_title = NDBL_APP_NAME " " NDBL_BUILD_REF " - Built " __DATE__ " at " __TIME__;
 
     // Actions
     g_config->actions = {
@@ -200,53 +249,52 @@ void ndbl::config_reset()
         {{ Event_Type_FRAME_SELECTION           }, "Frame Selection"    , {SDLK_f, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR},
         {{ Event_Type_FRAME_SELECTION           }, "Frame All"          , {SDLK_f, KMOD_LCTRL }},
         {{ Event_Type_TOGGLE_HELP               }, "Splashscreen"       , {SDLK_F1 }},    
-        {{ Event_Type_NEW_NODE, { Node_Type_RETURN      }}, ICON_FA_CODE " Return Statement"        },
-        {{ Event_Type_NEW_NODE, { Node_Type_IF_ELSE     }}, ICON_FA_CODE " Condition"               },
-        {{ Event_Type_NEW_NODE, { Node_Type_FOR_LOOP    }}, ICON_FA_CODE " For Loop"                },
-        {{ Event_Type_NEW_NODE, { Node_Type_WHILE_LOOP  }}, ICON_FA_CODE " While Loop"              },
-        {{ Event_Type_NEW_NODE, { Node_Type_SCOPE       }}, ICON_FA_CODE " Scope"                   },
-        {{ Event_Type_NEW_NODE, { Node_Type_ROOT        }}, ICON_FA_CODE " Entry Point"             },
-        {{ Event_Type_NEW_NODE, { Node_Type_VARIABLE    }}, ICON_FA_DATABASE " Boolean Variable"    },
-        {{ Event_Type_NEW_NODE, { Node_Type_VARIABLE    }}, ICON_FA_DATABASE " Double Variable"     },
-        {{ Event_Type_NEW_NODE, { Node_Type_VARIABLE    }}, ICON_FA_DATABASE " Integer Variable"    },
-        {{ Event_Type_NEW_NODE, { Node_Type_VARIABLE    }}, ICON_FA_DATABASE " String Variable"     },
-        {{ Event_Type_NEW_NODE, { Node_Type_LITERAL     }}, ICON_FA_FILE " Boolean Literal"         },
-        {{ Event_Type_NEW_NODE, { Node_Type_LITERAL     }}, ICON_FA_FILE " Double Literal"          },
-        {{ Event_Type_NEW_NODE, { Node_Type_LITERAL     }}, ICON_FA_FILE " Integer Literal"         },
-        {{ Event_Type_NEW_NODE, { Node_Type_LITERAL     }}, ICON_FA_FILE " String Literal"          }
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_RETURN      }, ICON_FA_CODE " Return Statement"        },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_IF_ELSE     }, ICON_FA_CODE " Condition"               },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_FOR_LOOP    }, ICON_FA_CODE " For Loop"                },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_WHILE_LOOP  }, ICON_FA_CODE " While Loop"              },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_SCOPE       }, ICON_FA_CODE " Scope"                   },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_ROOT        }, ICON_FA_CODE " Entry Point"             },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, ICON_FA_DATABASE " Boolean Variable"    },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, ICON_FA_DATABASE " Double Variable"     },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, ICON_FA_DATABASE " Integer Variable"    },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, ICON_FA_DATABASE " String Variable"     },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, ICON_FA_FILE " Boolean Literal"         },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, ICON_FA_FILE " Double Literal"          },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, ICON_FA_FILE " Integer Literal"         },
+        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, ICON_FA_FILE " String Literal"          }
     };
 }
 
-void ndbl::config_shutdown()
+void config_shutdown()
 {
     VERIFY_NDBLCONFIG_IS_INITIALIZED();
-    tools::config_shutdown();
     bdc::memory_delete(g_config);
     g_config = nullptr;
 }
 
-ndbl::Config* ndbl::config()
+Config* config()
 {
     VERIFY_NDBLCONFIG_IS_INITIALIZED();
     return g_config;
 }
 
-float ndbl::Config::ui_codeflow_thickness() const
+float Config::ui_codeflow_thickness() const
 {
     return ui_slot_rectangle_size.x * ui_codeflow_thickness_ratio;
 }
 
-tools::Vec2 ndbl::Config::ui_node_gap(tools::Size size) const
+Vec2 Config::ui_node_gap(Size size) const
 {
-    return ui_node_gap_base * tools_cfg->size_factor[size];
+    return ui_node_gap_base * g_config->size_factor[size];
 }
 
-float ndbl::Config::ui_slot_circle_radius(tools::Size size) const
+float Config::ui_slot_circle_radius(Size size) const
 {
-    return ui_slot_circle_radius_base * tools_cfg->size_factor[size];
+    return ui_slot_circle_radius_base * g_config->size_factor[size];
 }
 
-tools::Vec4& ndbl::Config::ui_slot_color(ndbl::Node_Slot::Flags slot_flags)
+Vec4& Config::ui_slot_color(Node_Slot::Flags slot_flags)
 {
     if ( (slot_flags & Node_Slot::Flag_INPUT) == Node_Slot::Flag_INPUT )
         return ui_slot_color_light;
@@ -254,7 +302,9 @@ tools::Vec4& ndbl::Config::ui_slot_color(ndbl::Node_Slot::Flags slot_flags)
     return ui_slot_color_dark;
 }
 
-float ndbl::Config::ui_scope_gap(tools::Size size) const
+float Config::ui_scope_gap(Size size) const
 {
-    return ui_scope_gap_base * tools_cfg->size_factor[size];
+    return ui_scope_gap_base * g_config->size_factor[size];
 }
+
+} // namespace ndbl

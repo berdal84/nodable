@@ -8,8 +8,8 @@
 #include "bdc/Hash_Map.hpp"
 #include "bdc/String_Hash.hpp"
 
-#include "tools/core/Asserts.h"
-#include "tools/core/reflection/Type_Descriptor.h"
+#include "ndbl/core/Asserts.h"
+#include "ndbl/core/reflection/Type_Descriptor.h"
 
 #include "Node_Property.h"
 #include "Node_Slot.h"
@@ -87,7 +87,7 @@ namespace ndbl
     {
         Node_Type                   type;
         bool                        user_created;
-        tools::Type_Descriptor* function_type; // TODO: this has to be serializable!
+        Type_Descriptor* function_type; // TODO: this has to be serializable!
     };
 
     struct Node
@@ -133,7 +133,7 @@ namespace ndbl
         {
             Component_Type                          component_type = Component_Type_INVOKABLE;
             Token                                   identifier_token;
-            tools::Type_Descriptor                  type; // not owned
+            Type_Descriptor                  type; // not owned
             bdc::Inlined_Array<Node_Slot*, 8>       argument_slots;
             bdc::Inlined_Array<Node_Property*, 8>   argument_props;
 
@@ -161,7 +161,7 @@ namespace ndbl
         {
             Component_Type                  component_type = Component_Type_LITERAL;
             Token                           token;
-            const tools::Type_Descriptor*   type;
+            const Type_Descriptor*   type;
         };
 
         union Component
@@ -183,8 +183,8 @@ namespace ndbl
         
         bdc::String_Hash                        id = {};
         Component                               component;
-        tools::Simple_Signal                    signal_deinit;      // emit once component.deinit() has been called
-        tools::Signal<void(const bdc::String&)> signal_name_change;   
+        Simple_Signal                    signal_deinit;      // emit once component.deinit() has been called
+        Signal<void(const bdc::String&)> signal_name_change;   
         std::vector<Node_Property*>             props;              // TODO: use bdc::Resizable_Array
         std::vector<Node_Slot*>                 slots;              // TODO: use bdc::Resizable_Array
         bdc::Hash_Map<bdc::String_Hash, Node_Property*>   props_by_name;
@@ -223,10 +223,10 @@ namespace ndbl
     void                    node_init_as_scope(Node*);              // TODO:  (same)
     void                    node_init_as_root_scope(Node*);         // TODO:  (same)
     void                    node_init_as_variable_ref(Node*);       // TODO:  (same)
-    void                    node_init_as_return(Node* node, const tools::Type_Descriptor* = nullptr);
-    void                    node_init_as_invokable(Node*, const tools::Type_Descriptor*, Node_Type = Node_Type_FUNCTION);
-    void                    node_init_as_variable(Node*, const tools::Type_Descriptor*, const bdc::String identifier);
-    void                    node_init_as_literal(Node*, const tools::Type_Descriptor*);
+    void                    node_init_as_return(Node* node, const Type_Descriptor* = nullptr);
+    void                    node_init_as_invokable(Node*, const Type_Descriptor*, Node_Type = Node_Type_FUNCTION);
+    void                    node_init_as_variable(Node*, const Type_Descriptor*, const bdc::String identifier);
+    void                    node_init_as_literal(Node*, const Type_Descriptor*);
     void                    node_init_internal_scope(Node*);
     void                    node_init_branches(Node*, size_t branch_count);
     void                    node_init_component(Node::Component*, Node::Component_Type);
@@ -237,7 +237,7 @@ namespace ndbl
     void                    node_variable_ref_clear_variable(Node*);
     void                    node_variable_ref_set_variable(Node*, Node* /* variable_node */);
     void                    node_variable_ref_handle_name_change(Node*, const bdc::String& /*name*/);
-    inline const tools::Type_Descriptor* node_variable_type(const Node* node ) { return node->value->type; }
+    inline const Type_Descriptor* node_variable_type(const Node* node ) { return node->value->type; }
     inline const Token&     node_get_identifier_token(const Node* node) { return node->value->token; }
     inline Token&           node_get_identifier_token(Node* node) { return node->value->token; }
     inline void             node_set_identifier_token(Node* node, const Token& tok) { node->value->token = tok; }
@@ -256,7 +256,7 @@ namespace ndbl
     inline Node_Slot*       node_find_slot_at(Node* node, Node_Slot::Flags flags, size_t pos ) { return const_cast<Node_Slot*>( node_find_slot_at(const_cast<const Node*>(node), flags, pos)); } // implicitly DEFAULT_PROPERTY's slot
     const Node_Slot*        node_find_slot_by_property_name(const Node*, const bdc::String& name, Node_Slot::Flags );
     inline Node_Slot*       node_find_slot_by_property_name(Node* node, const bdc::String& name, Node_Slot::Flags flags) { return const_cast<Node_Slot*>( node_find_slot_by_property_name(const_cast<const Node*>(node), name, flags) ); };
-    Node_Slot*              node_find_slot_by_property_type(const Node*, Node_Slot::Flags _way, const tools::Type_Descriptor *_type);
+    Node_Slot*              node_find_slot_by_property_type(const Node*, Node_Slot::Flags _way, const Type_Descriptor *_type);
     const Node_Slot*        node_find_slot_by_property(const Node*, const Node_Property*, Node_Slot::Flags );
     inline Node_Slot*       node_find_slot_by_property(Node* node, const Node_Property* prop, Node_Slot::Flags flags ) { return const_cast<Node_Slot*>( node_find_slot_by_property(const_cast<const Node*>(node), prop, flags ) ); }
     inline const Node_Slot* node_find_slot(const Node* node, Node_Slot::Flags flags) { return node_find_slot_by_property(node, node->value, flags ); }// implicitly DEFAULT_PROPERTY's slot
@@ -264,16 +264,16 @@ namespace ndbl
     inline Node_Slot*       node_find_adjacent_at(const Node*, Node_Slot::Flags, size_t _index );
 
     // Property-related
-    Node_Property*          node_add_prop(Node*, const tools::Type_Descriptor*, const bdc::String name, Node_Property::Flags = Node_Property::Flag_NONE);
+    Node_Property*          node_add_prop(Node*, const Type_Descriptor*, const bdc::String name, Node_Property::Flags = Node_Property::Flag_NONE);
     template<typename T>    
-    Node_Property*          node_add_prop(Node* node, const bdc::String& name, Node_Property::Flags flags = Node_Property::Flag_NONE ) { return node_add_prop(node, tools::type_get<T>(), name, flags); }
+    Node_Property*          node_add_prop(Node* node, const bdc::String& name, Node_Property::Flags flags = Node_Property::Flag_NONE ) { return node_add_prop(node, type_get<T>(), name, flags); }
     bool                    node_has_input_connected(const Node*, const Node_Property*);
     bool                    node_has_prop(const Node*, const bdc::String&);
     const Node_Property*    node_find_prop_by_name(const Node*, const bdc::String& name);
     inline Node_Property*   node_find_prop_by_name(Node* node, const bdc::String& name) { return const_cast<Node_Property*>( node_find_prop_by_name(const_cast<const Node*>(node), name) );}
-    const Node_Property*    node_find_first_prop(const Node*, Node_Property::Flags, const tools::Type_Descriptor* );
-    inline Node_Property*   node_find_first_prop(Node* node, Node_Property::Flags flags, const tools::Type_Descriptor* type ) { return const_cast<Node_Property*>( node_find_first_prop(const_cast<const Node*>(node), flags, type) );}
-    const tools::Type_Descriptor* node_get_connected_function_type(const Node*, const bdc::String& property_name); //
+    const Node_Property*    node_find_first_prop(const Node*, Node_Property::Flags, const Type_Descriptor* );
+    inline Node_Property*   node_find_first_prop(Node* node, Node_Property::Flags flags, const Type_Descriptor* type ) { return const_cast<Node_Property*>( node_find_first_prop(const_cast<const Node*>(node), flags, type) );}
+    const Type_Descriptor* node_get_connected_function_type(const Node*, const bdc::String& property_name); //
 
     // Misc.
 

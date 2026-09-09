@@ -135,10 +135,7 @@ namespace bdc
     }
 
     String string_copy(const String& source )
-    {
-        if( source.size == 0)
-            return {};
-            
+    {            
         String result{};
         string_copy( result, source);
         return result;
@@ -147,10 +144,11 @@ namespace bdc
 
     String& string_copy(String& target, const String& source )
     {
-        target.data = memory_malloc_array<i8_t>(source.size, allocator);
+        size_t alloc_size = source.size + 1; // null terminated
+        target.data = memory_malloc_array<i8_t>(alloc_size, allocator);
         target.size = source.size;
 
-        std::memcpy(target.data, source.data, source.size + 1); // null terminated
+        std::memcpy(target.data, source.data, alloc_size); 
 
         target.data[source.size] = '\0';
 

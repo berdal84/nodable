@@ -1,11 +1,6 @@
 #pragma once
 #include "bdc/String.hpp"
 
-namespace tools
-{
-    struct Task_Manager;
-}
-
 namespace ndbl
 {
     // forward declarations
@@ -13,10 +8,10 @@ namespace ndbl
 
     struct App_Headless_State
     {
-        bool    auto_completion;
-        bool    should_stop;
-        Graph*  graph;
-        String  source_code;
+        bool        auto_completion;
+        bool        should_stop;
+        Graph*      graph;
+        bdc::String source_code;
     };
 
     void            nodable_init(App_Headless_State*);
@@ -24,6 +19,6 @@ namespace ndbl
     void            nodable_update(App_Headless_State*);
     void            nodable_clear(App_Headless_State*);
     bdc::String     nodable_serialize(const App_Headless_State*);
-    Graph*          nodable_parse(const App_Headless_State*, const String& in );
+    Graph*          nodable_parse(const App_Headless_State*, const bdc::String& in );
 }
 

@@ -1,12 +1,11 @@
-#include "../fixtures/core.h"
+#include "test/fixtures/nodable_headless_test.h"
 #include <gtest/gtest.h>
-#include "tools/core/Log.h"
 
 using namespace ndbl;
-using namespace tools;
+using namespace ndbl;
 
-typedef ::testing::Core Language_parse_and_serialize;
-typedef ::testing::Core DISABLED_Language_parse_and_serialize;
+typedef ::testing::Nodable_Headless_Test Language_parse_and_serialize;
+typedef ::testing::Nodable_Headless_Test DISABLED_Language_parse_and_serialize;
 
 
 TEST_F(Language_parse_and_serialize, decl_var_and_assign_string)
@@ -261,7 +260,7 @@ TEST_F(Language_parse_and_serialize, partial_if4)
 {
     String code    = "if()else";
     String result  = parse_and_serialize(code);
-    EXPECT_EQ(result, "");
+    EXPECT_EQ(result, code);
 }
 
 

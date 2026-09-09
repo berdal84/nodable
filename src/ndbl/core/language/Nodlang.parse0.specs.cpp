@@ -1,12 +1,10 @@
 #include <gtest/gtest.h>
 
-#include "ndbl/core/fixtures/core.h"
-#include "tools/core/reflection/index.h"
+#include "test/fixtures/nodable_headless_test.h"
 
 using namespace ndbl;
-using namespace tools;
 
-typedef testing::Core Language_basics;
+typedef testing::Nodable_Headless_Test Language_basics;
 
 TEST_F(Language_basics, can_get_add_operator_with_short_identifier )
 {

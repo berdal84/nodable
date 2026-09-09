@@ -15,24 +15,24 @@
 #include <cctype> // isdigit, isalpha, and isalnum.
 
 #include "bdc/String_Builder.hpp"
-#include "core/Asserts.h"
-#include "core/Constants.h"
-#include "core/Node_Slot.h"
-#include "core/Token_Type.h"
 #include "bdc/Types.hpp"
-#include "core/reflection/Operator.h"
-#include "tools/core/Format.h"
-#include "tools/core/Log.h"
-#include "tools/core/Hash.h"
-
-#include "ndbl/core/Node.h"
-#include "ndbl/core/Node_Property.h"
+#include "ndbl/core/Asserts.h"
+#include "ndbl/core/Constants.h"
+#include "ndbl/core/Format.h"
 #include "ndbl/core/Graph.h"
+#include "ndbl/core/Hash.h"
+#include "ndbl/core/Log.h"
+#include "ndbl/core/Node_Property.h"
+#include "ndbl/core/Node_Slot.h"
+#include "ndbl/core/Node.h"
+#include "ndbl/core/reflection/Operator.h"
 #include "ndbl/core/Scope.h"
+#include "ndbl/core/Token_Type.h"
 
-// private
 namespace ndbl
 {
+    using namespace bdc;
+
     void            _lang_reset_graph(Language&, Graph*);
     bdc::String     _lang_to_string(const Language&);
     Graph*          _lang_graph(const Language&);
@@ -40,12 +40,6 @@ namespace ndbl
     bool            _lang_accepts_suffix(const Language&, Token_Type);
     bool            _lang_is_syntax_valid(const Language&); // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
 
-}
-
-namespace ndbl
-{
-    using namespace bdc;
-    using namespace tools;
 
     static Language* g_language = nullptr;
 
@@ -213,7 +207,7 @@ namespace ndbl
     {
         lang_reset(lang, graph_out, code);
 
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing ...\n%s\n", code.c_str() );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing ...\n%s\n", code.c_str() );
 
         if ( !lang_tokenize(lang, code) )
         {
@@ -227,23 +221,18 @@ namespace ndbl
 
         Scope* scope = lang_parse_program(lang);
 
-        if ( scope_is_empty(scope) )
-        {
-            return false;
-        }
-
         if ( lang.ribbon.can_eat() )
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " End of token ribbon expected\n");
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon").c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " End of token ribbon expected\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon").c_str());
             for (const Token& each_token : lang.ribbon )
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "token idx %i: %s\n", each_token.index, each_token.json().c_str());
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "token idx %i: %s\n", each_token.index, each_token.json().c_str());
             }
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon end").c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon end").c_str());
             auto curr_token = lang.ribbon.peek();
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Failed to parse from token %llu/%llu and above.\n", curr_token.index, lang.ribbon.size());
-            TOOLS_LOG(Verbosity_Error, "Parser", "Unable to parse all the tokens\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Failed to parse from token %llu/%llu and above.\n", curr_token.index, lang.ribbon.size());
+            NDBL_LOG(Verbosity_Error, "Parser", "Unable to parse all the tokens\n");
             return false;
         }
         return true;
@@ -279,7 +268,7 @@ namespace ndbl
             int n = std::clamp(l, (i64_t)std::numeric_limits<int>::min() , (i64_t)std::numeric_limits<int>::max());
             if( n > (int)l )
             {
-                TOOLS_LOG( Verbosity_Warning, "Nodlang", "Parsing a too large integer for 32bits!\n");
+                NDBL_LOG( Verbosity_Warning, "Nodlang", "Parsing a too large integer for 32bits!\n");
             }
             return n;
         }
@@ -299,14 +288,14 @@ namespace ndbl
             if ( !lang.strict_mode )
             {
                 // Insert a VariableNodeRef with "any" type
-                TOOLS_LOG(Verbosity_Warning,  "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
+                NDBL_LOG(Verbosity_Warning,  "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                             _token.word_view().c_str() );
                 Node* ref = graph_create_variable_ref( lang.graph, parent_scope );
                 ref->value->token = _token;
                 return ref->value_out();
             }
 
-            TOOLS_LOG(Verbosity_Error,  "Parser", "%s is not declared (strict mode) \n", _token.word_view().c_str() );
+            NDBL_LOG(Verbosity_Error,  "Parser", "%s is not declared (strict mode) \n", _token.word_view().c_str() );
             return nullptr;
         }
 
@@ -324,8 +313,8 @@ namespace ndbl
 
         if ( literal )
         {
-            TOOLS_DEBUG_LOG(
-                Verbosity_Diagnostic, "Parser", TOOLS_OK " Token %s converted to a Literal %s\n",
+            NDBL_DEBUG_LOG(
+                Verbosity_Diagnostic, "Parser", NDBL_OK " Token %s converted to a Literal %s\n",
                 _token.word_view().c_str(),
                 literal->value->type->name.c_str()
             );
@@ -333,18 +322,18 @@ namespace ndbl
             return literal->value_out();
         }
 
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Unable to run token_to_slot with token %s!\n", _token.word_view().c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Unable to run token_to_slot with token %s!\n", _token.word_view().c_str());
         return nullptr;
     }
 
     Node_Slot* lang_parse_binary_operator_expression(Language& lang, Scope* parent_scope, u8_t _precedence, Node_Slot* _left)
     {
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing binary expression ...\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing binary expression ...\n");
         ASSERT(_left != nullptr);
 
         if (!lang.ribbon.can_eat(2))
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Not enough tokens\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Not enough tokens\n");
             return nullptr;
         }
 
@@ -359,14 +348,14 @@ namespace ndbl
         if (!isValid)
         {
             lang.ribbon.rollback();
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Unexpected tokens\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Unexpected tokens\n");
             return nullptr;
         }
 
         const Operator *ope = lang_find_operator(lang, Operator{ operator_token.word_view(), Operator_Type::Binary} );
         if (ope == nullptr)
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Operator %s not found\n", operator_token.word_view().c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Operator %s not found\n", operator_token.word_view().c_str());
             lang.ribbon.rollback();
             return nullptr;
         }
@@ -374,7 +363,7 @@ namespace ndbl
         // Precedence check
         if (ope->precedence <= _precedence && _precedence > 0)
         {// always update the first operation if they have the same precedence or less.
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Has lower precedence\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Has lower precedence\n");
             lang.ribbon.rollback();
             return nullptr;
         }
@@ -401,22 +390,22 @@ namespace ndbl
             graph_connect_or_merge(right, binary_op.rvalue_in() );
 
             lang.ribbon.commit();
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Binary expression parsed:\n%s\n", lang.ribbon.to_string().c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Binary expression parsed:\n%s\n", lang.ribbon.to_string().c_str());
             return binary_op_node->value_out();
         }
 
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Right expression is null\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Right expression is null\n");
         lang.ribbon.rollback();
         return nullptr;
     }
 
     Node_Slot* lang_parse_unary_operator_expression(Language& lang, Scope* parent_scope, u8_t _precedence)
     {
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "parseUnaryOperationExpression...\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "parseUnaryOperationExpression...\n");
 
         if (!lang.ribbon.can_eat(2))
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Not enough tokens\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Not enough tokens\n");
             return nullptr;
         }
 
@@ -427,7 +416,7 @@ namespace ndbl
         if (operator_token.type != Token_Type_operator)
         {
             lang.ribbon.rollback();
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Expecting an operator token first\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Expecting an operator token first\n");
             return nullptr;
         }
 
@@ -441,7 +430,7 @@ namespace ndbl
 
         if ( !out_atomic )
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Right expression is null\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Right expression is null\n");
             lang.ribbon.rollback();
             return nullptr;
         }
@@ -458,7 +447,7 @@ namespace ndbl
 
         graph_connect_or_merge(out_atomic, node->component.invokable.lvalue_in() );
 
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Unary expression parsed:\n%s\n", lang.ribbon.to_string().c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Unary expression parsed:\n%s\n", lang.ribbon.to_string().c_str());
         lang.ribbon.commit();
 
         return node->value_out();
@@ -466,11 +455,11 @@ namespace ndbl
 
     Node_Slot* lang_parse_atomic_expression(Language& lang, Scope* parent_scope)
     {
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing atomic expression ... \n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing atomic expression ... \n");
 
         if (!lang.ribbon.can_eat())
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Not enough tokens\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Not enough tokens\n");
             return nullptr;
         }
 
@@ -479,7 +468,7 @@ namespace ndbl
 
         if (token.type == Token_Type_operator)
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Cannot start with an operator token\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Cannot start with an operator token\n");
             lang.ribbon.rollback();
             return nullptr;
         }
@@ -487,23 +476,23 @@ namespace ndbl
         if ( Node_Slot* result = lang_token_to_slot( lang, parent_scope, token) )
         {
             lang.ribbon.commit();
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Atomic expression parsed:\n%s\n", lang.ribbon.to_string().c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Atomic expression parsed:\n%s\n", lang.ribbon.to_string().c_str());
             return result;
         }
 
         lang.ribbon.rollback();
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic,  "Parser", TOOLS_KO " Unable to parse token (%llu)\n", token.index );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic,  "Parser", NDBL_KO " Unable to parse token (%llu)\n", token.index );
 
         return nullptr;
     }
 
     Node_Slot* lang_parse_parenthesis_expression(Language& lang, Scope* parent_scope)
     {
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "parse parenthesis expr...\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "parse parenthesis expr...\n");
 
         if (!lang.ribbon.can_eat())
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " No enough tokens.\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " No enough tokens.\n");
             return nullptr;
         }
 
@@ -511,7 +500,7 @@ namespace ndbl
         Token currentToken = lang.ribbon.eat();
         if (currentToken.type != Token_Type_parenthesis_open)
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Open bracket not found.\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Open bracket not found.\n");
             lang.ribbon.rollback();
             return nullptr;
         }
@@ -522,20 +511,20 @@ namespace ndbl
             Token token = lang.ribbon.eat();
             if (token.type != Token_Type_parenthesis_close)
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s \n", lang.ribbon.to_string().c_str());
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Parenthesis close expected\n",
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s \n", lang.ribbon.to_string().c_str());
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Parenthesis close expected\n",
                             token.word_view().c_str());
                 lang.ribbon.rollback();
             }
             else
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Parenthesis expression parsed:\n%s\n", lang.ribbon.to_string().c_str());
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Parenthesis expression parsed:\n%s\n", lang.ribbon.to_string().c_str());
                 lang.ribbon.commit();
             }
         }
         else
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " No expression after open parenthesis.\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " No expression after open parenthesis.\n");
             lang.ribbon.rollback();
         }
         return result;
@@ -576,10 +565,10 @@ namespace ndbl
             {
                 case Token_Type_end_of_instruction:
                 case Token_Type_parenthesis_close:
-                    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "End of instruction or parenthesis close: found in next token\n");
+                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "End of instruction or parenthesis close: found in next token\n");
                     break;
                 default:
-                    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " End of instruction or parenthesis close expected.\n");
+                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " End of instruction or parenthesis close expected.\n");
                     value_out = nullptr;
             }
         }
@@ -590,7 +579,7 @@ namespace ndbl
         {
             if (lang.ribbon.peek(Token_Type_end_of_instruction))
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Empty expression found\n");
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Empty expression found\n");
 
                 Node* empty_instr = graph_create_empty_instruction( lang.graph, parent_scope );
                 value_out = empty_instr->value_out();
@@ -601,7 +590,7 @@ namespace ndbl
         if ( !value_out )
         {
             lang.ribbon.rollback();
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " parse instruction\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " parse instruction\n");
             return nullptr;
         }
 
@@ -625,7 +614,7 @@ namespace ndbl
 
         // Validate transaction
         lang.ribbon.commit();
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " parse instruction:\n%s\n", lang.ribbon.to_string().c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " parse instruction:\n%s\n", lang.ribbon.to_string().c_str());
 
         return value_out->node;
     }
@@ -645,28 +634,27 @@ namespace ndbl
         // we put the prefix and suffix in resp. token_begin and end.
         Token& tok = lang.ribbon.global_token;
 
-        #warning TODO try to resize prefix/word/suffix instead of pushing stuff (which imply an allocation)
-        if(tok.prefix_size) scope->token_begin.prefix_push_front( tok.prefix_view() );
-        if(tok.suffix_size) scope->token_end.suffix_push_back( tok.suffix_view() );
+        if (tok.prefix_size) scope->token_begin.prefix_push_front( tok.prefix_view() );
+        if (tok.suffix_size) scope->token_end.suffix_push_back( tok.suffix_view() );
 
         if ( lang.ribbon.can_eat( ) )
         {
             lang.ribbon.rollback();
             graph_reset(lang.graph);
             lang.graph->signal_is_complete.emit();
-            TOOLS_LOG(Verbosity_Warning, "Parser", "Some token remains after getting an empty code block\n");
-            TOOLS_LOG(Verbosity_Message, "Parser", "Parse program [OK]\n");
+            NDBL_LOG(Verbosity_Warning, "Parser", "Some token remains after getting an empty code block\n");
+            NDBL_LOG(Verbosity_Message, "Parser", "Parse program [OK]\n");
             return scope;
         }
         else if ( block_last_node == nullptr )
         {
-            TOOLS_LOG(Verbosity_Warning, "Parser", "Program main block is empty\n");
+            NDBL_LOG(Verbosity_Warning, "Parser", "Program main block is empty\n");
         }
 
         lang.ribbon.commit();
         lang.graph->signal_is_complete.emit();
 
-        TOOLS_LOG(Verbosity_Message, "Parser", "Parse program [OK]\n");
+        NDBL_LOG(Verbosity_Message, "Parser", "Parse program [OK]\n");
 
         return scope;
     }
@@ -674,12 +662,12 @@ namespace ndbl
     Node* lang_parse_scoped_block(Language& lang, Scope* parent_scope, Node_Slot* flow_out)
     {
         ASSERT(parent_scope);
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing scoped block ...\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing scoped block ...\n");
 
         Token token_begin = lang.ribbon.eat_if(Token_Type_scope_begin);
         if ( !token_begin )
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Expecting root_scope begin token\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Expecting root_scope begin token\n");
             return nullptr;
         }
 
@@ -700,23 +688,23 @@ namespace ndbl
             node->internal_scope->token_end = token_end;
 
             lang.ribbon.commit();
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Scoped block parsed:\n%s\n", lang.ribbon.to_string().c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Scoped block parsed:\n%s\n", lang.ribbon.to_string().c_str());
             return node;
         }
         else
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Expecting close root_scope token\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Expecting close root_scope token\n");
         }
 
         graph_find_and_destroy_node(lang.graph, node);
         lang.ribbon.rollback();
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Scoped block parsed\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Scoped block parsed\n");
         return nullptr;
     }
 
     Node* lang_parse_code_block(Language& lang, Scope* parent_scope, Node_Slot* flow_out)
     {
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing code block...\n" );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing code block...\n" );
 
         //
         // Parse n atomic code blocks
@@ -743,18 +731,18 @@ namespace ndbl
         if (last_node_flow_out != nullptr && last_node_flow_out != flow_out )
         {
             lang.ribbon.commit();
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " parse code block:\n%s\n", lang.ribbon.to_string().c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " parse code block:\n%s\n", lang.ribbon.to_string().c_str());
             return last_node_flow_out->node;
         }
 
         lang.ribbon.rollback();
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " parse code block. Block size is %llu\n", block_size );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " parse code block. Block size is %llu\n", block_size );
         return nullptr;
     }
 
     Node_Slot* lang_parse_expression(Language& lang, Scope* parent_scope, u8_t _precedence, Node_Slot* _left_override)
     {
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing expression ...\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing expression ...\n");
 
         /*
             Get the left-handed operand
@@ -763,7 +751,7 @@ namespace ndbl
 
         if (!lang.ribbon.can_eat())
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Last token reached\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Last token reached\n");
             return left;
         }
 
@@ -775,13 +763,13 @@ namespace ndbl
 
         if (!lang.ribbon.can_eat())
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Last token reached\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Last token reached\n");
             return left;
         }
 
         if ( !left )
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Left side is null, we return it\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Left side is null, we return it\n");
             return left;
         }
 
@@ -793,14 +781,14 @@ namespace ndbl
         {
             if (!lang.ribbon.can_eat())
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Right side parsed, and last token reached\n");
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Right side parsed, and last token reached\n");
                 return expression_out;
             }
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Right side parsed, continue with a recursive call...\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Right side parsed, continue with a recursive call...\n");
             return lang_parse_expression(lang, parent_scope, _precedence, expression_out);
         }
 
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Returning left side only\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Returning left side only\n");
 
         return left;
     }
@@ -829,7 +817,7 @@ namespace ndbl
                         const size_t token_count = 10;
                         const size_t begin       = token->index < token_count ? 0 : token->index - token_count;
                         const size_t end         = token->index + 1;
-                        TOOLS_LOG(
+                        NDBL_LOG(
                             Verbosity_Error,
                             "Parser",
                             "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n",
@@ -850,7 +838,7 @@ namespace ndbl
 
         if (opened > 0)// same opened/closed parenthesis count required.
         {
-            TOOLS_LOG(Verbosity_Error, "Parser", "Syntax Error: Bracket count mismatch, %i still opened.\n", opened);
+            NDBL_LOG(Verbosity_Error, "Parser", "Syntax Error: Bracket count mismatch, %i still opened.\n", opened);
             success = false;
         }
 
@@ -866,7 +854,7 @@ namespace ndbl
 
     bool lang_tokenize(Language& lang)
     {
-        TOOLS_LOG(Verbosity_Diagnostic, "Parser", "Tokenization ...\n");
+        NDBL_LOG(Verbosity_Diagnostic, "Parser", "Tokenization ...\n");
 
         bdc::String remainder = lang.buffer;
         size_t ignored_chars_count = 0;
@@ -877,9 +865,9 @@ namespace ndbl
 
             if ( !new_token )
             {
-                TOOLS_LOG(
+                NDBL_LOG(
                     Verbosity_Warning, "Parser", 
-                    TOOLS_KO " Unable to tokenize from \"%20s...\" (at char %llu)\n", 
+                    NDBL_KO " Unable to tokenize from \"%20s...\" (at char %llu)\n", 
                     remainder.c_str(), (u64_t)remainder.data - (u64_t)lang.buffer.data );
                 return false;
             }
@@ -904,7 +892,7 @@ namespace ndbl
                 if ( _lang_accepts_suffix(lang, back.type) )
                 {
                     back.suffix_end_grow(ignored_chars_count);
-                    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", back.view().c_str() );
+                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", back.view().c_str() );
                 }
                 // case 2: increase prefix of the new_token up to wrap the ignored chars
                 else if ( new_token )
@@ -915,18 +903,18 @@ namespace ndbl
             }
 
             lang.ribbon.push(new_token);
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", new_token.index, new_token.view().c_str() );
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", new_token.index, new_token.view().c_str() );
         }
 
         // Append remaining ignored chars to the ribbon's suffix
         if ( ignored_chars_count )
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Found ignored chars after tokenize, adding to the tokens suffix...\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Found ignored chars after tokenize, adding to the tokens suffix...\n");
             Token& tok = lang.ribbon.global_token;
             tok.suffix_begin_grow( ignored_chars_count );
         }
 
-        TOOLS_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Tokenization.\n%s\n", lang.ribbon.to_string().c_str() );
+        NDBL_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Tokenization.\n%s\n", lang.ribbon.to_string().c_str() );
 
         return true;
     }
@@ -1002,7 +990,7 @@ namespace ndbl
                 bdc::String word;
 
                 // Double char operators starting with "=" ("=>" or "==")
-                if (buffer.size >= 1 && (buffer[1] == '>' || buffer[1] == '='))
+                if (buffer.size > 1 && (buffer[1] == '>' || buffer[1] == '='))
                 {
                     word = bdc::string_lsplit(buffer, 2);
                 }
@@ -1138,12 +1126,12 @@ namespace ndbl
 
     Node_Slot* lang_parse_function_call(Language& lang, Scope* parent_scope)
     {
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "parse function call...\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "parse function call...\n");
 
         // Check if the minimum token count required is available ( 0: identifier, 1: open parenthesis, 2: close parenthesis)
         if (!lang.ribbon.can_eat(3))
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " 3 tokens min. are required\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " 3 tokens min. are required\n");
             return nullptr;
         }
 
@@ -1157,7 +1145,7 @@ namespace ndbl
             token_1.type == Token_Type_parenthesis_open)
         {
             function_identifier = token_0.word_view();
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Regular function pattern detected.\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Regular function pattern detected.\n");
         }
         else // Try to parse operator like (ex: operator==(..,..))
         {
@@ -1166,11 +1154,11 @@ namespace ndbl
             if (token_0.type == Token_Type_keyword_operator && token_1.type == Token_Type_operator && token_2.type == Token_Type_parenthesis_open)
             {
                 function_identifier = token_1.word_view();// operator
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Operator function-like pattern detected.\n");
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Operator function-like pattern detected.\n");
             }
             else
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Not a function.\n");
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Not a function.\n");
                 lang.ribbon.rollback();
                 return nullptr;
             }
@@ -1202,7 +1190,7 @@ namespace ndbl
         // eat "close bracket supposed" token
         if ( !lang.ribbon.eat_if(Token_Type_parenthesis_close) )
         {
-            TOOLS_LOG(Verbosity_Warning, "Parser", TOOLS_KO " Expecting parenthesis close\n");
+            NDBL_LOG(Verbosity_Warning, "Parser", NDBL_KO " Expecting parenthesis close\n");
             lang.ribbon.rollback();
             return nullptr;
         }
@@ -1218,7 +1206,7 @@ namespace ndbl
         }
 
         lang.ribbon.commit();
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Function call parsed:\n%s\n", lang.ribbon.to_string().c_str() );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Function call parsed:\n%s\n", lang.ribbon.to_string().c_str() );
 
         return fct_node->value_out();
     }
@@ -1233,72 +1221,62 @@ namespace ndbl
             return nullptr;
         }
 
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing conditional structure...\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing if statement...\n");
 
-        bool    success  = false;
-        Node*   if_node  = graph_create_cond_struct( lang.graph, parent_scope );
+        // if
+        Node* if_node  = graph_create_cond_struct( lang.graph, parent_scope );
         if_node->component.branching.branch_prefix = lang.ribbon.get_eaten();
 
         graph_connect(flow_out, if_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
-        if (lang.ribbon.eat_if(Token_Type_parenthesis_open) )
+        if ( !lang.ribbon.eat_if(Token_Type_parenthesis_open) )
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing conditional structure's condition...\n");
+            graph_find_and_destroy_node(lang.graph, if_node);
+            lang.ribbon.rollback();
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Open bracket expected\n");
+            return nullptr;
+        }
+        
+        // if's condition
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing if block's condition...\n");
+        lang_parse_expression_block( lang, if_node->internal_scope, nullptr, if_node->component.branching.condition_in());
 
-            // condition
-            lang_parse_expression_block( lang, if_node->internal_scope, nullptr, if_node->component.branching.condition_in());
+        if ( !lang.ribbon.eat_if(Token_Type_parenthesis_close) )
+        {
+            graph_find_and_destroy_node(lang.graph, if_node);
+            lang.ribbon.rollback();
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Close bracket expected\n");
+            return nullptr;
+        }
 
-            if (lang.ribbon.eat_if(Token_Type_parenthesis_close) )
+        // if's block
+        Node* if_block = lang_parse_atomic_code_block( lang,  if_node->internal_scope, if_node->component.branching.branch_out(Branch_TRUE) );
+        if( if_block )
+        {
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " if block parsed\n");
+        }
+
+        // else (optionnal)
+        if ( lang.ribbon.eat_if(Token_Type_keyword_else) )
+        {
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing else statement ...\n");
+            if_node->component.branching.branch_suffix = lang.ribbon.get_eaten();
+
+            // else's block
+            if ( Node* else_block = lang_parse_atomic_code_block( lang,  if_node->internal_scope, if_node->component.branching.branch_out(Branch_FALSE) ) )
             {
-                // scope
-                Node* block = lang_parse_atomic_code_block( lang,  if_node->internal_scope, if_node->component.branching.branch_out(Branch_TRUE) );
-
-                if ( block )
-                {
-                    // else
-                    if ( lang.ribbon.eat_if(Token_Type_keyword_else) )
-                    {
-                        if_node->component.branching.branch_suffix = lang.ribbon.get_eaten();
-
-                        if ( Node* else_block = lang_parse_atomic_code_block( lang,  if_node->internal_scope, if_node->component.branching.branch_out(Branch_FALSE) ) )
-                        {
-                            success = true;
-                            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " else block parsed.\n");
-                        }
-                        else
-                        {
-                            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Single instruction or root_scope expected\n");
-                        }
-                    }
-                    else
-                    {
-                        success = true;
-                    }
-                }
-                else
-                {
-                    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Single instruction or root_scope expected\n");
-                }
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " else block parsed.\n");
             }
             else
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Close bracket expected\n");
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " else block parsed (without code)\n");
             }
-        }
+        }                   
 
-        if ( success )
-        {
-            lang.ribbon.commit();
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Parse conditional structure:\n%s\n", lang.ribbon.to_string().c_str() );
-            // TODO: connect true/false branches flow_out to scope flow_leave?"
-            return if_node;
-        }
-
-        graph_find_and_destroy_node(lang.graph, if_node);
-        lang.ribbon.rollback();
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Parse conditional structure \n");
-
-        return {};
+        lang.ribbon.commit();
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Parse conditional structure:\n%s\n", lang.ribbon.to_string().c_str() );
+        // TODO: connect true/false branches flow_out to scope flow_leave?"
+        return if_node;
     }
 
     Node* lang_parse_for_block(Language& lang, Scope* parent_scope, Node_Slot* flow_out)
@@ -1310,7 +1288,7 @@ namespace ndbl
 
         if ( Token token_for = lang.ribbon.eat_if(Token_Type_keyword_for) )
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing for loop ...\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing for loop ...\n");
 
             for_node = graph_create_for_loop( lang.graph, parent_scope );
             for_node->component.branching.branch_prefix = token_for;
@@ -1320,7 +1298,7 @@ namespace ndbl
             Token open_bracket = lang.ribbon.eat_if(Token_Type_parenthesis_open);
             if ( open_bracket)
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing for set_name/condition/iter instructions ...\n");
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing for set_name/condition/iter instructions ...\n");
 
                 // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
 
@@ -1337,27 +1315,27 @@ namespace ndbl
                     if ( block )
                     {
                         success = true;
-                        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Scope or single instruction found\n");
+                        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Scope or single instruction found\n");
                     }
                     else
                     {
-                        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Scope or single instruction expected\n");
+                        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Scope or single instruction expected\n");
                     }
                 }
                 else
                 {
-                    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Close parenthesis was expected.\n");
+                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Close parenthesis was expected.\n");
                 }
             }
             else
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Open parenthesis was expected.\n");
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Open parenthesis was expected.\n");
             }
         }
 
         if ( success )
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " For block parsed\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " For block parsed\n");
             lang.ribbon.commit();
             // TODO: Should we connect true/false branches to scope's flow_leave Node_Slot?
             return for_node;
@@ -1368,7 +1346,7 @@ namespace ndbl
             graph_find_and_destroy_node(lang.graph, for_node);
         }
         lang.ribbon.rollback();
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " Could not parse for block\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Could not parse for block\n");
         return {};
     }
 
@@ -1382,7 +1360,7 @@ namespace ndbl
 
         if ( Token token_while = lang.ribbon.eat_if(Token_Type_keyword_while) )
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while ...\n");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while ...\n");
 
             while_node = graph_create_while_loop( lang.graph, parent_scope );
             while_node->component.branching.branch_prefix = token_while;
@@ -1391,7 +1369,7 @@ namespace ndbl
 
             if ( Token open_bracket = lang.ribbon.eat_if(Token_Type_parenthesis_open) )
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while condition ... \n");
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while condition ... \n");
 
                 // Parse an optional condition
                 lang_parse_expression_block( lang, while_node->internal_scope, nullptr, while_node->component.branching.condition_in());
@@ -1405,23 +1383,23 @@ namespace ndbl
                     }
                     else
                     {
-                        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO "  Scope or single instruction expected\n");
+                        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO "  Scope or single instruction expected\n");
                     }
                 }
                 else
                 {
-                    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO "  Parenthesis close expected\n");
+                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO "  Parenthesis close expected\n");
                 }
             }
             else
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO "  Parenthesis close expected\n");
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO "  Parenthesis close expected\n");
             }
         }
 
         if ( success )
         {
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while:\n%s\n", lang.ribbon.to_string().c_str() );
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while:\n%s\n", lang.ribbon.to_string().c_str() );
             lang.ribbon.commit();
             // TODO: Should we connect true/false branches to scope's flow_leave SLot?
             return while_node;
@@ -1505,9 +1483,9 @@ namespace ndbl
                 }
                 else
                 {
-                    TOOLS_DEBUG_LOG(
+                    NDBL_DEBUG_LOG(
                         Verbosity_Diagnostic, "Parser", 
-                        TOOLS_KO "  Initialization expression expected for %s\n", identifier_token.word_view().c_str());
+                        NDBL_KO "  Initialization expression expected for %s\n", identifier_token.word_view().c_str());
                 }
             }
                 // Declaration without assignment
@@ -1518,16 +1496,16 @@ namespace ndbl
 
             if ( success )
             {
-                TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Variable declaration: %s %s\n",
+                NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Variable declaration: %s %s\n",
                             variable_node->value->type->name.c_str(),
                             identifier_token.word_view().c_str());
                 lang.ribbon.commit();
                 return variable_node->value_out();
             }
 
-            TOOLS_DEBUG_LOG(
+            NDBL_DEBUG_LOG(
                 Verbosity_Diagnostic, "Parser", 
-                TOOLS_KO "  Initialization expression expected for %s\n", identifier_token.word_view().c_str());
+                NDBL_KO "  Initialization expression expected for %s\n", identifier_token.word_view().c_str());
             graph_find_and_destroy_node(lang.graph, variable_node);
         }
 
@@ -1808,7 +1786,7 @@ namespace ndbl
         const Node* root_node = graph_root(graph);
         if ( root_node == nullptr )
         {
-            TOOLS_LOG(Verbosity_Error, "Serializer", "a root primary_child is expected to serialize the graph\n");
+            NDBL_LOG(Verbosity_Error, "Serializer", "a root primary_child is expected to serialize the graph\n");
             return out;
         }
         return lang_serialize_node(lang, out, root_node, Serialization_Flag_RECURSE);
@@ -2013,7 +1991,7 @@ namespace ndbl
 
     Node* lang_parse_atomic_code_block(Language& lang, Scope* parent_scope, Node_Slot* flow_out)
     {
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing atomic code block ..\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing atomic code block ..\n");
         ASSERT(flow_out);
 
         // most common case
@@ -2033,11 +2011,11 @@ namespace ndbl
                 block->suffix = tok;
             }
 
-            TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_OK " Block found (class \"%s\")\n", block->get_class()->name.c_str() );
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Block found (class \"%s\")\n", block->get_class()->name.c_str() );
             return block;
         }
 
-        TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Parser", TOOLS_KO " No block found\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " No block found\n");
         return nullptr;
     }
 

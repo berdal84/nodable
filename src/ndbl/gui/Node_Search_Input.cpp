@@ -1,10 +1,12 @@
 #include "Node_Search_Input.h"
-#include "core/Node.h"
-#include "gui/Event.h"
-#include "gui/Node_Slot_View.h"
-#include "tools/gui/Action.h"
-#include "imgui.h"
+
 #include <cstddef>
+#include <imgui/imgui.h>
+
+#include "ndbl/core/Node.h"
+#include "Event.h"
+#include "Node_Slot_View.h"
+#include "Action.h"
 
 namespace ndbl
 {
@@ -15,7 +17,7 @@ namespace ndbl
 
 void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot)
 {
-    using namespace tools;
+    using namespace ndbl;
 
     context_menu->items_with_compatible_signature.clear();
 
@@ -38,7 +40,7 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Inp
     for (size_t i = 0; i < context_menu->items.size(); ++i )
     {   
         Action& action = context_menu->items[i];
-        Event_Data__Create_Node* event_data = static_cast<Event_Data__Create_Node*>(action.event.user.data1);
+        Event_Data__Create_Node* event_data = static_cast<Event_Data__Create_Node*>(action.event.data1);
 
         // Connect FLOW ?
         if ( dragged_slot->allows(Node_Slot::Flag_TYPE_FLOW) )
@@ -86,7 +88,7 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_In
     }
 }
 
-tools::Action* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot, size_t _result_max_count )
+Action* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot, size_t _result_max_count )
 {
     if ( context_menu->must_be_reset_flag )
     {
@@ -138,7 +140,7 @@ tools::Action* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* c
             auto it = context_menu->items_matching_search.begin();
             while( it != context_menu->items_matching_search.end() && std::distance(context_menu->items_matching_search.begin(), it) != _result_max_count)
             {
-                tools::Action* action = &context_menu->items[*it];
+                Action* action = &context_menu->items[*it];
 
                 // User can click on the button...
                 ImGui::Button( action->label.c_str());

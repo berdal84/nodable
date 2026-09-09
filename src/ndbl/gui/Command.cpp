@@ -1,10 +1,12 @@
 #include "Command.h"
-#include "core/Graph.h"
-#include "gui/File.h"
-#include "gui/Graph_View.h"
-#include "gui/Nodable.h"
-#include "gui/View.h"
+
 #include <cstring>
+
+#include "ndbl/core/Graph.h"
+#include "ndbl/gui/File.h"
+#include "ndbl/gui/Graph_View.h"
+#include "ndbl/gui/Nodable.h"
+#include "ndbl/gui/View.h"
 
 //-----------------------------------------------------------------------------
 
@@ -132,7 +134,7 @@ void ndbl::command_new_node_do(Command* command)
 
     if ( !graph_root(graph) )
     {
-        TOOLS_LOG(tools::Verbosity_Error, "Nodable", "Unable to create_new primary_child, no root found on this graph.\n");
+        NDBL_LOG(Verbosity_Error, "Nodable", "Unable to create_new primary_child, no root found on this graph.\n");
         return;
     }
 
@@ -159,7 +161,7 @@ void ndbl::command_new_node_do(Command* command)
             case Node_Type_FUNCTION:
                 break;
             default:
-                TOOLS_UNREACHABLE("Unexpected Node_Type: %i\n", node_state->type );
+                UNREACHABLE("Unexpected Node_Type: %i\n", node_state->type );
         }
     }
 

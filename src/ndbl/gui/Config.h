@@ -1,21 +1,32 @@
 #pragma once
 
-#include "gui/Action.h"
-#include "gui/Layout.h"
-#include "gui/geometry/Rect.h"
-#include "bdc/Types.hpp"
-#include "tools/gui/Config.h"
-#include "tools/gui/Size.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
+
+#include "bdc/Types.hpp"
 
 #include "ndbl/core/Node.h"
 #include "ndbl/core/Node_Slot.h"
+#include "Action.h"
+#include "Color.h"
+#include "Config.h"
+#include "Font_Manager_Config.h"
+#include "geometry/Rect.h"
+#include "geometry/Vec2.h"
+#include "geometry/Vec4.h"
+#include "Layout.h"
+#include "Size.h"
 
 namespace ndbl
 {
-    using tools::Vec2;
-    using tools::Vec4;
-    using tools::Color;
+    typedef u8_t Debug_Flags;
+    enum Debug_Flags_ : int
+    {
+        Debug_Flags_NONE                        = 0,
+        Debug_Flags_DRAW_IMGUIEX_DEBUG_LINES    = 1 << 0,
+        Debug_Flags_SHOW_IMGUI_CONFIG_WINDOW    = 1 << 1,
+        Debug_Flags_DRAW_LAYOUT_DEBUG_LINES     = 1 << 2,
+        Debug_Flags_ALL                         = ~Debug_Flags_NONE
+    };
 
     typedef u8_t Config_Flags;
     enum Config_Flag_ : u8_t
@@ -35,6 +46,37 @@ namespace ndbl
 
     struct Config
     {
+        // TODO: group members by type in fixed-size arrays
+
+        constexpr static Vec4 COLOR_ERROR {1.f, 0.f, 0.f};
+
+        const char*    app_default_title;
+        Debug_Flags    debug_flags;
+        bool           fps_limit_on;
+        float          fps_limit;
+        u32_t          dt_cap; // in ms
+        Color          background_color;
+        Vec4           button_activeColor;
+        Vec4           button_hoveredColor;
+        Vec4           button_color;
+        const char*    splashscreen_window_label;
+        bool           show_splashscreen_default;
+        bool           imgui_demo;
+        float          dockspace_bottom_size;
+        float          dockspace_top_size;
+        float          dockspace_right_ratio;
+        size_t         log_message_display_max_count;
+
+        std::array<float, Size_COUNT>     size_factor;
+        std::array<Vec4, Verbosity_COUNT> log_color;
+        Font_Manager_Config               font_manager;
+
+        Vec2           padding;
+        bool           antialiased;
+        float          window_rounding;
+        float          frame_rounding;
+        float          border_size;
+
         Config_Flags   flags;
         View_Detail    ui_node_detail;
         float          graph_view_unfold_duration; // The virtual duration used to simulate a graph view unfolding, like accelerating time.
@@ -69,11 +111,10 @@ namespace ndbl
         bdc::String    ui_splashscreen_imagePath;
         bdc::String    ui_startup_window_label;
         bdc::String    ui_toolbar_window_label ;
-        tools::Config* tools_cfg;
         std::array<Vec4,Node_Type_COUNT> ui_node_fill_color;
-        std::vector<tools::Action> actions;
+        std::vector<Action> actions;
         TextEditor::Palette ui_text_textEditorPalette{};
-        tools::Padding ui_scope_padding;
+        Padding ui_scope_padding;
         u64_t          ui_history_size_max{};
         Vec2           ui_node_gap_base; // horizontal, vertical
         Vec2           ui_slot_rectangle_size;
@@ -105,9 +146,9 @@ namespace ndbl
         // computed fields
         
         float          ui_codeflow_thickness() const;
-        float          ui_scope_gap(tools::Size size = tools::Size_DEFAULT) const;
-        float          ui_slot_circle_radius(tools::Size = tools::Size_DEFAULT) const;
-        Vec2           ui_node_gap(tools::Size = tools::Size_DEFAULT) const;
+        float          ui_scope_gap(Size size = Size_DEFAULT) const;
+        float          ui_slot_circle_radius(Size = Size_DEFAULT) const;
+        Vec2           ui_node_gap(Size = Size_DEFAULT) const;
         Vec4&          ui_slot_color(Node_Slot::Flags slot_flags);
     };
 

@@ -3,8 +3,8 @@
 #include "bdc/Array.hpp"
 #include "bdc/Types.hpp"
 
-#include "tools/core/Flags.h"
-#include "tools/core/Signals.h"
+#include "ndbl/core/Flags.h"
+#include "ndbl/core/Signals.h"
 
 namespace ndbl
 {
@@ -55,7 +55,7 @@ namespace ndbl
             Event_Remove
         };
 
-        tools::Signal<void(Event, Node_Slot*)>  signal_change;
+        Signal<void(Event, Node_Slot*)>  signal_change;
         u32_t                                   position;       // In case multiple Node_Slot exists for the same type and order, we distinguish them with their position.
         Node*                                   node;           // parent node
         Node_Property*                          property;       // parent node's property

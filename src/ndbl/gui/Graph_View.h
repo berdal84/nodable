@@ -1,11 +1,11 @@
 #pragma once
 
 #include "bdc/Types.hpp"
-#include "ndbl/gui/View.h"
-#include "tools/core/reflection/GETTERS_SETTERS.h"
+#include "ndbl/core/reflection/GETTERS_SETTERS.h"
+#include "ndbl/core/State_Machine.h"
 #include "Node_View.h"
-#include "tools/core/State_Machine.h"
 #include "Node_Search_Input.h"
+#include "View.h"
 
 namespace ndbl
 {
@@ -13,7 +13,6 @@ namespace ndbl
     struct Nodable;
     struct Graph;
     struct Node_View_Constraint;
-    using  tools::Vec2;
 
     typedef u8_t Graph_View_Flags;
     enum Graph_View_Flag: u8_t
@@ -26,15 +25,15 @@ namespace ndbl
     struct Graph_View
     {
         Graph_View_Flags                    flags = 0;
-        tools::Simple_Signal                signal_change;
+        Simple_Signal                signal_change;
         Node_Search_Input                   node_search_input;
         View                                hovered;
         View                                focused;
         View_Selection                      selection;
-        tools::Box_2D                       shape;
-        tools::State_Machine                state_machine;
-        tools::Vec2                         state_roi_start_pos;
-        tools::Vec2                         state_roi_end_pos;   
+        Box_2D                       shape;
+        State_Machine                state_machine;
+        Vec2                         state_roi_start_pos;
+        Vec2                         state_roi_end_pos;   
         Graph*                              graph;
     };
     

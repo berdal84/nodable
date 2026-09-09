@@ -1,0 +1,107 @@
+#pragma once
+
+#include <imgui/imgui.h>
+#include <imgui/imgui_internal.h>
+#include <ImGuiColorTextEdit/TextEditor.h>
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
+
+#include "ndbl/core/Event.h"
+#include "geometry/Rect.h"
+#include "geometry/Vec2.h"
+#include "geometry/Vec4.h"
+#include "geometry/Space.h"
+#include "geometry/Bezier_Curve_Segment_2D.h"
+
+namespace ndbl
+{
+    // forward declarations
+    struct Texture;
+    struct Action;
+
+    namespace ImGuiEx
+    {
+        constexpr float TOOLTIP_DURATION_DEFAULT = 0.2f;
+        constexpr float TOOLTIP_DELAY_DEFAULT    = 0.5f;
+
+        struct WireStyle
+        {
+            Vec4    color           = {};
+            Vec4    hover_color     = {};
+            Vec4    shadow_color    = {};
+            float   thickness       = 1;
+            float   roundness       = 0.5f;
+        };
+
+        void set_debug( bool debug );
+
+        /**
+         * Draw a rounded-rectangle shadow
+         * TODO: use a low cost method, this one is drawing several rectangle with modulated opacity.
+        */
+        extern void DrawRectShadow(
+                const Vec2& top_left_corner,
+                const Vec2& bottom_right_corner,
+                float       border_radius = 0.0f,
+                int         shadow_radius = 10,
+                const Vec2& shadow_offset = Vec2(),
+                const Vec4& shadow_color  = Vec4(0.0f, 0.0f, 0.0f, 1.f));
+
+        extern void ShadowedText(
+                const Vec2& offset,
+                const Vec4& shadow_color,
+                const char* fmt,
+                ...);
+
+        extern void ColoredShadowedText(
+                const Vec2& offset,
+                const Vec4& text_color,
+                const Vec4& shadow_color,
+                const char* fmt,
+                ...);
+
+        extern void     DrawWire( ImDrawList* draw_list, const Bezier_Curve_Segment_2D& curve, const WireStyle& style, bool* hovered = nullptr);
+        extern void     EndFrame();
+        extern void     NewFrame();
+        extern bool     BeginTooltip(float _delay = TOOLTIP_DELAY_DEFAULT, float _duration = TOOLTIP_DURATION_DEFAULT );
+        extern void     EndTooltip();
+        extern Rect&    EnlargeToInclude(Rect& _rect, Rect _other);
+        extern void     BulletTextWrapped(const char*);
+        extern Rect     GetContentRegion(Space);
+        extern void     DebugRect(const Vec2& p_min, const Vec2& p_max, ImU32 col, float rounding = 0.f, ImDrawFlags flags = 0, float thickness = 1.f);
+        extern void     DebugCircle(const Vec2& center, float radius, ImU32 col, int num_segments = 0, float thickness = 1.0f);
+        extern void     DebugLine(const Vec2& p1, const Vec2& p2, ImU32 col, float thickness = 1.0f);
+        extern void     Image(Texture*);
+        void            MultiSegmentLineBehavior(const std::vector<Vec2>* path, Rect bbox, float thickness, bool* hovered);
+        float           CalcSegmentHoverMinDist( float line_thickness );
+        void            DrawPath(ImDrawList* draw_list, const std::vector<Vec2>* path, const Vec4& color, float thickness);
+        void            Grid(const Rect& screen_space_region, float grid_size, int subdiv_count, ImU32 major_color, ImU32 minor_color);
+        const Action*   MenuItem_for_event_type(Event_Type, bool selected = false, bool enable = true); // Shorthand to get a given action from the manager and draw a MenuItem from it.
+
+        template<typename ...Args>
+        static void DrawHelperEx(float alpha, const char* fmt, Args... args)
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+            ImGui::Text(ICON_FA_QUESTION_CIRCLE);
+            ImGui::PopStyleVar();
+
+            if( BeginTooltip() )
+            {
+                ImGui::Text(fmt, args...);
+                EndTooltip();
+            }
+        }
+
+        template<typename ...Args>
+        static void DrawHelper(const bdc::String _Format, Args... args)
+        { DrawHelperEx(0.25f, _Format, args...); } // simple "?" test with a tooltip.
+    }
+}
+
+#define CHECKBOX_FLAG(label, flags, flags_to_toggle )\
+{\
+    bool checked = HAS_FLAGS( flags, flags_to_toggle);\
+    if ( ImGui::Checkbox(label, &checked) )\
+    {\
+        SET_FLAGS_VALUE( flags, flags_to_toggle, checked);\
+    }\
+}

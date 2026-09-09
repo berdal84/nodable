@@ -3,10 +3,10 @@
 #include <fstream>
 
 #include "bdc/String_Builder.hpp"
-#include "tools/core/Event.h"
-#include "tools/core/Flags.h"
-#include "tools/core/Asserts.h"
-#include "tools/gui/Action_Manager.h"
+#include "ndbl/core/Event.h"
+#include "ndbl/core/Flags.h"
+#include "ndbl/core/Asserts.h"
+#include "ndbl/gui/Action_Manager.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/language/Nodlang.h"
@@ -18,7 +18,7 @@
 
 namespace ndbl
 {
-using namespace tools;
+using namespace ndbl;
 using namespace bdc;
 
 void _file_set_text_dirty(File* file)
@@ -28,7 +28,7 @@ void _file_set_text_dirty(File* file)
 
 void file_init(File* file)
 {
-    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "File", "Constructor being called ...\n");
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File", "Constructor being called ...\n");
 
     file->flags = File_Flag_NEEDS_TO_BE_SAVED | File_Flag_GRAPH_IS_DIRTY; // A File is text-based by default, so we set the graph dirty to force it to be refreshed from the text.
 
@@ -46,7 +46,7 @@ void file_init(File* file)
 
     // Fill the "create node" context menu
     for( const Action& action : action_manager()->actions )
-        if ( action.event.type == Event_Type_USER && action.event.user.code == Event_Type_NEW_NODE )
+        if ( action.event.type == Event_Type_NEW_NODE )
             graph_view->node_search_input.items.push_back(action );
 
     // File_View
@@ -56,12 +56,12 @@ void file_init(File* file)
 
     string_release(file->name);
 
-    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "File", "View built, creating History ...\n");
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File", "View built, creating History ...\n");
 
     // History
     Text_Editor_Undo_Buffer* text_editor_buf = command_manager_configure_text_editor_undo_buffer(&file->view.text_editor);
     fileview_set_undo_buffer(&file->view, text_editor_buf);
-    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "File", "Constructor being called.\n");
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File", "Constructor being called.\n");
 }
 
 void file_deinit(File* file)
@@ -89,7 +89,7 @@ void file_update_text_from_graph(File* file, bool isolation_on)
     }
     else
     {
-        TOOLS_LOG(Verbosity_Warning, "File", "Unable to update text from graph: no root found in the Graph.\n");
+        NDBL_LOG(Verbosity_Warning, "File", "Unable to update text from graph: no root found in the Graph.\n");
     }
 }
 
@@ -147,11 +147,11 @@ size_t file_size(const File* file)
 
 bool file_write(File* file, const Path& path)
 {
-    TOOLS_LOG(Verbosity_Diagnostic, "File", "\"%s\" writing... (%s).\n", path.filename().c_str(), path.c_str());
+    NDBL_LOG(Verbosity_Diagnostic, "File", "\"%s\" writing... (%s).\n", path.filename().c_str(), path.c_str());
 
     if ( !HAS_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED) && path == file->path )
     {
-        TOOLS_LOG(Verbosity_Diagnostic, "File", "Nothing to save\n");
+        NDBL_LOG(Verbosity_Diagnostic, "File", "Nothing to save\n");
         return true;
     }
 
@@ -163,7 +163,7 @@ bool file_write(File* file, const Path& path)
 
     if( !result.ok )
     {
-        TOOLS_LOG(Verbosity_Error, "File", "%s\n", result.error.c_str() );
+        NDBL_LOG(Verbosity_Error, "File", "%s\n", result.error.c_str() );
         return false;
     }
 
@@ -171,14 +171,14 @@ bool file_write(File* file, const Path& path)
     UNSET_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
     file->path = path;
 
-    TOOLS_LOG(Verbosity_Message, "File", "%s saved\n", file->name.data );
+    NDBL_LOG(Verbosity_Message, "File", "%s saved\n", file->name.data );
 
     return true;
 }
 
 bool file_read( File* file, const Path& path)
 {
-    TOOLS_LOG(Verbosity_Diagnostic, "File", "\"%s\" loading... (%s).\n", path.filename().c_str(), path.c_str());
+    NDBL_LOG(Verbosity_Diagnostic, "File", "\"%s\" loading... (%s).\n", path.filename().c_str(), path.c_str());
 
     push_allocator(temp_allocator);
     File_Read_Result result = file_read(path);
@@ -186,7 +186,7 @@ bool file_read( File* file, const Path& path)
 
     if( !result.ok )
     {
-        TOOLS_LOG(Verbosity_Error, "File", "%s\n", result.error.c_str() );
+        NDBL_LOG(Verbosity_Error, "File", "%s\n", result.error.c_str() );
         return false;
     }
 
@@ -196,7 +196,7 @@ bool file_read( File* file, const Path& path)
     string_release(file->name);
     file->name = string_copy( { path.filename().c_str() });
 
-    TOOLS_LOG(Verbosity_Message, "File", "%s loaded\n", path.filename().c_str(), path.c_str());
+    NDBL_LOG(Verbosity_Message, "File", "%s loaded\n", path.filename().c_str(), path.c_str());
 
     return true;
 }
@@ -214,7 +214,7 @@ void file_handle_file_view_change(File* file, File_View_Event_Type type)
             break;
         
         default:
-            TOOLS_UNREACHABLE("Unhandled File_View_Event_Type (value: %i)\n", type);
+            UNREACHABLE("Unhandled File_View_Event_Type (value: %i)\n", type);
     }
 }
 

@@ -2,7 +2,7 @@
 
 #include "bdc/String.hpp"
 #include "bdc/Array.hpp"
-#include "tools/core/reflection/Type_Descriptor.h"
+#include "ndbl/core/reflection/Type_Descriptor.h"
 #include "ndbl/core/Token.h"
 
 namespace ndbl
@@ -26,7 +26,7 @@ namespace ndbl
         bdc::String                      name;
         Token                            token;
         Node*                            node;
-        const tools::Type_Descriptor*    type;
+        const Type_Descriptor*    type;
         Flags                            flags;
         bdc::Resizable_Array<Node_Slot*> slots;
 
@@ -34,8 +34,8 @@ namespace ndbl
         ~Node_Property() = default;
     };
 
-    void property_init      (Node_Property*, Node* /* owner */, const tools::Type_Descriptor*, Node_Property::Flags, const bdc::String _name); // must be called once before use
+    void property_init      (Node_Property*, Node* /* owner */, const Type_Descriptor*, Node_Property::Flags, const bdc::String _name); // must be called once before use
     void property_deinit   (Node_Property*);
-    void property_set_type  (Node_Property*, const tools::Type_Descriptor* /* new_type */ );
+    void property_set_type  (Node_Property*, const Type_Descriptor* /* new_type */ );
     void property_digest    (Node_Property*, Node_Property* /* other */);
 }

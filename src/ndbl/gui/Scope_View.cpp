@@ -1,34 +1,34 @@
 #include "Scope_View.h"
 #include "bdc/String_Builder.hpp"
-#include "core/Flags.h"
-#include "gui/Layout.h"
-#include "gui/View_Flags.h"
-#include "tools/core/Asserts.h"
+#include "ndbl/core/Flags.h"
+#include "ndbl/core/Asserts.h"
 #include "ndbl/core/Scope.h"
+#include "ndbl/core/language/Nodlang.h"
+#include "Layout.h"
+#include "View_Flags.h"
 #include "Node_View.h"
 #include "Config.h"
-#include "ndbl/core/language/Nodlang.h"
 
-using namespace ndbl;
-using namespace tools;
+namespace ndbl
+{
 
-void ndbl::scopeview_init(Scope_View* scope_view, Scope* scope)
+void scopeview_init(Scope_View* scope_view, Scope* scope)
 {
     ASSERT(scope != nullptr);
     scope_view->scope   = scope;
 }
 
-void ndbl::scopeview_deinit(Scope_View* scope_view)
+void scopeview_deinit(Scope_View* scope_view)
 {
     scope_view->scope = nullptr;
 }
 
-Scope_View* ndbl::scopeview_get_parent(const Scope_View* scope_view)
+Scope_View* scopeview_get_parent(const Scope_View* scope_view)
 {
     return scope_view->scope->parent ? scope_view->scope->parent->view : nullptr;
 }
 
-void ndbl::scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags flags)
+void scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags flags)
 {
     // 1) update recursively
     //    any scope with higher depth in the same hierarchy will be up to date.
@@ -95,7 +95,7 @@ void ndbl::scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags f
     }
 }
 
-bool ndbl::scopeview_must_be_draw(const Scope_View* scope_view)
+bool scopeview_must_be_draw(const Scope_View* scope_view)
 {
     if (!scope_view->content_rect.has_area())
         return false;
@@ -116,7 +116,7 @@ bool ndbl::scopeview_must_be_draw(const Scope_View* scope_view)
     }
 }
 
-void ndbl::scopeview_draw(Scope_View* scope_view, float dt)
+void scopeview_draw(Scope_View* scope_view, float dt)
 {
     if ( !scopeview_must_be_draw(scope_view) )
         return;
@@ -138,7 +138,7 @@ void ndbl::scopeview_draw(Scope_View* scope_view, float dt)
     }
 }
 
-void ndbl::scopeview_arrange_content(Scope_View* scope_view)
+void scopeview_arrange_content(Scope_View* scope_view)
 {
     for( Node_View* view : scope_view->wrapped_node_view )
     {
@@ -146,7 +146,7 @@ void ndbl::scopeview_arrange_content(Scope_View* scope_view)
     }
 }
 
-void ndbl::TreeNode_Scope(const bdc::String& title, Scope* scope)
+void TreeNode_Scope(const bdc::String& title, Scope* scope)
 {
     if ( ImGui::TreeNode( title.c_str() ) )
     {
@@ -158,7 +158,7 @@ void ndbl::TreeNode_Scope(const bdc::String& title, Scope* scope)
     }
 }
 
-void ndbl::TreeNode_Node(Node* node)
+void TreeNode_Node(Node* node)
 {
     bool open = false;
     switch ( node->type )
@@ -194,7 +194,7 @@ void ndbl::TreeNode_Node(Node* node)
     }
 };
 
-void ndbl::TreeNode_ScopeContent(Scope *scope)
+void TreeNode_ScopeContent(Scope *scope)
 {
     ImGui::PushID( scope );
     std::vector<Node*> backbone = scope_get_backbone(scope);
@@ -226,3 +226,5 @@ void ndbl::TreeNode_ScopeContent(Scope *scope)
     }
     ImGui::PopID();
 }
+
+} // namespace ndbl

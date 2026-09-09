@@ -1,11 +1,11 @@
 #include "Node_Property.h"
-#include "core/Token_Type.h"
-#include "ndbl/core/language/Nodlang.h"
+#include "Token_Type.h"
+#include "language/Nodlang.h"
 
 namespace ndbl
 {
     using namespace bdc;
-    using namespace tools;
+    using namespace ndbl;
 
     void property_init(
         Node_Property*          property,
@@ -41,7 +41,7 @@ namespace ndbl
         property->token = std::move( other->token );
     }
 
-    void property_set_type(Node_Property* property, const tools::Type_Descriptor* new_type)
+    void property_set_type(Node_Property* property, const Type_Descriptor* new_type)
     {
         if ( property->type == new_type ) return;
 

@@ -1,10 +1,13 @@
 #include <gtest/gtest.h>
 #include "ndbl/core/Node_Property.h"
+#include "test/fixtures/basic_test.h"
+
+typedef ::testing::Basic_Test Token_;
 
 using namespace ndbl;
 using namespace bdc;
 
-TEST(Token, empty_constructor)
+TEST_F(Token_, empty_constructor)
 {
     Token token;
 
@@ -14,7 +17,7 @@ TEST(Token, empty_constructor)
     EXPECT_EQ(token.view()          , "");
  }
 
-TEST(Token, constructor__with_const_char_ptr)
+TEST_F(Token_, constructor__with_const_char_ptr)
 {
     Token token(Token_Type_identifier, "toto");
 
@@ -25,7 +28,7 @@ TEST(Token, constructor__with_const_char_ptr)
     EXPECT_EQ(token.owns_data       , false);
 }
 
-TEST(Token, suffix_append_from_stack)
+TEST_F(Token_, suffix_append_from_stack)
 {
     //                     >|--|<
     String toto = "// test\ntoto"; toto = string_advance(toto, 8);
@@ -40,7 +43,7 @@ TEST(Token, suffix_append_from_stack)
     EXPECT_EQ(token.owns_data       , true);
 }
 
-TEST(Token, constructor__with_not_owned_buffer)
+TEST_F(Token_, constructor__with_not_owned_buffer)
 {
     String buffer = "<prefix>toto<suffix>";
     Token token(Token_Type_identifier, buffer);
@@ -53,7 +56,7 @@ TEST(Token, constructor__with_not_owned_buffer)
     EXPECT_EQ(token.owns_data       , false);
 }
 
-TEST(Token, take_prefix_suffix_from)
+TEST_F(Token_, take_prefix_suffix_from)
 {
     // prepare
 
@@ -87,7 +90,7 @@ TEST(Token, take_prefix_suffix_from)
     EXPECT_TRUE(target.owns_data);
 }
 
-TEST(Token, replace_word__same_length)
+TEST_F(Token_, replace_word__same_length)
 {
     // prepare
     bdc::String tata = "<prefix>TATA<suffix>";
@@ -107,7 +110,7 @@ TEST(Token, replace_word__same_length)
     EXPECT_TRUE(source.owns_data);
 }
 
-TEST(Token, replace_word__larger)
+TEST_F(Token_, replace_word__larger)
 {
     // prepare
     String tata = "<prefix>42<suffix>";
@@ -129,7 +132,7 @@ TEST(Token, replace_word__larger)
 }
 
 
-TEST(Token, replace_word__smaller)
+TEST_F(Token_, replace_word__smaller)
 {
     // prepare
     String tata = "<prefix>42<suffix>";

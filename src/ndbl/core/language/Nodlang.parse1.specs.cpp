@@ -1,10 +1,9 @@
-#include "../fixtures/core.h"
+#include "test/fixtures/nodable_headless_test.h"
 #include <gtest/gtest.h>
-#include "tools/core/Log.h"
 
 using namespace ndbl;
 
-typedef ::testing::Core Language_parse_token;
+typedef ::testing::Nodable_Headless_Test Language_parse_token;
 
 ///////////////////////// Atomic expressions ///////////////////////////////////////////////////////////////////////////
 

@@ -6,7 +6,7 @@
 #include "bdc/String_Builder.hpp"
 #include "bdc/Array.hpp"
 
-#include "core/reflection/Operator.h"
+#include "ndbl/core/reflection/Operator.h"
 
 #include "ndbl/core/Token.h"
 #include "ndbl/core/Token_Ribbon.h"
@@ -44,21 +44,21 @@ namespace ndbl
 
         struct {
             std::vector<std::tuple<bdc::String, Token_Type>>                                keywords;
-            std::vector<std::tuple<bdc::String, Token_Type, const tools::Type_Descriptor*>> types;
-            std::vector<tools::Operator>                                                    operators;
+            std::vector<std::tuple<bdc::String, Token_Type, const Type_Descriptor*>> types;
+            std::vector<Operator>                                                    operators;
             std::vector<std::tuple<char, Token_Type>>                                       chars;
         } definition; 
 
         // indexes
 
-        std::vector<tools::Operator>                                    operators;                      // the allowed operators, not their implementations or signature.
+        std::vector<Operator>                                    operators;                      // the allowed operators, not their implementations or signature.
         std::unordered_map<Token_Type, char>                            single_char_by_keyword;
         std::unordered_map<Token_Type, const bdc::String>               keyword_by_token_type;          // ex: Token_t::keyword_double => "double".
         std::unordered_map<size_t, Token_Type>                          token_type_by_keyword;          // opposite of keyword_by_token_type
         std::unordered_map<std::type_index, const bdc::String>          keyword_by_type_id;
         std::unordered_map<std::type_index, Token_Type>                 token_type_by_type_id;
         std::unordered_map<char, Token_Type>                            token_type_by_single_char;
-        std::unordered_map<Token_Type, const tools::Type_Descriptor*>   type_descriptor_by_token_type;  // some Token_Type are associated with a Type_Descriptor (ex: Token_Type_LITERAL_STRING)
+        std::unordered_map<Token_Type, const Type_Descriptor*>   type_descriptor_by_token_type;  // some Token_Type are associated with a Type_Descriptor (ex: Token_Type_LITERAL_STRING)
     };
 
     // Text to Graph ----------------------------------------------------------------------
@@ -98,13 +98,13 @@ namespace ndbl
     [[nodiscard]] bdc::String       lang_serialize_double(const Language&, double d);
     [[nodiscard]] bdc::String       lang_serialize_token_type_default(const Language&,Token_Type _token_t);
     [[nodiscard]] bdc::String       lang_serialize_token(const Language&, const Token &);
-    [[nodiscard]] bdc::String       lang_serialize_type(const Language&, const tools::Type_Descriptor *_type);
+    [[nodiscard]] bdc::String       lang_serialize_type(const Language&, const Type_Descriptor *_type);
     
     bdc::String_Builder&            lang_serialize_graph(const Language&, bdc::String_Builder& out, const Graph* in);
     //const Node_Slot*                lang_serialize_invokable(const Language&, bdc::String_Builder& out, const Node*);
-    //bdc::String_Builder&            lang_serialize_invokable_sig(const Language&, bdc::String_Builder& out, const tools::IInvokable*);
-    bdc::String_Builder&            lang_serialize_func_call(const Language&, bdc::String_Builder& out, const tools::Type_Descriptor *_signature, const bdc::Array<Node_Slot*>& inputs);
-    bdc::String_Builder&            lang_serialize_func_sig(const Language&, bdc::String_Builder& out, const tools::Type_Descriptor*);
+    //bdc::String_Builder&            lang_serialize_invokable_sig(const Language&, bdc::String_Builder& out, const IInvokable*);
+    bdc::String_Builder&            lang_serialize_func_call(const Language&, bdc::String_Builder& out, const Type_Descriptor *_signature, const bdc::Array<Node_Slot*>& inputs);
+    bdc::String_Builder&            lang_serialize_func_sig(const Language&, bdc::String_Builder& out, const Type_Descriptor*);
     bdc::String_Builder&            lang_serialize_input(const Language&, bdc::String_Builder& out, const Node_Slot *_slot, Serialization_Flags _flags = Serialization_Flag_NONE );
     bdc::String_Builder&            lang_serialize_value_out(const Language&, bdc::String_Builder& out, const Node_Slot *slot, Serialization_Flags _flags = Serialization_Flag_NONE );
     bdc::String_Builder&            lang_serialize_node(const Language&, bdc::String_Builder& out, const Node*, Serialization_Flags _flags = Serialization_Flag_NONE);
@@ -121,11 +121,11 @@ namespace ndbl
 
     // General read-only procedures -------------------------------------------------------------------------
 
-    bool                            lang_is_operator(const Language&, const tools::Type_Descriptor*);
-    const tools::Operator*          lang_find_operator(const Language&,  const tools::Operator& op); // op.precedence is ignored in operator== for tools::Operator
-    Token_Type                      lang_type_to_literal_token_type(const Language&, const tools::Type_Descriptor*);
-    int                             lang_get_precedence(const Language&, const tools::Type_Descriptor*);         // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
-    const tools::Type_Descriptor*   lang_get_type(const Language&, Token_Type _token);                               // Get the type corresponding to a given token_t (must be a type keyword)
+    bool                            lang_is_operator(const Language&, const Type_Descriptor*);
+    const Operator*          lang_find_operator(const Language&,  const Operator& op); // op.precedence is ignored in operator== for Operator
+    Token_Type                      lang_type_to_literal_token_type(const Language&, const Type_Descriptor*);
+    int                             lang_get_precedence(const Language&, const Type_Descriptor*);         // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
+    const Type_Descriptor*   lang_get_type(const Language&, Token_Type _token);                               // Get the type corresponding to a given token_t (must be a type keyword)
 
     // Language management -----------------------------------------------------------------------------------
 

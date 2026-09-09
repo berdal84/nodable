@@ -5,13 +5,13 @@
 #include <vector>
 
 #include "bdc/Allocators.hpp"
-#include "tools/core/Asserts.h"
-#include "tools/gui/ImGuiEx.h"
-#include "tools/gui/View_Flags.h"
-#include "tools/gui/geometry/Pivots.h"
-#include "tools/gui/geometry/Space.h"
-#include "tools/core/Math.h"
-#include "tools/core/Flags.h"
+#include "ndbl/core/Asserts.h"
+#include "ndbl/gui/ImGuiEx.h"
+#include "ndbl/gui/View_Flags.h"
+#include "ndbl/gui/geometry/Pivots.h"
+#include "ndbl/gui/geometry/Space.h"
+#include "ndbl/core/Math.h"
+#include "ndbl/core/Flags.h"
 
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
@@ -28,7 +28,7 @@
 #endif
 
 using namespace ndbl;
-using namespace tools;
+using namespace ndbl;
 
 #define PIXEL_PERFECT true // round positions for drawing only
 
@@ -52,7 +52,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
         nodepropertyview_init(propertyview, property);
         assert(propertyview->property);
         spatialnode_add_child(&nodeview->shape.spatial_node, &propertyview->shape.spatial_node);
-        spatialnode_set_position(&propertyview->shape.spatial_node, {}, tools::PARENT_SPACE);
+        spatialnode_set_position(&propertyview->shape.spatial_node, {}, PARENT_SPACE);
 
         switch ( nodeview->node->type )
         {
@@ -150,7 +150,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
         auto* view = bdc::memory_new<Node_Slot_View>();
         nodeslotview_init(view, slot, get_pivot(slot), get_shapetype(slot), index, &nodeview->shape);
         spatialnode_add_child( &nodeview->shape.spatial_node, &view->shape.spatial_node );
-        spatialnode_set_position(&view->shape.spatial_node, {}, tools::PARENT_SPACE);
+        spatialnode_set_position(&view->shape.spatial_node, {}, PARENT_SPACE);
         
         nodeview->slot_views.push_back(view);
     }
@@ -335,7 +335,7 @@ void ndbl::nodeview_arrange_recursively(Node_View* nodeview, bool _smoothly)
 void ndbl::nodeview_update(Node_View* nodeview, float dt)
 {
     if( nodeview->opacity != 1.0f)
-        tools::clamped_lerp(nodeview->opacity, 1.0f, 10.0f * dt);
+        clamped_lerp(nodeview->opacity, 1.0f, 10.0f * dt);
 
     for(Node_Slot_View* each_slot_view  : nodeview->slot_views )
         nodeslotview_update( each_slot_view, dt );
@@ -722,7 +722,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
     return changed;
 }
 
-Rect ndbl::nodeview_get_rect_ex(const Node_View* nodeview, tools::Space space, Node_View_Flags flags)
+Rect ndbl::nodeview_get_rect_ex(const Node_View* nodeview, Space space, Node_View_Flags flags)
 {
     if( (flags & Node_View_Flag_WITH_RECURSION) == 0 )
         return nodeview->shape.rect(space);
@@ -769,7 +769,7 @@ void ndbl::nodeview_toggle_expandcollapse(Node_View* nodeview)
 {
     nodeview->is_expanded = !nodeview->is_expanded;
     nodeview_set_visible_recursively(nodeview, nodeview->is_expanded);
-    UNSET_FLAGS(nodeview->flags, tools::View_Flag_HIDDEN);
+    UNSET_FLAGS(nodeview->flags, View_Flag_HIDDEN);
 }
 
 void ndbl::nodeview_set_visible_recursively(Node_View* nodeview, bool visible)

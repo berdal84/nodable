@@ -4,20 +4,17 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include "bdc/String.hpp"
-#include "core/Asserts.h"
-#include "core/Constants.h"
+#include "ndbl/core/Asserts.h"
+#include "ndbl/core/Constants.h"
+#include "ndbl/core/Flags.h"
+#include "ndbl/core/Node_Property.h"
+#include "ndbl/core/Node_Slot.h"
+#include "ndbl/core/reflection/Type_Descriptor.h"
 #include "Scope.h"
 #include "Graph.h"
-#include "core/Flags.h"
-#include "core/Node_Property.h"
-#include "core/Node_Slot.h"
-#include "core/reflection/Type_Descriptor.h"
 
-// private
 namespace ndbl
 {
-
-using namespace tools;
 using namespace bdc;
 
 Node::Component_Type to_component_type(Node_Type);
@@ -146,7 +143,7 @@ void node_init_component(Node::Component* component, Node::Component_Type compon
         case Node::Component_Type_VARIABLE:       new (&component->variable)    Node::Variable_Component();     break;
         default:
             // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            TOOLS_UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
+            UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
     }
 }
 
@@ -162,7 +159,7 @@ void node_deinit_component(Node::Component* component, Node::Component_Type comp
         case Node::Component_Type_VARIABLE:       component->variable.~Variable_Component();         break;
         default:
             // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            TOOLS_UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
+            UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
     }
 
     component->component_type = 0;
@@ -200,7 +197,7 @@ Node::Component_Type to_component_type(Node_Type type)
 
         default:
             // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            TOOLS_UNREACHABLE("Unhandled Node_Type (value: %i)\n", type);
+            UNREACHABLE("Unhandled Node_Type (value: %i)\n", type);
     }
 }
 

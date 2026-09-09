@@ -9,9 +9,8 @@
 #include "bdc/Array.hpp"
 #include "bdc/String_Hash.hpp"
 #include "bdc/Types.hpp"
-
-#include "core/reflection/Type_Descriptor.h"
-#include "ndbl/gui/Event.h"
+#include "reflection/Type_Descriptor.h"
+#include "Event.h"
 #include "Node.h"
 #include "Scope.h"
 
@@ -36,18 +35,18 @@ namespace ndbl
         bdc::Inlined_Array<Node, NODE_MAX_COUNT> nodes;
 
         Graph_View*                         view                = {};
-        tools::Simple_Signal                signal_reset        = {};
-        tools::Simple_Broadcast_Signal      signal_change       = {};
-        tools::Signal<void(Node*)>          signal_add_node     = {};
-        tools::Signal<void(Node*)>          signal_remove_node  = {};
-        tools::Simple_Signal                signal_is_complete  = {}; // user defined, usually when parser or user is done
+        Simple_Signal                signal_reset        = {};
+        Simple_Broadcast_Signal      signal_change       = {};
+        Signal<void(Node*)>          signal_add_node     = {};
+        Signal<void(Node*)>          signal_remove_node  = {};
+        Simple_Signal                signal_is_complete  = {}; // user defined, usually when parser or user is done
 
         struct Scope_Change {
             Node*  node;
             Scope* old_scope;
             Scope* new_scope;
         };
-        tools::Signal<void(Scope_Change)>   signal_change_scope;
+        Signal<void(Scope_Change)>   signal_change_scope;
 
         Graph() = default;
         ~Graph() = default;
@@ -73,18 +72,18 @@ namespace ndbl
     void                    graph_transfer_children(Scope* /* from */, Scope* /* to */);
     void                    graph_change_scope(Node*, Scope* /*desired_scope*/);
     Node*                   graph_create_node(Graph*, Scope* = nullptr);
-    Node*                   graph_create_variable(Graph*, const tools::Type_Descriptor*, const bdc::String& name, Scope* scope  = nullptr);
+    Node*                   graph_create_variable(Graph*, const Type_Descriptor*, const bdc::String& name, Scope* scope  = nullptr);
     Node*                   graph_create_variable_ref(Graph*, Scope* = nullptr);
-    Node*                   graph_create_variable_decl(Graph*, const tools::Type_Descriptor*, const bdc::String _name, Scope* = nullptr);
-    Node*                   graph_create_literal(Graph*, const tools::Type_Descriptor*, Scope* = nullptr);
-    Node*                   graph_create_function(Graph*, const tools::Type_Descriptor*, Scope* = nullptr);
-    Node*                   graph_create_operator(Graph*, const tools::Type_Descriptor*, Scope* = nullptr);
+    Node*                   graph_create_variable_decl(Graph*, const Type_Descriptor*, const bdc::String _name, Scope* = nullptr);
+    Node*                   graph_create_literal(Graph*, const Type_Descriptor*, Scope* = nullptr);
+    Node*                   graph_create_function(Graph*, const Type_Descriptor*, Scope* = nullptr);
+    Node*                   graph_create_operator(Graph*, const Type_Descriptor*, Scope* = nullptr);
     Node*                   graph_create_cond_struct(Graph*, Scope* = nullptr);
     Node*                   graph_create_for_loop(Graph*, Scope* = nullptr);
     Node*                   graph_create_while_loop(Graph*, Scope* = nullptr);
     Node*                   graph_create_empty_instruction(Graph*, Scope* = nullptr);
     Node*                   graph_create_scope(Graph*, Scope* scope = nullptr);
-    Node*                   graph_create_return(Graph*, const tools::Type_Descriptor*, Scope* = nullptr);
+    Node*                   graph_create_return(Graph*, const Type_Descriptor*, Scope* = nullptr);
     Node*                   graph_create_node(Graph*, const Node_State*, Scope* = nullptr);
     std::vector<Scope *>    graph_collect_scopes(const Graph*);
     std::set<Scope *>       graph_collect_root_scopes(const Graph*);
@@ -95,13 +94,13 @@ namespace ndbl
 
     template<typename T>
     Node* graph_create_variable_decl(Graph* graph, const bdc::String name = "var", Scope* scope = nullptr)
-    { return graph_create_variable_decl( graph, tools::type_get<T>(), name, scope); }
+    { return graph_create_variable_decl( graph, type_get<T>(), name, scope); }
 
     template<typename T>
     Node* graph_create_variable(Graph* graph, const bdc::String name = "var", Scope* scope = nullptr)
-    { return graph_create_variable( graph, tools::type_get<T>(), name, scope); }
+    { return graph_create_variable( graph, type_get<T>(), name, scope); }
 
     template<typename T>
     Node* graph_create_literal(Graph* graph, Scope* scope = nullptr)                          
-    { return graph_create_literal( graph, tools::type_get<T>(), scope ); }
+    { return graph_create_literal( graph, type_get<T>(), scope ); }
 }

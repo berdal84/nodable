@@ -1,10 +1,11 @@
 #include "Command_Manager.h"
+
 #include "bdc/String_Builder.hpp"
-#include "core/Flags.h"
-#include "gui/Nodable.h"
-#include "tools/core/Asserts.h"
-#include "ndbl/gui/Config.h"
-#include "ndbl/gui/Command.h"
+#include "ndbl/core/Asserts.h"
+#include "ndbl/core/Flags.h"
+#include "Command.h"
+#include "Config.h"
+#include "Nodable.h"
 
 // private
 namespace ndbl

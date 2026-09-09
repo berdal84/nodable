@@ -8,9 +8,9 @@
 		},
 		// DEBUG
 		{
-			"label": 	"tests:build-linux-debug",
+			"label": 	"test:build-linux-debug",
 			"type": 	"shell",
-			"command": 	"rake tests:build",
+			"command": 	"rake test:build",
 			"group":	{ "kind": "build" },
 			"options": {
 				"env": {
@@ -34,9 +34,9 @@
 
 		// OPTIMIZED
 		{
-			"label": 	"tests:build-linux-optimized",
+			"label": 	"test:build-linux-optimized",
 			"type": 	"shell",
-			"command": 	"rake tests:build",
+			"command": 	"rake test:build",
 			"group":	{ "kind": "build" },
 			"options": {
 				"env": {

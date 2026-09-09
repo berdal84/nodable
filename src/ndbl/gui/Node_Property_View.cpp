@@ -1,22 +1,22 @@
 #include "Node_Property_View.h"
 
 #include "bdc/Allocators.hpp"
-#include "bdc/String.hpp"
 #include "bdc/String_Builder.hpp"
-#include "core/Asserts.h"
-#include "core/Flags.h"
-#include "gui/ImGuiEx.h"
-#include "gui/View_Flags.h"
-#include "gui/geometry/Rect.h"
-#include "gui/geometry/Space.h"
-#include "gui/geometry/Vec2.h"
+#include "bdc/String.hpp"
+#include "ndbl/core/Asserts.h"
+#include "ndbl/core/Flags.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/Node.h"
-#include "Node_View.h"
 #include "Config.h"
+#include "geometry/Rect.h"
+#include "geometry/Space.h"
+#include "geometry/Vec2.h"
+#include "ImGuiEx.h"
+#include "Node_View.h"
+#include "View_Flags.h"
 
 using namespace ndbl;
-using namespace tools;
+using namespace ndbl;
 
 constexpr Vec2  PROPERTY_TOGGLE_BTN_SIZE = Vec2(12.0, 22.0f);
 constexpr float PROPERTY_INPUT_PADDING   = 5.0f;
@@ -92,7 +92,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
         }
 
         default:
-            TOOLS_UNREACHABLE("Unexpected View_Detail_ case (value: %i)\n", _detail);
+            UNREACHABLE("Unexpected View_Detail_ case (value: %i)\n", _detail);
     }
 
     // input

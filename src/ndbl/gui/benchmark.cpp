@@ -2,8 +2,8 @@
 #include <random>
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/Graph.h"
-#include "tools/core/reflection/reflection"
-#include "tools/core/string.h"
+#include "ndbl/core/reflection/reflection"
+#include "ndbl/core/string.h"
 
 /*
  *
@@ -27,7 +27,7 @@
  */
 
 using namespace ndbl;
-using namespace tools;
+using namespace ndbl;
 
 class NodlangFixture : public benchmark::Fixture {
 public:

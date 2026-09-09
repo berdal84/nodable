@@ -1,10 +1,10 @@
 #pragma once
 
-#include "ImGuiColorTextEdit/TextEditor.h"
-#include "core/Node.h"
-#include "core/Node_Slot.h"
-#include "gui/View.h"
 #include <vector>
+#include "ImGuiColorTextEdit/TextEditor.h"
+#include "ndbl/core/Node.h"
+#include "ndbl/core/Node_Slot.h"
+#include "ndbl/gui/View.h"
 
 //
 // MACROS to help declare new commands

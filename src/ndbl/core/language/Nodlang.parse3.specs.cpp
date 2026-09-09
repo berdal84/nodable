@@ -1,10 +1,9 @@
-#include "core/language/Nodlang.h"
-#include "../fixtures/core.h"
+#include "test/fixtures/nodable_headless_test.h"
 #include <gtest/gtest.h>
 
 using namespace ndbl;
 
-typedef ::testing::Core Language_parse_function_call;
+typedef ::testing::Nodable_Headless_Test Language_parse_function_call;
 
 TEST_F(Language_parse_function_call, dna_to_protein)
 {

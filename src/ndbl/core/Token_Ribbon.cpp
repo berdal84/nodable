@@ -1,8 +1,8 @@
 #include "Token_Ribbon.h"
 
 #include "bdc/String_Builder.hpp"
-#include "tools/core/Log.h"
-#include "tools/core/Asserts.h"
+#include "ndbl/core/Log.h"
+#include "ndbl/core/Asserts.h"
 
 #include "Token_Type.h"
 #include "Token.h"
@@ -11,7 +11,7 @@ namespace ndbl
 {
 
 using namespace bdc;
-using namespace tools;
+using namespace ndbl;
 
 Token & Token_Ribbon::push(Token &_token)
 {
@@ -24,7 +24,7 @@ String Token_Ribbon::to_string() const
 {
     String_Builder sb;
     string_builder_init(sb);
-    string_builder_append(sb, TOOLS_COLOR_DEFAULT);
+    string_builder_append(sb, NDBL_COLOR_DEFAULT);
 
     string_builder_append(sb, "Logging token ribbon state:\n");
     string_builder_append(sb, "___________[TOKEN RIBBON]_________\n");
@@ -79,26 +79,26 @@ Token Token_Ribbon::eat_if(Token_Type expectedType)
 
 Token Token_Ribbon::eat()
 {
-    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Eat token (idx %i) %s \n", cursor, peek().view().c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Eat token (idx %i) %s \n", cursor, peek().view().c_str() );
     return tokens.at(cursor++);
 }
 
 void Token_Ribbon::start_transaction()
 {
     transaction.push(cursor);
-    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Start Transaction (idx %i)\n", cursor);
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Start Transaction (idx %i)\n", cursor);
 }
 
 void Token_Ribbon::rollback()
 {
     cursor = transaction.top();
-    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Rollback (idx %i)\n", cursor);
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Rollback (idx %i)\n", cursor);
     transaction.pop();
 }
 
 void Token_Ribbon::commit()
 {
-    TOOLS_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Commit (idx %i)\n", cursor);
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Commit (idx %i)\n", cursor);
     transaction.pop();
 }
 

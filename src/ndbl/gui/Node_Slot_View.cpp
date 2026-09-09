@@ -1,17 +1,17 @@
 #include "Node_Slot_View.h"
+#include "bdc/Allocators.hpp"
+#include "ndbl/core/Flags.h"
+#include "ndbl/core/Node.h"
 #include "Config.h"
 #include "Event.h"
-#include "bdc/Allocators.hpp"
-#include "core/Flags.h"
-#include "gui/ImGuiEx.h"
-#include "gui/View_Flags.h"
-#include "gui/geometry/Vec2.h"
-#include "ndbl/core/Node.h"
+#include "geometry/Vec2.h"
+#include "ImGuiEx.h"
+#include "View_Flags.h"
 
-using namespace ndbl;
-using namespace tools;
+namespace ndbl
+{
 
-void ndbl::nodeslotview_init(
+void nodeslotview_init(
     Node_Slot_View* view,
     Node_Slot*      slot,
     const Vec2&     align,
@@ -43,7 +43,7 @@ void ndbl::nodeslotview_init(
     slot->view = view;
 }
 
-bdc::String ndbl::nodeslotview_compute_tooltip(const Node_Slot_View* view)
+bdc::String nodeslotview_compute_tooltip(const Node_Slot_View* view)
 {
     switch (view->slot->type_and_order())
     {
@@ -62,7 +62,7 @@ bdc::String ndbl::nodeslotview_compute_tooltip(const Node_Slot_View* view)
     return "";
 }
 
-bool ndbl::nodeslotview_draw(Node_Slot_View* view)
+bool nodeslotview_draw(Node_Slot_View* view)
 {
     box2d_draw_debug_info(&view->shape);
 
@@ -126,7 +126,7 @@ bool ndbl::nodeslotview_draw(Node_Slot_View* view)
     return ImGui::IsItemClicked();
 }
 
-void ndbl::nodeslotview_update(Node_Slot_View* view, float dt)
+void nodeslotview_update(Node_Slot_View* view, float dt)
 {
     // 1) Update visibility
     //---------------------
@@ -184,7 +184,9 @@ void ndbl::nodeslotview_update(Node_Slot_View* view, float dt)
     }
 }
 
-void ndbl::nodeslotview_update_direction_from_alignment(Node_Slot_View* view)
+void nodeslotview_update_direction_from_alignment(Node_Slot_View* view)
 {
     view->direction = Vec2::normalize( view->alignment_pivot - 0.5f );
 }
+
+} // namespace ndbl

@@ -1,18 +1,15 @@
 #include "Scope.h"
 
 #include <stack>
+
 #include "bdc/String.hpp"
-
-#include "core/Asserts.h"
-#include "tools/core/Log.h"
-
+#include "Asserts.h"
+#include "Log.h"
 #include "Node.h"
 #include "Graph.h"
 
 namespace ndbl
 {
-
-using namespace tools;
 
 void    _scope_update_backbone_cache(const Scope*);
 void    _scope_update_depth_cache(const Scope*);
@@ -20,6 +17,8 @@ void    _scope_set_depth_cache_dirty(const Scope*);
 
 void scope_init(Scope* scope)
 {
+    scope->token_begin = { Token_Type_ignore, "" };
+    scope->token_end   = { Token_Type_ignore, "" };
 }
 
 void scope_deinit(Scope* scope)
@@ -85,17 +84,17 @@ void scope_append(Scope* scope, Node *node)
     {
         if (scope_find_variable( scope, node_get_identifier(node)) != nullptr )
         {
-            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already exists in the same internal_scopeview.\n", node_get_identifier(node).c_str());
+            NDBL_LOG(Verbosity_Error, "Scope", "Unable to append variable '%s', already exists in the same internal_scopeview.\n", node_get_identifier(node).c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
         else if ( node->scope )
         {
-            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already declared in another internal_scopeview. Remove it first.\n", node_get_identifier(node).c_str());
+            NDBL_LOG(Verbosity_Error, "Scope", "Unable to append variable '%s', already declared in another internal_scopeview. Remove it first.\n", node_get_identifier(node).c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
         else
         {
-            TOOLS_LOG(tools::Verbosity_Diagnostic, "Scope", "Add '%s' variable to the internal_scopeview\n", node_get_identifier(node).c_str() );
+            NDBL_LOG(Verbosity_Diagnostic, "Scope", "Add '%s' variable to the internal_scopeview\n", node_get_identifier(node).c_str() );
             scope->variables.insert(node);
         }
     }
@@ -275,7 +274,7 @@ bool scope_contains(const Scope* scope, Node* node)
 
 void scope_reset_head(Scope* scope, Node* new_head)
 {
-#ifdef TOOLS_DEBUG
+#ifdef NDBL_DEBUG
     VERIFY( !new_head      || new_head->scope      == scope, "Node must be from this scope");
     VERIFY( !scope->head || scope->head->scope == scope, "node as backbone head should never be removed before to reset backbone head")
 #endif

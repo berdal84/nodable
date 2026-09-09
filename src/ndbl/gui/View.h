@@ -1,14 +1,16 @@
 #pragma once
-#include "core/Asserts.h"
-#include "core/Signals.h"
-#include "gui/Node_View.h"
-#include "gui/geometry/Space.h"
-#include "tools/core/Hash.h"
+
 #include <algorithm>
 #include <functional>
 #include <vector>
+
 #include "bdc/Types.hpp"
-#include "tools/gui/geometry/Rect.h"
+#include "ndbl/core/Asserts.h"
+#include "ndbl/core/Hash.h"
+#include "ndbl/core/Signals.h"
+#include "geometry/Space.h"
+#include "geometry/Rect.h"
+#include "Node_View.h"
 
 namespace ndbl
 {
@@ -63,12 +65,12 @@ namespace ndbl
         return a.type == b.type && a.data1 == b.data1 && a.data2 == b.data2;
     }
 
-    inline tools::Rect view_bounding_rect(
+    inline Rect view_bounding_rect(
         const std::vector<View>& views,
-        tools::Space space = tools::WORLD_SPACE
+        Space space = WORLD_SPACE
     )
     {        
-        using namespace tools;
+        using namespace ndbl;
 
         // collect rectangles
         // note: we could save 1 allocation by computing the bbox of each rectangle instead of building this vector,
@@ -105,7 +107,7 @@ namespace ndbl
         Const_Iterator  cbegin() const { return items.cbegin(); }
         Const_Iterator  cend() const   { return items.cend(); }
 
-        tools::Signal<void(View_Selection_Event_Type, View)> signal_change;
+        Signal<void(View_Selection_Event_Type, View)> signal_change;
 
         View& front()
         { return items.front(); }
@@ -218,7 +220,7 @@ namespace ndbl
     }
 }
 
-// required to compare tools::Variant<..., Node_Slot_Link_View>
+// required to compare Variant<..., Node_Slot_Link_View>
 inline bool operator==(const ndbl::Node_Slot_Link_View& a, const ndbl::Node_Slot_Link_View& b) 
 {
     return a.tail == b.tail && a.head == b.head;
@@ -229,5 +231,5 @@ template<>
 struct std::hash<ndbl::Node_Slot_Link_View>
 {
     std::size_t operator()(const ndbl::Node_Slot_Link_View& edge) const noexcept
-    { return tools::Hash::hash(edge); }
+    { return ndbl::Hash::hash(edge); }
 };

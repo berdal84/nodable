@@ -48,15 +48,17 @@ namespace bdc
 
         if ( allocation_size > temp_allocator_buffer.size - size_used )
         {
-            BDC_LOG("temp_allocator_acquire() - WARNING: temp_allocator_buffer has not enough space left (usage %zu/%zu Bytes) or is too small to allocate %zu Bytes.\n", size_used, ring_buffer.size, size);
+            BDC_LOG("temp_allocator_acquire() - WARNING: temp_allocator_buffer has not enough space left"
+                    " (usage %zu/%zu Bytes) or is too small to allocate %zu Bytes.\n",
+                    size_used, temp_allocator_buffer.size, size );
             assert(false && "temp buffer is full!");
         }
 
         auto ptr = (Allocation_Header*)temp_allocator_buffer.head;
         ptr->size = size;
 
-        temp_allocator_buffer.prev_acquired = ptr;
-        temp_allocator_buffer.head += allocation_size;
+        temp_allocator_buffer.prev_acquired  = ptr;
+        temp_allocator_buffer.head          += allocation_size;
 
         return ptr;
     }
@@ -68,7 +70,7 @@ namespace bdc
         temp_allocator_buffer.prev_acquired = nullptr;
 
         #ifdef BDC_DEBUG_ALLOCATORS
-            temp_allocator_tracker().allocations.clear();
+            temp_allocator_tracker.allocations.clear();
         #endif     
 
         return freed_space;
@@ -99,7 +101,7 @@ namespace bdc
 
         #ifdef BDC_DEBUG_ALLOCATORS
             header->owners += 1;
-            temp_allocator_tracker().after_malloc(get_pointer(header), size);
+            temp_allocator_tracker.after_malloc(get_pointer(header), size);
         #endif     
 
         return get_pointer(header);
@@ -112,13 +114,13 @@ namespace bdc
         Allocation_Header* header = get_header(ptr);
         if( header )
         {
-            header->size    = 0;
+            header->size = 0;
 
             #ifdef BDC_DEBUG_ALLOCATORS
                 header->owners -= 1;
                 if( header->owners < 0 )
                 {
-                    BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE("Address was freed more than malloc at %p\n", ptr);
+                    BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE("Potential double free at %p\n", ptr);
                 }
             #endif
         }
@@ -151,7 +153,7 @@ namespace bdc
 
         #ifdef BDC_DEBUG_ALLOCATORS
             dest_header->owners += 1;
-            temp_allocator_tracker().after_realloc(src_ptr, dest_ptr, size);
+            temp_allocator_tracker.after_realloc(src_ptr, dest_ptr, size);
         #endif
 
         return dest_ptr;
@@ -163,7 +165,7 @@ namespace bdc
 
         #ifdef BDC_DEBUG_ALLOCATORS
             assert(ptr != nullptr);
-            heap_allocator_tracker().after_malloc(ptr, size);
+            heap_allocator_tracker.after_malloc(ptr, size);
         #endif
         
         return ptr;
@@ -172,7 +174,7 @@ namespace bdc
     void heap_allocator_free(void* ptr)
     {
         #ifdef BDC_DEBUG_ALLOCATORS
-            heap_allocator_tracker().before_free(ptr);
+            heap_allocator_tracker.before_free(ptr);
         #endif
 
         std::free(ptr);
@@ -190,7 +192,7 @@ namespace bdc
 
         #ifdef BDC_DEBUG_ALLOCATORS                
             assert(new_ptr != nullptr);
-            heap_allocator_tracker().after_realloc(old_ptr, new_ptr, size);
+            heap_allocator_tracker.after_realloc(old_ptr, new_ptr, size);
         #endif
 
         return new_ptr;
@@ -243,9 +245,9 @@ namespace bdc
     Memory_Manager_Report* memory_manager_generate_report(Memory_Manager_Report* report)
     {
         #ifndef BDC_DEBUG_ALLOCATORS
-        assert(false && "You're trying to generate a memory report but BDC_DEBUG_ALLOCATORS musht be defined in order to do this, recompile with #define BDC_DEBUG_ALLOCATORS");
+            assert(false && "You're trying to generate a memory report but BDC_DEBUG_ALLOCATORS must be defined in order to do this, recompile with #define BDC_DEBUG_ALLOCATORS");
         #else
-        BDC_LOG_DEBUG(" -- Storing report about %s ...\n", g_memory_manager_ctx->heap_allocator_tracker.allocator->name);
+        BDC_LOG_DEBUG(" -- Storing report about %s ...\n", heap_allocator_tracker.allocator->name);
 
         if( report == nullptr)
         {
@@ -255,10 +257,10 @@ namespace bdc
 
         *report = {};
 
-        report->name                = g_memory_manager_ctx->heap_allocator_tracker.allocator->name;
-        report->has_leaked          = g_memory_manager_ctx->heap_allocator_tracker.allocations.size() != 0;
-        report->allocations.data    = g_memory_manager_ctx->heap_allocator_tracker.allocations.data();
-        report->allocations.size    = g_memory_manager_ctx->heap_allocator_tracker.allocations.size();        
+        report->name                = heap_allocator_tracker.allocator->name;
+        report->has_leaked          = heap_allocator_tracker.allocations.size() != 0;
+        report->allocations.data    = heap_allocator_tracker.allocations.data();
+        report->allocations.size    = heap_allocator_tracker.allocations.size();        
         #endif
 
         return report;
@@ -268,13 +270,18 @@ namespace bdc
     {
         BDC_LOG_DEBUG("memory_manager_shutdown() ...\n");
 
+        BDC_LOG_DEBUG(" -- Empty allocator stack...\n");
         while( allocator_stack_size )
         {
             pop_allocator();
         }
 
-        BDC_LOG_DEBUG(" -- Releasing temporary buffer...\n");
-        BDC_LOG_DEBUG("    Usage was %zu Byte(s) (total available: %zu Bytes).\n", (size_t)g_memory_manager_ctx->temp_allocator_buffer.head - (size_t)g_memory_manager_ctx->temp_allocator_buffer.data, g_memory_manager_ctx->temp_allocator_buffer.size );
+        BDC_LOG_DEBUG(
+            " -- Temporary allocator buffer usage is %zu Byte(s) (total available: %zu Bytes).\n"
+            " -- Release temporary allocator buffer...\n",
+            (size_t)temp_allocator_buffer.head - (size_t)temp_allocator_buffer.data,
+            temp_allocator_buffer.size
+        );
         std::free(temp_allocator_buffer.data);
         temp_allocator_buffer.data = nullptr;
     }

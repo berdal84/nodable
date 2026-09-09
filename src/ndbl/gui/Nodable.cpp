@@ -1,50 +1,46 @@
 #include "Nodable.h"
 #include "IconsFontAwesome5.h"
 #include "ImGuiColorTextEdit/TextEditor.h"
-#include "gui/Command.h"
-#include "gui/View.h"
-#include "tools/core/Event.h"
-#include "tools/core/Flags.h"
-#include "ndbl/core/Graph.h"
-#include "gui/Action_Manager.h"
-#include "gui/App.h"
-#include "gui/Nodable_View.h"
-#include "gui/Scope_View.h"
-
 #include <algorithm>
-
-using namespace ndbl;
-using namespace tools;
-
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
 #endif
 
-#include "tools/core/Asserts.h"
-#include "tools/core/Event_Manager.h"
-#include "tools/core/Log.h"
-#include "tools/gui/Action_Manager_View.h"
-#include "tools/gui/App_View.h"
+#include "bdc/Allocators.hpp"
 
-#include "ndbl/core/Node.h"
-#include "ndbl/core/Node_Slot.h"
+#include "ndbl/core/Asserts.h"
+#include "ndbl/core/Event_Manager.h"
+#include "ndbl/core/Event.h"
+#include "ndbl/core/Flags.h"
+#include "ndbl/core/Graph.h"
 #include "ndbl/core/language/Nodlang.h"
+#include "ndbl/core/Log.h"
+#include "ndbl/core/Node_Slot.h"
+#include "ndbl/core/Node.h"
+#include "ndbl/core/reflection/index.h"
+#include "ndbl/core/Task_Manager.h"
 
-#include "Node_Slot_View.h"
+#include "Action_Manager_View.h"
+#include "Action_Manager.h"
+#include "Command_Manager.h"
+#include "Command.h"
+#include "Config.h"
 #include "Config.h"
 #include "Event.h"
-#include "File.h"
 #include "File_View.h"
+#include "File.h"
 #include "Graph_View.h"
-#include "Command_Manager.h"
+#include "Nodable_View.h"
+#include "Node_Slot_View.h"
+#include "Scope_View.h"
+#include "View.h"
 
-// private
 namespace ndbl
 {
-    static App_State* g_app = {}; // The main loop needs a static function pointer to run, we have to grab App_View_State* globaly.
-};
+
+static App_State* g_app = {}; // The main loop needs a static function pointer to run, we have to grab App_View_State* globaly.
 
 #define VERIFY_NODABLE_IS_INITIALIZED() VERIFY(g_app != nullptr, "Nodable is not initialized, did you call nodable_init() ?")
 
@@ -55,85 +51,86 @@ static Type_Descriptor* create_variable_node_signature()
     return descriptor;
 }
 
-ndbl::App_State* ndbl::app_state()
+App_State* app_state()
 {
     VERIFY_NODABLE_IS_INITIALIZED();
     return g_app;
 }
 
-ndbl::App_State* ndbl::app_init()
+App_State* app_init()
 {
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "ndbl::app_init() ...\n");
+    bdc::memory_manager_init(1024 * 1024 * 10); // must be first
+    
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable", "app_init() ...\n");
+
+    reflection_init();
+    
+    DEFINE_REFLECT(Node_View);
+    DEFINE_REFLECT(Graph_View);
 
     // Expose a global pointer
     ASSERT(g_app == nullptr);
     g_app = bdc::memory_new<App_State>();
 
-    // Initialize config (must be done first)
-    auto* cfg = config_init();
-    g_app->config     = cfg;
-
-    // Create and init App_View
-    auto* view = ndbl::appview_init();   
-
-    // Init App
-    tools::app_init_ex(&g_app->base, &view->base, cfg->tools_cfg ); // the pointers are owned by this class, base app just use them.
-    
-    language_init();
-
-
     // Init manager(s)
-    ndbl::command_manager_init();
+    config_init();
+    appview_init();
+    language_init();
+    task_manager_init();
+    command_manager_init();
 
     // Add actions from config
-    for(const Action& action : cfg->actions)
+    for(const Action& action : config()->actions)
     {
         action_manager_register_action(action);
     }
 
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "init " TOOLS_OK "\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable", "init " NDBL_OK "\n");
 
     return g_app;
 }
 
-void ndbl::app_shutdown()
+void app_shutdown()
 {
     App_State* app = app_state();
 
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_deinit ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable", "_handle_deinit ...\n");
 
     // Deinit and release files
     for( File* each_file : app->files )
     {
-        TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::App", "Delete file %s ...\n", each_file->path.c_str());
+        NDBL_LOG(Verbosity_Diagnostic, "App", "Delete file %s ...\n", each_file->path.c_str());
         file_deinit(each_file);
         bdc::memory_delete(each_file);
     }
 
     // Shutdown managers & co.
-    ndbl::command_manager_shutdown();
-    ndbl::language_shutdown();
-    tools::app_shutdown();
-    ndbl::appview_shutdown();
-    ndbl::config_shutdown();
+    command_manager_shutdown();
+    language_shutdown();
+    config_shutdown();
+    task_manager_shutdown();
+    appview_shutdown();
 
     bdc::memory_delete(g_app);
     g_app = nullptr;
 
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "ndbl::Nodable", "_handle_deinit " TOOLS_OK "\n");
+    reflection_shutdown();
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable", "_handle_deinit " NDBL_OK "\n");
+
+    bdc::memory_manager_shutdown(); // must be last
 }
 
-void ndbl::app_do_frame()
+void app_do_frame()
 {
     bdc::memory_manager_reset_temp_allocator_buffer(); // the intend of a temporary allocator, is to use data quickly after allocation, we want to clear that buffer at the begining of each frame.
     app_update();
     app_draw();
 }
 
-void ndbl::app_run()
+void app_run()
 {
     #ifdef __EMSCRIPTEN__
-        emscripten_set_main_loop(&ndbl::app_do_frame, 0, true);
+        emscripten_set_main_loop(&app_do_frame, 0, true);
     #else
         while( !app_should_stop() )
         {
@@ -142,17 +139,17 @@ void ndbl::app_run()
     #endif
 }
 
-void ndbl::app_update()
+void app_update()
 {
     auto app = app_state();
 
-    tools::app_update();
-    ndbl::appview_update();
+    appview_update();
+    task_manager_update();
 
     // Delete flagged files
     for( File* file : app->files_to_delete )
     {
-        TOOLS_LOG(tools::Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file->name.data );
+        NDBL_LOG(Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file->name.data );
         file_deinit(file);
         bdc::memory_delete(file);
     }
@@ -161,7 +158,7 @@ void ndbl::app_update()
     // Update current file
     if (app->current_file)
     {
-        file_update(app->current_file, HAS_FLAGS(app->config->flags, Config_Flag_ISOLATION_ON) );
+        file_update(app->current_file, HAS_FLAGS( config()->flags, Config_Flag_ISOLATION_ON) );
     }
 
     // Handle events
@@ -182,7 +179,7 @@ void ndbl::app_update()
         {
             case Event_Type_REQUEST_EXIT:
             {
-                tools::app_request_stop();
+                SET_FLAGS(app_state()->flags, App_Flag_SHOULD_STOP);
                 break;
             }
 
@@ -206,12 +203,12 @@ void ndbl::app_update()
             case Event_Type_FILE_BROWSE:
             {
                 Path path;
-                if( pick_file_path(path, Dialog_Type_Browse) )
+                if( appview_pick_file_path(path, Dialog_Type_Browse) )
                 {
                     app_open_file(path);
                     break;
                 }
-                TOOLS_LOG(tools::Verbosity_Diagnostic, "App", "Browse file aborted by user.\n");
+                NDBL_LOG(Verbosity_Diagnostic, "App", "Browse file aborted by user.\n");
                 break;
 
             }
@@ -227,7 +224,7 @@ void ndbl::app_update()
                 if (app->current_file != nullptr)
                 {
                     Path path;
-                    if( pick_file_path(path, Dialog_Type_SaveAs))
+                    if( appview_pick_file_path(path, Dialog_Type_SaveAs))
                     {
                        app_save_file_as(app->current_file, path);
                     }
@@ -246,7 +243,7 @@ void ndbl::app_update()
                 else
                 {
                     Path path;
-                    if( pick_file_path(path, Dialog_Type_SaveAs))
+                    if( appview_pick_file_path(path, Dialog_Type_SaveAs))
                     {
                         app_save_file_as(app->current_file, path);
                     }
@@ -256,7 +253,7 @@ void ndbl::app_update()
 
             case Event_Type_TOGGLE_HELP:
             {
-                appview()->base.show_splashscreen ^= true;
+                appview()->show_splashscreen ^= true;
                 break;
             }
 
@@ -276,7 +273,7 @@ void ndbl::app_update()
 
             case Event_Type_TOGGLE_ISOLATION_FLAGS:
             {
-                app->config->flags ^= Config_Flag_ISOLATION_ON;
+                config()->flags ^= Config_Flag_ISOLATION_ON;
                 if(app->current_file)
                 {
                     app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
@@ -345,17 +342,17 @@ void ndbl::app_update()
 
             case Event_Type_SLOT_DROPPED_ONTO_ANOTHER:
             {
-                auto tail = static_cast<Node_Slot*>(event.user.data1);
-                auto head = static_cast<Node_Slot*>(event.user.data2);
+                auto tail = static_cast<Node_Slot*>(event.data1);
+                auto head = static_cast<Node_Slot*>(event.data2);
                 ASSERT(head != tail);
                 if ( tail->order() == Node_Slot::Flag_ORDER_2ND )
                 {
                     if ( head->order() == Node_Slot::Flag_ORDER_2ND )
                     {
-                        TOOLS_LOG(tools::Verbosity_Error, "Nodable", "Unable to connect incompatible edges\n");
+                        NDBL_LOG(Verbosity_Error, "Nodable", "Unable to connect incompatible edges\n");
                         break; // but if it still the case, that's because edges are incompatible
                     }
-                    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Nodable", "Swapping edges to try to connect them\n");
+                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Nodable", "Swapping edges to try to connect them\n");
                     std::swap(tail, head);
                 }
                 Command cmd = command_connect({tail, head});
@@ -366,8 +363,8 @@ void ndbl::app_update()
 
             case Event_Type_DELETE_LINK:
             {
-                auto tail = static_cast<Node_Slot*>(event.user.data1);
-                auto head = static_cast<Node_Slot*>(event.user.data2);
+                auto tail = static_cast<Node_Slot*>(event.data1);
+                auto head = static_cast<Node_Slot*>(event.data2);
                 Command cmd = command_disconnect({tail, head});
                 command_manager_push_command(cmd);
                 break;
@@ -375,7 +372,7 @@ void ndbl::app_update()
 
             case Event_Type_DELETE_ALL_LINKS:
             {
-                auto slot = static_cast<Node_Slot*>(event.user.data1);
+                auto slot = static_cast<Node_Slot*>(event.data1);
 
                 command_manager_begin_transaction();
                 for(Node_Slot* adjacent_slot : slot->adjacent )
@@ -391,7 +388,7 @@ void ndbl::app_update()
             {
                 command_manager_begin_transaction();
 
-                auto event_data = static_cast<Event_Data__Create_Node*>(event.user.data1);
+                auto event_data = static_cast<Event_Data__Create_Node*>(event.data1);
 
                 // 1) Create Node
                 Command cmd_new_node = command_new_node({ &event_data->node_state });
@@ -447,18 +444,18 @@ void ndbl::app_update()
 
             default:
             {
-                TOOLS_UNREACHABLE("Unexpected Event_Type %i\n", event.type);
+                UNREACHABLE("Unexpected Event_Type %i\n", event.type);
             }
         }
     }
 }
 
-void ndbl::app_draw()
+void app_draw()
 {
     appview_draw();
 }
 
-File* ndbl::app_open_asset_file(const tools::Path& path)
+File* app_open_asset_file(const Path& path)
 {
     auto app = app_state();
 
@@ -468,7 +465,7 @@ File* ndbl::app_open_asset_file(const tools::Path& path)
     return app_open_file(Path::absolute(path) );
 }
 
-File* ndbl::app_open_file(const tools::Path& _path)
+File* app_open_file(const Path& _path)
 {
     auto app = app_state();
 
@@ -489,21 +486,21 @@ File* ndbl::app_open_file(const tools::Path& _path)
 
     file_deinit(file);
     bdc::memory_delete(file);
-    TOOLS_LOG(tools::Verbosity_Error, "File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
+    NDBL_LOG(Verbosity_Error, "File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
     return nullptr;
 }
 
-File* ndbl::app_add_file(File* file)
+File* app_add_file(File* file)
 {
     auto app = app_state();
     VERIFY(file, "File is nullptr");
     app->files.push_back( file );
     app->current_file = file;
-    event_manager_push_event( event_from_type(Event_Type_FILE_OPENED) );
+    event_manager_push_event({ .type = Event_Type_FILE_OPENED, .data1 = file });
     return file;
 }
 
-void ndbl::app_save_file(File* file)
+void app_save_file(File* file)
 {
     auto app = app_state();
 
@@ -511,23 +508,23 @@ void ndbl::app_save_file(File* file)
 
 	if ( !file_write(file, file->path) )
     {
-        TOOLS_LOG(tools::Verbosity_Error, "ndbl::App", "Unable to save %s (%s)\n", file->name.data, file->path.c_str());
+        NDBL_LOG(Verbosity_Error, "App", "Unable to save %s (%s)\n", file->name.data, file->path.c_str());
         return;
     }
-    TOOLS_LOG(tools::Verbosity_Message, "ndbl::App", "File saved: %s\n", file->path.c_str());
+    NDBL_LOG(Verbosity_Message, "App", "File saved: %s\n", file->path.c_str());
 }
 
-void ndbl::app_save_file_as(File* file, const tools::Path& _path)
+void app_save_file_as(File* file, const Path& _path)
 {
     if ( !file_write(file, _path) )
     {
-        TOOLS_LOG(tools::Verbosity_Error, "ndbl::App", "Unable to save %s (%s)\n", _path.filename().c_str(), _path.c_str());
+        NDBL_LOG(Verbosity_Error, "App", "Unable to save %s (%s)\n", _path.filename().c_str(), _path.c_str());
         return;
     }
-    TOOLS_LOG(tools::Verbosity_Message, "ndbl::App", "File saved: %s\n", _path.c_str());
+    NDBL_LOG(Verbosity_Message, "App", "File saved: %s\n", _path.c_str());
 }
 
-void ndbl::app_close_file()
+void app_close_file()
 {
     auto app = app_state();
 
@@ -536,7 +533,7 @@ void ndbl::app_close_file()
 
     app_close_file(app->current_file);
 }
-void ndbl::app_close_file(File* _file)
+void app_close_file(File* _file)
 {
     auto app = app_state();
 
@@ -558,7 +555,7 @@ void ndbl::app_close_file(File* _file)
     }
 }
 
-void ndbl::app_reset_current_graph()
+void app_reset_current_graph()
 {
     auto app = app_state();
 
@@ -571,7 +568,7 @@ void ndbl::app_reset_current_graph()
     app->current_file->set_flags(File_Flag_GRAPH_IS_DIRTY);
 }
 
-File* ndbl::app_new_file()
+File* app_new_file()
 {
     using namespace bdc;
 
@@ -589,12 +586,12 @@ File* ndbl::app_new_file()
     return app_add_file(file);
 }
 
-bool ndbl::app_should_stop()
+bool app_should_stop()
 {
-    return tools::app_should_stop();
+    return HAS_FLAGS( app_state()->flags, App_Flag_SHOULD_STOP);
 }
 
-void ndbl::app_set_current_file(File* file)
+void app_set_current_file(File* file)
 {
     auto app = app_state();
     
@@ -612,3 +609,5 @@ void ndbl::app_set_current_file(File* file)
 
     app->current_file = file;
 }
+
+} // namespace ndbl

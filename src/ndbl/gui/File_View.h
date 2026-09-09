@@ -1,11 +1,13 @@
 #pragma once
 
-#include "bdc/String.hpp"
 #include "ImGuiColorTextEdit/TextEditor.h"
+
+#include "bdc/String.hpp"
 #include "bdc/Types.hpp"
-#include "core/reflection/Type_Descriptor.h"
-#include "gui/geometry/Rect.h"
-#include "tools/core/Signals.h"
+
+#include "ndbl/core/reflection/Type_Descriptor.h"
+#include "ndbl/core/Signals.h"
+#include "geometry/Rect.h"
 
 namespace ndbl
 {
@@ -70,7 +72,7 @@ namespace ndbl
 
         std::array<std::vector<File_View_Overlay_Data>, File_View_Overlay_Type_COUNT> 
                                 overlay_data                        = {};
-        tools::Signal<void(File_View_Event_Type)>
+        Signal<void(File_View_Event_Type)>
                                 signal_change                       = {};
         File*                   file                                = nullptr;
         Graph_View*             graph_view                          = nullptr;
@@ -98,6 +100,6 @@ namespace ndbl
     void                            fileview_clear_overlay(File_View*);
     void                            fileview_push_overlay(File_View*, File_View_Overlay_Data, File_View_Overlay_Type) ;
     void                            fileview_refresh_overlay(File_View*, Condition);
-    void                            fileview_draw_overlay(const bdc::String& title, const std::vector<File_View_Overlay_Data>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
+    void                            fileview_draw_overlay(const bdc::String& title, const std::vector<File_View_Overlay_Data>& overlay_data, const Rect& rect, const Vec2& position);
     size_t                          fileview_size(const File_View*);
 }

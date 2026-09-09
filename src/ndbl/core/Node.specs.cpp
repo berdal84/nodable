@@ -1,10 +1,15 @@
 #include <gtest/gtest.h>
 
 #include "ndbl/core/Node.h"
+#include "ndbl/core/reflection/index.h"
+#include "ndbl/core/Log.h"
+#include "test/fixtures/basic_test.h"
 
 using namespace ndbl;
 
-TEST(Node, ctor_and_dtor )
+typedef ::testing::Basic_Test Node_;
+
+TEST_F(Node_, ctor_and_dtor )
 {
     {
         Node node;
@@ -13,7 +18,7 @@ TEST(Node, ctor_and_dtor )
     }
 }
 
-TEST(Node, init_a_Node_Type_NULL)
+TEST_F(Node_, init_a_Node_Type_NULL)
 {
     Node node;
     node_init(&node, Node_Type_NULL, "My Node");
@@ -22,7 +27,7 @@ TEST(Node, init_a_Node_Type_NULL)
     node_deinit(&node);
 }
 
-TEST(Node, copy)
+TEST_F(Node_, copy)
 {
     Node node;
     node_init(&node, Node_Type_NULL, "My Node");

@@ -3,7 +3,7 @@
 #include "bdc/String.hpp"
 #include "bdc/String_Builder.hpp"
 #include "bdc/Types.hpp"
-#include "tools/core/Asserts.h"
+#include "ndbl/core/Asserts.h"
 #include <cassert>
 #include <cstddef>
 #include <cstring>
@@ -11,7 +11,7 @@
 namespace ndbl
 {
 using namespace bdc;
-using namespace tools;
+using namespace ndbl;
 
 const Token Token::s_end_of_line        = {Token_Type_ignore, "\n"};
 const Token Token::s_end_of_instruction = {Token_Type_ignore, ";\n"};
@@ -33,15 +33,12 @@ String Token::json() const
     using namespace bdc;
 
     String_Builder sb;
-
+    string_builder_init(sb);
     string_builder_append(sb, "{\n");
-
-    VERIFY(false, "TODO: implement push_allocator(Allocator*) (with auto pop and scope end)");
     string_builder_append(sb, string_tprintf("\ttype: %i,\n", type));
     string_builder_append(sb, string_tprintf("\tprefix_view: \"%s\",\n", prefix_view().c_str() ) );
     string_builder_append(sb, string_tprintf("\tword_view: \"%s\",\n", word_view().c_str() ) );
     string_builder_append(sb, string_tprintf("\tsuffix: \"%s\",\n", suffix_view().c_str() ) );
-
     string_builder_append(sb, " }");
 
     return string_builder_build_tstring(sb);

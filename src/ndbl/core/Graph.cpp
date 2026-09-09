@@ -7,14 +7,13 @@
 
 #include "bdc/String_Hash.hpp"
 #include "bdc/String.hpp"
-#include "core/GUID.h"
-#include "core/Asserts.h"
-#include "core/Flags.h"
-#include "core/Node_Slot.h"
 #include "bdc/Types.hpp"
-#include "language/Nodlang.h"
-#include "Node.h"
-#include "Scope.h"
+#include "ndbl/core/GUID.h"
+#include "ndbl/core/Asserts.h"
+#include "ndbl/core/Flags.h"
+#include "ndbl/core/language/Nodlang.h"
+#include "ndbl/core/Node.h"
+#include "ndbl/core/Node_Slot.h"
 #include "ndbl/gui/Graph_View.h"
 
 // private
@@ -28,14 +27,14 @@ namespace ndbl
 
 void ndbl::graph_init(Graph* graph)
 {
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initializing ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Initializing ...\n");
     ASSERT( graph->nodes.size == 0 ); // Did you call graph_init multiple times? Did you forgot to call graph_deinit() after each graph_init() ?
 
     hashmap_init(graph->node_index_by_id);
 
     graph_clear(graph);
 
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Initialized " TOOLS_OK "\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Initialized " NDBL_OK "\n");
 }
 
 void ndbl::graph_deinit(Graph* graph)
@@ -52,7 +51,7 @@ void ndbl::graph_deinit(Graph* graph)
 
 void ndbl::graph_clear(Graph* graph)
 {
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Clearing ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Clearing ...\n");
 
     // Delete existing nodes
     // (from last to first (which is the root))
@@ -75,17 +74,17 @@ void ndbl::graph_clear(Graph* graph)
     // notify
     graph->signal_change.broadcast();
 
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Clear " TOOLS_OK "\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Clear " NDBL_OK "\n");
 }
 
 void ndbl::graph_reset(Graph* graph)
 {
-	TOOLS_LOG(tools::Verbosity_Diagnostic,  "Graph", "Resetting ...\n");
+	NDBL_LOG(Verbosity_Diagnostic,  "Graph", "Resetting ...\n");
 
     graph_clear(graph);    
     graph->signal_reset.emit();
 
-    TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Reset " TOOLS_OK "\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Reset " NDBL_OK "\n");
 }
 
 bool ndbl::graph_update(Graph* graph)
@@ -154,7 +153,7 @@ void ndbl::_graph_add_node(Graph* graph, Node* node, Scope* scope)
     graph->signal_add_node.emit(node);
     graph->signal_change.broadcast();
 
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name.c_str(), node->get_class()->name.c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name.c_str(), node->get_class()->name.c_str() );
 }
 
 void ndbl::_graph_add_node_to_index(Graph* graph, Node* node, size_t position)
@@ -186,7 +185,7 @@ ndbl::Node* ndbl::graph_find_node(Graph* graph, const bdc::String_Hash& id)
 void ndbl::graph_clean_node(Node* node)
 {
     ASSERT( node );
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name.c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name.c_str() );
 
     // disconnect and erase any link related to this node
     for(Node_Slot* each_slot : node->slots)
@@ -205,7 +204,7 @@ void ndbl::graph_clean_node(Node* node)
         graph_transfer_children( _internal_scope, graph_root_scope(node->graph));
     }
 
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name.c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name.c_str() );
 }
 
 ndbl::Node* ndbl::_graph_new_node(Graph* graph)
@@ -218,7 +217,7 @@ ndbl::Node* ndbl::_graph_new_node(Graph* graph)
     return &node;
 }
 
-ndbl::Node* ndbl::graph_create_return(Graph* graph, const tools::Type_Descriptor* type_descriptor, Scope* parent_scope)
+ndbl::Node* ndbl::graph_create_return(Graph* graph, const Type_Descriptor* type_descriptor, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_return(node, type_descriptor);
@@ -234,7 +233,7 @@ ndbl::Node* ndbl::graph_create_scope(Graph* graph, Scope* parent_scope)
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_variable(Graph* graph, const tools::Type_Descriptor *_type, const bdc::String& _name, Scope* parent_scope)
+ndbl::Node* ndbl::graph_create_variable(Graph* graph, const Type_Descriptor *_type, const bdc::String& _name, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_variable(node, _type, _name.c_str());
@@ -445,13 +444,13 @@ void ndbl::graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                 break;
             }
             default:
-                TOOLS_UNREACHABLE("This connection type is not yet implemented");
+                UNREACHABLE("This connection type is not yet implemented");
         }
     }
 
     tail->node->graph->signal_change.broadcast();
 
-    TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "New edge added\n");
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "New edge added\n");
 }
 
 void ndbl::graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
@@ -554,7 +553,7 @@ ndbl::Node* ndbl::graph_create_node(Graph* graph, Scope* scope)
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_literal(Graph* graph, const tools::Type_Descriptor* _type, Scope* scope)
+ndbl::Node* ndbl::graph_create_literal(Graph* graph, const Type_Descriptor* _type, Scope* scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_literal(node,_type);
@@ -564,7 +563,7 @@ ndbl::Node* ndbl::graph_create_literal(Graph* graph, const tools::Type_Descripto
 
 ndbl::Node* ndbl::graph_create_node(Graph* graph, const Node_State* node_state, Scope* scope)
 {
-    using namespace tools;
+    using namespace ndbl;
 
     //
     // TODO: This function must take a unique struct that is able to create any type of node.
@@ -596,7 +595,7 @@ ndbl::Node* ndbl::graph_create_node(Graph* graph, const Node_State* node_state, 
             if ( node_state->function_type->function.return_type == type_get<bdc::String>()  )
                 return graph_create_variable_decl<bdc::String>(graph, "str", scope);
 
-            TOOLS_UNREACHABLE("Unexpected function_type!");
+            UNREACHABLE("Unexpected function_type!");
         }
         
         case Node_Type_LITERAL:
@@ -613,7 +612,7 @@ ndbl::Node* ndbl::graph_create_node(Graph* graph, const Node_State* node_state, 
             if ( node_state->function_type->function.return_type == type_get<bdc::String>()  )
                 return graph_create_literal<bdc::String>(graph, scope);
 
-            TOOLS_UNREACHABLE("Unexpected function_type!");
+            UNREACHABLE("Unexpected function_type!");
         }
         
         case Node_Type_RETURN:
@@ -630,7 +629,7 @@ ndbl::Node* ndbl::graph_create_node(Graph* graph, const Node_State* node_state, 
         }
 
         default:
-            TOOLS_UNREACHABLE("Unexpected Create_Node_Type: %i\n", node_state->type);
+            UNREACHABLE("Unexpected Create_Node_Type: %i\n", node_state->type);
             return nullptr;
     }
 }
@@ -643,7 +642,7 @@ ndbl::Node* ndbl::graph_create_variable_ref(Graph* graph, Scope* scope)
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_variable_decl(Graph* graph, const tools::Type_Descriptor* type, const bdc::String  name, Scope* scope)
+ndbl::Node* ndbl::graph_create_variable_decl(Graph* graph, const Type_Descriptor* type, const bdc::String  name, Scope* scope)
 {
     // Create variable
     Node* var_node = graph_create_variable(graph, type, name, scope);

@@ -1,21 +1,21 @@
 #include "File_View.h"
 
-#include "gui/Command_Manager.h"
-#include "tools/core/Flags.h"
-#include "tools/gui/Action_Manager.h"
-#include "tools/gui/ImGuiEx.h"
-#include "tools/gui/Font_Manager.h"
-#include "tools/gui/ImGuiTypeConvert.h"
+#include "ndbl/core/Flags.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
+#include "ndbl/gui/Command_Manager.h"
+#include "ndbl/gui/Action_Manager.h"
 #include "ndbl/gui/Config.h"
 #include "ndbl/gui/Event.h"
 #include "ndbl/gui/File.h"
+#include "ndbl/gui/Font_Manager.h"
 #include "ndbl/gui/Graph_View.h"
+#include "ndbl/gui/ImGuiEx.h"
+#include "ndbl/gui/ImGuiTypeConvert.h"
 #include "ndbl/gui/Node_View.h"
 
 using namespace ndbl;
-using namespace tools;
+using namespace ndbl;
 
 void ndbl::fileview_init(File_View* file_view, File* file)
 {
@@ -271,7 +271,7 @@ bdc::String ndbl::fileview_get_text( const File_View* file_view, bool isolation_
     }
 
     ASSERT( tmp.size() < (u32_t)(-1));
-    bdc::String result = bdc::string_copy( bdc::String{tmp.data(), (u32_t)tmp.size()} );
+    bdc::String result = bdc::string_tcopy( bdc::String{tmp.data(), (u32_t)tmp.size()} );
     return result;
 }
 
@@ -299,24 +299,24 @@ void ndbl::fileview_set_text(File_View* file_view, bdc::String text, bool isolat
         }
 
         /* insert text (and select it) */
-        file_view->text_editor.InsertText({ text.data, text.size }, true);
+        file_view->text_editor.InsertText(text.c_str(), true);
 
         auto end = file_view->text_editor.GetCursorPosition();
         if (!hasSelection && start.mLine == end.mLine) // no selection and insert text is still on the same line
         {
             file_view->text_editor.SetSelection(selectionStart, selectionEnd);
         }
-        TOOLS_LOG(tools::Verbosity_Message, "File_View", "Selected text updated from graph.\n");
-        TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File_View", "%s \n", text.c_str());
+        NDBL_LOG(Verbosity_Message, "File_View", "Selected text updated from graph.\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", text.c_str());
     }
     else
     {
-        file_view->text_editor.SetText({ text.data, text.size });
+        file_view->text_editor.SetText( text.c_str() );
         // auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, text, &m_text_editor);
         // m_file->get_history()->push_command(cmd);
 
-        TOOLS_LOG(tools::Verbosity_Message, "File_View", "Whole text updated from graph.\n");
-        TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "File_View", "%s \n", text.c_str());
+        NDBL_LOG(Verbosity_Message, "File_View", "Whole text updated from graph.\n");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", text.c_str());
     }
 }
 

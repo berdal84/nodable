@@ -1,11 +1,11 @@
 #include "Node_Slot.h"
 #include "Node.h"
-#include "core/Flags.h"
+#include "ndbl/core/Flags.h"
 
 namespace ndbl
 {
 using namespace bdc;
-using namespace tools;
+using namespace ndbl;
 
 const Node_Slot Node_Slot::null{};
 
@@ -72,7 +72,7 @@ bool node_slot_remove_adjacent(Node_Slot* slot, Node_Slot* other)
     Array_Find_Result result = array_find(slot->adjacent, other);
     if( !result.found )
     {
-        TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Node_Slot", "remove_adjacent(Node_Slot*) - slot not found");
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Node_Slot", "remove_adjacent(Node_Slot*) - slot not found");
         return false;
     }
     array_remove_ordered(slot->adjacent, result.at_pos );

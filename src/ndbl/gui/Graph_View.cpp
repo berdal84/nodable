@@ -5,44 +5,41 @@
 #include <cstddef>
 #include <cstdio>
 #include <vector>
-
-#include "bdc/String.hpp"
-#include "gui/Command.h"
-#include "gui/Command_Manager.h"
-#include "gui/Config.h"
 #include "imgui.h"
 
-#include "tools/core/Asserts.h"
-#include "tools/core/Event_Manager.h"
-#include "tools/core/Event.h"
-#include "tools/core/Flags.h"
-#include "tools/core/Math.h"
-#include "tools/core/State_Machine.h"
-#include "tools/gui/App.h"
-#include "tools/gui/geometry/Box_2D.h"
-#include "tools/gui/geometry/Pivots.h"
-#include "tools/gui/geometry/Rect.h"
-#include "tools/gui/geometry/Space.h"
-#include "tools/gui/geometry/Spatial_Node.h"
-#include "tools/gui/geometry/Vec2.h"
-#include "tools/gui/geometry/Vec4.h"
-#include "tools/gui/ImGuiEx.h"
-#include "tools/gui/Layout.h"
-#include "tools/gui/Size.h"
-#include "tools/gui/View_Flags.h"
+#include "bdc/String.hpp"
 
+#include "ndbl/core/Asserts.h"
+#include "ndbl/core/Event_Manager.h"
+#include "ndbl/core/Event.h"
+#include "ndbl/core/Flags.h"
+#include "ndbl/core/Math.h"
+#include "ndbl/core/State_Machine.h"
 #include "ndbl/core/Scope.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/Node_Slot.h"
 
-#include "ndbl/gui/View.h"
-#include "ndbl/gui/Node_Search_Input.h"
-#include "ndbl/gui/Config.h"
-#include "ndbl/gui/Event.h"
-#include "ndbl/gui/Node_View.h"
-#include "ndbl/gui/Node_Slot_View.h"
-#include "ndbl/gui/Scope_View.h"
+#include "Command_Manager.h"
+#include "Command.h"
+#include "Config.h"
+#include "Event.h"
+#include "geometry/Box_2D.h"
+#include "geometry/Pivots.h"
+#include "geometry/Rect.h"
+#include "geometry/Space.h"
+#include "geometry/Spatial_Node.h"
+#include "geometry/Vec2.h"
+#include "geometry/Vec4.h"
+#include "ImGuiEx.h"
+#include "Layout.h"
+#include "Node_Search_Input.h"
+#include "Node_Slot_View.h"
+#include "Node_View.h"
+#include "Scope_View.h"
+#include "Size.h"
+#include "View_Flags.h"
+#include "View.h"
 
 // private
 namespace ndbl
@@ -83,7 +80,7 @@ namespace ndbl
 }
 
 using namespace ndbl;
-using namespace tools;
+using namespace ndbl;
 
 void ndbl::graphview_init(Graph_View* graphview, Graph* graph)
 {
@@ -411,7 +408,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
                 if (style.color.w != 0.f)
                 {
                     // Determine control points
-                    float roundness = tools::clamped_lerp(0.f, 10.f, lensqr_dist / 100.f);
+                    float roundness = clamped_lerp(0.f, 10.f, lensqr_dist / 100.f);
                     cp1 = p1;
                     cp2 = p2 + linkview.head->direction * roundness;
                     if ( linkview.tail->direction.y > 0.f ) // round out when direction is bottom
@@ -462,7 +459,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
     graphview->state_machine.tick();
 
     // Debug Infos
-    if ( cfg->tools_cfg->debug_flags )
+    if ( cfg->debug_flags )
     {
         if (ImGui::Begin("Graph_ViewToolState_Machine"))
         {
@@ -483,7 +480,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
 
 
     // debug layout
-    if( HAS_FLAGS(cfg->tools_cfg->debug_flags, Debug_Flags_DRAW_LAYOUT_DEBUG_LINES) )
+    if( HAS_FLAGS(cfg->debug_flags, Debug_Flags_DRAW_LAYOUT_DEBUG_LINES) )
     {
         auto list = ImGui::GetForegroundDrawList();
         Vec2 origin = graphview->shape.position();
@@ -495,7 +492,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
 
             switch ( el.type )
             {
-                case tools::Element::Type_CONTAINER:
+                case Element::Type_CONTAINER:
                 {
                     if( el.depth % 2 == 0)
                         color = ImColor(100,255,100);
@@ -504,7 +501,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
                     break;
                 }
 
-                case tools::Element::Type_LEAF:
+                case Element::Type_LEAF:
                 {
                     color   = ImColor(255,255,255);
                     break;
@@ -512,7 +509,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
                 
                 default:
                 {
-                    TOOLS_UNREACHABLE("Unexpected Element_Type: %i\n", el.type);
+                    UNREACHABLE("Unexpected Element_Type: %i\n", el.type);
                 }
             } 
             
@@ -542,7 +539,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
 void ndbl::_graphview_do_layout_element(Graph_View* graphview, Node_View* nodeview )
 {
     Config* cfg  = config();
-    Rect    rect = nodeview_get_rect(nodeview, tools::PARENT_SPACE);
+    Rect    rect = nodeview_get_rect(nodeview, PARENT_SPACE);
 
     layout_append_element(rect.width(), rect.height(), nodeview);
 
@@ -589,14 +586,14 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
 
     layout_begin_column();
     {
-        layout_set_gap( cfg->ui_node_gap(tools::Size_SM).y );
+        layout_set_gap( cfg->ui_node_gap(Size_SM).y );
 
         layout_begin_row();
         {
             layout_set_gap( cfg->ui_node_gap(Size_SM).x );            
             if( node_is_connected_to_codeflow(node) )
             {
-                layout_set_padding( cfg->ui_node_gap(tools::Size_SM).x, 0, 0, 0 );
+                layout_set_padding( cfg->ui_node_gap(Size_SM).x, 0, 0, 0 );
             }   
 
             
@@ -641,7 +638,7 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graphview, Node_View* no
         // Add a padding to the container, we want each scope to have a little space around to see well the visual feedback (rounded rectangle)
         // of the scope.
         layout_set_padding(cfg->ui_scope_padding);
-        layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x );
+        layout_set_gap( cfg->ui_node_gap(Size_SM).x );
 
         if( nodeview->node == graph_root( graphview->graph ) )
         {
@@ -657,8 +654,8 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graphview, Node_View* no
             {
                 Rect parent_rect = nodeview_get_rect(nodeview);
                 layout_begin_row();
-                layout_set_padding( cfg->ui_node_gap(tools::Size_SM).x, 0,0,0); // TODO: the container must be centered horizontally, we cannot do that currently with layout
-                layout_set_gap( cfg->ui_node_gap(tools::Size_SM).x * 2.f );
+                layout_set_padding( cfg->ui_node_gap(Size_SM).x, 0,0,0); // TODO: the container must be centered horizontally, we cannot do that currently with layout
+                layout_set_gap( cfg->ui_node_gap(Size_SM).x * 2.f );
 
                 for( Node_Slot* branch_slot : node->component.branching.branch_slots )
                 {
@@ -671,7 +668,7 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graphview, Node_View* no
             }
             else
             {
-                TOOLS_UNREACHABLE("Not implemented yet");
+                UNREACHABLE("Not implemented yet");
             }
         }
         else
@@ -728,7 +725,7 @@ void ndbl::graphview_update(Graph_View* graphview, float dt)
             continue;
         }
         
-        spatialnode_set_position(&nodeview->spatial_node(), graphview->shape.position() + elem.position, tools::WORLD_SPACE);
+        spatialnode_set_position(&nodeview->spatial_node(), graphview->shape.position() + elem.position, WORLD_SPACE);
     }
     
     // Update Node_Views
@@ -854,11 +851,9 @@ void ndbl::_graphview_draw_context_menu(Graph_View* graphview, Node_Slot_View* d
 {
     if (Action* triggered_action = nodeview_contextmenu_draw_search_input( &graphview->node_search_input, dragged_slotview, 10))
     {
-        ASSERT(triggered_action->event.type == Event_Type_USER);
-
         // Generate an event from this action, add some info to the state and dispatch it.
         Event event = triggered_action->event;
-        auto event_data = static_cast<Event_Data__Create_Node*>(event.user.data1);
+        auto event_data = static_cast<Event_Data__Create_Node*>(event.data1);
         event_data->active_slotview    = dragged_slotview;
         event_data->desired_screen_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
         event_manager_push_event( event );
@@ -994,7 +989,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
                     view_selection_clear(&graphview->selection);
                     view_selection_add(&graphview->selection, scopeview);
 
-                    event_manager_push_event( event_from_user_data({Event_Type_DELETE}) );
+                    event_manager_push_event({ Event_Type_DELETE });
                 }
 
 
@@ -1009,11 +1004,11 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
                 auto edge = graphview->focused.linkview;
                 if ( ImGui::MenuItem("Delete") )
                 {
-                    Event event = event_from_user_data({ 
-                        Event_Type_DELETE_LINK, 
-                        edge.tail->slot, 
-                        edge.head->slot
-                    });
+                    Event event = {
+                        .type  = Event_Type_DELETE_LINK,
+                        .data1 = edge.tail->slot,
+                        .data2 = edge.head->slot
+                    };
                     event_manager_push_event( event );
                 }
 
@@ -1024,11 +1019,10 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
             {
                 if ( ImGui::MenuItem("Disconnect") )
                 {
-                    Event event = event_from_user_data({ 
-                        Event_Type_DELETE_ALL_LINKS, 
-                        graphview->focused.slotview->slot, 
-                        nullptr
-                    });
+                    Event event = { 
+                        .type  = Event_Type_DELETE_ALL_LINKS, 
+                        .data1 = graphview->focused.slotview->slot
+                    };
 
                     event_manager_push_event( event );
                 }
@@ -1061,7 +1055,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
                     view_selection_clear(&graphview->selection);
                     view_selection_add(&graphview->selection, nodeview);
 
-                    event_manager_push_event(event_from_user_data({Event_Type_DELETE}));
+                    event_manager_push_event({ Event_Type_DELETE });
                 }
 
                 break;
@@ -1228,11 +1222,11 @@ void ndbl::_graphview_line_state_tick(Graph_View* graphview)
             if ( graphview->focused != graphview->hovered )
             {
                 
-                Event event = event_from_user_data({
-                    Event_Type_SLOT_DROPPED_ONTO_ANOTHER,
-                    graphview->focused.slotview->slot,
-                    graphview->hovered.slotview->slot
-                });
+                Event event = {
+                    .type  = Event_Type_SLOT_DROPPED_ONTO_ANOTHER,
+                    .data1 = graphview->focused.slotview->slot,
+                    .data2 = graphview->hovered.slotview->slot
+                };
                 event_manager_push_event(event);
                 graphview->state_machine.exit_state();
             }
@@ -1284,7 +1278,7 @@ void ndbl::_graphview_roi_state_tick(Graph_View* graphview)
         std::vector<View> nodeviews_inside_roi;
         for ( Node& node : graphview->graph->nodes )
             if ( node.view )
-                if ( Rect::contains(roi, nodeview_get_rect(node.view, tools::WORLD_SPACE)) )
+                if ( Rect::contains(roi, nodeview_get_rect(node.view, WORLD_SPACE)) )
                     nodeviews_inside_roi.push_back( node.view );
 
         // Select them
@@ -1309,7 +1303,7 @@ std::vector<Node_View*> get_clean_views(std::vector<Node_View*>& possibly_hidden
 {
     std::vector<Node_View*> result;
     for(Node_View* view : possibly_hidden_views)
-        if ( !HAS_FLAGS(view->flags, View_Flag_HIDDEN | tools::View_Flag_PINNED))
+        if ( !HAS_FLAGS(view->flags, View_Flag_HIDDEN | View_Flag_PINNED))
             result.push_back(view);
     return std::move(result);
 }

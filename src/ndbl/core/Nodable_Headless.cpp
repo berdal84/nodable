@@ -1,15 +1,18 @@
 #include "Nodable_Headless.h"
 #include "bdc/String_Builder.hpp"
-#include "core/Graph.h"
+#include "ndbl/core/Graph.h"
 #include "ndbl/core/language/Nodlang.h"
-#include "tools/core/Task_Manager.h"
+#include "ndbl/core/Task_Manager.h"
+#include "ndbl/core/reflection/index.h"
 
 using namespace ndbl;
 
 void ndbl::nodable_init(App_Headless_State* state)
 {
     // init managers
-    tools::task_manager_init();
+    reflection_init();
+    memory_manager_init();
+    task_manager_init();
     language_init();
 
     // configure
@@ -24,8 +27,10 @@ void ndbl::nodable_deinit(App_Headless_State* state)
     nodable_clear(state);
     graph_deinit(state->graph);
     bdc::memory_delete(state->graph);
-    tools::task_manager_shutdown();
+    task_manager_shutdown();
     language_shutdown();
+    memory_manager_shutdown();
+    reflection_shutdown();
 }
 
 bdc::String ndbl::nodable_serialize(const App_Headless_State* state )

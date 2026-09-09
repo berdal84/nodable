@@ -1,8 +1,8 @@
 #pragma once
-#include "gui/geometry/Spatial_Node.h"
-#include "tools/gui/geometry/Rect.h"
-#include "tools/gui/View_Flags.h"
 #include "ndbl/core/Scope.h"
+#include "geometry/Spatial_Node.h"
+#include "geometry/Rect.h"
+#include "View_Flags.h"
 
 namespace ndbl
 {
@@ -26,10 +26,10 @@ namespace ndbl
 
     struct Scope_View
     {
-        tools::Signal<void(Scope_View*)>    signal_hover        = {};
+        Signal<void(Scope_View*)>    signal_hover        = {};
         std::vector<Node_View*>             wrapped_node_view   = {};
-        tools::Rect                         content_rect        = {};
-        tools::View_Flags                   flags               = {};
+        Rect                         content_rect        = {};
+        View_Flags                   flags               = {};
         Scope*                              scope               = {};
         Theme                               theme               = {};
     };    

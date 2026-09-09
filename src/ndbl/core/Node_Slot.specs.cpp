@@ -1,24 +1,30 @@
 #include <gtest/gtest.h>
 #include "Node_Slot.h"
-#include "core/Flags.h"
+#include "ndbl/core/Flags.h"
+
+#include "ndbl/core/reflection/index.h"
+#include "ndbl/core/Log.h"
+#include "test/fixtures/basic_test.h"
 
 using namespace ndbl;
 
-TEST(Node_Slot, default_flags)
+typedef ::testing::Basic_Test Node_Slot_;
+
+TEST_F(Node_Slot_, default_flags)
 {
     Node_Slot slot;
     node_slot_init(&slot);
     EXPECT_EQ(slot.flags, Node_Slot::Flag_NONE);
 }
 
-TEST(Node_Slot, default_capacity)
+TEST_F(Node_Slot_, default_capacity)
 {
     Node_Slot slot;
     node_slot_init(&slot);
     EXPECT_TRUE(slot.capacity == slot.adjacent.capacity());
 }
 
-TEST(Node_Slot, is_full)
+TEST_F(Node_Slot_, is_full)
 {
     Node_Slot out;
     node_slot_init(&out, Node_Slot::Flag_OUTPUT, 2);
@@ -38,7 +44,7 @@ TEST(Node_Slot, is_full)
     EXPECT_TRUE(out.is_full());
 }
 
-TEST(Node_Slot, adjacent_at)
+TEST_F(Node_Slot_, adjacent_at)
 {
     // prepare
     Node_Slot out;
@@ -62,7 +68,7 @@ TEST(Node_Slot, adjacent_at)
     EXPECT_EQ(adjacent_slot_1, &in2);
 }
 
-TEST(Node_Slot, allows_relation)
+TEST_F(Node_Slot_, allows_relation)
 {
     Node_Slot slot;
     node_slot_init(&slot);

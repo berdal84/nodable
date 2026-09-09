@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include "bdc/String.hpp"
 
-#include "tools/core/File_System.h"
+#include "ndbl/core/File_System.h"
 #include "ndbl/gui/File_View.h"
 #include "ndbl/gui/Nodable.h"
 
@@ -36,7 +36,7 @@ namespace ndbl
 	struct File
     {
         bdc::String            name;
-        tools::Path            path;        // file path on disk
+        Path            path;        // file path on disk
         File_View              view;
         bdc::String            parsed_text; // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
         Graph*                 graph;       // graphical representation
@@ -53,7 +53,7 @@ namespace ndbl
     size_t                  file_size(const File*);
     void                    file_update_graph_from_text(File*, bool isolation_on);
     void                    file_update_text_from_graph(File*, bool isolation_on);
-    bool                    file_read(File* file, const tools::Path& source ); // Read an File from a given path and update file's path.
-    bool                    file_write(File* file, const tools::Path& dest );  // Write an File to a given path and update file's path.
+    bool                    file_read(File* file, const Path& source ); // Read an File from a given path and update file's path.
+    bool                    file_write(File* file, const Path& dest );  // Write an File to a given path and update file's path.
 
 }
