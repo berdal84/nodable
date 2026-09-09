@@ -205,11 +205,11 @@ void file_handle_file_view_change(File* file, File_View_Event_Type type)
 {
     switch ( type )
     {
-        case File_View_Overlay_Type_TEXT:
+        case File_View_Event_Type_GRAPH_CHANGED:
             SET_FLAGS(file->flags, File_Flag_TEXT_IS_DIRTY);
             break;
         
-        case File_View_Overlay_Type_GRAPH:
+        case File_View_Event_Type_TEXT_CHANGED:
             SET_FLAGS(file->flags, File_Flag_GRAPH_IS_DIRTY);
             break;
         

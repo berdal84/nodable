@@ -275,9 +275,10 @@ bdc::String ndbl::fileview_get_text( const File_View* file_view, bool isolation_
     return result;
 }
 
-void ndbl::fileview_set_text(File_View* file_view, bdc::String text, bool isolation_on)
+void ndbl::fileview_set_text(File_View* file_view, bdc::String new_text, bool isolation_on)
 {
-    if ( bdc::string_compare(text, fileview_get_text(file_view, isolation_on)) == 0 )
+    String current_text =  fileview_get_text(file_view, isolation_on); 
+    if ( bdc::string_compare(new_text, current_text) == 0 )
     {
         return;
     }
@@ -299,7 +300,7 @@ void ndbl::fileview_set_text(File_View* file_view, bdc::String text, bool isolat
         }
 
         /* insert text (and select it) */
-        file_view->text_editor.InsertText(text.c_str(), true);
+        file_view->text_editor.InsertText(new_text.c_str(), true);
 
         auto end = file_view->text_editor.GetCursorPosition();
         if (!hasSelection && start.mLine == end.mLine) // no selection and insert text is still on the same line
@@ -307,16 +308,16 @@ void ndbl::fileview_set_text(File_View* file_view, bdc::String text, bool isolat
             file_view->text_editor.SetSelection(selectionStart, selectionEnd);
         }
         NDBL_LOG(Verbosity_Message, "File_View", "Selected text updated from graph.\n");
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", text.c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", new_text.c_str());
     }
     else
     {
-        file_view->text_editor.SetText( text.c_str() );
+        file_view->text_editor.SetText( new_text.c_str() );
         // auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, text, &m_text_editor);
         // m_file->get_history()->push_command(cmd);
 
         NDBL_LOG(Verbosity_Message, "File_View", "Whole text updated from graph.\n");
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", text.c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", new_text.c_str());
     }
 }
 
