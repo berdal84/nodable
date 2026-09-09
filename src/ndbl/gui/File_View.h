@@ -7,6 +7,7 @@
 
 #include "ndbl/core/reflection/Type_Descriptor.h"
 #include "ndbl/core/Signals.h"
+#include "Action.h"
 #include "geometry/Rect.h"
 
 namespace ndbl
@@ -47,25 +48,6 @@ namespace ndbl
         File_View_Event_Type_TEXT_CHANGED,
     };
 
-    typedef u16_t Condition;
-    enum Condition_ : u16_t
-    {
-        Condition_DISABLE                          = 0,
-        Condition_ENABLE_IF_HAS_SELECTION          = 1 << 0,
-        Condition_ENABLE_IF_HAS_NO_SELECTION       = 1 << 1,
-        Condition_ENABLE_IF_HAS_GRAPH              = 1 << 3,
-        Condition_DISABLE_IF_DRAGGING_THIS_SLOT    = 1 << 4,
-        Condition_DISABLE_IF_DRAGGING_NON_THIS_SLOT= 1 << 5,
-        Condition_ONLY_FROM_GRAPH_EDITOR_CONTEXTUAL= 1 << 6,
-        Condition_ENABLE                           = Condition_ENABLE_IF_HAS_SELECTION
-                                                   | Condition_ENABLE_IF_HAS_NO_SELECTION
-                                                   | Condition_ENABLE_IF_HAS_GRAPH,
-        Condition_HIGHLIGHTED_IN_GRAPH_EDITOR      = 1 << 10,
-        Condition_HIGHLIGHTED_IN_TEXT_EDITOR       = 1 << 11,
-        Condition_HIGHLIGHTED                      = Condition_HIGHLIGHTED_IN_GRAPH_EDITOR
-                                                   | Condition_HIGHLIGHTED_IN_TEXT_EDITOR,
-    };
-
     struct File_View
 	{
         DECLARE_REFLECT
@@ -98,8 +80,9 @@ namespace ndbl
     void	                        fileview_set_undo_buffer(File_View*, TextEditor::IExternalUndoBuffer*);
     void                            fileview_set_experimental_clipboard_auto_paste(File_View*, bool /* enable*/);
     void                            fileview_clear_overlay(File_View*);
+    void                            fileview_refresh_overlay(File_View*);
     void                            fileview_push_overlay(File_View*, File_View_Overlay_Data, File_View_Overlay_Type) ;
-    void                            fileview_refresh_overlay(File_View*, Condition);
     void                            fileview_draw_overlay(const bdc::String& title, const std::vector<File_View_Overlay_Data>& overlay_data, const Rect& rect, const Vec2& position);
     size_t                          fileview_size(const File_View*);
+    Condition_Flags                 fileview_calc_condition_flags(File_View*);
 }

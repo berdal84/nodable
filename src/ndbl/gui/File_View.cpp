@@ -14,10 +14,10 @@
 #include "ndbl/gui/ImGuiTypeConvert.h"
 #include "ndbl/gui/Node_View.h"
 
-using namespace ndbl;
-using namespace ndbl;
+namespace ndbl
+{
 
-void ndbl::fileview_init(File_View* file_view, File* file)
+void fileview_init(File_View* file_view, File* file)
 {
     Config* cfg = config();
 
@@ -34,28 +34,32 @@ void ndbl::fileview_init(File_View* file_view, File* file)
     VERIFY( file_view->file->graph->view, "A Graph_View component is required by File_View" );
 }
 
-void ndbl::fileview_deinit(File_View* file_view)
+void fileview_deinit(File_View* file_view)
 {
     string_release(file_view->text_overlay_window_name );
     string_release(file_view->graph_overlay_window_name);
 }
 
-void ndbl::fileview_update(File_View* file_view, float dt)
+void fileview_update(File_View* file_view, float dt)
 {
     graphview_update(file_view->graph_view, dt);
 }
 
-void ndbl::fileview_draw(File_View* file_view, float dt)
+Condition_Flags fileview_calc_condition_flags(File_View* file_view)
+{
+    Condition_Flags result = 0;
+    result |= Condition_Flags_ENABLE_IF_HAS_SELECTION * !file_view->graph_view->selection.empty();
+    return result;
+}
+
+void fileview_draw(File_View* file_view, float dt)
 {
     // Summary
     // 1) Draw History Bar
     // 2) Draw Text and Graph Editors
 
     fileview_clear_overlay(file_view);
-    Condition condition_flags = file_view->graph_view->selection.empty()
-                              ? Condition_ENABLE_IF_HAS_NO_SELECTION
-                              : Condition_ENABLE_IF_HAS_SELECTION;
-    fileview_refresh_overlay( file_view, condition_flags );
+    fileview_refresh_overlay( file_view );
 
     // 1)
     if (ImGui::IsMouseReleased(0))
@@ -253,7 +257,7 @@ void ndbl::fileview_draw(File_View* file_view, float dt)
     ImGui::PopStyleColor();
 }
 
-bdc::String ndbl::fileview_get_text( const File_View* file_view, bool isolation_on )
+bdc::String fileview_get_text( const File_View* file_view, bool isolation_on )
 {
     std::string tmp;
 
@@ -275,7 +279,7 @@ bdc::String ndbl::fileview_get_text( const File_View* file_view, bool isolation_
     return result;
 }
 
-void ndbl::fileview_set_text(File_View* file_view, bdc::String new_text, bool isolation_on)
+void fileview_set_text(File_View* file_view, bdc::String new_text, bool isolation_on)
 {
     String current_text =  fileview_get_text(file_view, isolation_on); 
     if ( bdc::string_compare(new_text, current_text) == 0 )
@@ -321,12 +325,12 @@ void ndbl::fileview_set_text(File_View* file_view, bdc::String new_text, bool is
     }
 }
 
-void ndbl::fileview_set_undo_buffer(File_View* file_view, TextEditor::IExternalUndoBuffer* _buffer )
+void fileview_set_undo_buffer(File_View* file_view, TextEditor::IExternalUndoBuffer* _buffer )
 {
 	file_view->text_editor.SetExternalUndoBuffer(_buffer);
 }
 
-void ndbl::fileview_set_experimental_clipboard_auto_paste(File_View* file_view, bool enable)
+void fileview_set_experimental_clipboard_auto_paste(File_View* file_view, bool enable)
 {
     file_view->experimental_clipboard_auto_paste = enable;
     if( enable )
@@ -335,7 +339,7 @@ void ndbl::fileview_set_experimental_clipboard_auto_paste(File_View* file_view, 
     }
 }
 
-void ndbl::fileview_draw_overlay(const bdc::String& title, const std::vector<File_View_Overlay_Data>& overlay_data, const Rect& rect, const Vec2& position)
+void fileview_draw_overlay(const bdc::String& title, const std::vector<File_View_Overlay_Data>& overlay_data, const Rect& rect, const Vec2& position)
 {
     if( overlay_data.empty() ) return;
 
@@ -363,34 +367,35 @@ void ndbl::fileview_draw_overlay(const bdc::String& title, const std::vector<Fil
     ImGui::End();
 }
 
-void ndbl::fileview_clear_overlay(File_View* file_view)
+void fileview_clear_overlay(File_View* file_view)
 {
     for(auto& vec : file_view->overlay_data )
         vec.clear();
 }
 
-void ndbl::fileview_push_overlay(File_View* file_view, File_View_Overlay_Data overlay_data, File_View_Overlay_Type overlay_type)
+void fileview_push_overlay(File_View* file_view, File_View_Overlay_Data overlay_data, File_View_Overlay_Type overlay_type)
 {
     file_view->overlay_data[overlay_type].push_back(overlay_data);
 }
 
-size_t ndbl::fileview_size(const File_View* file_view)
+size_t fileview_size(const File_View* file_view)
 {
     return file_view->text_editor.Size();
 }
 
-void ndbl::fileview_refresh_overlay(File_View* file_view, Condition condition )
+void fileview_refresh_overlay(File_View* file_view )
 {
+    Condition_Flags condition_flags = fileview_calc_condition_flags(file_view);
     for (const Action& action: action_manager()->actions )
     {
-        if( ( action.flags & condition) == condition && (action.flags & Condition_HIGHLIGHTED) )
+        if( ( action.condition_flags & condition_flags) == condition_flags && (action.condition_flags & Condition_Flags_HIGHLIGHTED) )
         {
             bdc::String label = action.label;
             label.size = label.size > 12 ? 12 : label.size;
             bdc::String shortcut_str = action.shortcut.to_string();
             File_View_Overlay_Type overlay_type;
             
-            if (action.flags & Condition_HIGHLIGHTED_IN_TEXT_EDITOR)
+            if (action.condition_flags & Condition_Flags_HIGHLIGHTED_IN_TEXT_EDITOR)
                 overlay_type = File_View_Overlay_Type_TEXT;
             else
                 overlay_type = File_View_Overlay_Type_GRAPH;
@@ -399,3 +404,5 @@ void ndbl::fileview_refresh_overlay(File_View* file_view, Condition condition )
         }
     }
 }
+
+} // namespace ndbl

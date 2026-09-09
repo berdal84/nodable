@@ -1257,12 +1257,12 @@ void appview_save_screenshot(const bdc::String relative_path)
 
 void appview_update()
 {
-    App_View_State* view = appview();
-    File* current_file = app_state()->current_file;
-
-    if( current_file != nullptr )
+    // Some actions can only be triggered if some conditions are met
+    // We get those conditions
+    Condition_Flags condition_flags{0};
+    if( File* file = app_state()->current_file )
     {
-        fileview_update(&current_file->view, view->dt_in_s);
+        condition_flags = fileview_calc_condition_flags( &file->view );
     }
 
     SDL_Event event;
@@ -1278,37 +1278,28 @@ void appview_update()
                 break;
 
             case SDL_KEYDOWN:
-                if( event.key.keysym.mod & (KMOD_CTRL | KMOD_ALT) )
+                for(const Action& action: action_manager()->actions )
                 {
-                    // Test all the shortcuts with Ctrl or Alt modifiers
+                    VERIFY( action.event.type, "Unexpected event.type" );
 
-                    for(const Action& action: action_manager()->actions )
+                    if( HAS_FLAGS(condition_flags, action.condition_flags) &&
+                        HAS_FLAGS(event.key.keysym.mod, action.shortcut.mod) && // same mod
+                        action.shortcut.key == event.key.keysym.sym ) // same key
                     {
-                        // first, priority to shortcuts with mod
-                        if ( action.event.type != Event_Type_NULL )
-                            if ( action.shortcut.mod != KMOD_NONE)                                
-                                    if ( action.shortcut.mod & event.key.keysym.mod ) // same mod
-                                        if ( action.shortcut.key == event.key.keysym.sym) // same key
-                                            { event_manager_push_event( action.event ); break; }
-                    }
-                }
-                else
-                {
-                    // Test all other shortcuts
-
-                    for(const Action& action: action_manager()->actions )
-                    {
-                        if ( action.event.type != Event_Type_NULL )
-                            if ( action.shortcut.mod == KMOD_NONE )                            
-                                if ( action.shortcut.key == event.key.keysym.sym)
-                                {
-                                    event_manager_push_event( action.event );
-                                    break;
-                                }
+                        event_manager_push_event( action.event );
+                        break;
                     }
                 }
                 break;
         }
+    }
+
+    App_View_State* view = appview();
+    File* current_file = app_state()->current_file;
+
+    if( current_file != nullptr )
+    {
+        fileview_update(&current_file->view, view->dt_in_s);
     }
 }
 

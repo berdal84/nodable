@@ -188,6 +188,7 @@ void app_update()
                 app_close_file();
                 break;
             }
+
             case Event_Type_UNDO:
             {
                 command_manager_undo();
@@ -261,7 +262,7 @@ void app_update()
             {
                 ASSERT(app->current_file != nullptr );
                 fileview_clear_overlay(&app->current_file->view);
-                fileview_refresh_overlay(&app->current_file->view, Condition_ENABLE_IF_HAS_NO_SELECTION );
+                fileview_refresh_overlay(&app->current_file->view);
                 break;
             }
 
@@ -444,7 +445,7 @@ void app_update()
 
             default:
             {
-                UNREACHABLE("Unexpected Event_Type %i\n", event.type);
+                UNREACHABLE("Unexpected Event_Type");
             }
         }
     }

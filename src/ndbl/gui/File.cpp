@@ -18,13 +18,7 @@
 
 namespace ndbl
 {
-using namespace ndbl;
 using namespace bdc;
-
-void _file_set_text_dirty(File* file)
-{
-    file->flags |= File_Flag_TEXT_IS_DIRTY;
-}
 
 void file_init(File* file)
 {
@@ -40,9 +34,6 @@ void file_init(File* file)
     auto* graph_view = bdc::memory_new<Graph_View>();
     graphview_init(graph_view, file->graph);
     graph->view = graph_view;
-
-    graph->signal_change.connect<&_file_set_text_dirty>(file);
-    graph_view->signal_change.connect<&_file_set_text_dirty>(file);
 
     // Fill the "create node" context menu
     for( const Action& action : action_manager()->actions )
@@ -66,8 +57,6 @@ void file_init(File* file)
 
 void file_deinit(File* file)
 {
-    ASSERT(file->graph->signal_change.disconnect<&_file_set_text_dirty>(file));
-    
     string_release(file->temp_text_buffer);
     file->graph->view->signal_change.disconnect();
     file->view.signal_change.disconnect();

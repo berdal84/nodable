@@ -148,6 +148,7 @@ bdc::String ndbl::command_manager_get_cmd_description_at(int _cmd_position)
     VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
 
 	bdc::String_Builder sb{};
+    string_builder_init(sb);
 
     if (_cmd_position <= -(int)g_command_manager->past.size())
     {
