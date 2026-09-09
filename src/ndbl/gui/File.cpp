@@ -134,9 +134,12 @@ void file_update(File* file, bool isolation_on)
 void file_update_graph_from_text(File* file, bool isolation_on)
 {
     // Parse source code
-    // note: File owns the parsed text buffer
-    file->temp_text_buffer = fileview_get_text(&file->view, isolation_on );
-    lang_parse(language(), file->graph, file->temp_text_buffer);
+    String text = string_copy( fileview_get_text(&file->view, isolation_on ) );
+    lang_parse(language(), file->graph, text);
+    
+    // Release and replace temp_text_buffer
+    string_release(file->temp_text_buffer);
+    file->temp_text_buffer = text;
 
     SET_FLAGS(file->graph->view->flags, Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT);
 }
