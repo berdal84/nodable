@@ -20,18 +20,19 @@
 
 using namespace bdc;
 
-#define hashmap_print(hashmap)\
-{ \
-    printf("Printing Hash_Map entries (size = %u, live_size = %u, capacity = %u):\n", \
-           hashmap.size, hashmap.live_size, hashmap.capacity ); \
-    \
-    if( hashmap.size == 0 ) printf("    (empty)\n"); \
-    HASHMAP_WALK( entry, hashmap ) \
-    { \
-        printf("    #%i | hash: %#010x | key: \"%s\" | value: \"%s\" \n", i, entry.hash, entry.key.c_str(), entry.value.c_str() ); \
-    } \
-    HASHMAP_WALK_END \
-    printf(" --- \n"); \
+template<Is_Hash_Map Hash_Map_Type>
+void hashmap_print(const Hash_Map_Type& hashmap)
+{
+    printf("Printing Hash_Map entries (size = %u, live_size = %u, capacity = %u):\n",
+           hashmap.size, hashmap.live_size, hashmap.capacity );
+
+    if( hashmap.size == 0 )
+        printf("    (empty)\n");
+
+    for_each_hashmap_indexed_entry(index, entry, hashmap)
+        printf("    #%i | hash: %#010x | key: \"%s\" | value: \"%s\" \n", index, entry.hash, entry.key.c_str(), entry.value.c_str() );
+
+    printf(" --- \n");
 }
 
 

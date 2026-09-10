@@ -501,19 +501,13 @@ Node_Property* node_add_prop(Node* node, const Type_Descriptor* type, const Stri
 
 const Node_Property* node_find_first_prop(const Node* node, Node_Property::Flags _flags, const Type_Descriptor *_type)
 {
-    auto filter = [_flags, _type](const Node_Property* property) -> bool
+    for_each_hashmap_value(property, node->props_by_name)        
     {
-        return type_is_implicitly_convertible(property->type, _type)
-               && ( HAS_FLAGS(property->flags, _flags ) );
-    };
-
-    HASHMAP_WALK( entry, node->props_by_name )        
-        if( filter(entry.value) )
+        if( type_is_implicitly_convertible(property->type, _type) && ( HAS_FLAGS(property->flags, _flags ) ) )
         {
-            return entry.value;
+            return property;
         }
-    HASHMAP_WALK_END
-
+    }
     return nullptr;
 }
 

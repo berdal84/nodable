@@ -3,14 +3,20 @@
 #include "String_Hash.hpp"
 #include "Type_Traits.hpp"
 
-#define HASHMAP_WALK(it, hash_map) \
-for(u32_t i = 0; i < (hash_map).entries.size; ++i ) \
-{ \
-    auto& it = (hash_map).entries[i]; \
-    if( it.hash < Hash_Map_Hash_OCCUPIED_RANGE_START ) continue; \
-    
-#define HASHMAP_WALK_END \
-}
+#define for_each_hashmap_base( INDEX, CONTINUE, HASHMAP ) \
+    for( u32_t INDEX = 0; INDEX < (HASHMAP).entries.size; ++INDEX ) \
+        for( bool CONTINUE = ((HASHMAP).entries[INDEX].hash >= Hash_Map_Hash_OCCUPIED_RANGE_START); CONTINUE; CONTINUE = false )
+
+#define for_each_hashmap_indexed_entry( INDEX, ENTRY, HASHMAP ) \
+    for_each_hashmap_base( INDEX, INDEX##_continue, HASHMAP) \
+        for( auto& ENTRY = (HASHMAP).entries[INDEX]; INDEX##_continue; INDEX##_continue = false )
+
+#define for_each_hashmap_indexed_value( INDEX, VALUE, HASHMAP ) \
+    for_each_hashmap_base( INDEX, INDEX##_continue, HASHMAP) \
+        for( auto& VALUE = (HASHMAP).entries[INDEX].value; INDEX##_continue; INDEX##_continue = false )
+
+#define for_each_hashmap_entry( ENTRY, HASHMAP ) for_each_hashmap_indexed_entry( ENTRY##_i, ENTRY, HASHMAP)
+#define for_each_hashmap_value( VALUE, HASHMAP ) for_each_hashmap_indexed_value( VALUE##_i, VALUE, HASHMAP)
 
 namespace bdc
 {
@@ -303,9 +309,10 @@ namespace bdc
             hashmap_init(new_hashmap, new_capacity, hashmap.allocator);
 
             // Rehash current hashmap entries into the new one
-            HASHMAP_WALK(it, hashmap)
-                hashmap_add(new_hashmap, it.key, it.value);
-            HASHMAP_WALK_END
+            for_each_hashmap_entry(entry, hashmap)
+            {
+                hashmap_add(new_hashmap, entry.key, entry.value);
+            }
 
             assert( new_hashmap.size == new_hashmap.live_size && "New Hash_Map should have no tombstone!");
 
