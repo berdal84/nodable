@@ -29,7 +29,7 @@ void hashmap_print(const Hash_Map_Type& hashmap)
     if( hashmap.size == 0 )
         printf("    (empty)\n");
 
-    for_each_hashmap_indexed_entry(index, entry, hashmap)
+    FOR_EACH_HASHMAP_INDEXED_ENTRY(index, entry, hashmap)
         printf("    #%i | hash: %#010x | key: \"%s\" | value: \"%s\" \n", index, entry.hash, entry.key.c_str(), entry.value.c_str() );
 
     printf(" --- \n");

@@ -501,7 +501,7 @@ Node_Property* node_add_prop(Node* node, const Type_Descriptor* type, const Stri
 
 const Node_Property* node_find_first_prop(const Node* node, Node_Property::Flags _flags, const Type_Descriptor *_type)
 {
-    for_each_hashmap_value(property, node->props_by_name)        
+    FOR_EACH_HASHMAP_VALUE(property, node->props_by_name)        
     {
         if( type_is_implicitly_convertible(property->type, _type) && ( HAS_FLAGS(property->flags, _flags ) ) )
         {

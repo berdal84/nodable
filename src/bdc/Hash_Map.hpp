@@ -3,20 +3,32 @@
 #include "String_Hash.hpp"
 #include "Type_Traits.hpp"
 
-#define for_each_hashmap_base( INDEX, CONTINUE, HASHMAP ) \
+// if "as a for"
+//
+// Can can be followed by an else when nested in a other if)
+//
+// ex:
+//  if ( <condition> )
+//      FOR_EACH_HASHMAP_VALUE( ... )
+//          // one statement
+//  else
+//      // some code executed if <condition> is false
+//
+// if for_each_hashmap_base__ was using regular if, the else block would be called when the loop hit the first non occupied slot
+//
+#define IF_HASHMAP__( CONDITION_STATEMENT, CONTINUE_SYMBOL ) \
+    for( CONDITION_STATEMENT; CONTINUE_SYMBOL; CONTINUE_SYMBOL = false )
+
+#define FOR_EACH_HASHMAP_BASE__( INDEX, CONTINUE_SYMBOL, HASHMAP, CONDITION_STATEMENT ) \
     for( u32_t INDEX = 0; INDEX < (HASHMAP).entries.size; ++INDEX ) \
-        for( bool CONTINUE = ((HASHMAP).entries[INDEX].hash >= Hash_Map_Hash_OCCUPIED_RANGE_START); CONTINUE; CONTINUE = false )
+        IF_HASHMAP__( bool CONTINUE_SYMBOL = ((HASHMAP).entries[INDEX].hash >= Hash_Map_Hash_OCCUPIED_RANGE_START), CONTINUE_SYMBOL ) \
+            IF_HASHMAP__( CONDITION_STATEMENT, CONTINUE_SYMBOL )
 
-#define for_each_hashmap_indexed_entry( INDEX, ENTRY, HASHMAP ) \
-    for_each_hashmap_base( INDEX, INDEX##_continue, HASHMAP) \
-        for( auto& ENTRY = (HASHMAP).entries[INDEX]; INDEX##_continue; INDEX##_continue = false )
-
-#define for_each_hashmap_indexed_value( INDEX, VALUE, HASHMAP ) \
-    for_each_hashmap_base( INDEX, INDEX##_continue, HASHMAP) \
-        for( auto& VALUE = (HASHMAP).entries[INDEX].value; INDEX##_continue; INDEX##_continue = false )
-
-#define for_each_hashmap_entry( ENTRY, HASHMAP ) for_each_hashmap_indexed_entry( ENTRY##_i, ENTRY, HASHMAP)
-#define for_each_hashmap_value( VALUE, HASHMAP ) for_each_hashmap_indexed_value( VALUE##_i, VALUE, HASHMAP)
+#define FOR_EACH_HASHMAP_INDEXED_ENTRY( INDEX, ENTRY, HASHMAP ) FOR_EACH_HASHMAP_BASE__( INDEX, ENTRY##_continue__, HASHMAP, auto& ENTRY = (HASHMAP).entries[INDEX] )
+#define FOR_EACH_HASHMAP_INDEXED_VALUE( INDEX, VALUE, HASHMAP ) FOR_EACH_HASHMAP_BASE__( INDEX, VALUE##_continue__, HASHMAP, auto& VALUE = (HASHMAP).entries[INDEX].value )
+#define FOR_EACH_HASHMAP_ENTRY( ENTRY, HASHMAP ) FOR_EACH_HASHMAP_INDEXED_ENTRY( ENTRY##_index__, ENTRY, HASHMAP)
+#define FOR_EACH_HASHMAP_VALUE( VALUE, HASHMAP ) FOR_EACH_HASHMAP_INDEXED_VALUE( VALUE##_index__, VALUE, HASHMAP)
+#define FOR_EACH_HASHMAP( ENTRY, HASHMAP ) FOR_EACH_HASHMAP_ENTRY( ENTRY, HASHMAP)
 
 namespace bdc
 {
@@ -309,7 +321,7 @@ namespace bdc
             hashmap_init(new_hashmap, new_capacity, hashmap.allocator);
 
             // Rehash current hashmap entries into the new one
-            for_each_hashmap_entry(entry, hashmap)
+            FOR_EACH_HASHMAP_ENTRY(entry, hashmap)
             {
                 hashmap_add(new_hashmap, entry.key, entry.value);
             }
