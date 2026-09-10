@@ -12,19 +12,21 @@
 #include <iostream>
 
 #ifdef BDC_DEBUG_ALLOCATORS
+    #include <stacktrace>
     #define BDC_PRINT_STACKTRACE() \
         std::stacktrace st = std::stacktrace::current(); \
-        std::cout << st << std::endl;
+        std::cout << st << std::endl
+#else
+    #define BDC_PRINT_STACKTRACE() /* BDC_PRINT_STACKTRACE is disabled */
+#endif // BDC_DEBUG_ALLOCATORS
 
-    #include <stacktrace>
-    #define BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE( fmt, ... ) \
+#ifdef BDC_ENABLE_LOGS
+    #define BDC_LOG_STACKTRACE_WITH_REASON( fmt, ... ) \
         printf("Printing stacktrace because: " fmt "\n", __VA_ARGS__); \
         BDC_PRINT_STACKTRACE();
 #else
-    #define BDC_PRINT_STACKTRACE() /* BDC_PRINT_STACKTRACE is disabled */
-    #define BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE( fmt, ... ) /* BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE is disabled */
-#endif // BDC_DEBUG_ALLOCATORS
-
+    #define BDC_LOG_STACKTRACE_WITH_REASON( fmt, ... ) /* BDC_LOG_STACKTRACE_WITH_REASON is disabled */
+#endif // BDC_ENABLE_LOGS
 
 namespace bdc
 {
@@ -104,19 +106,19 @@ namespace bdc
     [[nodiscard]] inline void* memory_malloc(size_t size, Allocator* _allocator = allocator )
     {
         void* ptr = _allocator->proc_malloc( size );
-        BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE( "Allocated address %p", ptr );
+        BDC_LOG_STACKTRACE_WITH_REASON( "Allocated address %p", ptr );
         return ptr;
     }
 
     inline void memory_free(void* ptr, Allocator* _allocator = allocator )
     {
-        BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE( "Freeing address %p", ptr );
+        BDC_LOG_STACKTRACE_WITH_REASON( "Freeing address %p", ptr );
         return _allocator->proc_free( ptr );
     }
 
     [[nodiscard]] inline void* memory_realloc(void* ptr, size_t size, Allocator* _allocator = allocator )
     {
-        BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE( "Reallocating address %p", ptr );
+        BDC_LOG_STACKTRACE_WITH_REASON( "Reallocating address %p", ptr );
         return _allocator->proc_realloc(ptr, size);
     }
 

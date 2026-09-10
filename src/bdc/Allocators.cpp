@@ -124,7 +124,7 @@ namespace bdc
                 header->owners -= 1;
                 if( header->owners < 0 )
                 {
-                    BDC_DEBUG_ALLOCATORS_PRINT_STACKTRACE_BECAUSE("Potential double free at %p\n", ptr);
+                    BDC_LOG_STACKTRACE_WITH_REASON("Potential double free at %p\n", ptr);
                 }
             #endif
         }
@@ -249,8 +249,10 @@ namespace bdc
     Memory_Manager_Report* memory_manager_generate_report(Memory_Manager_Report* report)
     {
         #ifndef BDC_DEBUG_ALLOCATORS
-            assert(false && "You're trying to generate a memory report but BDC_DEBUG_ALLOCATORS must be defined in order to do this, recompile with #define BDC_DEBUG_ALLOCATORS");
+            printf(__FILE__", WARNING: You're trying to generate a memory report but BDC_DEBUG_ALLOCATORS must be defined in order to do this, recompile with #define BDC_DEBUG_ALLOCATORS");
+            return report;
         #else
+
         BDC_LOG_DEBUG(" -- Storing report about %s ...\n", heap_allocator_tracker.allocator->name);
 
         if( report == nullptr)

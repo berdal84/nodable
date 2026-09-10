@@ -48,26 +48,11 @@ namespace bdc
         return key.hash;
     };
 
-    template<typename Value_Type>
-    struct Result
-    {
-        using Value_Type_Ptr = std::remove_pointer_t<Value_Type>*;
-
-        bool            ok;
-        Value_Type_Ptr  value;
-        inline operator bool () const { return ok; }
-    };
-
-    template<typename Value_Type>
-    inline bool operator==(const Result<Value_Type>& result, const Value_Type& value)
-    {
-        return result.ok ? *result.value == value : false;
-    }
-
     enum Hash_Map_Slot_State
     {
         Hash_Map_Slot_State_FREE      = 0,
-        Hash_Map_Slot_State_OCCUPIED  = 1
+        Hash_Map_Slot_State_OCCUPIED  = 1,
+        Hash_Map_Slot_State_REMOVED   = 2
     };
 
     template<
@@ -109,34 +94,50 @@ namespace bdc
     template<typename T>
     concept Is_Hash_Map = Is_Hash_Map_Implem<T>::value;
 
-    template<Is_Hash_Map T> using Hash_Map_Key      = typename T::Key_Type;
-    template<Is_Hash_Map T> using Hash_Map_Value    = typename T::Value_Type;
-    template<Is_Hash_Map T> using Hash_Map_Hash     = typename T::Hash_Type;
-
-    void _hashmap_resize_entries_to_optimal_size(Is_Hash_Map auto& hashmap);
+    void _hashmap_resize_entries_to_optimal_size(Is_Hash_Map auto& hashmap, u32_t capacity_min = 16);
 
     template<Is_Hash_Map T>
     void hashmap_init(
-        T& hashmap, 
-        Allocator* _allocator = nullptr,
-        typename T::Hash_Proc_Type hash_proc = &hash<Hash_Map_Key<T>, Hash_Map_Hash<T>>)
+        T&         hashmap,
+        u32_t      initial_capacity  = 16,
+        Allocator* _allocator        = nullptr,
+        typename T::Hash_Proc_Type hash_proc = &hash<typename T::Key_Type, typename T::Hash_Type>)
     {
         hashmap.allocator = _allocator ? _allocator : allocator;
-        hashmap.size      = 0;
-        hashmap.capacity  = 0;
+        hashmap.size      = 0;        
         hashmap.hash_proc = hash_proc;
+        hashmap.capacity  = initial_capacity;
 
-        _hashmap_resize_entries_to_optimal_size(hashmap);
+        array_init(hashmap.entries, initial_capacity, hashmap.allocator);
+        array_resize(hashmap.entries, initial_capacity);
     };
 
     void hashmap_release(Is_Hash_Map auto& hashmap )
     {
         array_release(hashmap.entries);
-        hashmap.entries = {};
+        hashmap.entries  = {};
+        hashmap.size     = 0;
+        hashmap.capacity = 0;
+    };
+
+    template<typename Value_Type>
+    struct Result
+    {
+        bool            ok;
+        Value_Type      value;
+        inline operator bool () const { return ok; }
+    };
+
+    template<>
+    struct Result<void>
+    {
+        bool            ok;
+        inline operator bool () const { return ok; }
     };
 
     template<Is_Hash_Map T>
-    Result<typename T::Entry_Type> hashmap_add(T& hashmap, const Hash_Map_Key<T>& key, const Hash_Map_Value<T>& value)
+    Result<std::remove_pointer_t<typename T::Entry_Type>*>
+    hashmap_add(T& hashmap, const typename T::Key_Type& key, const typename T::Value_Type& value)
     {
         _hashmap_resize_entries_to_optimal_size(hashmap);
 
@@ -150,13 +151,22 @@ namespace bdc
         auto index = (hash & (hashmap.entries.size - 1) ); // cheap modulo
 
         // Ensure there are no duplicates
+        u32_t iteration = 0;
         while( true )
         {
+            assert(iteration < hashmap.entries.size / 4 * 3 && "Too much iterations for hashmap_add, it means we found too much collisions.");
             auto& entry = hashmap.entries[index];
 
-            if( entry.state == Hash_Map_Slot_State_FREE )
+            if( entry.state != Hash_Map_Slot_State_OCCUPIED )
             {
-                break;
+                entry.hash  = hash;
+                entry.key   = key;
+                entry.value = value;
+                entry.state = Hash_Map_Slot_State_OCCUPIED;
+
+                hashmap.size += 1;
+
+                return { .ok = true, .value = as_pointer(entry) };
             }
 
             if( entry.hash == hash && entry.key == key ) // duplicate found!
@@ -167,81 +177,96 @@ namespace bdc
             // Here we must try a different index because the selected one is not available to us...
             // The basic strategy I use is simply to increment the index
             index = (index + 1) & (hashmap.entries.size - 1);
+            ++iteration;
         }
-
-        // Write Entry at given location
-        hashmap.entries[index].hash     = hash;
-        hashmap.entries[index].key      = key;
-        hashmap.entries[index].value    = value;
-        hashmap.entries[index].state    = Hash_Map_Slot_State_OCCUPIED;
-
-        hashmap.size += 1;
-
-        return { .ok = true, .value = as_pointer(hashmap.entries[index]) };
     };
 
     template<Is_Hash_Map T>
-    Result<void> hashmap_remove(T& hashmap, const Hash_Map_Key<T>& key)
+    Result<u32_t> hashmap_find_index(const T& hashmap, const typename T::Key_Type& key)
     {
         if( hashmap.size == 0) return { .ok = false };
 
-        auto hash  = hashmap.hash_proc(key);
-        auto index = (hash & (hashmap.entries.size - 1) ); // cheap modulo
+        u32_t hash      = hashmap.hash_proc(key);
+        u32_t index     = (hash & (hashmap.entries.size - 1) ); // cheap modulo
+        u32_t iteration = 0;
 
-        while( index < hashmap.entries.size )
+        while( true )
         {
+            assert(iteration < hashmap.entries.size / 4 * 3 && "Too much iterations for hashmap_find_index, it means we found too much collisions.");
             auto& entry = hashmap.entries[index];
 
-            if( entry.hash == hash && entry.key == key ) // two keys might have the same hash, we must compare key after hash.
+            // If we hit a non occupied slot, we consider the search finished
+            if ( entry.state == Hash_Map_Slot_State_FREE )
             {
-                entry = {};
-                hashmap.size -= 1;
-                return { .ok = true };
+                return { .ok = false };
             }
 
-            ++index; // continue to search...
+            if( entry.state == Hash_Map_Slot_State_OCCUPIED && entry.hash == hash && entry.key == key ) // two keys might have the same hash, we must compare key after hash.
+            {
+                return { .ok = true, .value = index };
+            }
+
+            index = (index + 1) & (hashmap.entries.size - 1);
+            ++iteration;
+        }
+    };
+
+    template<Is_Hash_Map T>
+    Result<std::remove_pointer_t<typename T::Value_Type>*>
+    hashmap_remove(T& hashmap, const typename T::Key_Type& key)
+    {
+        Result<u32_t> found = hashmap_find_index(hashmap, key);
+        if( found.ok )
+        {
+            hashmap.entries[found.value].state = Hash_Map_Slot_State_REMOVED;
+            return { .ok = true, .value = as_pointer(hashmap.entries[found.value].value) };
         }
         return { .ok = false };
     };
 
-    template<Is_Hash_Map T, typename Return_Type = Result<typename T::Value_Type>>
-    Return_Type hashmap_find(const T& hashmap, const Hash_Map_Key<T>& key)
+    template<Is_Hash_Map T>
+    Result<std::remove_pointer_t<typename T::Value_Type>*>
+    hashmap_find(const T& hashmap, const typename T::Key_Type& key)
     {
-        auto hash = hashmap.hash_proc(key);
-
-        for(u32_t i = 0; i < hashmap.entries.size; ++i )
+        Result<u32_t> found = hashmap_find_index(hashmap, key);
+        if( found.ok )
         {
-            auto& entry = hashmap.entries[i];
-            if( entry.hash == hash && entry.key == key )
-            {
-                return { .ok = true, .value = as_pointer(entry.value)};
-            }
+            return { .ok = true, .value = as_pointer(hashmap.entries[found.value].value) };
         }
-
         return { .ok = false, .value = nullptr };
     };
 
-    void _hashmap_resize_entries_to_optimal_size(Is_Hash_Map auto& hashmap)
+    template<Is_Hash_Map Hash_Map_Type>
+    void _hashmap_resize_entries_to_optimal_size(Hash_Map_Type& hashmap, u32_t capacity_min)
     {
-        // By default, we init entries with a default size
-        if( hashmap.capacity == 0 )
-        {
-            assert(hashmap.size == 0 && "Should be zero if capacity is");
-            array_init(hashmap.entries, 0, hashmap.allocator);
-            array_resize(hashmap.entries, 16);
-            hashmap.capacity = hashmap.entries.capacity;
-            hashmap.size     = 0;
-            return;
-        }
-
-        // Reallocate a larger buffer when size is above 75% capacity
-        u32_t ideal_size = 3 * (hashmap.capacity / 4);
-        if ( hashmap.size > ideal_size )
+        // Reallocate a larger buffer when size is above 75% capacity or capacity is bellow minimum
+        if ( hashmap.size > hashmap.capacity / 4 * 3 || hashmap.capacity < capacity_min)
         {
             assert(hashmap.capacity <= ((u32_t)-1) / 2);
-            u32_t optimal_buffer_size = hashmap.capacity * 2; // exponential grow
-            array_resize( hashmap.entries, optimal_buffer_size );
-            hashmap.capacity = hashmap.entries.capacity;
+            u32_t optimal_size = hashmap.capacity * 2; // exponential grow
+
+            //
+            // TODO: Instead of running this copy at the time user insert a new element,
+            //       we can do this piece by piece (ex: 10 items at a time).
+            //       A method exist for that and requires to store the latest copied index.
+            //       With that method, each time you run an operation on the hashmap, you copie a chunk
+            //       after few calls, all the old entries are rehashed and copied to the new data.
+            //
+
+            // Allocate a new array for the entries
+            Hash_Map_Type new_hashmap{};
+            hashmap_init(new_hashmap, optimal_size, hashmap.allocator);
+
+            // Rehash current hashmap entries into the new one
+            HASHMAP_WALK(it, hashmap)
+            {
+                hashmap_add(new_hashmap, it.key, it.value);
+            }
+            HASHMAP_WALK_END
+
+            // Release old hashmap memory and replace with the new one
+            hashmap_release(hashmap);
+            hashmap = new_hashmap;
         }
     };
 }

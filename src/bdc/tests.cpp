@@ -1,7 +1,7 @@
 #include <cstdio>
 
 #define BDC_DEBUG_ALLOCATORS
-#define BDC_ENABLE_LOGS
+// #define BDC_ENABLE_LOGS
 #include "Allocators.hpp"
 #include "Array.hpp"
 #include "String.hpp"
@@ -22,7 +22,7 @@ using namespace bdc;
 
 #define hashmap_print(hashmap)\
 { \
-    printf("Printing non occupied slots (%u entries in total):\n", hashmap.entries.size ); \
+    printf("Printing occupied slots (%u entries in total):\n", hashmap.entries.size ); \
     if( hashmap.entries.size == 0 ) printf("    (empty)\n"); \
     HASHMAP_WALK( entry, hashmap ) \
     { \
@@ -470,7 +470,7 @@ int main()
         {
             Hash_Map<String, Data> hashmap{};
             TEST_EXPECTS( is_zero_initialized(hashmap) );
-            hashmap_init(hashmap, &temp_allocator );
+            hashmap_init(hashmap, 16, &temp_allocator );
 
             TEST_EXPECTS(hashmap.capacity > 0);
             TEST_EXPECTS(hashmap.size == 0);
@@ -485,14 +485,14 @@ int main()
         {
             Hash_Map<String, String> hashmap;
 
-            hashmap_init(hashmap, &temp_allocator );
+            hashmap_init(hashmap, 16, &temp_allocator );
 
             TEST_EXPECTS( hashmap_add(hashmap, "bzh", "Merlin") );
             hashmap_print(hashmap);
             TEST_EXPECTS( hashmap_find(hashmap, "bzh") );
 
             hashmap_print(hashmap);
-            TEST_EXPECTS( !hashmap_add(hashmap, "bzh", "Merlin") );
+            TEST_EXPECTS( !hashmap_add(hashmap, "bzh", "Merlin").ok );
 
             hashmap_release(hashmap);
             TEST_EXPECTS( !hashmap_find(hashmap, "bzh") );
@@ -503,14 +503,14 @@ int main()
         {
             Hash_Map<String, String> hashmap;
 
-            hashmap_init(hashmap, &temp_allocator );
+            hashmap_init(hashmap, 16, &temp_allocator );
             hashmap_add(hashmap, "bzh", "Merlin");
 
             TEST_EXPECTS( hashmap_find(hashmap, "bzh") );
 
             hashmap_release(hashmap);
 
-            TEST_EXPECTS( !hashmap_find(hashmap, "bzh").ok );
+            TEST_EXPECTS( !hashmap_find(hashmap, "bzh") );
         }
         TEST_END
 
@@ -518,9 +518,11 @@ int main()
         {
             Hash_Map<String, String> hashmap;
 
-            hashmap_init(hashmap, &temp_allocator );
+            hashmap_init(hashmap, 16, &temp_allocator );
             hashmap_add(hashmap, "bzh", "Merlin");
             hashmap_print(hashmap);
+            
+            TEST_EXPECTS( hashmap_find(hashmap, "bzh") );
 
             hashmap_remove(hashmap, "bzh");
             TEST_EXPECTS( !hashmap_find(hashmap, "bzh") );
@@ -528,7 +530,7 @@ int main()
             hashmap_print(hashmap);
             hashmap_release(hashmap);
 
-            TEST_EXPECTS( !hashmap_find(hashmap, "bzh").ok );
+            TEST_EXPECTS( !hashmap_find(hashmap, "bzh") );
         }
         TEST_END
 
@@ -544,7 +546,7 @@ int main()
             };
 
             Hash_Map<String, String> hashmap;
-            hashmap_init(hashmap, &temp_allocator, Stupid_Hash::hash );
+            hashmap_init(hashmap, 16, &temp_allocator, Stupid_Hash::hash );
 
             hashmap_add(hashmap, "georges-brassens", "Georges Brassens");
             hashmap_add(hashmap, "jean-ferrat", "Jean Ferrat");
@@ -562,19 +564,49 @@ int main()
 
         TEST_BEGIN( "Hash_Map<String, ...> go above 75% load should increase capacity" )
         {
+            const u32_t initial_capacity = 16;
             Hash_Map<String, String> hashmap;
-            hashmap_init(hashmap, &temp_allocator );
+            hashmap_init(hashmap, initial_capacity, &temp_allocator );
+            TEST_EXPECTS(hashmap.entries.capacity == initial_capacity);
 
-            const u32_t initial_capacity = hashmap.capacity;
             for(int i = 0; i < initial_capacity; ++i)
             {
                 hashmap_add(hashmap, string_tprintf("elem-%i", i) , string_tprintf("Valeur de l'élément %i", i) );
             }
 
+            TEST_EXPECTS(hashmap.entries.capacity > initial_capacity);
+
             hashmap_print(hashmap);
             hashmap_release(hashmap);
 
-            TEST_EXPECTS(!hashmap.entries.size);
+            TEST_EXPECTS(hashmap.entries.size == 0);
+        }
+        TEST_END
+        
+        TEST_BEGIN( "Hash_Map should copy data to appropriate slots when increase capacity" )
+        {
+            Hash_Map<String, String> hashmap;
+            hashmap_init(hashmap, 16, &temp_allocator );
+            TEST_EXPECTS(hashmap.entries.capacity == 16);
+
+            const u32_t initial_capacity = hashmap.capacity;
+            for(int i = 0; i < initial_capacity; ++i)
+            {
+                hashmap_add(hashmap, string_tprintf("elem-%i", i) , string_tprintf("Valeur de l'élément %i (boucle #1)", i) );
+            }
+
+            for(int i = initial_capacity; i < initial_capacity * 2; ++i)
+            {
+                hashmap_add(hashmap, string_tprintf("elem-%i", i) , string_tprintf("Valeur de l'élément %i (boucle #2)", i) );
+            }
+
+            TEST_EXPECTS(hashmap.entries.capacity > 16);
+            TEST_EXPECTS(hashmap_find(hashmap, "elem-0").ok);
+
+            hashmap_print(hashmap);
+            hashmap_release(hashmap);
+
+            TEST_EXPECTS(hashmap.entries.size == 0);
         }
         TEST_END
 
