@@ -641,14 +641,14 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
     ImGui::Separator();
     ImGui::Text("Node_Slots");
     ImGui::Separator();
-    auto draw_node_list = [](const char *label, const std::vector<Node*> _nodes )
+    auto draw_node_list = [](const char *label, const Array<Node*> _nodes )
         {
             if( !ImGui::TreeNode(label) )
             {
                 return;
             }
 
-            if ( _nodes.empty() )
+            if ( _nodes.size == 0 )
             {
                 ImGui::BulletText( "None" );
             }

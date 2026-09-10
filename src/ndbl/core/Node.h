@@ -1,10 +1,7 @@
 #pragma once
 
 #include "bdc/String.hpp"
-#include <array>
-#include <vector>
-
-#include "bdc/String.hpp"
+#include "bdc/Array.hpp"
 #include "bdc/Hash_Map.hpp"
 #include "bdc/String_Hash.hpp"
 
@@ -81,7 +78,7 @@ namespace ndbl
         Adjacent_Nodes(const Node* _node): node(_node) {}
     };
 
-    const std::vector<Node*>& adjacent_nodes_get(const Adjacent_Nodes*, Node_Slot::Flags);
+    const bdc::Resizable_Array<Node*>& adjacent_nodes_get(const Adjacent_Nodes*, Node_Slot::Flags);
     
     struct Node_State
     {
@@ -183,10 +180,10 @@ namespace ndbl
         
         bdc::String_Hash                        id = {};
         Component                               component;
-        Simple_Signal                    signal_deinit;      // emit once component.deinit() has been called
-        Signal<void(const bdc::String&)> signal_name_change;   
-        std::vector<Node_Property*>             props;              // TODO: use bdc::Resizable_Array
-        std::vector<Node_Slot*>                 slots;              // TODO: use bdc::Resizable_Array
+        Simple_Signal                           signal_deinit;      // emit once component.deinit() has been called
+        Signal<void(const bdc::String&)>        signal_name_change;   
+        bdc::Resizable_Array<Node_Property*>    props;              // TODO: use bdc::Resizable_Array
+        bdc::Resizable_Array<Node_Slot*>        slots;              // TODO: use bdc::Resizable_Array
         bdc::Hash_Map<bdc::String_Hash, Node_Property*>   props_by_name;
         bdc::String                             name;
         Token                                   suffix;
@@ -208,10 +205,10 @@ namespace ndbl
         const Node_Slot*                        flow_out() const;
         Node_Slot*                              flow_enter();
         const Node_Slot*                        flow_enter() const;
-        std::vector<Node*>                      inputs() const;
-        std::vector<Node*>                      outputs() const;
-        std::vector<Node*>                      flow_inputs() const;
-        std::vector<Node*>                      flow_outputs() const;
+        bdc::Array<Node*>                       inputs() const;
+        bdc::Array<Node*>                       outputs() const;
+        bdc::Array<Node*>                       flow_inputs() const;
+        bdc::Array<Node*>                       flow_outputs() const;
         void                                    handle_slot_change(Node_Slot::Event, Node_Slot*);        
     };
 
@@ -247,11 +244,11 @@ namespace ndbl
     // Slot-related
     Node_Slot*              node_add_slot(Node*, Node_Property *, Node_Slot::Flags, size_t limit_capacity = 0, size_t _position = 0);
     bool                    node_has_flow_adjacent(const Node*);
-    std::vector<Node_Slot*> node_filter_slots(const Node*, Node_Slot::Flags);
-    std::vector<Node_Slot*> node_filter_slots(const Node*, const std::function<bool(const Node_Slot*)>& predicate);
-    std::vector<Node_Slot*> node_filter_adjacent_slots(const Node*, Node_Slot::Flags);
-    inline size_t           node_adjacent_slot_count(const Node* node, Node_Slot::Flags flags) { return node_filter_adjacent_slots(node, flags).size(); }
-    inline size_t           node_slot_count(const Node* node, Node_Slot::Flags flags) { return node_filter_slots(node, flags).size(); }
+    bdc::Array<Node_Slot*>  node_filter_slots(const Node*, Node_Slot::Flags);
+    bdc::Array<Node_Slot*>  node_filter_slots(const Node*, const std::function<bool(const Node_Slot*)>& predicate);
+    bdc::Array<Node_Slot*>  node_filter_adjacent_slots(const Node*, Node_Slot::Flags);
+    inline size_t           node_adjacent_slot_count(const Node* node, Node_Slot::Flags flags) { return node_filter_adjacent_slots(node, flags).size; }
+    inline size_t           node_slot_count(const Node* node, Node_Slot::Flags flags) { return node_filter_slots(node, flags).size; }
     const Node_Slot*        node_find_slot_at(const Node*, Node_Slot::Flags, size_t _position ); // implicitly DEFAULT_PROPERTY's slot
     inline Node_Slot*       node_find_slot_at(Node* node, Node_Slot::Flags flags, size_t pos ) { return const_cast<Node_Slot*>( node_find_slot_at(const_cast<const Node*>(node), flags, pos)); } // implicitly DEFAULT_PROPERTY's slot
     const Node_Slot*        node_find_slot_by_property_name(const Node*, const bdc::String& name, Node_Slot::Flags );
@@ -277,7 +274,7 @@ namespace ndbl
 
     // Misc.
 
-    std::vector<ndbl::Node*> node_get_adjacent_nodes(const Node*, Node_Slot::Flags); // may update cache and return result
+    bdc::Array<ndbl::Node*> node_get_adjacent_nodes(const Node*, Node_Slot::Flags); // may update cache and return result
     Node*                   node_adjacent_node_at(const Node*, Node_Slot::Flags, u8_t pos);
     bool                    node_could_be_instruction(const Node*);
     bool                    node_has_switch_behavior(const Node*);

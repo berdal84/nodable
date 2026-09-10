@@ -128,15 +128,15 @@ std::vector<Node*>& scope_get_leaves_ex(std::vector<Node*>& out, Scope* scope)
         }
 
         auto outputs = node->flow_outputs();
-        if ( outputs.empty() )
+        if ( outputs.size == 0 )
         {
             out.push_back( node );
             node = nullptr;
         }
         else
         {
-            ASSERT(outputs.size() == 1); // Should happen?
-            node = outputs.front();
+            ASSERT(outputs.size == 1); // Should happen?
+            node = outputs[0];
         }
     }
 

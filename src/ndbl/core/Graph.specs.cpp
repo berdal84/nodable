@@ -100,11 +100,11 @@ TEST_F(Graph_, create_and_delete_relations)
     // Act and test
 
     // INPUT (and by reciprocity OUTPUT)
-    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 0);
+    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size, 0);
     graph_connect(node_1->value_out(), node_2->value_in());
-    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 1);
+    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size, 1);
     graph_disconnect(node_1->value_out(), node_2->value_in());
-    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size(), 0);
+    EXPECT_EQ(node_get_adjacent_nodes(node_2, Node_Slot::Flag_TYPE_VALUE ).size, 0);
 }
 
 TEST_F(Graph_, erase_node_from_non_root_scope)

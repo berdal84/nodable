@@ -18,7 +18,6 @@ namespace ndbl
 using namespace bdc;
 
 Node::Component_Type to_component_type(Node_Type);
-
            
 Node::Component& Node::Component::operator=(const Node::Component& other)
 {
@@ -50,22 +49,22 @@ Node::Component::~Component()
     node_deinit_component(this, component_type);
 }
             
-std::vector<Node*> Node::inputs() const
+Array<Node*> Node::inputs() const
 {
     return node_get_adjacent_nodes(this, Node_Slot::Flag_INPUT);
 }
 
-std::vector<Node*> Node::outputs() const
+Array<Node*> Node::outputs() const
 { 
     return node_get_adjacent_nodes(this, Node_Slot::Flag_OUTPUT);
 }
 
-std::vector<Node*> Node::flow_inputs() const
+Array<Node*> Node::flow_inputs() const
 {
     return node_get_adjacent_nodes(this, Node_Slot::Flag_FLOW_IN);
 }
 
-std::vector<Node*> Node::flow_outputs() const
+Array<Node*> Node::flow_outputs() const
 { 
     return node_get_adjacent_nodes(this, Node_Slot::Flag_FLOW_OUT);
 }
@@ -75,6 +74,8 @@ void node_init(Node* node, Node_Type type, const String& label)
     ASSERT( node != nullptr );
     VERIFY( !HAS_FLAGS(node->flags, Node_Flag_IS_INITIALIZED), "You cannot initialize twice");
 
+    array_init(node->props);
+    array_init(node->slots);
     hashmap_init(node->props_by_name);
     node->flags = Node_Flag_IS_DIRTY;
     node->type  = type;
@@ -98,7 +99,7 @@ void node_deinit(Node* node)
         property_deinit(prop);
     }
     // destroy all props
-    node->props.clear();
+    array_release(node->props);
 
     // clear the index
     hashmap_release(node->props_by_name);
@@ -109,7 +110,7 @@ void node_deinit(Node* node)
         node_slot_deinit(slot);
     }
     // destroy all the slots
-    node->slots.clear();
+    array_release(node->slots);
 
     // clean the index
     node_deinit_component(&node->component, to_component_type(node->type) );
@@ -267,7 +268,7 @@ Node_Slot* node_add_slot(Node* node, Node_Property* property, Node_Slot::Flags f
     slot->node      = node;
     slot->property  = property;
 
-    node->slots.push_back( slot );
+    array_append( node->slots, slot );
     array_append( property->slots, slot );
 
     // listen to events to clear cache
@@ -276,15 +277,15 @@ Node_Slot* node_add_slot(Node* node, Node_Property* property, Node_Slot::Flags f
     return slot;
 }
 
-std::vector<Node_Slot*> node_filter_adjacent_slots(const Node* node, Node_Slot::Flags flags )
+Array<Node_Slot*> node_filter_adjacent_slots(const Node* node, Node_Slot::Flags flags )
 {
-    std::vector<Node_Slot*> result;
-
+    Resizable_Array<Node_Slot*> result;
+    array_init(result, 0, &temp_allocator);
     for(Node_Slot* slot : node_filter_slots(node, flags))
-        for( Node_Slot* each : slot->adjacent )
-            result.push_back( each );
+        for( Node_Slot* slot : slot->adjacent )
+            array_append( result, slot );
 
-    return result;
+    return array_view(result);
 }
 
 bool node_has_input_connected(const Node* node, const Node_Property* property )
@@ -329,7 +330,7 @@ Node_Slot* node_find_adjacent_at(const Node* node, Node_Slot::Flags _flags, size
     return nullptr;
 }
 
-std::vector<Node_Slot*> node_filter_slots(const Node* node, Node_Slot::Flags flags)
+Array<Node_Slot*> node_filter_slots(const Node* node, Node_Slot::Flags flags)
 {
     const auto if_has_flags = [flags](const Node_Slot* _slot)
     {
@@ -339,11 +340,16 @@ std::vector<Node_Slot*> node_filter_slots(const Node* node, Node_Slot::Flags fla
     return node_filter_slots(node, if_has_flags);
 }
 
-std::vector<Node_Slot*> node_filter_slots(const Node* node, const std::function<bool(const Node_Slot*)>& predicate)
+Array<Node_Slot*> node_filter_slots(const Node* node, const std::function<bool(const Node_Slot*)>& predicate)
 {
-    std::vector<Node_Slot*> result;
-    std::copy_if( node->slots.begin(), node->slots.end(), std::back_inserter(result), predicate);
-    return result;
+    Resizable_Array<Node_Slot*> result;
+    array_init(result, 0, &temp_allocator);
+    
+    for(Node_Slot* slot : node->slots)
+        if( predicate(slot) )
+            array_append(result, slot);
+
+    return array_view(result);
 }
 
 Node_Slot* Node::value_out()
@@ -430,7 +436,7 @@ void node_init_internal_scope(Node* node)
 
 bool node_has_flow_adjacent(const Node* node)
 {
-    return !node->flow_inputs().empty() || !node->flow_outputs().empty();
+    return node->flow_inputs().size != 0 || node->flow_outputs().size != 0;
 }
 
 bool node_has_switch_behavior(const Node* node)
@@ -449,7 +455,7 @@ bool node_has_switch_behavior(const Node* node)
 
 bool node_is_expression(const Node* node)
 {
-    return !node->inputs().empty();
+    return node->inputs().size != 0;
 }
 
 void node_reset_scope(Node* node, Scope* scope)
@@ -486,7 +492,7 @@ Node_Property* node_add_prop(Node* node, const Type_Descriptor* type, const Stri
     property_init(new_property, node, type, flags, name);
 
     // register / index
-    node->props.push_back(new_property);
+    array_append(node->props, new_property);
     auto result = hashmap_add(node->props_by_name, string_hash(new_property->name), new_property);
     ASSERT(result.ok);
 
@@ -786,17 +792,18 @@ void node_init_as_empty_instruction(Node* node)
     node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT  , 1);
 }
 
-std::vector<Node*> node_get_adjacent_nodes(const Node* node, Node_Slot::Flags flags)
+Array<Node*> node_get_adjacent_nodes(const Node* node, Node_Slot::Flags flags)
 {
-    std::vector<Node*> result;
+    Resizable_Array<Node*> result;
+    array_init(result, 0, &temp_allocator);
     for ( Node_Slot* slot : node_filter_slots(node, flags ) )
     {
         for( const Node_Slot* adjacent : slot->adjacent )
         {
-            result.emplace_back(adjacent->node );
+            array_append(result, adjacent->node );
         }
     }
-    return result;
+    return array_view(result);
 }
 
 Node* node_adjacent_node_at(const Node* node, Node_Slot::Flags flags, u8_t pos)
@@ -819,9 +826,9 @@ bool node_is_instruction(const Node* node)
 
 bool node_is_connected_to_codeflow(const Node *node)
 {
-    if (node->flow_inputs().size() )
+    if (node->flow_inputs().size != 0)
         return true;
-    if (node->flow_outputs().size() )
+    if (node->flow_outputs().size != 0)
         return true;
     return false;
 }
@@ -829,7 +836,7 @@ bool node_is_connected_to_codeflow(const Node *node)
 bool node_could_be_instruction(const Node* node)
 {
     // TODO: handle case where a variable has inputs/outputs but not connected to the code flow
-    return node_slot_count(node, Node_Slot::Flag_TYPE_FLOW) > 0 && node->inputs().empty() && node->outputs().empty();
+    return node_slot_count(node, Node_Slot::Flag_TYPE_FLOW) > 0 && node->inputs().size == 0 && node->outputs().size == 0;
 }
 
 bool node_is_unary_operator(const Node* node)
@@ -879,7 +886,7 @@ bool node_is_output_node_in_expression(const Node* input_node, const Node* outpu
         }
         return false;
     }
-    return input_node->outputs().front() == output_node;
+    return input_node->outputs()[0] == output_node;
 }
 
 bool node_is_initialized(const Node* node)

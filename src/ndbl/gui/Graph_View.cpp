@@ -293,11 +293,9 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
         if ( each_node.view == nullptr || HAS_FLAGS(each_node.view->flags, View_Flag_HIDDEN) )
             continue;
 
-        std::vector<Node_Slot *> slots = node_filter_slots(&each_node, Node_Slot::Flag_FLOW_OUT);
-        for (size_t slot_index = 0; slot_index < slots.size(); ++slot_index)
+        Array<Node_Slot*> slots = node_filter_slots(&each_node, Node_Slot::Flag_FLOW_OUT);
+        for (Node_Slot *slot : slots)
         {
-            Node_Slot *slot = slots[slot_index];
-
             if ( slot->adjacent.size == 0 )
             {
                 continue;
