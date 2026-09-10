@@ -1,10 +1,5 @@
 #pragma once
 
-#include <cstddef>
-#include <unordered_map>
-#include <vector>
-#include <set>
-
 #include "bdc/String.hpp"
 #include "bdc/Array.hpp"
 #include "bdc/String_Hash.hpp"
@@ -34,7 +29,7 @@ namespace ndbl
         bdc::Hash_Map<bdc::String_Hash, size_t>  node_index_by_id;
         bdc::Inlined_Array<Node, NODE_MAX_COUNT> nodes;
 
-        Graph_View*                         view                = {};
+        Graph_View*                  view                = {};
         Simple_Signal                signal_reset        = {};
         Simple_Broadcast_Signal      signal_change       = {};
         Signal<void(Node*)>          signal_add_node     = {};
@@ -85,8 +80,8 @@ namespace ndbl
     Node*                   graph_create_scope(Graph*, Scope* scope = nullptr);
     Node*                   graph_create_return(Graph*, const Type_Descriptor*, Scope* = nullptr);
     Node*                   graph_create_node(Graph*, const Node_State*, Scope* = nullptr);
-    std::vector<Scope *>    graph_collect_scopes(const Graph*);
-    std::set<Scope *>       graph_collect_root_scopes(const Graph*);
+    Array<Scope *>          graph_collect_scopes(const Graph*);
+    Array<Scope *>          graph_collect_root_scopes(const Graph*);
     void                    graph_flag_node_to_delete(Node*, Graph_Flags = Graph_Flag_NONE);
     bool                    graph_contains(const Graph*, Node*);
     Node*                   graph_get_latest_created_node(Graph*);

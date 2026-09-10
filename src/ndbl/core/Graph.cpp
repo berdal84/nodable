@@ -19,13 +19,14 @@
 // private
 namespace ndbl
 {
+    using namespace bdc;
+
     Node*   _graph_new_node(Graph*);
     void    _graph_add_node(Graph*, Node*, Scope*); // TODO: merge this with add_node_to_index?
     void    _graph_add_node_to_index(Graph*, Node*, size_t position);
     void    _graph_remove_node_from_index(Graph*, Node*);
-}
 
-void ndbl::graph_init(Graph* graph)
+void graph_init(Graph* graph)
 {
     NDBL_LOG(Verbosity_Diagnostic, "Graph", "Initializing ...\n");
     ASSERT( graph->nodes.size == 0 ); // Did you call graph_init multiple times? Did you forgot to call graph_deinit() after each graph_init() ?
@@ -37,7 +38,7 @@ void ndbl::graph_init(Graph* graph)
     NDBL_LOG(Verbosity_Diagnostic, "Graph", "Initialized " NDBL_OK "\n");
 }
 
-void ndbl::graph_deinit(Graph* graph)
+void graph_deinit(Graph* graph)
 {
     graph_clear(graph);
     hashmap_release(graph->node_index_by_id);
@@ -49,7 +50,7 @@ void ndbl::graph_deinit(Graph* graph)
     }
 }
 
-void ndbl::graph_clear(Graph* graph)
+void graph_clear(Graph* graph)
 {
     NDBL_LOG(Verbosity_Diagnostic, "Graph", "Clearing ...\n");
 
@@ -77,7 +78,7 @@ void ndbl::graph_clear(Graph* graph)
     NDBL_LOG(Verbosity_Diagnostic, "Graph", "Clear " NDBL_OK "\n");
 }
 
-void ndbl::graph_reset(Graph* graph)
+void graph_reset(Graph* graph)
 {
 	NDBL_LOG(Verbosity_Diagnostic,  "Graph", "Resetting ...\n");
 
@@ -87,18 +88,20 @@ void ndbl::graph_reset(Graph* graph)
     NDBL_LOG(Verbosity_Diagnostic, "Graph", "Reset " NDBL_OK "\n");
 }
 
-bool ndbl::graph_update(Graph* graph)
+bool graph_update(Graph* graph)
 {
     bool changed = false;
 
     // Update nodes
-    std::vector<size_t> node_pos_to_delete; // store location to delete all later (avoids to allocate or move data in graph->nodes)
+    Resizable_Array<size_t> node_pos_to_delete; // store location to delete all later (avoids to allocate or move data in graph->nodes)
+    array_init(node_pos_to_delete, 0, &temp_allocator);
+
     size_t i = 0;
     for(Node&node : graph->nodes)
     {
         if ( HAS_FLAGS(node.flags, Node_Flag_MUST_BE_DELETED) )
         {
-            node_pos_to_delete.push_back(i);
+            array_append(node_pos_to_delete, i);
         }
         else if ( HAS_FLAGS(node.flags, Node_Flag_IS_DIRTY) )
         {
@@ -109,10 +112,10 @@ bool ndbl::graph_update(Graph* graph)
 
     // Delete flagged nodes
     // Note: it is important to delete from the end to the begin of the list to avoid invalidating the positions
-    for( auto it = node_pos_to_delete.rbegin(); it != node_pos_to_delete.rend(); ++it)
+    for( auto& pos : node_pos_to_delete )
     {
         changed |= true;
-        Node* node = &graph->nodes[*it];
+        Node* node = &graph->nodes[pos];
         graph_clean_node(node);
         _graph_remove_node_from_index(graph, node);
         node_deinit(node);
@@ -126,7 +129,7 @@ bool ndbl::graph_update(Graph* graph)
     return changed;
 }
 
-void ndbl::_graph_add_node(Graph* graph, Node* node, Scope* scope)
+void _graph_add_node(Graph* graph, Node* node, Scope* scope)
 {
     // do the inverse of Graph::_erase(Node* node)
 
@@ -156,7 +159,7 @@ void ndbl::_graph_add_node(Graph* graph, Node* node, Scope* scope)
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name.c_str(), node->get_class()->name.c_str() );
 }
 
-void ndbl::_graph_add_node_to_index(Graph* graph, Node* node, size_t position)
+void _graph_add_node_to_index(Graph* graph, Node* node, size_t position)
 {
     node->id = string_hash( get_next_GUID("node") );
     bdc::hashmap_add(graph->node_index_by_id, node->id, position );
@@ -164,14 +167,14 @@ void ndbl::_graph_add_node_to_index(Graph* graph, Node* node, size_t position)
     graph->signal_add_node.emit(node); 
 }
 
-void ndbl::_graph_remove_node_from_index(Graph* graph, Node* node)
+void _graph_remove_node_from_index(Graph* graph, Node* node)
 {
     bdc::hashmap_remove(graph->node_index_by_id, node->id );
     
     graph->signal_remove_node.emit(node); 
 }
 
-ndbl::Node* ndbl::graph_find_node(Graph* graph, const bdc::String_Hash& id)
+Node* graph_find_node(Graph* graph, const bdc::String_Hash& id)
 {
     auto result = hashmap_find(graph->node_index_by_id, id);
     if ( !result.ok )
@@ -182,7 +185,7 @@ ndbl::Node* ndbl::graph_find_node(Graph* graph, const bdc::String_Hash& id)
     return &graph->nodes[*result.value];
 }
 
-void ndbl::graph_clean_node(Node* node)
+void graph_clean_node(Node* node)
 {
     ASSERT( node );
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name.c_str() );
@@ -207,7 +210,7 @@ void ndbl::graph_clean_node(Node* node)
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name.c_str() );
 }
 
-ndbl::Node* ndbl::_graph_new_node(Graph* graph)
+Node* _graph_new_node(Graph* graph)
 {
     ASSERT(graph->nodes.size < NODE_MAX_COUNT);
 
@@ -217,7 +220,7 @@ ndbl::Node* ndbl::_graph_new_node(Graph* graph)
     return &node;
 }
 
-ndbl::Node* ndbl::graph_create_return(Graph* graph, const Type_Descriptor* type_descriptor, Scope* parent_scope)
+Node* graph_create_return(Graph* graph, const Type_Descriptor* type_descriptor, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_return(node, type_descriptor);
@@ -225,7 +228,7 @@ ndbl::Node* ndbl::graph_create_return(Graph* graph, const Type_Descriptor* type_
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_scope(Graph* graph, Scope* parent_scope)
+Node* graph_create_scope(Graph* graph, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_scope(node);
@@ -233,7 +236,7 @@ ndbl::Node* ndbl::graph_create_scope(Graph* graph, Scope* parent_scope)
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_variable(Graph* graph, const Type_Descriptor *_type, const bdc::String& _name, Scope* parent_scope)
+Node* graph_create_variable(Graph* graph, const Type_Descriptor *_type, const bdc::String& _name, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_variable(node, _type, _name.c_str());
@@ -241,7 +244,7 @@ ndbl::Node* ndbl::graph_create_variable(Graph* graph, const Type_Descriptor *_ty
 	return node;
 }
 
-ndbl::Node* ndbl::graph_create_function(Graph* graph, const Type_Descriptor* function_type, Scope* scope)
+Node* graph_create_function(Graph* graph, const Type_Descriptor* function_type, Scope* scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_invokable(node, function_type, Node_Type_FUNCTION);
@@ -249,7 +252,7 @@ ndbl::Node* ndbl::graph_create_function(Graph* graph, const Type_Descriptor* fun
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_operator(Graph* graph, const Type_Descriptor* function_type, Scope* parent_scope)
+Node* graph_create_operator(Graph* graph, const Type_Descriptor* function_type, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_invokable(node, function_type, Node_Type_OPERATOR);
@@ -257,7 +260,7 @@ ndbl::Node* ndbl::graph_create_operator(Graph* graph, const Type_Descriptor* fun
     return node;
 }
 
-void ndbl::graph_find_and_destroy_node(Graph* graph, Node* node)
+void graph_find_and_destroy_node(Graph* graph, Node* node)
 {
     if (!node)
         return;
@@ -288,7 +291,7 @@ void ndbl::graph_find_and_destroy_node(Graph* graph, Node* node)
     SET_FLAGS(node->flags, Node_Flag_IS_DELETED);
 }
 
-void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
+void graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
 {
     // Guards
     ASSERT(tail != nullptr);
@@ -328,7 +331,7 @@ void ndbl::graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
     return graph_connect(tail, head, Graph_Flag_ALLOW_SIDE_EFFECTS );
 }
 
-void ndbl::graph_connect_to_variable(Node_Slot* output_slot, Node* _variable )
+void graph_connect_to_variable(Node_Slot* output_slot, Node* _variable )
 {
     // Guards
     ASSERT( HAS_FLAGS(output_slot->flags, Node_Slot::Flag_OUTPUT) );
@@ -336,14 +339,14 @@ void ndbl::graph_connect_to_variable(Node_Slot* output_slot, Node* _variable )
     return graph_connect_or_merge( output_slot, _variable->value_in() );
 }
 
-void ndbl::graph_connect(const std::set<Node_Slot*>& tails, Node_Slot* head, Graph_Flags _flags)
+void graph_connect(const std::set<Node_Slot*>& tails, Node_Slot* head, Graph_Flags _flags)
 {
     if ( !tails.empty() )
         for (Node_Slot* _tail : tails )
             graph_connect(_tail, head, Graph_Flag_ALLOW_SIDE_EFFECTS );
 }
 
-void ndbl::graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
+void graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
 {
     ASSERT(tail != nullptr);
     ASSERT(head != nullptr);
@@ -453,7 +456,7 @@ void ndbl::graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "New edge added\n");
 }
 
-void ndbl::graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
+void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
 {
     ASSERT_DEBUG_ONLY(tail->type() == head->type());
 
@@ -516,7 +519,7 @@ void ndbl::graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
     tail->node->graph->signal_change.broadcast();
 }
 
-ndbl::Node* ndbl::graph_create_cond_struct(Graph* graph, Scope* parent_scope)
+Node* graph_create_cond_struct(Graph* graph, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_cond_struct(node);
@@ -524,7 +527,7 @@ ndbl::Node* ndbl::graph_create_cond_struct(Graph* graph, Scope* parent_scope)
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_for_loop(Graph* graph, Scope* parent_scope)
+Node* graph_create_for_loop(Graph* graph, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_for_loop(node);
@@ -532,7 +535,7 @@ ndbl::Node* ndbl::graph_create_for_loop(Graph* graph, Scope* parent_scope)
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_while_loop(Graph* graph, Scope* parent_scope)
+Node* graph_create_while_loop(Graph* graph, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_while_loop(node);
@@ -540,7 +543,7 @@ ndbl::Node* ndbl::graph_create_while_loop(Graph* graph, Scope* parent_scope)
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_node(Graph* graph, Scope* scope)
+Node* graph_create_node(Graph* graph, Scope* scope)
 {
     Node* node = _graph_new_node(graph);
     
@@ -553,7 +556,7 @@ ndbl::Node* ndbl::graph_create_node(Graph* graph, Scope* scope)
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_literal(Graph* graph, const Type_Descriptor* _type, Scope* scope)
+Node* graph_create_literal(Graph* graph, const Type_Descriptor* _type, Scope* scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_literal(node,_type);
@@ -561,7 +564,7 @@ ndbl::Node* ndbl::graph_create_literal(Graph* graph, const Type_Descriptor* _typ
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_node(Graph* graph, const Node_State* node_state, Scope* scope)
+Node* graph_create_node(Graph* graph, const Node_State* node_state, Scope* scope)
 {
     using namespace ndbl;
 
@@ -634,7 +637,7 @@ ndbl::Node* ndbl::graph_create_node(Graph* graph, const Node_State* node_state, 
     }
 }
 
-ndbl::Node* ndbl::graph_create_variable_ref(Graph* graph, Scope* scope)
+Node* graph_create_variable_ref(Graph* graph, Scope* scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_variable_ref(node);
@@ -642,7 +645,7 @@ ndbl::Node* ndbl::graph_create_variable_ref(Graph* graph, Scope* scope)
     return node;
 }
 
-ndbl::Node* ndbl::graph_create_variable_decl(Graph* graph, const Type_Descriptor* type, const bdc::String  name, Scope* scope)
+Node* graph_create_variable_decl(Graph* graph, const Type_Descriptor* type, const bdc::String  name, Scope* scope)
 {
     // Create variable
     Node* var_node = graph_create_variable(graph, type, name, scope);
@@ -659,7 +662,7 @@ ndbl::Node* ndbl::graph_create_variable_decl(Graph* graph, const Type_Descriptor
     return var_node;
 }
 
-ndbl::Node* ndbl::graph_create_empty_instruction(Graph* graph, Scope* scope)
+Node* graph_create_empty_instruction(Graph* graph, Scope* scope)
 {
     Node* node = _graph_new_node(graph);
     node_init_as_empty_instruction(node);
@@ -667,26 +670,28 @@ ndbl::Node* ndbl::graph_create_empty_instruction(Graph* graph, Scope* scope)
     return node;
 }
 
-std::set<ndbl::Scope*> ndbl::graph_collect_root_scopes(const Graph* graph)
+Array<Scope*> graph_collect_root_scopes(const Graph* graph)
 {
-    std::set<Scope*> result;
+    Resizable_Array<Scope *> result;
+    array_init(result, 0, &temp_allocator);
     for (const Node& node : graph->nodes )
         if ( node.internal_scope != nullptr )
             if ( scope_get_depth(node.internal_scope) == 0 )
-                result.insert( node.internal_scope );
-    return result;
+                array_append( result, node.internal_scope );
+    return array_view(result);
 }
 
-std::vector<ndbl::Scope*> ndbl::graph_collect_scopes(const Graph* graph)
+Array<Scope*> graph_collect_scopes(const Graph* graph)
 {
-    std::vector<Scope *> result;
+    Resizable_Array<Scope *> result;
+    array_init(result, 0, &temp_allocator);
     for(const Node& node : graph->nodes)
         if ( node.scope )
-            result.push_back( node.scope );
-    return result;
+            array_append( result, node.scope );
+    return array_view(result);
 }
 
-void ndbl::graph_flag_node_to_delete(Node *node, Graph_Flags flags)
+void graph_flag_node_to_delete(Node *node, Graph_Flags flags)
 {
     if ( flags & Graph_Flag_ALLOW_SIDE_EFFECTS )
     {
@@ -704,22 +709,22 @@ void ndbl::graph_flag_node_to_delete(Node *node, Graph_Flags flags)
     SET_FLAGS(node->flags, Node_Flag_MUST_BE_DELETED);
 }
 
-bool ndbl::graph_contains(const Graph* graph, Node* node)
+bool graph_contains(const Graph* graph, Node* node)
 {
     return hashmap_find(graph->node_index_by_id, node->id).ok;
 }
 
-ndbl::Node* ndbl::graph_get_latest_created_node(Graph* graph)
+Node* graph_get_latest_created_node(Graph* graph)
 {
     return &array_back(graph->nodes);
 }
 
-const ndbl::Node* ndbl::graph_get_latest_created_node(const Graph* graph)
+const Node* graph_get_latest_created_node(const Graph* graph)
 {
     return &array_back(graph->nodes);
 }
 
-void ndbl::graph_change_scope(Node* node, Scope* desired_scope)
+void graph_change_scope(Node* node, Scope* desired_scope)
 {
     Scope* current_scope = node->scope;
 
@@ -742,7 +747,7 @@ void ndbl::graph_change_scope(Node* node, Scope* desired_scope)
     });
 }
 
-void ndbl::graph_transfer_children(Scope* source, Scope* target)
+void graph_transfer_children(Scope* source, Scope* target)
 {
     ASSERT(source);
     ASSERT(target);
@@ -757,3 +762,4 @@ void ndbl::graph_transfer_children(Scope* source, Scope* target)
     ASSERT( scope_is_empty(source) );
 }
 
+} // namespace ndbl

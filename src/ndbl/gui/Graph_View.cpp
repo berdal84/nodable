@@ -259,7 +259,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
     ImDrawList*     draw_list = ImGui::GetWindowDrawList();
 
     // Draw Scopes
-    std::vector<Scope*> scopes_to_draw = graph_collect_scopes(graphview->graph);
+    Array<Scope*> scopes_to_draw = graph_collect_scopes(graphview->graph);
     // TODO: we should sort them only when a new parent/child connection is created/deleted
     auto low_to_high_depth = [](Scope* s1, Scope* s2) { return scope_get_depth(s1) < scope_get_depth(s2); };
     std::sort(scopes_to_draw.begin(), scopes_to_draw.end(), low_to_high_depth);
