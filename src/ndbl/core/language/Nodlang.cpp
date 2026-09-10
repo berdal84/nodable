@@ -8,8 +8,6 @@
 
 #include "Nodlang.h"
 
-#include <algorithm>
-#include <cstddef>
 #include <limits>
 #include "bdc/String.hpp"
 #include <cctype> // isdigit, isalpha, and isalnum.
@@ -1173,7 +1171,8 @@ namespace ndbl
                 return nullptr;
             }
         }
-        std::vector<Node_Slot*> result_slots;
+        bdc::Resizable_Array<Node_Slot*> result_slots;
+        array_init(result_slots, 16, &temp_allocator);
 
         // Declare a new function prototype
         Type_Descriptor function_type;
@@ -1187,7 +1186,7 @@ namespace ndbl
             Node_Slot* expression_out = lang_parse_expression(lang, parent_scope);
             if ( expression_out )
             {
-                result_slots.push_back( expression_out );
+                array_append(result_slots, expression_out );
                 function_type.function_push_arg( expression_out->property->type );
                 lang.ribbon.eat_if(Token_Type_list_separator);
             }
@@ -1212,7 +1211,7 @@ namespace ndbl
         for ( int i = 0; i < fct_node->component.invokable.argument_slots.size; i++ )
         {
             // Connects each results to the corresponding input
-            graph_connect_or_merge(result_slots.at(i), fct_node->component.invokable.argument_slots[i] );
+            graph_connect_or_merge(result_slots[i], fct_node->component.invokable.argument_slots[i] );
         }
 
         lang.ribbon.commit();
