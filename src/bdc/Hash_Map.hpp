@@ -37,21 +37,22 @@ namespace bdc
     template<typename Key_Type, typename Hash_Type>
     Hash_Type hash(const Key_Type& key)
     {
-        static_assert(false, "No predefined implementation of this hash function, define yours");
-    };
-
-    // String implemenentation
-    template<>
-    inline u32_t hash(const String& key)
-    {
-        return string_hash(key).hash;
-    };
-
-    // String_Hash implemenentation
-    template<>
-    inline u32_t hash(const String_Hash& key)
-    {
-        return key.hash;
+        if constexpr ( std::is_integral_v<Key_Type> )
+        {
+            return (Hash_Type)key; // it's ok if we truncate keys larger than Hash_Type, our Hash_Map cannot contain more than 2^32 elements.
+        }
+        else if constexpr ( std::is_same_v<Key_Type, String_Hash> )
+        {
+            return key.hash;
+        }
+        else if constexpr ( std::is_same_v<Key_Type, String> )
+        {
+            return string_hash(key).hash;
+        }
+        else
+        {
+            static_assert(false, "This Key_Type is not handled by default, please implement Hash_Type hash(const Key_Type& key)");
+        }
     };
 
     template<

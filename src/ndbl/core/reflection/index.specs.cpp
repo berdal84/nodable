@@ -1,8 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "ndbl/core/reflection/index.h"
-#include "ndbl/core/Log.h"
-
+#include "test/fixtures/basic_test.h"
 using namespace ndbl;
 
 typedef ::testing::Basic_Test Reflection;

@@ -289,22 +289,16 @@ test = base_target("test", TARGET_TYPE_EXECUTABLE)
 
 test.sources |= FileList[
     
-    # nodable
+    # sorted from basic to complex
+    "src/ndbl/core/reflection/index.specs.cpp",
+    "src/ndbl/core/Delegate.specs.cpp",
+    "src/ndbl/gui/geometry/Rect.specs.cpp",
+    "src/ndbl/gui/geometry/Spatial_Node.specs.cpp",
     "src/ndbl/core/Node.specs.cpp",
     "src/ndbl/core/Node_Slot.specs.cpp",
     "src/ndbl/core/Token.specs.cpp",
     "src/ndbl/core/Graph.specs.cpp",
-    "src/ndbl/core/language/Nodlang.parse0.specs.cpp",
-    "src/ndbl/core/language/Nodlang.parse1.specs.cpp",
-    "src/ndbl/core/language/Nodlang.parse2.specs.cpp",
-    "src/ndbl/core/language/Nodlang.parse3.specs.cpp",
-    "src/ndbl/core/language/Nodlang.parse4.specs.cpp",    
-
-    # tools
-    "src/ndbl/core/Delegate.specs.cpp",
-    "src/ndbl/core/reflection/index.specs.cpp",
-    "src/ndbl/gui/geometry/Spatial_Node.specs.cpp",
-    "src/ndbl/gui/geometry/Rect.specs.cpp",
+    "src/ndbl/core/language/Nodlang.specs.cpp",   
 
     # main
     "src/test/main.cpp",

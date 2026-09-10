@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vector>
-
 #include "bdc/String.hpp"
 #include "bdc/String_Builder.hpp"
 #include "bdc/Array.hpp"
@@ -27,6 +25,25 @@ namespace ndbl
         Serialization_Flag_WRAP_WITH_BRACES = 1 << 1
     };
 
+    struct Keyword
+    {
+        bdc::String id;
+        Token_Type  token_type;
+    };
+
+    struct Type
+    {
+        bdc::String             id; // identifier / keyword (ex: "int", "double", "String")
+        Token_Type              token_type;
+        const Type_Descriptor*  type_descriptor;
+    };
+
+    struct Character
+    {
+        char       id;
+        Token_Type token_type;
+    };
+
     //
     // This struct holds the definition of the main Nodable's Language.
     // Currently the language is not super evolved, but it matches some basics from C/C++
@@ -37,28 +54,29 @@ namespace ndbl
                                                 // When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
         bdc::String             buffer;         // TODO: rename, this is the input_buffer, for parsing only.
         Token_Ribbon            ribbon;         // TODO: rename, this is the ribbon state, for parsing only.
-        std::vector<Node_Slot*> flow_out;       // TODO: rename, this is the last flow out slot known, for parsing only.
         Graph*                  graph;          // TODO: rename, not owned in/out Graph.
+        bdc::Resizable_Array<Node_Slot*> flow_out; // TODO: rename, this is the last flow out slot known, for parsing only.
 
         // data used to initialize all the indexes
 
-        struct {
-            std::vector<std::tuple<bdc::String, Token_Type>>                                keywords;
-            std::vector<std::tuple<bdc::String, Token_Type, const Type_Descriptor*>> types;
-            std::vector<Operator>                                                    operators;
-            std::vector<std::tuple<char, Token_Type>>                                       chars;
+        struct
+        {
+            bdc::Resizable_Array<Keyword>   keywords;
+            bdc::Resizable_Array<Type>      types;
+            bdc::Resizable_Array<Operator>  operators;
+            bdc::Resizable_Array<Character> chars;
         } definition; 
 
         // indexes
 
-        std::vector<Operator>                                    operators;                      // the allowed operators, not their implementations or signature.
-        std::unordered_map<Token_Type, char>                            single_char_by_keyword;
-        std::unordered_map<Token_Type, const bdc::String>               keyword_by_token_type;          // ex: Token_t::keyword_double => "double".
-        std::unordered_map<size_t, Token_Type>                          token_type_by_keyword;          // opposite of keyword_by_token_type
-        std::unordered_map<std::type_index, const bdc::String>          keyword_by_type_id;
-        std::unordered_map<std::type_index, Token_Type>                 token_type_by_type_id;
-        std::unordered_map<char, Token_Type>                            token_type_by_single_char;
-        std::unordered_map<Token_Type, const Type_Descriptor*>   type_descriptor_by_token_type;  // some Token_Type are associated with a Type_Descriptor (ex: Token_Type_LITERAL_STRING)
+        bdc::Resizable_Array<Operator>                      operators;                      // the allowed operators, not their implementations or signature.
+        bdc::Hash_Map<Token_Type, char>                     single_char_by_keyword;
+        bdc::Hash_Map<Token_Type, bdc::String>              keyword_by_token_type;          // ex: Token_t::keyword_double => "double".
+        bdc::Hash_Map<size_t, Token_Type>                   token_type_by_keyword;          // opposite of keyword_by_token_type
+        bdc::Hash_Map<size_t, bdc::String>                  keyword_by_type_id;
+        bdc::Hash_Map<size_t, Token_Type>                   token_type_by_type_id;
+        bdc::Hash_Map<char, Token_Type>                     token_type_by_single_char;
+        bdc::Hash_Map<Token_Type, const Type_Descriptor*>   type_descriptor_by_token_type;  // some Token_Type are associated with a Type_Descriptor (ex: Token_Type_LITERAL_STRING)
     };
 
     // Text to Graph ----------------------------------------------------------------------
@@ -122,10 +140,10 @@ namespace ndbl
     // General read-only procedures -------------------------------------------------------------------------
 
     bool                            lang_is_operator(const Language&, const Type_Descriptor*);
-    const Operator*          lang_find_operator(const Language&,  const Operator& op); // op.precedence is ignored in operator== for Operator
+    const Operator*                 lang_find_operator(const Language&,  const Operator& op); // op.precedence is ignored in operator== for Operator
     Token_Type                      lang_type_to_literal_token_type(const Language&, const Type_Descriptor*);
     int                             lang_get_precedence(const Language&, const Type_Descriptor*);         // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
-    const Type_Descriptor*   lang_get_type(const Language&, Token_Type _token);                               // Get the type corresponding to a given token_t (must be a type keyword)
+    const Type_Descriptor*          lang_get_type(const Language&, Token_Type _token);                               // Get the type corresponding to a given token_t (must be a type keyword)
 
     // Language management -----------------------------------------------------------------------------------
 

@@ -51,8 +51,9 @@ namespace ndbl
 
         // A.1. Define the language
         //-------------------------
-        language->definition.chars =
-        {
+        array_init(language->definition.chars);
+
+        array_append(language->definition.chars, {
             { '(',  Token_Type_parenthesis_open},
             { ')',  Token_Type_parenthesis_close},
             { '{',  Token_Type_scope_begin},
@@ -62,10 +63,10 @@ namespace ndbl
             { ' ',  Token_Type_ignore},
             { ';',  Token_Type_end_of_instruction},
             { ',',  Token_Type_list_separator}
-        };
+        });
 
-        language->definition.keywords =
-        {
+        array_init(language->definition.keywords);
+        array_append(language->definition.keywords, {
             { "if",       Token_Type_keyword_if },
             { "for",      Token_Type_keyword_for },
             { "while",    Token_Type_keyword_while },
@@ -74,10 +75,10 @@ namespace ndbl
             { "false",    Token_Type_literal_bool },
             { "operator", Token_Type_keyword_operator },
             { "return",   Token_Type_keyword_return }
-        };
+        });
 
-        language->definition.types =
-        {
+        array_init(language->definition.types);
+        array_append(language->definition.types, {
             // TODO: instead of using type_get<T>(), I should use a more datadriven option,
             //       I should be able to do type_get(Token_Type_keyword_bool) for example,
             //       Or with an indirection level  type_get( token_type_keyword_to_type(Token_Type_keyword_bool) )  
@@ -89,10 +90,10 @@ namespace ndbl
             { "any",    Token_Type_keyword_any,    type_get<any>()},
             // we don't really want to parse/serialize that
             // { "unknown",Token_t::keyword_unknown,type_get<unknown>()},
-        };
+        });
 
-        language->definition.operators =
-        {
+        array_init(language->definition.operators);
+        array_append(language->definition.operators, {
             {"-",   Operator_Type::Unary,   5},
             {"!",   Operator_Type::Unary,   5},
             {"/",   Operator_Type::Binary, 20},
@@ -114,38 +115,40 @@ namespace ndbl
             {"-=",  Operator_Type::Binary,  0},
             {"/=",  Operator_Type::Binary,  0},
             {"*=",  Operator_Type::Binary,  0}
-        };
+        });
 
         // A.2. Create indexes
         //---------------------
-        for( auto [_char, token_t] : language->definition.chars)
+        for( auto& character : language->definition.chars)
         {
-            language->token_type_by_single_char.insert({_char, token_t});
-            language->single_char_by_keyword.insert({token_t, _char});
+            hashmap_add(language->token_type_by_single_char, character.id        , character.token_type);
+            hashmap_add(language->single_char_by_keyword   , character.token_type, character.id        );
         }
 
-        for( auto [keyword, token_t] : language->definition.keywords)
+        for( auto& keyword : language->definition.keywords)
         {
-            language->token_type_by_keyword.insert({string_hash(keyword).hash, token_t});
-            language->keyword_by_token_type.insert({token_t, keyword});
+            hashmap_add(language->token_type_by_keyword, string_hash(keyword.id).hash, keyword.token_type);
+            hashmap_add(language->keyword_by_token_type, keyword.token_type          , keyword.id        );
         }
 
-        for( auto [keyword, token_t, type] : language->definition.types)
+        for( auto& type : language->definition.types)
         {
-            language->keyword_by_token_type.insert({token_t, keyword});
-            language->keyword_by_type_id.insert({type->id, keyword});
-            language->token_type_by_keyword.insert({string_hash(keyword).hash, token_t});
-            language->token_type_by_type_id.insert({type->id, token_t});
-            language->type_descriptor_by_token_type.insert({token_t, type});
+            hashmap_add(language->keyword_by_token_type         , type.token_type                       , type.id               );
+            hashmap_add(language->keyword_by_type_id            , type.type_descriptor->id.hash_code()  , type.id               );
+            hashmap_add(language->token_type_by_keyword         , string_hash(type.id).hash             , type.token_type       );
+            hashmap_add(language->token_type_by_type_id         , type.type_descriptor->id.hash_code()  , type.token_type       );
+            hashmap_add(language->type_descriptor_by_token_type , type.token_type                       , type.type_descriptor  );
         }
 
-        for( const Operator& op : language->definition.operators)
+        array_init(language->operators);
+        for( const Operator& operator_ : language->definition.operators)
         {
+            // TODO: implement a hash function instead of checking all each time!
             for(const auto& existing_op : language->operators)
             {
-                VERIFY(existing_op != op, "The same operator already exists!");
+                VERIFY(existing_op != operator_, "The same operator already exists!");
             }
-            language->operators.emplace_back(op);
+            array_append(language->operators, operator_);
         }
 
         g_language = language;
@@ -167,6 +170,13 @@ namespace ndbl
     void language_shutdown()
     {
         ASSERT(g_language != nullptr);
+
+        array_release(g_language->definition.chars);
+        array_release(g_language->definition.keywords);
+        array_release(g_language->definition.types);
+        array_release(g_language->definition.operators);
+        array_release(g_language->operators);
+
         bdc::memory_delete(g_language);
         g_language = nullptr;
     }
@@ -972,14 +982,14 @@ namespace ndbl
         }
 
         // single-char
-        auto single_char_found = lang.token_type_by_single_char.find(buffer[0]); // index lookup
-        if( single_char_found != lang.token_type_by_single_char.end() )
+        auto single_char_found = hashmap_find(lang.token_type_by_single_char, buffer[0]); // index lookup
+        if( single_char_found.ok )
         {
             String word = bdc::string_lsplit( buffer, 1);
 
             bdc::string_advance(buffer, word.size );
 
-            return Token{ single_char_found->second, word };
+            return Token{ *single_char_found.value, word };
         }
 
         // operators
@@ -1111,10 +1121,10 @@ namespace ndbl
 
             // symbol might be a reserved keyword, let's seach in the keyword index...
             String_Hash word_hash = string_hash(word);
-            auto keyword_found = lang.token_type_by_keyword.find( word_hash.hash );
-            if (keyword_found != lang.token_type_by_keyword.end())
+            auto keyword_found = hashmap_find(lang.token_type_by_keyword, word_hash.hash );
+            if ( keyword_found )
             {            
-                return Token{ keyword_found->second, word };
+                return Token{ *keyword_found.value, word };
             }
 
             // ...otherwise, symbol is an identifier
@@ -1670,7 +1680,7 @@ namespace ndbl
         }
         else
         {
-            string_builder_append(out, lang.keyword_by_token_type.at(Token_Type_keyword_return) );
+            string_builder_append(out, *hashmap_find(lang.keyword_by_token_type, Token_Type_keyword_return).value );
             string_builder_append(out, " ");
         }
 
@@ -1882,10 +1892,14 @@ namespace ndbl
 
     const Operator* lang_find_operator(const Language& lang, const Operator& op)
     {
-        auto found = std::find(lang.operators.cbegin(), lang.operators.cend(), op );
+        // TODO: This function is very slow, it iterates over all operators each call (worse case).
+        //       I should index operators, implement a hash function for it, and use bdc::Hash_Map.
 
-        if (found != lang.operators.end())
-            return &*found;
+        for(auto& each : lang.operators)
+        {
+            if( each == op)
+                return &each;
+        }
 
         return nullptr;
     }
@@ -1916,19 +1930,13 @@ namespace ndbl
             case Token_Type_literal_unknown: return "";
             default:
             {
+                if (auto found = hashmap_find(lang.keyword_by_token_type, _token_t))
                 {
-                    auto found = lang.keyword_by_token_type.find(_token_t);
-                    if (found != lang.keyword_by_token_type.cend())
-                    {
-                        return found->second;
-                    }
+                    return *found.value;
                 }
+                if (auto found = hashmap_find(lang.single_char_by_keyword, _token_t))
                 {
-                    auto found = lang.single_char_by_keyword.find(_token_t);
-                    if (found != lang.single_char_by_keyword.cend())
-                    {
-                        return String{found->second};
-                    }
+                    return String{*found.value};
                 }
                 return "<?>";
             }
@@ -1937,10 +1945,9 @@ namespace ndbl
 
     bdc::String lang_serialize_type(const Language& lang, const Type_Descriptor* type)
     {
-        auto found = lang.keyword_by_type_id.find( type->id );
-        if (found != lang.keyword_by_type_id.cend())
+        if (auto found = hashmap_find(lang.keyword_by_type_id, type->id.hash_code() ))
         {
-            return found->second;
+            return *found.value;
         }
         return "";
     }
@@ -1959,9 +1966,8 @@ namespace ndbl
 
     const Type_Descriptor* lang_get_type(const Language& lang, Token_Type _token)
     {
-        auto found = lang.type_descriptor_by_token_type.find(_token);
-        if ( found != lang.type_descriptor_by_token_type.end() )
-            return found->second;
+        if ( auto found = hashmap_find( lang.type_descriptor_by_token_type, _token) )
+            return found.value;
         return nullptr;
     }
 
