@@ -809,7 +809,7 @@ void appview_draw()
 
             ImGui::PopFont();
         }
-        ImGui::End();
+        ImGui::End(); // Tool Bar
 
         //----------------------------------------------------------------------------------------
         // Draw file views (multiple files may be visible)
@@ -842,11 +842,11 @@ void appview_draw()
                 // Draw content
                 fileview_draw( &file->view, view->dt_in_s );
             }
-            ImGui::End();
+            ImGui::End(); // File
 
             if ( !open )
             {
-                app_close_file(file);
+               event_manager_push_event({ Event_Type_FILE_CLOSE }); // we can't close the file right now, we must end the draw loop first
             }
         }
 
@@ -854,30 +854,33 @@ void appview_draw()
         // Draw file info panel
         //----------------------------------------------------------------------------------------
         
-        if ( current_file != nullptr && ImGui::Begin( config()->ui_file_info_window_label.data ))
+        if ( current_file != nullptr )
         {
-            // Basic inFormation
-            ImGui::Text("Current file:");
-            ImGui::Indent();
-            ImGui::TextWrapped("path: %s", current_file->path.c_str());
-            ImGui::TextWrapped("set_size: %0.3f KiB", float(file_size(current_file)) / 1000.0f );
-            ImGui::Unindent();
-            ImGui::NewLine();
+            if ( ImGui::Begin( config()->ui_file_info_window_label.data ))
+            {
+                // Basic inFormation
+                ImGui::Text("Current file:");
+                ImGui::Indent();
+                ImGui::TextWrapped("path: %s", current_file->path.c_str());
+                ImGui::TextWrapped("set_size: %0.3f KiB", float(file_size(current_file)) / 1000.0f );
+                ImGui::Unindent();
+                ImGui::NewLine();
 
-            // Statistics
-            ImGui::Text("Graph statistics:");
-            ImGui::Indent();
-            ImGui::Text("Node count: %u", current_file->graph->nodes.size);
-            ImGui::Unindent();
-            ImGui::NewLine();
+                // Statistics
+                ImGui::Text("Graph statistics:");
+                ImGui::Indent();
+                ImGui::Text("Node count: %u", current_file->graph->nodes.size);
+                ImGui::Unindent();
+                ImGui::NewLine();
 
-            // Hierarchy
-            Scope* scope = graph_root_scope(current_file->graph);
-            VERIFY(scope, "An Scope root is required to draw the AST as an ImGui tree");
-            TreeNode_Scope("Graph's Root Scope", scope);
+                // Hierarchy
+                Scope* scope = graph_root_scope(current_file->graph);
+                VERIFY(scope, "An Scope root is required to draw the AST as an ImGui tree");
+                TreeNode_Scope("Graph's Root Scope", scope);
+            }
+
+            ImGui::End(); // File Info
         }
-
-        ImGui::End();
 
         //----------------------------------------------------------------------------------------
         // Draw ImGui configuration windows
