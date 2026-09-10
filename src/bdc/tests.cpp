@@ -22,12 +22,13 @@ using namespace bdc;
 
 #define hashmap_print(hashmap)\
 { \
-    printf("Printing occupied slots (%u entries in total):\n", hashmap.entries.size ); \
-    if( hashmap.entries.size == 0 ) printf("    (empty)\n"); \
+    printf("Printing Hash_Map entries (size = %u, live_size = %u, capacity = %u):\n", \
+           hashmap.size, hashmap.live_size, hashmap.capacity ); \
+    \
+    if( hashmap.size == 0 ) printf("    (empty)\n"); \
     HASHMAP_WALK( entry, hashmap ) \
     { \
-        if( entry.state == 0) continue; \
-        printf("    #%i | state: %i | hash: %#010x | key: \"%s\" | value: \"%s\" \n", i, entry.state, entry.hash, entry.key.c_str(), entry.value.c_str() ); \
+        printf("    #%i | hash: %#010x | key: \"%s\" | value: \"%s\" \n", i, entry.hash, entry.key.c_str(), entry.value.c_str() ); \
     } \
     HASHMAP_WALK_END \
     printf(" --- \n"); \
@@ -469,7 +470,6 @@ int main()
         TEST_BEGIN( "Hash_Map<String, ...> init/release" )
         {
             Hash_Map<String, Data> hashmap{};
-            TEST_EXPECTS( is_zero_initialized(hashmap) );
             hashmap_init(hashmap, 16, &temp_allocator );
 
             TEST_EXPECTS(hashmap.capacity > 0);
@@ -604,6 +604,41 @@ int main()
             TEST_EXPECTS(hashmap_find(hashmap, "elem-0").ok);
 
             hashmap_print(hashmap);
+            hashmap_release(hashmap);
+
+            TEST_EXPECTS(hashmap.entries.size == 0);
+        }
+        TEST_END
+        
+        TEST_BEGIN( "Hash_Map should re-hash if live_size > 66% capacity but capacity should not change if contains many tombstones" )
+        {
+            Hash_Map<String, String> hashmap;
+            hashmap_init(hashmap, 0, &temp_allocator );
+
+            for(int i = 0; i <= 10 /* 66% of 16 */; ++i)
+            {
+                hashmap_add(hashmap, string_tprintf("elem-%i", i) , string_tprintf("Valeur de l'élément %i", i) );
+            }
+
+            TEST_EXPECTS(hashmap.size      == 11);
+            TEST_EXPECTS(hashmap.live_size == 11);
+            TEST_EXPECTS(hashmap.capacity  == 16);
+
+            for(int i = 0; i <= 10; ++i)
+            {
+                hashmap_remove(hashmap, string_tprintf("elem-%i", i) ); // remove each element
+            }
+
+            TEST_EXPECTS(hashmap.size      == 0);
+            TEST_EXPECTS(hashmap.live_size == 11);
+            TEST_EXPECTS(hashmap.capacity  == 16);
+
+            hashmap_add(hashmap, "elem-11", "Valeur de l'élément 11" ); // we reach 12 elements, which is above 66%
+
+            TEST_EXPECTS(hashmap.size      == 1);
+            TEST_EXPECTS(hashmap.live_size == 1); // all tombstones should have been dropped
+            TEST_EXPECTS(hashmap.capacity  == 16); // since we deleted the previous entries, we should not have a larger table
+
             hashmap_release(hashmap);
 
             TEST_EXPECTS(hashmap.entries.size == 0);
