@@ -302,6 +302,23 @@ int main()
         }
         TEST_END
 
+        TEST_BEGIN( Resizable_Array should have a capacity in power of two )
+        {
+            memory_manager_init();
+
+            Resizable_Array<int> arr;
+            array_init(arr, 0, &temp_allocator);
+
+            for(int i = 0; i < 129; ++i)
+            {
+                array_append(arr, i+1);
+                TEST_EXPECTS(arr.capacity == round_up_to_power_of_2(arr.size) );
+            }
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+
         TEST_BEGIN( array_find() )
         {
             memory_manager_init();

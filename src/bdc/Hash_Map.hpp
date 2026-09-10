@@ -298,7 +298,7 @@ namespace bdc
             //       after few calls, all the old entries are rehashed and copied to the new data and old data can be destroyed.
             //
 
-            // Allocate a new array for the entries
+            // Create a new and larger (if needed) Hash_Map to re-hash the current one
             Hash_Map_Type new_hashmap{};
             hashmap_init(new_hashmap, new_capacity, hashmap.allocator);
 

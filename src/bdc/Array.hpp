@@ -236,17 +236,28 @@ namespace bdc
         arr.size = new_size;
     }
 
+    inline u32_t round_up_to_power_of_2(u32_t v)
+    {
+        assert(v != 0);
+        v--;
+        v |= v >> 1;
+        v |= v >> 2;
+        v |= v >> 4;
+        v |= v >> 8;
+        v |= v >> 16;
+        v++;
+        return v;
+    }
+
     template<typename Elem_Type>
     void array_reserve_capacity_at_least(Resizable_Array<Elem_Type>& arr, u32_t mininal_required_capacity)
     {
-        //
-        // TODO: I might want to implement an exponential realloc here.
-        //       But consider this:
-        //       - Resizable_Array>T> user might need to precisely set a capacity manually.
-        //         Making this function exponential would makes this impossible.
-        //       - Why not providing a Resize_Strategy enum ?
-        //       I don't know yet...
-        //
+        if( mininal_required_capacity <= arr.capacity )
+        {
+            return;
+        }
+
+        mininal_required_capacity = round_up_to_power_of_2(mininal_required_capacity);
 
         if( mininal_required_capacity <= arr.capacity )
         {
@@ -264,7 +275,7 @@ namespace bdc
             arr.data = memory_realloc_array<Elem_Type>(arr.data, mininal_required_capacity, arr.allocator);
         }
         assert(arr.data != nullptr);
-        memset( (void*)(arr.data + arr.capacity), 0, mininal_required_capacity - arr.capacity); // new elements are zero-initialized
+        memset( (void*)(arr.data + arr.capacity), 0, (mininal_required_capacity - arr.capacity) * sizeof(Elem_Type)); // new elements are zero-initialized
         arr.capacity = mininal_required_capacity;
     }
 
