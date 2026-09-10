@@ -47,8 +47,8 @@ TEST_F(Token_, constructor__with_not_owned_buffer)
 {
     String buffer = "<prefix>toto<suffix>";
     Token token(Token_Type_identifier, buffer);
-    token.word_move_begin(8);
-    token.word_move_end(-8);
+    token.ltrim_word(8);
+    token.rtrim_word(8);
 
     EXPECT_EQ(token.prefix_view()   , "<prefix>");
     EXPECT_EQ(token.word_view()     , "toto");
@@ -62,8 +62,8 @@ TEST_F(Token_, take_prefix_suffix_from)
 
     bdc::String tata = "<prefix>TATA<suffix>";
     Token source(Token_Type_identifier, tata);
-    source.word_move_begin(8);
-    source.word_move_end(-8);
+    source.ltrim_word(8);
+    source.rtrim_word(8);
 
     bdc::String toto = "TOTO";
     Token target(Token_Type_identifier, toto);
@@ -95,8 +95,8 @@ TEST_F(Token_, replace_word__same_length)
     // prepare
     bdc::String tata = "<prefix>TATA<suffix>";
     Token source(Token_Type_identifier, tata);
-    source.word_move_begin(8);
-    source.word_move_end(-8);
+    source.ltrim_word(8);
+    source.rtrim_word(8);
 
     // pre-check
     EXPECT_EQ(source.view(), "<prefix>TATA<suffix>");
@@ -115,8 +115,8 @@ TEST_F(Token_, replace_word__larger)
     // prepare
     String tata = "<prefix>42<suffix>";
     Token source(Token_Type_identifier, tata);
-    source.word_move_begin(8);
-    source.word_move_end(-8);
+    source.ltrim_word(8);
+    source.rtrim_word(8);
 
     // pre-check
     EXPECT_EQ(source.view()     , "<prefix>42<suffix>");
@@ -137,8 +137,8 @@ TEST_F(Token_, replace_word__smaller)
     // prepare
     String tata = "<prefix>42<suffix>";
     Token source(Token_Type_identifier, tata);
-    source.word_move_begin(8);
-    source.word_move_end(-8);
+    source.ltrim_word(8);
+    source.rtrim_word(8);
 
     // pre-check
     EXPECT_EQ(source.view()     , "<prefix>42<suffix>");

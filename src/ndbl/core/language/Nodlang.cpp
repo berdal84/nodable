@@ -877,7 +877,7 @@ namespace ndbl
             {
                 if ( lang.ribbon.empty() )
                 {
-                    lang.ribbon.global_token.prefix_end_grow(new_token.size() );
+                    lang.ribbon.global_token.ltrim_word( new_token.size() );
                     continue;
                 }
 
@@ -891,13 +891,13 @@ namespace ndbl
                 Token& back = lang.ribbon.back();
                 if ( _lang_accepts_suffix(lang, back.type) )
                 {
-                    back.suffix_end_grow(ignored_chars_count);
+                    back.rextend_suffix(ignored_chars_count);
                     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", back.view().c_str() );
                 }
                 // case 2: increase prefix of the new_token up to wrap the ignored chars
                 else if ( new_token )
                 {
-                    new_token.prefix_begin_grow(ignored_chars_count);
+                    new_token.lextend_prefix(ignored_chars_count);
                 }
                 ignored_chars_count = 0;
             }
@@ -911,7 +911,7 @@ namespace ndbl
         {
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Found ignored chars after tokenize, adding to the tokens suffix...\n");
             Token& tok = lang.ribbon.global_token;
-            tok.suffix_begin_grow( ignored_chars_count );
+            tok.rtrim_word( ignored_chars_count );
         }
 
         NDBL_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Tokenization.\n%s\n", lang.ribbon.to_string().c_str() );

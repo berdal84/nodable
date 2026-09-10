@@ -652,8 +652,8 @@ ndbl::Node* ndbl::graph_create_variable_decl(Graph* graph, const Type_Descriptor
         Token_Type_keyword_operator,
         " = "
     };
-    token.word_move_begin(1);
-    token.word_move_end(-1);
+    token.lextend_word(1);
+    token.rextend_word(-1);
     var_node->component.variable.operator_token = token;
 
     return var_node;

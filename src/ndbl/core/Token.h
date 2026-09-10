@@ -46,30 +46,21 @@ namespace ndbl
         bool        empty() const           { return size() == 0; }
         void        clear();
         void        set_offset(size_t new_offset);
-
-        void        prefix_reset(size_t size = 0);      // preserves word
-        void        prefix_begin_grow(size_t l_amount); // ...
-        void        prefix_end_grow(size_t r_amount);   // ...
-
-        void        suffix_reset(size_t size = 0);      // preserves word
-        void        suffix_end_grow(size_t r_amount);   // ...
-        void        suffix_begin_grow(size_t l_amount); // ...
-
-        void        word_move_begin(int amount);
-        void        word_move_end(int amount);
-
-        void        reset_lengths(); // buffer and offset won't change
+        void        lextend_prefix(size_t l_amount);
+        void        rextend_suffix(size_t r_amount); 
+        void        lextend_word(size_t l_amount);
+        void        rextend_word(size_t r_amount);
+        void        ltrim_word(size_t r_amount);
+        void        rtrim_word(size_t l_amount);
         bool        is_keyword_type() { return ndbl::is_a_type_keyword(type); } // Check if whether this token is a keyword type
-        
         void        take_prefix_suffix_from(Token *source); // Transfer the prefix and suffix of a given token to this token
         void        remove_suffix_and_prefix();
-
-        bdc::String json()const;
         void        suffix_push_back(const bdc::String&);
         void        prefix_push_front(const bdc::String&);
         void        replace_buffer(const bdc::String& buffer, bool external_only = false);
         void        replace_word(const bdc::String&);
         u32_t       char_position() const;
+        bdc::String json()const;
 
         static const Token s_end_of_line;
         static const Token s_end_of_instruction;

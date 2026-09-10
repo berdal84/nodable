@@ -184,26 +184,14 @@ void Token::suffix_push_back(const String& str)
     suffix_size    += str.size;
 }
 
-void Token::prefix_reset(size_t new_size )
-{
-    ASSERT(!owns_data);
-    prefix_size  = new_size;
-}
-
-void Token::reset_lengths()
-{
-    TODO("Not implemented yet:");
-    // TODO: update views
-}
-
-void Token::word_move_begin(int amount)
+void Token::lextend_word(size_t amount)
 {
     if( amount < 0) ASSERT(prefix_size >= -amount);
     prefix_size += amount;
     word_size   -= amount;
 }
 
-void Token::word_move_end(int amount)
+void Token::rextend_word(size_t amount)
 {
     if( amount > 0) ASSERT(suffix_size >= amount);
     word_size   += amount;
@@ -216,36 +204,29 @@ void Token::set_offset(size_t pos)
     // TODO: update views
 }
 
-void Token::suffix_reset(size_t size)
-{
-    ASSERT(!owns_data);
-    suffix_size = size;
-}
-
-void Token::prefix_begin_grow(size_t l_amount)
+void Token::lextend_prefix(size_t l_amount)
 {
     VERIFY(!owns_data, "Only allowed when token does not owns the buffer");
     data        -= l_amount;
     prefix_size += l_amount;
 }
 
-void Token::suffix_end_grow(size_t size)
+void Token::rextend_suffix(size_t r_amount)
 {
-    suffix_reset(suffix_size + size);
+    suffix_size += r_amount;
 }
 
-void Token::suffix_begin_grow(size_t l_amount)
+void Token::rtrim_word(size_t l_amount)
 {
     ASSERT( word_size >= l_amount );
     word_size   -= l_amount;
     suffix_size += l_amount;
 }
 
-void Token::prefix_end_grow(size_t r_amount)
+void Token::ltrim_word(size_t r_amount)
 {
-    ASSERT( r_amount <= word_size);
     prefix_size += r_amount;
-    word_size   -= r_amount;
+    word_size    = word_size < r_amount ? 0 : word_size - r_amount;
 }
 
 } // namespace ndbl
