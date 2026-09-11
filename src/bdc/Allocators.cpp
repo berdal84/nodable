@@ -1,7 +1,8 @@
 #include "Allocators.hpp"
 
+
 #ifdef BDC_DEBUG_ALLOCATORS
-#include <vector>    // to store allocation metadata in a container that is outside 
+#include <vector>    // to store allocation metadata in a container that is outside
 #include <algorithm> // for std::find
 #endif // BDC_DEBUG_ALLOCATORS
 
@@ -13,9 +14,29 @@ namespace bdc
     Allocator*                   allocator; // The current allocator    
     Allocator                    temp_allocator;
     Ring_Buffer                  temp_allocator_buffer;
-    Memory_Allocation_Tracker    temp_allocator_tracker;
     Allocator                    heap_allocator;
-    Memory_Allocation_Tracker    heap_allocator_tracker;
+
+#ifdef BDC_DEBUG_ALLOCATORS
+    //
+    // TODO: Reconsider this, do we need a separate struct?
+    //       Can't we put more info in the Header, like an intrusive linked-list?
+    //       That would be great because we'll stop to rely on <vector> and <algorithm>.
+    //
+    struct Memory_Allocation_Tracker
+    {
+        Allocator*                          allocator; // The one we track
+        std::vector<Memory_Allocation_Info> allocations;
+
+        void                                after_malloc(void* ptr, size_t size);
+        const Memory_Allocation_Info*       find_allocation(void* ptr) const;
+        void                                after_realloc(void* old_ptr, void* new_ptr, size_t new_size );
+        void                                before_free(void* ptr);
+    };
+
+    static Memory_Allocation_Tracker    temp_allocator_tracker;
+    static Memory_Allocation_Tracker    heap_allocator_tracker;
+    
+#endif // BDC_DEBUG_ALLOCATORS
 
     inline Allocation_Header* get_header(void* fat_pointer)
     {
@@ -249,7 +270,7 @@ namespace bdc
     Memory_Manager_Report* memory_manager_generate_report(Memory_Manager_Report* report)
     {
         #ifndef BDC_DEBUG_ALLOCATORS
-            printf(__FILE__", WARNING: You're trying to generate a memory report but BDC_DEBUG_ALLOCATORS must be defined in order to do this, recompile with #define BDC_DEBUG_ALLOCATORS");
+            BDC_LOG_DEBUG(__FILE__", WARNING: You're trying to generate a memory report but BDC_DEBUG_ALLOCATORS must be defined in order to do this, recompile with #define BDC_DEBUG_ALLOCATORS");
             return report;
         #else
 
@@ -294,8 +315,10 @@ namespace bdc
 
     void memory_manager_clear_trackers()
     {
+    #ifdef BDC_DEBUG_ALLOCATORS
         heap_allocator_tracker.allocations.clear();
         temp_allocator_tracker.allocations.clear();
+    #endif
     }
 
     void memory_manager_report_print(Memory_Manager_Report* report, bool asserts_no_leaks)

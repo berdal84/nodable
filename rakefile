@@ -187,11 +187,6 @@ common.sources = FileList[
 
     # BDC
     "src/bdc/Allocators.cpp",
-    "src/bdc/Array.cpp",
-    "src/bdc/Hash_Map.cpp",
-    "src/bdc/String_Builder.cpp",
-    "src/bdc/String_Hash.cpp",
-    "src/bdc/String.cpp",
 
     # Nodable Core
     "src/ndbl/core/Event_Manager.cpp",

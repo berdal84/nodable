@@ -10,12 +10,11 @@
 
 namespace ndbl
 {
-    // private
-    void _nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Input*, Node_Slot_View* dragged_slot);;
-    void _nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_Input*, Node_Slot_View* dragged_slot, size_t limit );
-}
+// private
+void _nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Input*, Node_Slot_View* dragged_slot);;
+void _nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_Input*, Node_Slot_View* dragged_slot, size_t limit );
 
-void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot)
+void _nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot)
 {
     using namespace ndbl;
 
@@ -68,7 +67,7 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_signature(Node_Search_Inp
     }
 }
 
-void ndbl::_nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_Input* context_menu, Node_Slot_View* _dragged_slot, size_t _limit )
+void _nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_Input* context_menu, Node_Slot_View* _dragged_slot, size_t _limit )
 {
     bdc::String search{context_menu->search_input_value}; // FindCaseInsensitive takes a bdc::String
     context_menu->items_matching_search.clear();
@@ -88,7 +87,7 @@ void ndbl::_nodeview_contextmenu_update_cache_based_on_user_input(Node_Search_In
     }
 }
 
-Action* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot, size_t _result_max_count )
+Action* nodeview_contextmenu_draw_search_input(Node_Search_Input* context_menu, Node_Slot_View* dragged_slot, size_t _result_max_count )
 {
     if ( context_menu->must_be_reset_flag )
     {
@@ -166,3 +165,5 @@ Action* ndbl::nodeview_contextmenu_draw_search_input(Node_Search_Input* context_
 
     return nullptr;
 }
+
+} // namespace ndbl

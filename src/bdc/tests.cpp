@@ -10,11 +10,6 @@
 #include "Hash_Map.hpp"
 // we include *.cpp to compile as a single translation unit
 #include "Allocators.cpp"
-#include "Array.cpp"
-#include "String.cpp"
-#include "String_Builder.cpp"
-#include "String_Hash.cpp"
-#include "Hash_Map.cpp"
 //
 #include "Testing.hpp"
 
@@ -313,7 +308,7 @@ int main()
             for(int i = 0; i < 129; ++i)
             {
                 array_append(arr, i+1);
-                TEST_EXPECTS(arr.capacity == round_up_to_power_of_2(arr.size) );
+                TEST_EXPECTS(arr.capacity == array_compute_capacity_from_size(arr.size, 16) );
             }
 
             memory_manager_shutdown();

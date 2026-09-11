@@ -1,18 +1,14 @@
 #pragma once
-#include <cstddef>
-#include <cstdio>
 #include <cstdlib>
-#include <cassert>
+#include <cassert> // for assert
 #include <cstring> // for memset
+
 #include "MACROS.hpp"
 #include "Types.hpp"
-#include <vector>    // to store allocation metadata in a container that is outside 
-#include <algorithm> // for std::find
-#include <exception>
-#include <iostream>
 
 #ifdef BDC_DEBUG_ALLOCATORS
-    #include <stacktrace>
+    #include <ostream>    // for std::cout, std::endl
+    #include <stacktrace> // for std::stacktrace
     #define BDC_PRINT_STACKTRACE() \
         std::stacktrace st = std::stacktrace::current(); \
         std::cout << st << std::endl
@@ -21,8 +17,9 @@
 #endif // BDC_DEBUG_ALLOCATORS
 
 #ifdef BDC_ENABLE_LOGS
+    #include <cstdio>     // for std::printf
     #define BDC_LOG_STACKTRACE_WITH_REASON( fmt, ... ) \
-        printf("Printing stacktrace because: " fmt "\n", __VA_ARGS__); \
+        std::printf("Printing stacktrace because: " fmt "\n", __VA_ARGS__); \
         BDC_PRINT_STACKTRACE();
 #else
     #define BDC_LOG_STACKTRACE_WITH_REASON( fmt, ... ) /* BDC_LOG_STACKTRACE_WITH_REASON is disabled */
@@ -59,16 +56,6 @@ namespace bdc
         Realloc_Proc_Type* proc_realloc;
     };
 
-    struct Memory_Allocation_Tracker
-    {
-        Allocator*                          allocator; // The one we track
-        std::vector<Memory_Allocation_Info> allocations;
-
-        void                                after_malloc(void* ptr, size_t size);
-        const Memory_Allocation_Info*       find_allocation(void* ptr) const;
-        void                                after_realloc(void* old_ptr, void* new_ptr, size_t new_size );
-        void                                before_free(void* ptr);
-    };
 
     struct Allocation_Header
     {
@@ -89,10 +76,7 @@ namespace bdc
     extern Allocator*                   allocator; // The current allocator    
     extern Allocator                    temp_allocator;
     extern Ring_Buffer                  temp_allocator_buffer;
-    extern Memory_Allocation_Tracker    temp_allocator_tracker;
-
     extern Allocator                    heap_allocator;
-    extern Memory_Allocation_Tracker    heap_allocator_tracker;
 
     void                                memory_manager_init(size_t temp_buffer_size = 5 * 1024 * 1024 /* 5M*/);
     void                                memory_manager_clear_trackers();

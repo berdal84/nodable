@@ -3,7 +3,7 @@
 
 namespace bdc
 {
-    inline u32_t djb2_hash(const char* data, size_t size)
+    constexpr inline u32_t djb2_hash(const char* data, size_t size)
     {
         u32_t hash  = 5381;
         u32_t i     = 0;

@@ -141,7 +141,7 @@ File_Read_Result file_read(const Path& path)
             {
                 new_capacity = (u32_t)-1; // max
             }
-            array_reserve_capacity_at_least( bytes, new_capacity );
+            array_ensure_has_capacity( bytes, new_capacity );
         }
         array_append(bytes, c);
     }      

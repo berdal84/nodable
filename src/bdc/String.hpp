@@ -1,9 +1,12 @@
 #pragma once
-#include "Allocators.hpp"
-#include "Array.hpp"
+
 #include <cassert>
 #include <cstring>
-#include <ctype.h> // for toupper / tolower
+#include <ctype.h>  // for toupper / tolower
+#include <cstdio>   // for printf & co.
+
+#include "Allocators.hpp"
+#include "Array.hpp"
 #include "Types.hpp"
 #include "Type_Traits.hpp"
 
@@ -136,7 +139,7 @@ namespace bdc
     , flags(other.flags)
     {}
 
-    String string_tprintf(const i8_t* fmt, auto&&...args )
+    inline String string_tprintf(const i8_t* fmt, auto&&...args )
     {
         push_allocator( temp_allocator );
         String result = string_printf(fmt, std::forward<decltype(args)>(args)...);
@@ -144,7 +147,7 @@ namespace bdc
         return result;
     }
 
-    String string_printf(const i8_t* fmt, auto&&...args )
+    inline String string_printf(const i8_t* fmt, auto&&...args )
     {   
         static_assert( sizeof...(args) != 0, "No arguments, use string_copy instead.");
 
@@ -167,6 +170,273 @@ namespace bdc
         snprintf( string_data, string_len, fmt, std::forward<decltype(args)>(args)...);
 
         return String{ string_data, string_len-1, String_Flags_IS_NULL_TERMINATED };
+    }
+
+    inline String& String::operator=(const String& data)
+    {
+        if ( this == &data ) return *this;
+        memcpy(static_cast<void*>(this), static_cast<const void*>(&data), sizeof(String));
+        return *this;
+    }
+
+    inline const i8_t* String::c_str() const
+    {
+        return string_cstr(*this);
+    }
+
+    inline String string_concat(const String& a, const String& b )
+    {
+        //printf( "a: '%s' (size: %i)\n", a.c_str(), a.size );
+        //printf( "b: '%s' (size: %i)\n", b.c_str(), b.size );
+
+        u32_t alloc_size = a.size + b.size + 1 ; // I am unsure this is a good idea, but I prefer to allocate 1 byte extra for null-termination
+        i8_t* alloc_data = memory_malloc_array<i8_t>( alloc_size ); 
+
+        String result;
+        result.data = alloc_data;
+        result.size = alloc_size - 1;          
+
+        //printf( "result: '%s'\n", result.c_str());
+        memcpy(result.data          , a.data, a.size ); //printf( "result: '%s'\n", result.c_str());
+        memcpy(result.data + a.size , b.data, b.size);  //printf( "result: '%s'\n", result.c_str());
+
+        alloc_data[alloc_size-1] = '\0';
+
+        return result;
+    }
+
+    inline void string_reset(String& str)
+    {
+        str.data = nullptr;
+        str.size = 0;
+    }
+
+    inline void string_release(String& str )
+    {
+        allocator->proc_free(str.data);
+        string_reset(str);
+    }
+
+    inline u32_t string_rfind(const String& str, i8_t c)
+    {
+        u32_t cursor = str.size-1;
+        while ( cursor != String::String::invalid_pos && str.data[cursor] != c)
+        {
+            --cursor;
+        }
+
+        return cursor;
+    }
+
+    inline String string_lsplit(const String& str, u32_t index)
+    {
+        assert(index <= str.size && "Out of bounds");
+
+        if( index == str.size)
+        {
+            return str;
+        }
+
+        String result = str;
+        result.size -= result.size - index;
+        result.flags &= ~String_Flags_IS_NULL_TERMINATED; // remove flag, we cut in the middle
+
+        return result;
+    }
+
+    inline String string_rsplit(const String& str, u32_t index)
+    {
+        assert(index <= str.size && "Out of bounds");
+
+        if( index == 0 )
+        {
+            return { str.data, 0 };
+        }
+
+
+        String result = str;
+        result.data += index;
+        result.size -= index;
+        result.flags |= str.flags & String_Flags_IS_NULL_TERMINATED;
+
+        return result;
+    }
+
+    inline String string_basename(const String& str)
+    {
+        u32_t last_slash = string_rfind(str, '\\');
+        if ( last_slash == String::invalid_pos )
+        {
+            return str;
+        }
+        return string_rsplit(str, last_slash+1);
+    }
+
+    inline String string_stem(const String& str)
+    {
+        u32_t index = string_rfind(str, '.');
+        if( index == String::invalid_pos )
+        {
+            return str;
+        }
+        return string_lsplit(str, index);
+    }
+
+    inline const i8_t* string_cstr(const String& str)
+    {
+        if ( (str.flags & String_Flags_IS_NULL_TERMINATED) || str.data == nullptr )
+        {
+            return str.data;
+        }
+
+        String result = string_tprintf("%.*s", str.size, str.data);
+
+        return result.data;
+    }
+
+    inline String string_tcopy(const String& source)
+    {
+        push_allocator(temp_allocator);
+        String result = string_copy(source);
+        pop_allocator();
+        return result;
+    }
+
+    inline String string_copy(const String& source )
+    {            
+        String result{};
+        string_copy( result, source);
+        return result;
+    }
+
+    inline String& string_copy(String& target, const String& source )
+    {
+        size_t alloc_size = source.size + 1; // null terminated
+        target.data = memory_malloc_array<i8_t>(alloc_size, allocator);
+        target.size = source.size;
+
+        std::memcpy(target.data, source.data, alloc_size); 
+
+        target.data[source.size] = '\0';
+
+        return target;
+    }
+
+    inline int string_compare(const String& a, const String& b)
+    {
+        const u32_t size_min = a.size > b.size ? b.size : a.size;
+         
+        int n = strncmp(a.data, b.data, size_min);
+        if ( n == 0 )
+        {
+            return  a.size < b.size ? 1 : -1;
+        }
+        return n;
+    }
+
+    inline String string_case_insensitive_find(const String& haystack, const String& needle)
+    {
+        if ( needle.size == 0 || needle.data == nullptr)
+        {
+            return {};
+        }
+        
+        if ( needle.size > haystack.size )
+        {
+            return {};
+        }
+        
+        for (u32_t i = 0; i <= haystack.size - needle.size; i++)
+        {
+            bool match = true;
+
+            for (u32_t j = 0; j < needle.size; j++)
+            {
+                if ( tolower(haystack[i + j]) != tolower(needle[j]) )
+                {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match)
+            {
+                return String{ haystack.data + i, needle.size };
+            }
+        }
+        return {};
+    }
+
+    inline String string_unquote(const String& str)
+    {
+        assert(str.size >= 2);
+        assert(str[0] == '\"');
+        assert(str[str.size-1]  == '\"');
+
+        return String{ str.data + 1, str.size -2};
+    }
+
+    inline String string_view(const String& str)
+    {
+        return String(str.data, str.size);
+    };
+
+    inline String& string_advance(String& str, u32_t amount)
+    {
+        assert(str.size >= amount && "String is too short to advance that amount");
+        str.data += amount;
+        str.size -= amount;
+
+        return str;
+    }
+
+    inline bool operator<(const String& a, const String& b)
+    {
+        // Compare the
+        const int n = strncmp(a.data, b.data, a.size > b.size ? a.size : b.size );
+
+        return n < 0
+          || ( n == 0 && a.size < b.size);
+    }
+
+    inline bool operator==(const String& a, const String& b)
+    {
+        if( a.size != b.size)
+        {
+            return false;
+        }
+
+        u32_t cursor = 0;
+        while( cursor < a.size )
+        {
+            if( a[cursor] != b[cursor] )
+            {
+                return false;
+            }
+            ++cursor;
+        }
+
+        return true;
+    }
+    
+    inline bool operator!=(const String& a, const String& b)
+    {
+        if( a.size != b.size)
+        {
+            return true;
+        }
+
+        u32_t cursor = 0;
+        while( cursor < a.size )
+        {
+            if( a[cursor] != b[cursor] )
+            {
+                return true;
+            }
+            ++cursor;
+        }
+
+        return false;
     }
     
 } // namespace bdc

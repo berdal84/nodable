@@ -1,7 +1,9 @@
 #pragma once
+
 #include "String.hpp"
 #include "Types.hpp"
 #include "Type_Traits.hpp"
+#include "Hash.hpp"
 
 namespace bdc
 {
@@ -22,5 +24,10 @@ namespace bdc
     inline bool operator!=(const String_Hash& a, const String_Hash& b)
     {
         return a.hash != b.hash;
+    }
+
+    inline String_Hash string_hash(const String& str)
+    {
+        return { .hash = djb2_hash(str.data, str.size), .string = str };
     }
 }

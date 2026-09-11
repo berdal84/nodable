@@ -1,15 +1,16 @@
 #pragma once
 
-#include "Allocators.hpp"
 #include <cassert>
 #include <cstring>
-#include <initializer_list>
+#include <initializer_list> // for std::initializer_list
+
+#include "Allocators.hpp"
+#include "Types.hpp"
 #include "Type_Traits.hpp"
+#include "Math.hpp"
 
 namespace bdc
 {
-    typedef unsigned int u32_t;
-
     template<typename _Elem_Type>
     struct Array
     {
@@ -42,6 +43,7 @@ namespace bdc
     template<typename Elem_Type>
     Elem_Type array_join(const Array<Elem_Type>& array, const Elem_Type& separator );
 
+    
     //
     // Resizable_Array<T> is like a Array<T> memory wise, but is aware of its buffer capacity and allocator.
     //
@@ -207,7 +209,7 @@ namespace bdc
         arr.data        = nullptr;
         arr.capacity    = 0;
         arr.allocator   = _allocator ? _allocator : allocator;
-        array_reserve_capacity_at_least(arr, initial_capacity);
+        array_ensure_has_capacity(arr, initial_capacity);
     }
 
     template<typename Elem_Type>
@@ -225,10 +227,25 @@ namespace bdc
         arr.capacity = 0;
     }
 
+    inline u32_t array_compute_capacity_from_size(u32_t new_size, u32_t capacity_min)
+    {
+        const u32_t capacity = u32_round_up_to_power_of_2(new_size);
+        if( capacity < capacity_min )
+        {
+            return capacity_min;
+        }
+        return capacity;
+    }
+
     template<typename Elem_Type>
     void array_resize(Resizable_Array<Elem_Type>& arr, u32_t new_size)
     {
-        array_reserve_capacity_at_least(arr, new_size);
+        if( arr.capacity < new_size )
+        {
+            u32_t capacity = array_compute_capacity_from_size(new_size, 16);
+            array_ensure_has_capacity(arr, capacity);
+        }
+
         for( u32_t i = arr.size; i < new_size; ++i)
         {
             new (arr.data + i) Elem_Type();
@@ -236,47 +253,27 @@ namespace bdc
         arr.size = new_size;
     }
 
-    inline u32_t round_up_to_power_of_2(u32_t v)
-    {
-        assert(v != 0);
-        v--;
-        v |= v >> 1;
-        v |= v >> 2;
-        v |= v >> 4;
-        v |= v >> 8;
-        v |= v >> 16;
-        v++;
-        return v;
-    }
-
     template<typename Elem_Type>
-    void array_reserve_capacity_at_least(Resizable_Array<Elem_Type>& arr, u32_t mininal_required_capacity)
+    void array_ensure_has_capacity(Resizable_Array<Elem_Type>& arr, u32_t capacity)
     {
-        if( mininal_required_capacity <= arr.capacity )
+        if( arr.capacity >= capacity )
         {
             return;
         }
 
-        mininal_required_capacity = round_up_to_power_of_2(mininal_required_capacity);
-
-        if( mininal_required_capacity <= arr.capacity )
-        {
-            return;
-        }
-
-        assert(arr.allocator != nullptr);
+        assert(arr.allocator != nullptr && "arr.allocator is required to reserve memory");
 
         if( arr.data == nullptr )
         {
-            arr.data = memory_malloc_array<Elem_Type>(mininal_required_capacity, arr.allocator);
+            arr.data = memory_malloc_array<Elem_Type>(capacity, arr.allocator);
         }
         else
         {
-            arr.data = memory_realloc_array<Elem_Type>(arr.data, mininal_required_capacity, arr.allocator);
+            arr.data = memory_realloc_array<Elem_Type>(arr.data, capacity, arr.allocator);
         }
         assert(arr.data != nullptr);
-        memset( (void*)(arr.data + arr.capacity), 0, (mininal_required_capacity - arr.capacity) * sizeof(Elem_Type)); // new elements are zero-initialized
-        arr.capacity = mininal_required_capacity;
+        memset( (void*)(arr.data + arr.capacity), 0, (capacity - arr.capacity) * sizeof(Elem_Type)); // new elements are zero-initialized
+        arr.capacity = capacity;
     }
 
     template<typename Elem_Type>
