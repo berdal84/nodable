@@ -16,8 +16,6 @@ namespace bdc
     {
         using Elem_Type = _Elem_Type;
 
-        static constexpr u32_t npos = (u32_t)-1; // invalid position, depends on context
-
         u32_t      size; // size must be 1st to be the same type as Inlined_Array
         Elem_Type* data;
 
