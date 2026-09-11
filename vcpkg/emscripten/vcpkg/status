@@ -1,0 +1,166 @@
+Package: vcpkg-cmake
+Version: 2024-04-23
+Architecture: x64-windows
+Multi-Arch: same
+Abi: deb96b89d34095ec9c6e7b14fc2cfa81a7ff832ca5a571554d55bf38d6852206
+Status: install ok installed
+
+Package: zlib
+Version: 1.3.1
+Depends: vcpkg-cmake:x64-windows
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: 627afc6efea6f558bc81c658d5590fe953a51763cfacfdb484362b4b22eb90d6
+Description: A compression library
+Status: install ok installed
+
+Package: vcpkg-cmake-config
+Version: 2024-05-23
+Architecture: x64-windows
+Multi-Arch: same
+Abi: d42fbdab9949bb590dcee948f83d094e5966fe27dcbaa0bf4aa8db6c71ed9915
+Status: install ok installed
+
+Package: libpng
+Version: 1.6.55
+Depends: vcpkg-cmake:x64-windows, vcpkg-cmake-config:x64-windows, zlib
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: b834d4c316e9a5688535f1c66382fd4c218a76cd363136017c25f4efc0e6dded
+Description: libpng is a library implementing an interface for reading and writing PNG (Portable Network Graphics) format files
+Status: install ok installed
+
+Package: bzip2
+Version: 1.0.8
+Port-Version: 6
+Depends: vcpkg-cmake:x64-windows
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: cd191e760c014a532f3fc79f615582de30e50c35140fa5673a327553c7c40e18
+Description: bzip2 is a freely available, patent free, high-quality data compressor. It typically compresses files to within 10% to 15% of the best available techniques (the PPM family of statistical compressors), whilst being around twice as fast at compression and six times faster at decompression.
+Default-Features: tool
+Status: install ok installed
+
+Package: bzip2
+Feature: tool
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Description: Builds bzip2 executable
+Status: install ok installed
+
+Package: brotli
+Version: 1.2.0
+Depends: vcpkg-cmake:x64-windows, vcpkg-cmake-config:x64-windows
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: 558ec9153a6e20a0a780ef11098e077faeb16f69b0a7daa65118a1130f78ddc9
+Description: a generic-purpose lossless compression algorithm that compresses data using a combination of a modern variant of the LZ77 algorithm, Huffman coding and 2nd order context modeling.
+Status: install ok installed
+
+Package: freetype
+Version: 2.13.3
+Depends: vcpkg-cmake:x64-windows, vcpkg-cmake-config:x64-windows
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: 4ad55b1ad8defe9e58096999ee7e6fa7a198d6a7889186e46a3bbe392333dc44
+Description: A library to render fonts.
+Default-Features: brotli, bzip2, png, zlib
+Status: install ok installed
+
+Package: freetype
+Feature: brotli
+Depends: brotli
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Description: Support decompression of WOFF2 streams
+Status: install ok installed
+
+Package: freetype
+Feature: bzip2
+Depends: bzip2
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Description: Support bzip2 compressed fonts.
+Status: install ok installed
+
+Package: freetype
+Feature: png
+Depends: libpng
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Description: Support PNG compressed OpenType embedded bitmaps.
+Status: install ok installed
+
+Package: freetype
+Feature: zlib
+Depends: zlib
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Description: Use zlib instead of internal library for DEFLATE
+Status: install ok installed
+
+Package: egl-registry
+Version: 2025-05-27
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: f3b907ac9b58c39e08bc21f3d63cf2c2fcf1d435e28e0f870c317a9699e2b407
+Description: EGL API and Extension Registry
+Status: install ok installed
+
+Package: opengl-registry
+Version: 2026-01-26
+Depends: egl-registry
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: 2bfe306021a21e474d15f6e2c9cb2ee192bfdfc8934f417e68c5efdf8d7f9bf7
+Description: OpenGL, OpenGL ES, and OpenGL ES-SC API and Extension Registry
+Status: install ok installed
+
+Package: gl3w
+Version: 2018-05-31
+Port-Version: 5
+Depends: egl-registry, opengl-registry, vcpkg-cmake:x64-windows, vcpkg-cmake-config:x64-windows
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: 3ca0995eda7354988310c5cbbedacc7a7e3323c44d6afac09b1c8145a686ff7b
+Description: Simple OpenGL core profile loading
+Status: install ok installed
+
+Package: glm
+Version: 1.0.3
+Depends: vcpkg-cmake:x64-windows, vcpkg-cmake-config:x64-windows
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: 6591a0074a59b6f17d60925d608ae0608d76894b7f0e63b855dba3c6172c686f
+Description: OpenGL Mathematics (GLM)
+Status: install ok installed
+
+Package: gtest
+Version: 1.17.0
+Port-Version: 2
+Depends: vcpkg-cmake:x64-windows, vcpkg-cmake-config:x64-windows
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: 043b2b4be1896d37cf9071b9ad38cc7983572a88b9a09e18e07bd21b89264c32
+Description: Google Testing and Mocking Framework
+Status: install ok installed
+
+Package: lodepng
+Version: 2021-12-04
+Port-Version: 1
+Depends: vcpkg-cmake:x64-windows, vcpkg-cmake-config:x64-windows
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: 04864f52b8f055a1637f7465d1f144b89a9feda547e875590eb88a59bf98188e
+Description: PNG encoder and decoder in C++
+Status: install ok installed
+
+Package: expat
+Version: 2.7.4
+Depends: vcpkg-cmake:x64-windows, vcpkg-cmake-config:x64-windows
+Architecture: wasm32-emscripten
+Multi-Arch: same
+Abi: c1510ab34fc2f01a337e6e0b79b2457d4b4336813b50d76afefe00b6b3e514bb
+Description: XML parser library written in C
+Status: install ok installed
+

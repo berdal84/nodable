@@ -1,73 +1,58 @@
 #pragma once
 
-#include <future>
-#include <memory>
-#include <string>
-
-#include "tools/gui/App.h"
-
 #include "Config.h"
-#include "types.h"
+#include "ndbl/core/Try_Catch.h" // for users to wrap app calls
+#include "ndbl/core/File_System.h"
 
 namespace ndbl
 {
     // forward declarations
-    class Nodlang;
-    class Interpreter;
-    class NodeFactory;
-    class ComponentFactory;
-    class NodableView;
-    class File;
+    class Language;
+    struct File;
+    struct Task_Manager;
+    struct Config;
+    struct App_View_State;
 
-    class Nodable
+    typedef int App_Flags;
+    enum App_Flag_ : int
     {
-	public:
-        // Common
-
-        void            init();
-        void            update();
-        void            draw();
-        void            shutdown();
-        bool            should_stop() const;
-        NodableView*    get_view() const;
-        tools::App*     get_base_app_handle() { return &m_base_app; }
-
-        // Files
-
-        File*           open_asset_file(const tools::Path&);
-        File*           open_file(const tools::Path&);
-        File*           new_file();
-        void            save_file(File*) const;
-        void            set_current_file(File*);
-        void            save_file_as(File*, const tools::Path&) const;
-        File*           add_file(File*);
-        void            close_file(File*);
-        File*           get_current_file() { return m_current_file; };
-        bool            is_current(const File* _file) const { return m_current_file == _file; }
-        const std::vector<File*>&
-                        get_files() const { return m_loaded_files; }
-        bool            has_files() const { return !m_loaded_files.empty(); }
-
-        // Virtual Machine
-
-        void            run_program();
-        void            debug_program();
-        void            step_over_program();
-        void            stop_program();
-        void            reset_program();
-        bool            compile_and_load_program() const;
-
-    private:
-        tools::App         m_base_app;
-        NodableView*       m_view              = nullptr;
-        Config*            m_config            = nullptr;
-        File*              m_current_file      = nullptr;
-        Nodlang*           m_language          = nullptr;
-        Interpreter*       m_interpreter       = nullptr;
-        NodeFactory*       m_node_factory      = nullptr;
-        ComponentFactory*  m_component_factory = nullptr;
-        u8_t               m_untitled_file_count = 0;
-        std::vector<File*> m_loaded_files;
-        std::vector<File*> m_flagged_to_delete_file;
+        App_Flag_NONE               = 0,
+        App_Flag_OWNS_CONFIG_MEMORY = 1 << 0, // Since some data (view and config) might be owned or not, those flags are there to keep track of it.
+        App_Flag_OWNS_VIEW_MEMORY   = 1 << 1, // ... same ...
+        App_Flag_SHOULD_STOP        = 1 << 2  // when set, app will stop next frame.
     };
+
+    struct App_State
+    {
+        App_Flags           flags               = App_Flag_NONE;
+        File*               current_file        = nullptr;
+        u8_t                untitled_file_count = 0;
+        std::vector<File*>  files;
+        std::vector<File*>  files_to_delete;
+    };
+
+    // common
+
+    App_State*      app_init();
+    void            app_shutdown();
+    App_State*      app_state();
+    App_State*      app_state();
+    bool            app_should_stop();
+    void            app_do_frame();
+    void            app_draw();
+    void            app_run();
+    void            app_update();
+
+    // file related
+
+    File*           app_open_asset_file(const Path&);
+    File*           app_open_file(const Path&);
+    File*           app_new_file();
+    void            app_save_file(File*);
+    void            app_set_current_file(File*);
+    void            app_save_file_as(File*, const Path&);
+    File*           app_add_file(File*);
+    void            app_close_file();
+    void            app_close_file(File*);
+    void            app_reset_current_graph();
 }

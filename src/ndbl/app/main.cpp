@@ -1,23 +1,14 @@
 #include "ndbl/gui/Nodable.h"
-#include "tools/core/memory/memory.h"
-#include "tools/core/TryCatch.h"
-
-using namespace tools;
-using namespace ndbl;
 
 int main(int argc, char *argv[])
 {
-    TOOLS_try
+    NDBL_try
     {
-        Nodable app;
-        app.init();
-        while ( !app.should_stop() )
-        {
-            app.update();
-            app.draw();
-        }
-        app.shutdown();
+        ndbl::app_init();
+        ndbl::app_run();
+        ndbl::app_shutdown();
     }
-    TOOLS_catch
+    NDBL_catch
+
     return 0;
 }

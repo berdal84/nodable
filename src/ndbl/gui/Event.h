@@ -1,104 +1,31 @@
 #pragma once
-#include <utility>
 
-#include "tools/core/memory/memory.h"
-#include "tools/core/EventManager.h"
-
+#include "bdc/Types.hpp"
+#include "ndbl/core/Event.h"
+#include "ndbl/core/reflection/Type_Descriptor.h"
 #include "ndbl/core/Graph.h"
-
-#include "Event.h"
-#include "FrameMode.h"
-#include "SlotView.h"
+#include "geometry/Vec2.h"
+#include "View.h"
 
 namespace ndbl
 {
     // forward declaration
-    class NodeView;
-    using tools::Vec2;
-    using tools::FunctionDescriptor;
+    struct Node_View;
+    struct Node_Slot;
+    struct Node;
+    struct Graph;
 
-    enum EventID_ : tools::EventID
+    struct Event_Data__Selection
     {
-        EventID_DELETE_NODE = tools::EventID_USER_DEFINED, // operation on nodes
-        EventID_ARRANGE_NODE,
-        EventID_SELECT_NEXT,
-        EventID_TOGGLE_FOLDING,
-        EventID_REQUEST_CREATE_NODE,
-        EventID_REQUEST_CREATE_BLOCK,
-        EventID_REQUEST_FRAME_SELECTION,
-        EventID_MOVE_SELECTION,
-        EventID_TOGGLE_ISOLATION_FLAGS,
-        EventID_SLOT_DROPPED,
-        EventID_SLOT_DISCONNECT_ALL,
-        EventID_SELECTION_CHANGE,
-        EventID_DELETE_EDGE,
-        EventID_RESET_GRAPH,
+        View_Selection selected_items = {};
     };
 
-    using Event_ToggleIsolationFlags = tools::Event<EventID_TOGGLE_ISOLATION_FLAGS>;
-    using Event_MoveSelection        = tools::Event<EventID_MOVE_SELECTION>;
-
-    class GraphView;
-    struct EventPayload_FrameNodeViews
+    struct Event_Data__Create_Node
     {
-        FrameMode  mode;
-        EventPayload_FrameNodeViews(FrameMode mode)
-        : mode(mode)
-        {}
+        Node_State          node_state;
+        Node_Slot_View*     active_slotview;    // The slot view being dragged.
+        Vec2                desired_screen_pos; // The desired position for the new node view
+        Type_Descriptor*    function_type;
     };
-    using Event_FrameSelection = tools::Event<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
-
-    struct EventPayload_SlotPair {
-        Slot* first;
-        Slot* second;
-        EventPayload_SlotPair(Slot* first = {}, Slot* second = {})
-        : first(first)
-        , second(second)
-        {}
-    };
-    using Event_SlotDisconnectAll = tools::Event<EventID_SLOT_DISCONNECT_ALL, EventPayload_SlotPair>;
-    using Event_SlotDropped       = tools::Event<EventID_SLOT_DROPPED, EventPayload_SlotPair>;
-
-    struct EventPayload_Node
-    {
-        Node* node;
-    };
-    using Event_DeleteEdge  = tools::Event<EventID_DELETE_EDGE, EventPayload_SlotPair>;
-    using Event_DeleteSelection  = tools::Event<EventID_DELETE_NODE, EventPayload_Node>;
-    using Event_ArrangeSelection     = tools::Event<EventID_ARRANGE_NODE>;
-    using Event_SelectNext  = tools::Event<EventID_SELECT_NEXT, EventPayload_Node>;
-
-    enum ToggleFoldingMode
-    {
-        NON_RECURSIVELY = 0,
-        RECURSIVELY     = 1,
-    };
-    struct EventPayload_ToggleFoldingEvent
-    {
-        ToggleFoldingMode mode;
-    };
-    using Event_ToggleFolding = tools::Event<EventID_TOGGLE_FOLDING, EventPayload_ToggleFoldingEvent>;
-
-    struct EventPayload_CreateNode
-    {
-        CreateNodeType       node_type;          // The note type to create
-        const FunctionDescriptor*      node_signature;     // The signature of the node that must be created
-        SlotView*            active_slotview;    // The slot view being dragged.
-        Graph*               graph;              // The graph to create the node into
-        Vec2                 desired_screen_pos; // The desired position for the new node view
-
-        explicit EventPayload_CreateNode(CreateNodeType node_type )
-        : node_type(node_type)
-        , node_signature(nullptr)
-        , active_slotview(nullptr)
-        , graph(nullptr)
-        {}
-
-        EventPayload_CreateNode(CreateNodeType node_type, const tools::FunctionDescriptor* signature )
-        : node_type(node_type)
-        , node_signature(signature)
-        {}
-    };
-    using Event_CreateNode  = tools::Event<EventID_REQUEST_CREATE_NODE, EventPayload_CreateNode>;
 
 }// namespace ndbl
