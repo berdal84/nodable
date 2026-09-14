@@ -86,7 +86,7 @@ void config_reset()
     g_config->border_size     = 1.f;
 
     g_config->ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
-    g_config->ui_text_textEditorPalette       = {
+    g_config->ui_text_editor_palette       = {
             0xffffffff, // None
             0xffd69c56, // Keyword
             0xff00ff00, // Number

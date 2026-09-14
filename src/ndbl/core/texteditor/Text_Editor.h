@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <map>
 #include <regex>
-#include <imgui.h> // TODO: get rid of this deps by using other char, integers and float types
+#include "ndbl/gui/geometry/Vec2.h" // this header should be in the core folder..
 
 namespace ndbl
 {
@@ -132,7 +132,6 @@ struct Text_Editor
 	typedef std::unordered_set<std::string> Keywords;
 	typedef std::map<int, std::string> ErrorMarkers;
 	typedef std::unordered_set<int> Breakpoints;
-	typedef std::array<ImU32, (unsigned)PaletteIndex::Max> Palette;
 	typedef uint8_t Char;
 
 	struct Glyph
@@ -209,9 +208,14 @@ struct Text_Editor
 	};
 	typedef std::vector<UndoRecord> UndoBuffer;
 	typedef void (*Add_Undo_Handler)(Text_Editor&, UndoRecord&);
+	typedef void (*Set_Clipboard_Handler)(const char*);
+	typedef const char* (*Get_Clipboard_Handler)();
 	typedef std::vector<std::pair<std::regex, PaletteIndex>> RegexList;
 
-	static void         DefaultAddUndoHandler(Text_Editor& editor, UndoRecord& value);
+
+	static void 		DefaultAddUndoHandler(Text_Editor& editor, UndoRecord& value);
+	static void 		DefaultSetClipBoardText(const char* str);
+	static const char*  DefaultGetClipBoardText();
 
 	float 				mLineSpacing;
 	Lines 				mLines;
@@ -219,6 +223,8 @@ struct Text_Editor
 	UndoBuffer 			mUndoBuffer;
 	int 				mUndoIndex;
 	Add_Undo_Handler    mAddUndoHandler;
+	Get_Clipboard_Handler get_clipboard_text_proc;
+	Set_Clipboard_Handler set_clipboard_text_proc;
 
 	int 				mTabSize;
 	bool 				mOverwrite;
@@ -238,15 +244,13 @@ struct Text_Editor
 	// bool 			mIgnoreImGuiChild; moved to xxx_ImGui_Impl.cpp
 	bool 				mShowWhitespaces;
 
-	Palette 			mPaletteBase;
-	Palette 			mPalette;
 	LanguageDefinition 	mLanguageDefinition;
 	RegexList 			mRegexList;
 
 	bool 				mCheckComments;
 	Breakpoints 		mBreakpoints;
 	ErrorMarkers 		mErrorMarkers;
-	ImVec2 				mCharAdvance;
+	Vec2 				mCharAdvance;
 	Coordinates 		mInteractiveStart, mInteractiveEnd;
 	std::string 		mLineBuffer;
 	uint64_t 			mStartTime;
@@ -256,71 +260,71 @@ struct Text_Editor
 	Text_Editor();
 	~Text_Editor();
 
-	void SetLanguageDefinition(const LanguageDefinition& aLanguageDef);
-	const LanguageDefinition& GetLanguageDefinition() const { return mLanguageDefinition; }
+	void 				SetLanguageDefinition(const LanguageDefinition& aLanguageDef);
+	const LanguageDefinition&
+						GetLanguageDefinition() const { return mLanguageDefinition; }
 
-	void SetText(const std::string& aText);
-	std::string GetText() const;
+	void 				SetText(const std::string& aText);
+	std::string 		GetText() const;
 
-	void SetTextLines(const std::vector<std::string>& aLines);
-	std::vector<std::string> GetTextLines() const;
+	void 				SetTextLines(const std::vector<std::string>& aLines);
+	std::vector<std::string>
+						GetTextLines() const;
 
-	std::string GetSelectedText() const;
-	std::string GetCurrentLineText()const;
+	std::string 		GetSelectedText() const;
+	std::string 		GetCurrentLineText()const;
 
-	int GetTotalLines() const { return (int)mLines.size(); }
+	int 				GetTotalLines() const { return (int)mLines.size(); }
 
-	void SetReadOnly(bool aValue);
+	void 				SetReadOnly(bool aValue);
 
-	bool IsColorizerEnabled() const { return mColorizerEnabled; }
-	void SetColorizerEnable(bool aValue);
+	bool 				IsColorizerEnabled() const { return mColorizerEnabled; }
+	void 				SetColorizerEnable(bool aValue);
 
-	Coordinates GetCursorPosition() const { return GetActualCursorCoordinates(); }
-	void SetCursorPosition(const Coordinates& aPosition);
+	Coordinates 		GetCursorPosition() const { return GetActualCursorCoordinates(); }
+	void 				SetCursorPosition(const Coordinates& aPosition);
 
-	void SetTabSize(int aValue);
-	inline int GetTabSize() const { return mTabSize; }
+	void 				SetTabSize(int aValue);
+	inline int 			GetTabSize() const { return mTabSize; }
 
-	void InsertText(const std::string& aValue, bool aSelect = false);
-	void InsertText(const char* aValue, bool aSelect = false);
+	void 				InsertText(const std::string& aValue, bool aSelect = false);
+	void 				InsertText(const char* aValue, bool aSelect = false);
 
-	void MoveUp(int aAmount = 1, bool aSelect = false);
-	void MoveDown(int aAmount = 1, bool aSelect = false);
-	void MoveLeft(int aAmount = 1, bool aSelect = false, bool aWordMode = false);
-	void MoveRight(int aAmount = 1, bool aSelect = false, bool aWordMode = false);
-	void MoveTop(bool aSelect = false);
-	void MoveBottom(bool aSelect = false);
-	void MoveHome(bool aSelect = false);
-	void MoveEnd(bool aSelect = false);
+	void 				MoveUp(int aAmount = 1, bool aSelect = false);
+	void 				MoveDown(int aAmount = 1, bool aSelect = false);
+	void 				MoveLeft(int aAmount = 1, bool aSelect = false, bool aWordMode = false);
+	void 				MoveRight(int aAmount = 1, bool aSelect = false, bool aWordMode = false);
+	void 				MoveTop(bool aSelect = false);
+	void 				MoveBottom(bool aSelect = false);
+	void 				MoveHome(bool aSelect = false);
+	void 				MoveEnd(bool aSelect = false);
 
-	void SetSelectionStart(const Coordinates& aPosition);
-	void SetSelectionEnd(const Coordinates& aPosition);
-	const Coordinates GetSelectionStart()const;
-	const Coordinates GetSelectionEnd()const;
-	void SetSelection(const Coordinates& aStart, const Coordinates& aEnd, SelectionMode aMode = SelectionMode::Normal);
-	void SelectWordUnderCursor();
-	void SelectAll();
-	bool HasSelection() const;
+	void 				SetSelectionStart(const Coordinates& aPosition);
+	void 				SetSelectionEnd(const Coordinates& aPosition);
+	const Coordinates 	GetSelectionStart()const;
+	const Coordinates 	GetSelectionEnd()const;
+	void 				SetSelection(const Coordinates& aStart, const Coordinates& aEnd, SelectionMode aMode = SelectionMode::Normal);
+	void 				SelectWordUnderCursor();
+	void 				SelectAll();
+	bool 				HasSelection() const;
 
-	void Copy();
-	void Cut();
-	void Paste();
-	void Delete();
+	void 				Copy();
+	void 				Cut();
+	void 				Paste();
+	void 				Delete();
 
-	bool CanUndo() const;
-	bool CanRedo() const;
-	void Undo(int aSteps = 1);
-	void Redo(int aSteps = 1);
+	bool 				CanUndo() const;
+	bool 				CanRedo() const;
+	void 				Undo(int aSteps = 1);
+	void 				Redo(int aSteps = 1);
 
-	size_t Size() const;
+	size_t				Size() const;
 
 	void  				ProcessInputs();
 	void  				Colorize(int aFromLine = 0, int aCount = -1);
 	void  				ColorizeRange(int aFromLine = 0, int aToLine = 0);
 	void  				ColorizeInternal();
-	float 				TextDistanceToLineStart(const Coordinates& aFrom) const;
-	void  				EnsureCursorVisible();
-	int   				GetPageSize() const;
+	int   				GetPageSize(float window_height) const;
 	std::string 		GetText(const Coordinates& aStart, const Coordinates& aEnd) const;
 	Coordinates 		GetActualCursorCoordinates() const;
 	Coordinates 		SanitizeCoordinates(const Coordinates& aValue) const;
@@ -328,7 +332,6 @@ struct Text_Editor
 	void 				DeleteRange(const Coordinates& aStart, const Coordinates& aEnd);
 	int  				InsertTextAt(Coordinates& aWhere, const char* aValue);
 	void 				AddUndo(UndoRecord& aValue);
-	Coordinates 		ScreenPosToCoordinates(const ImVec2& aPosition) const;
 	Coordinates 		FindWordStart(const Coordinates& aFrom) const;
 	Coordinates 		FindWordEnd(const Coordinates& aFrom) const;
 	Coordinates 		FindNextWord(const Coordinates& aFrom) const;
@@ -340,23 +343,14 @@ struct Text_Editor
 	void 				RemoveLine(int aStart, int aEnd);
 	void 				RemoveLine(int aIndex);
 	Line& 				InsertLine(int aIndex);
-	void 				EnterCharacter(ImWchar aChar, bool aShift);
+	void 				EnterCharacter(unsigned int aChar, bool aShift);
 	void 				Backspace();
 	void 				DeleteSelection();
 	std::string 		GetWordUnderCursor() const;
 	std::string 		GetWordAt(const Coordinates& aCoords) const;
-	ImU32 				GetGlyphColor(const Glyph& aGlyph) const;
-
-	void 				HandleKeyboardInputs();
-	void 				HandleMouseInputs();
-	// void  			Render(); // moved to xxx_ImGui_Impl
-
-	static const Palette& GetDarkPalette();
-	static const Palette& GetLightPalette();
-	static const Palette& GetRetroBluePalette();
 };
-        
-int        UTF8CharLength(Text_Editor::Char c);
+
 inline int ImTextCharToUtf8(char* buf, int buf_size, unsigned int c); // "Borrowed" from ImGui source
+int        UTF8CharLength(unsigned int c);
 
 } // namespace ndbl

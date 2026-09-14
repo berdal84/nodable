@@ -60,7 +60,8 @@ namespace ndbl
         Graph_View*             graph_view                          = nullptr;
         bdc::String             text_overlay_window_name;
         bdc::String             graph_overlay_window_name;
-		Text_Editor              text_editor                         = {};
+		Text_Editor             text_editor                         = {};
+        Palette                 text_editor_palette                 = {};
 		float                   text_child_size                     = 0.3f;
 		float                   graph_child_size                    = 0.7f;
         bdc::String             experimental_clipboard_curr;

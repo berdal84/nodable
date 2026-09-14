@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ndbl/core/texteditor/Text_Editor.h"
+#include "ndbl/core/texteditor/Text_Editor_ImGui_Renderer.h"
 
 #include "bdc/Types.hpp"
 
@@ -113,8 +113,8 @@ namespace ndbl
         bdc::String    ui_toolbar_window_label ;
         std::array<Vec4,Node_Type_COUNT> ui_node_fill_color;
         std::vector<Action> actions;
-        Text_Editor::Palette ui_text_textEditorPalette{};
-        Padding ui_scope_padding;
+        Palette        ui_text_editor_palette{};
+        Padding        ui_scope_padding;
         u64_t          ui_history_size_max{};
         Vec2           ui_node_gap_base; // horizontal, vertical
         Vec2           ui_slot_rectangle_size;
