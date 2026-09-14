@@ -2,7 +2,7 @@
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
-#include <ImGuiColorTextEdit/TextEditor.h>
+#include <ndbl/core/texteditor/Text_Editor.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include "ndbl/core/Event.h"

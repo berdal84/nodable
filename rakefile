@@ -171,7 +171,6 @@ extern.sources = FileList[
     "extern/imgui/misc/freetype/imgui_freetype.cpp",
     "extern/imgui/backends/imgui_impl_sdl2.cpp",
     "extern/imgui/backends/imgui_impl_opengl3.cpp",
-    "extern/ImGuiColorTextEdit/TextEditor.cpp", # not from imgui, but related to
 ]
 
 if DESKTOP
@@ -203,6 +202,8 @@ common.sources = FileList[
     "src/ndbl/core/reflection/Type_Descriptor.cpp",
     "src/ndbl/core/reflection/Type_Register.cpp",
     "src/ndbl/core/reflection/Variant.cpp",
+    "src/ndbl/core/texteditor/Text_Editor.cpp",
+    "src/ndbl/core/texteditor/Text_Editor_ImGui_Renderer.cpp",
     "src/ndbl/core/Scope.cpp",
     "src/ndbl/core/State_Machine.cpp",
     "src/ndbl/core/System.cpp",

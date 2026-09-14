@@ -1,6 +1,6 @@
 #include "Nodable.h"
 #include "IconsFontAwesome5.h"
-#include "ImGuiColorTextEdit/TextEditor.h"
+#include "ndbl/core/texteditor/Text_Editor.h"
 #include <algorithm>
 
 #ifdef __EMSCRIPTEN__
@@ -477,7 +477,7 @@ File* app_open_file(const Path& _path)
     // In case we want to handle different languages, we'll have to do some detection here.
     // Right now, I'll always use C language definition.
     //
-    static TextEditor::LanguageDefinition c_lang_def = TextEditor::LanguageDefinition::C();
+    static Text_Editor::LanguageDefinition c_lang_def = Text_Editor::LanguageDefinition::C();
     file->view.text_editor.SetLanguageDefinition( c_lang_def );
 
     if ( file_read(file, _path ) )

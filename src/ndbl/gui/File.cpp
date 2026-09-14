@@ -50,8 +50,8 @@ void file_init(File* file)
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File", "View built, creating History ...\n");
 
     // History
-    Text_Editor_Undo_Buffer* text_editor_buf = command_manager_configure_text_editor_undo_buffer(&file->view.text_editor);
-    fileview_set_undo_buffer(&file->view, text_editor_buf);
+    fileview_set_AddUndoHandler(&file->view, &command_manager_AddUndoHandler );
+    command_manager()->push_text_editor_AddUndoRecord = true;
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File", "Constructor being called.\n");
 }
 
@@ -74,7 +74,7 @@ void file_update_text_from_graph(File* file, bool isolation_on)
         bdc::String_Builder out;
         string_builder_init(out);
         lang_serialize_node(language(), out, root_node, Serialization_Flag_RECURSE);
-        bdc::String temp_str = bdc::string_builder_build_tstring(out); // the TextEditor in FileView will do a copy via an std::string
+        bdc::String temp_str = bdc::string_builder_build_tstring(out); // the Text_Editor in FileView will do a copy via an std::string
         fileview_set_text( &file->view, temp_str, isolation_on );
     }
     else

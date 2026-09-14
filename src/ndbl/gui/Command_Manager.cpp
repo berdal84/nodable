@@ -183,15 +183,6 @@ std::pair<int, int> ndbl::command_manager_get_command_id_range()
     return std::make_pair(-(int)g_command_manager->past.size(), (int)g_command_manager->future.size());
 }
 
-ndbl::Text_Editor_Undo_Buffer* ndbl::command_manager_configure_text_editor_undo_buffer( TextEditor* _text_editor )
-{
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
-
-    g_command_manager->text_editor_undo_buffer.text_editor = _text_editor;
-    g_command_manager->text_editor_undo_buffer.enabled     = true;
-    return &g_command_manager->text_editor_undo_buffer;
-}
-
 size_t ndbl::command_manager_get_size()
 {
     VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
@@ -203,18 +194,18 @@ void ndbl::command_manager_enable_text_editor_undo_buffer( bool enabled )
 {
     VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
 
-    g_command_manager->text_editor_undo_buffer.enabled = enabled;
+    g_command_manager->push_text_editor_AddUndoRecord = enabled;
 }
 
-void ndbl::Text_Editor_Undo_Buffer::AddUndo(TextEditor::UndoRecord& undo_record)
+void ndbl::command_manager_AddUndoHandler(Text_Editor& editor, Text_Editor::UndoRecord& undo_record)
 {
     VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
 
-    if ( enabled )
+    if ( g_command_manager->push_text_editor_AddUndoRecord )
     {
-        auto* undo_record_copy = bdc::memory_new<TextEditor::UndoRecord>();
+        auto* undo_record_copy = bdc::memory_new<Text_Editor::UndoRecord>();
         *undo_record_copy = undo_record;
-	    Command cmd = command_text_undo_record({ undo_record_copy, text_editor});
+	    Command cmd = command_text_undo_record({ undo_record_copy, &editor});
         command_manager_push_command(cmd, true);
     }
 }

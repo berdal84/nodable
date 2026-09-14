@@ -96,20 +96,20 @@ ndbl::Command ndbl::command_text_undo_record(Command_Data__Text_Undo_Record text
     command.proc_do             = command_text_undo_record_do;
     command.proc_undo           = command_text_undo_record_undo;
     command.text_undo_record    = text_undo_record;
-    command.description         = "Wraps a TextEditor's Undo Record";
+    command.description         = "Wraps a Text_Editor's Undo Record";
 
     return command;
 }
 
 void ndbl::command_text_undo_record_do(Command* command)
 {
-    TextEditor* text_editor = &app_state()->current_file->view.text_editor;
+    Text_Editor* text_editor = &app_state()->current_file->view.text_editor;
     command->text_undo_record.undo_record->Redo(text_editor);
 }
 
 void ndbl::command_text_undo_record_undo(Command* command)
 {
-    TextEditor* text_editor = &app_state()->current_file->view.text_editor;
+    Text_Editor* text_editor = &app_state()->current_file->view.text_editor;
     command->text_undo_record.undo_record->Undo(text_editor);
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "ImGuiColorTextEdit/TextEditor.h"
+#include "ndbl/core/texteditor/Text_Editor.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/Node_Slot.h"
 #include "ndbl/gui/View.h"
@@ -82,8 +82,8 @@ namespace ndbl
 
     struct Command_Data__Text_Undo_Record
     {
-        TextEditor::UndoRecord* undo_record;
-        TextEditor*             text_editor;
+        Text_Editor::UndoRecord* undo_record;
+        Text_Editor*             text_editor;
     };
 
     struct Command_Data__Selection_Change

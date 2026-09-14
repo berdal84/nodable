@@ -8,11 +8,13 @@
 #include <unordered_map>
 #include <map>
 #include <regex>
-#include <imgui.h>
+#include <imgui.h> // TODO: get rid of this deps by using other char, integers and float types
 
-class TextEditor
+namespace ndbl
 {
-public:
+	
+struct Text_Editor
+{
 	enum class PaletteIndex
 	{
 		Default,
@@ -189,28 +191,10 @@ public:
 		Coordinates mCursorPosition;
 	};
 
-	class UndoRecord
+	struct UndoRecord
 	{
-	public:
-		UndoRecord() {}
-		~UndoRecord() {}
-
-		UndoRecord(
-			const std::string& aAdded,
-			const TextEditor::Coordinates aAddedStart,
-			const TextEditor::Coordinates aAddedEnd,
-
-			const std::string& aRemoved,
-			const TextEditor::Coordinates aRemovedStart,
-			const TextEditor::Coordinates aRemovedEnd,
-
-			TextEditor::EditorState& aBefore,
-			TextEditor::EditorState& aAfter);
-
-		UndoRecord(const UndoRecord& undoRecord);
-
-		void Undo(TextEditor* aEditor);
-		void Redo(TextEditor* aEditor);
+		void Undo(Text_Editor* aEditor);
+		void Redo(Text_Editor* aEditor);
 
 		std::string mAdded;
 		Coordinates mAddedStart;
@@ -223,28 +207,58 @@ public:
 		EditorState mBefore;
 		EditorState mAfter;
 	};
-
-	class IExternalUndoBuffer
-	{
-	public:
-		virtual void AddUndo(UndoRecord&) = 0;
-	};
-
 	typedef std::vector<UndoRecord> UndoBuffer;
+	typedef void (*Add_Undo_Handler)(Text_Editor&, UndoRecord&);
+	typedef std::vector<std::pair<std::regex, PaletteIndex>> RegexList;
 
-	TextEditor();
-	~TextEditor();
+	static void         DefaultAddUndoHandler(Text_Editor& editor, UndoRecord& value);
+
+	float 				mLineSpacing;
+	Lines 				mLines;
+	EditorState 		mState;
+	UndoBuffer 			mUndoBuffer;
+	int 				mUndoIndex;
+	Add_Undo_Handler    mAddUndoHandler;
+
+	int 				mTabSize;
+	bool 				mOverwrite;
+	bool 				mReadOnly;
+	bool 				mWithinRender;
+	bool 				mScrollToCursor;
+	bool 				mScrollToTop;
+	bool 				mTextChanged;
+	bool 				mColorizerEnabled;
+	float 				mTextStart; // position (in pixels) where a code line starts relative to the left of the Text_Editor.
+	int  				mLeftMargin;
+	bool 				mCursorPositionChanged;
+	int 				mColorRangeMin, mColorRangeMax;
+	SelectionMode 		mSelectionMode;
+	bool 				mHandleKeyboardInputs;
+	bool 				mHandleMouseInputs;
+	// bool 			mIgnoreImGuiChild; moved to xxx_ImGui_Impl.cpp
+	bool 				mShowWhitespaces;
+
+	Palette 			mPaletteBase;
+	Palette 			mPalette;
+	LanguageDefinition 	mLanguageDefinition;
+	RegexList 			mRegexList;
+
+	bool 				mCheckComments;
+	Breakpoints 		mBreakpoints;
+	ErrorMarkers 		mErrorMarkers;
+	ImVec2 				mCharAdvance;
+	Coordinates 		mInteractiveStart, mInteractiveEnd;
+	std::string 		mLineBuffer;
+	uint64_t 			mStartTime;
+
+	float 				mLastClick;
+
+	Text_Editor();
+	~Text_Editor();
 
 	void SetLanguageDefinition(const LanguageDefinition& aLanguageDef);
 	const LanguageDefinition& GetLanguageDefinition() const { return mLanguageDefinition; }
 
-	const Palette& GetPalette() const { return mPaletteBase; }
-	void SetPalette(const Palette& aValue);
-
-	void SetErrorMarkers(const ErrorMarkers& aMarkers) { mErrorMarkers = aMarkers; }
-	void SetBreakpoints(const Breakpoints& aMarkers) { mBreakpoints = aMarkers; }
-
-	void Render(const char* aTitle, const ImVec2& aSize = ImVec2(), bool aBorder = false);
 	void SetText(const std::string& aText);
 	std::string GetText() const;
 
@@ -255,30 +269,14 @@ public:
 	std::string GetCurrentLineText()const;
 
 	int GetTotalLines() const { return (int)mLines.size(); }
-	bool IsOverwrite() const { return mOverwrite; }
 
 	void SetReadOnly(bool aValue);
-	bool IsReadOnly() const { return mReadOnly; }
-	bool IsTextChanged() const { return mTextChanged; }
-	bool IsCursorPositionChanged() const { return mCursorPositionChanged; }
 
 	bool IsColorizerEnabled() const { return mColorizerEnabled; }
 	void SetColorizerEnable(bool aValue);
 
 	Coordinates GetCursorPosition() const { return GetActualCursorCoordinates(); }
 	void SetCursorPosition(const Coordinates& aPosition);
-
-	inline void SetHandleMouseInputs    (bool aValue){ mHandleMouseInputs    = aValue;}
-	inline bool IsHandleMouseInputsEnabled() const { return mHandleKeyboardInputs; }
-
-	inline void SetHandleKeyboardInputs (bool aValue){ mHandleKeyboardInputs = aValue;}
-	inline bool IsHandleKeyboardInputsEnabled() const { return mHandleKeyboardInputs; }
-
-	inline void SetImGuiChildIgnored    (bool aValue){ mIgnoreImGuiChild     = aValue;}
-	inline bool IsImGuiChildIgnored() const { return mIgnoreImGuiChild; }
-
-	inline void SetShowWhitespaces(bool aValue) { mShowWhitespaces = aValue; }
-	inline bool IsShowingWhitespaces() const { return mShowWhitespaces; }
 
 	void SetTabSize(int aValue);
 	inline int GetTabSize() const { return mTabSize; }
@@ -313,91 +311,52 @@ public:
 	bool CanRedo() const;
 	void Undo(int aSteps = 1);
 	void Redo(int aSteps = 1);
-	void SetExternalUndoBuffer(IExternalUndoBuffer*);
 
 	size_t Size() const;
+
+	void  				ProcessInputs();
+	void  				Colorize(int aFromLine = 0, int aCount = -1);
+	void  				ColorizeRange(int aFromLine = 0, int aToLine = 0);
+	void  				ColorizeInternal();
+	float 				TextDistanceToLineStart(const Coordinates& aFrom) const;
+	void  				EnsureCursorVisible();
+	int   				GetPageSize() const;
+	std::string 		GetText(const Coordinates& aStart, const Coordinates& aEnd) const;
+	Coordinates 		GetActualCursorCoordinates() const;
+	Coordinates 		SanitizeCoordinates(const Coordinates& aValue) const;
+	void 				Advance(Coordinates& aCoordinates) const;
+	void 				DeleteRange(const Coordinates& aStart, const Coordinates& aEnd);
+	int  				InsertTextAt(Coordinates& aWhere, const char* aValue);
+	void 				AddUndo(UndoRecord& aValue);
+	Coordinates 		ScreenPosToCoordinates(const ImVec2& aPosition) const;
+	Coordinates 		FindWordStart(const Coordinates& aFrom) const;
+	Coordinates 		FindWordEnd(const Coordinates& aFrom) const;
+	Coordinates 		FindNextWord(const Coordinates& aFrom) const;
+	int 				GetCharacterIndex(const Coordinates& aCoordinates) const;
+	int 				GetCharacterColumn(int aLine, int aIndex) const;
+	int 				GetLineCharacterCount(int aLine) const;
+	int 				GetLineMaxColumn(int aLine) const;
+	bool 				IsOnWordBoundary(const Coordinates& aAt) const;
+	void 				RemoveLine(int aStart, int aEnd);
+	void 				RemoveLine(int aIndex);
+	Line& 				InsertLine(int aIndex);
+	void 				EnterCharacter(ImWchar aChar, bool aShift);
+	void 				Backspace();
+	void 				DeleteSelection();
+	std::string 		GetWordUnderCursor() const;
+	std::string 		GetWordAt(const Coordinates& aCoords) const;
+	ImU32 				GetGlyphColor(const Glyph& aGlyph) const;
+
+	void 				HandleKeyboardInputs();
+	void 				HandleMouseInputs();
+	// void  			Render(); // moved to xxx_ImGui_Impl
 
 	static const Palette& GetDarkPalette();
 	static const Palette& GetLightPalette();
 	static const Palette& GetRetroBluePalette();
-
-private:
-	typedef std::vector<std::pair<std::regex, PaletteIndex>> RegexList;
-
-	void ProcessInputs();
-	void Colorize(int aFromLine = 0, int aCount = -1);
-	void ColorizeRange(int aFromLine = 0, int aToLine = 0);
-	void ColorizeInternal();
-	float TextDistanceToLineStart(const Coordinates& aFrom) const;
-	void EnsureCursorVisible();
-	int GetPageSize() const;
-	std::string GetText(const Coordinates& aStart, const Coordinates& aEnd) const;
-	Coordinates GetActualCursorCoordinates() const;
-	Coordinates SanitizeCoordinates(const Coordinates& aValue) const;
-	void Advance(Coordinates& aCoordinates) const;
-	void DeleteRange(const Coordinates& aStart, const Coordinates& aEnd);
-	int InsertTextAt(Coordinates& aWhere, const char* aValue);
-	void AddUndo(UndoRecord& aValue);
-	Coordinates ScreenPosToCoordinates(const ImVec2& aPosition) const;
-	Coordinates FindWordStart(const Coordinates& aFrom) const;
-	Coordinates FindWordEnd(const Coordinates& aFrom) const;
-	Coordinates FindNextWord(const Coordinates& aFrom) const;
-	int GetCharacterIndex(const Coordinates& aCoordinates) const;
-	int GetCharacterColumn(int aLine, int aIndex) const;
-	int GetLineCharacterCount(int aLine) const;
-	int GetLineMaxColumn(int aLine) const;
-	bool IsOnWordBoundary(const Coordinates& aAt) const;
-	void RemoveLine(int aStart, int aEnd);
-	void RemoveLine(int aIndex);
-	Line& InsertLine(int aIndex);
-	void EnterCharacter(ImWchar aChar, bool aShift);
-	void Backspace();
-	void DeleteSelection();
-	std::string GetWordUnderCursor() const;
-	std::string GetWordAt(const Coordinates& aCoords) const;
-	ImU32 GetGlyphColor(const Glyph& aGlyph) const;
-
-	void HandleKeyboardInputs();
-	void HandleMouseInputs();
-	void Render();
-
-	float mLineSpacing;
-	Lines mLines;
-	EditorState mState;
-	UndoBuffer mUndoBuffer;
-	int mUndoIndex;
-	IExternalUndoBuffer* mExternalUndoBuffer;
-
-	int mTabSize;
-	bool mOverwrite;
-	bool mReadOnly;
-	bool mWithinRender;
-	bool mScrollToCursor;
-	bool mScrollToTop;
-	bool mTextChanged;
-	bool mColorizerEnabled;
-	float mTextStart;                   // position (in pixels) where a code line starts relative to the left of the TextEditor.
-	int  mLeftMargin;
-	bool mCursorPositionChanged;
-	int mColorRangeMin, mColorRangeMax;
-	SelectionMode mSelectionMode;
-	bool mHandleKeyboardInputs;
-	bool mHandleMouseInputs;
-	bool mIgnoreImGuiChild;
-	bool mShowWhitespaces;
-
-	Palette mPaletteBase;
-	Palette mPalette;
-	LanguageDefinition mLanguageDefinition;
-	RegexList mRegexList;
-
-	bool mCheckComments;
-	Breakpoints mBreakpoints;
-	ErrorMarkers mErrorMarkers;
-	ImVec2 mCharAdvance;
-	Coordinates mInteractiveStart, mInteractiveEnd;
-	std::string mLineBuffer;
-	uint64_t mStartTime;
-
-	float mLastClick;
 };
+        
+int        UTF8CharLength(Text_Editor::Char c);
+inline int ImTextCharToUtf8(char* buf, int buf_size, unsigned int c); // "Borrowed" from ImGui source
+
+} // namespace ndbl

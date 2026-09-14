@@ -3,6 +3,7 @@
 #include "ndbl/core/Flags.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
+#include "ndbl/core/texteditor/Text_Editor_ImGui_Renderer.h"
 #include "ndbl/gui/Command_Manager.h"
 #include "ndbl/gui/Action_Manager.h"
 #include "ndbl/gui/Config.h"
@@ -25,8 +26,8 @@ void fileview_init(File_View* file_view, File* file)
     file_view->text_overlay_window_name  = bdc::string_printf( "%s_text_overlay" , file->name.data );
     file_view->graph_overlay_window_name = bdc::string_printf( "%s_graph_overlay", file->name.data );
 
-	file_view->text_editor.SetImGuiChildIgnored(true);
-	file_view->text_editor.SetPalette( cfg->ui_text_textEditorPalette );
+	// file_view->text_editor.SetImGuiChildIgnored(true); is now in the render side
+	file_view->text_editor.mPaletteBase = cfg->ui_text_textEditorPalette;
 
     ASSERT(file->graph->view);
     file_view->graph_view = file->graph->view;
@@ -171,8 +172,8 @@ void fileview_draw(File_View* file_view, float dt)
                                !ImGui::IsAnyItemHovered() &&
                                !ImGui::IsAnyItemFocused();
 
-            file_view->text_editor.SetHandleKeyboardInputs(allow_keyboard);
-            file_view->text_editor.SetHandleMouseInputs(allow_mouse);
+            file_view->text_editor.mHandleKeyboardInputs = allow_keyboard;
+            file_view->text_editor.mHandleMouseInputs    = allow_mouse;
 
             // listen to clipboard in background (disable by default)
             if (file_view->experimental_clipboard_auto_paste)
@@ -191,7 +192,8 @@ void fileview_draw(File_View* file_view, float dt)
             command_manager_enable_text_editor_undo_buffer(true); // ensure to begin to record history
 
             // render text editor
-            file_view->text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
+            const bool nochild = true;
+            text_editor_render(file_view->text_editor, "Text_Editor", ImGui::GetContentRegionAvail(), nochild);
 
             // overlay
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
@@ -213,7 +215,7 @@ void fileview_draw(File_View* file_view, float dt)
             auto is_selected_text_modified = new_cursor_position != old_cursor_position;
 
             text_view_changed  = is_line_text_modified;
-            text_view_changed |= file_view->text_editor.IsTextChanged();
+            text_view_changed |= file_view->text_editor.mTextChanged;
             text_view_changed |= HAS_FLAGS(cfg->flags, Config_Flag_ISOLATION_ON) && is_selected_text_modified;
         }
         ImGui::EndChild();
@@ -300,7 +302,7 @@ void fileview_set_text(File_View* file_view, bdc::String new_text, bool isolatio
         if (!hasSelection) {
             file_view->text_editor.MoveHome(false);
             file_view->text_editor.MoveEnd(true);
-            file_view->text_editor.SetCursorPosition(TextEditor::Coordinates(start.mLine, 0));
+            file_view->text_editor.SetCursorPosition(Text_Editor::Coordinates(start.mLine, 0));
         }
 
         /* insert text (and select it) */
@@ -325,9 +327,9 @@ void fileview_set_text(File_View* file_view, bdc::String new_text, bool isolatio
     }
 }
 
-void fileview_set_undo_buffer(File_View* file_view, TextEditor::IExternalUndoBuffer* _buffer )
+void fileview_set_AddUndoHandler(File_View* file_view, Text_Editor::Add_Undo_Handler handler )
 {
-	file_view->text_editor.SetExternalUndoBuffer(_buffer);
+	file_view->text_editor.mAddUndoHandler = handler;
 }
 
 void fileview_set_experimental_clipboard_auto_paste(File_View* file_view, bool enable)
