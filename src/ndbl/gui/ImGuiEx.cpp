@@ -1,0 +1,331 @@
+#include "ImGuiEx.h"
+
+#include "ndbl/core/Asserts.h"
+#include "ndbl/core/Event_Manager.h"
+#include "ndbl/core/Event.h"
+#include "ndbl/core/Log.h"
+#include "Action_Manager.h"
+#include "Action.h"
+#include "Color.h"
+#include "geometry/Bezier_Curve_Segment_2D.h"
+#include "geometry/Line_Segment_2D.h"
+#include "Texture.h"
+
+#define DEBUG_BEZIER_ENABLE 0
+
+namespace ndbl::ImGuiEx
+{
+
+struct Context
+{
+    bool    debug                 = false;
+    bool    is_any_tooltip_open   = false;
+    float   tooltip_delay_elapsed = 0.0f;
+};
+
+static Context g_ctx = {};
+
+void set_debug( bool value )
+{
+    g_ctx.debug = value;
+}
+
+Rect GetContentRegion(Space origin)
+{
+    switch (origin)
+    {
+        case PARENT_SPACE:
+            return {
+                ImGui::GetWindowContentRegionMin(),
+                ImGui::GetWindowContentRegionMax()
+            };
+        case WORLD_SPACE:
+            return {
+                ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin(),
+                ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMax()
+            };
+        default:
+            VERIFY(false, "This space is not allowed");
+    }
+    return GetContentRegion(PARENT_SPACE);
+}
+
+void DrawRectShadow (const Vec2& _topLeftCorner, const Vec2& _bottomRightCorner, float _borderRadius, int _shadowRadius, const Vec2& _shadowOffset, const Vec4& _shadowColor)
+{
+    Vec2 itemRectMin(_topLeftCorner.x + _shadowOffset.x, _topLeftCorner.y + _shadowOffset.y);
+    Vec2 itemRectMax(_bottomRightCorner.x + _shadowOffset.x, _bottomRightCorner.y + _shadowOffset.y);
+    Vec4 color       = _shadowColor;
+    color.w /= float(_shadowRadius);
+    auto borderRadius  = _borderRadius;
+
+    // draw N concentric rectangles.
+    for(int i = 0; i < _shadowRadius; i++)
+    {
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+        draw_list->AddRectFilled(itemRectMin, itemRectMax, ImColor(color));
+
+        itemRectMin.x -= 1.0f;
+        itemRectMin.y -= 1.0f;
+
+        itemRectMax.x += 1.0f;
+        itemRectMax.y += 1.0f;
+
+        borderRadius += 1.0f;
+    }
+}
+
+void ShadowedText(const Vec2& offset, const Vec4& shadow_color, const char* fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    ImGui::BeginGroup();
+    // shadow
+    auto p = ImGui::GetCursorScreenPos();
+    ImGui::SetCursorScreenPos(Vec2(p.x + offset.x, p.y + offset.y));
+    ImGui::TextColored(shadow_color, fmt, args);
+    // text
+    ImGui::SetCursorScreenPos(p);
+    ImGui::Text(fmt, args);
+    ImGui::EndGroup();
+    va_end(args);
+}
+
+void ColoredShadowedText(const Vec2& offset, const Vec4& text_color, const Vec4& shadow_color, const char*  fmt, ...)
+{
+    // draw first the shadow
+    auto p = ImGui::GetCursorPos();
+    ImGui::SetCursorPos(Vec2(p.x + offset.x, p.y + offset.y));
+
+    va_list args;
+    va_start(args, fmt);
+    ImGui::TextColored(shadow_color, fmt, args);
+    ImGui::SetCursorPos(p);
+    ImGui::TextColored(text_color, fmt, args);
+    va_end(args);
+}
+
+void DrawWire(
+        ImDrawList *draw_list,
+        const Bezier_Curve_Segment_2D& curve,
+        const WireStyle& style,
+        bool* hovered
+     )
+{
+    if ( style.color.z == 0)
+        return;
+
+    // 1) determine curves for fill and shadow
+
+    // Line
+    // Generate curve
+    std::vector<Vec2> fill_path;
+    beziercurve_tesselate(&fill_path, &curve);
+
+    if ( fill_path.size() == 1) return;
+
+    // Shadow
+    Bezier_Curve_Segment_2D shadow_curve = curve;
+    beziercurve_translate(&shadow_curve, { 1.f, 1.f });
+    shadow_curve.p2 = curve.p2 + Vec2(0.f, 10.f);
+    shadow_curve.p3 = curve.p3 + Vec2(0.f, 10.f);
+
+    // Generate curve
+    std::vector<Vec2> shadow_path;
+    beziercurve_tesselate(&shadow_path, &shadow_curve);
+
+    // 2) draw the shadow
+
+    if ( shadow_path.size() > 1)
+        DrawPath(draw_list, &shadow_path, style.shadow_color, style.thickness);
+
+    // 3) draw the curve
+
+    // Mouse behavior
+    if( hovered != nullptr)
+        MultiSegmentLineBehavior(&fill_path, beziercurve_bbox(&curve), style.thickness + 6.f, hovered );
+
+    // Draw the path
+    DrawPath(draw_list, &fill_path, style.color, style.thickness);
+}
+
+bool BeginTooltip(float _delay, float _duration)
+{
+    if ( !ImGui::IsItemHovered() ) return false;
+
+    g_ctx.is_any_tooltip_open = true;
+    g_ctx.tooltip_delay_elapsed += ImGui::GetIO().DeltaTime;
+
+    float fade = 0.f;
+    if ( g_ctx.tooltip_delay_elapsed >= _delay )
+    {
+        fade = ( g_ctx.tooltip_delay_elapsed - _delay) / _duration;
+    }
+
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, fade);
+    ImGui::BeginTooltip();
+
+    return true;
+}
+
+void EndTooltip()
+{
+    ImGui::EndTooltip();
+    ImGui::PopStyleVar(); // ImGuiStyleVar_Alpha
+}
+
+void EndFrame()
+{
+    if( !g_ctx.is_any_tooltip_open )
+        g_ctx.tooltip_delay_elapsed = 0.f;
+}
+
+void NewFrame()
+{
+    g_ctx.is_any_tooltip_open = false;
+}
+
+void BulletTextWrapped(const char* str)
+{
+    ImGui::Bullet(); ImGui::SameLine();
+    ImGui::TextWrapped("%s", str);
+}
+
+void DebugRect(const Vec2& p_min, const Vec2& p_max, ImU32 col, float rounding, ImDrawFlags flags, float thickness)
+{
+#ifdef NDBL_DEBUG
+    if(!g_ctx.debug) return;
+    ImDrawList* list = ImGui::GetForegroundDrawList();
+    list->AddRect(p_min, p_max, col, rounding, flags, thickness);
+#endif
+}
+
+void DebugCircle(const Vec2& center, float radius, ImU32 col, int num_segments, float thickness)
+{
+#ifdef NDBL_DEBUG
+    if(!g_ctx.debug) return;
+    ImDrawList* list = ImGui::GetForegroundDrawList();
+    list->AddCircle(center, radius, col, num_segments, thickness);
+#endif
+}
+
+void DebugLine(const Vec2& p1, const Vec2& p2, ImU32 col, float thickness)
+{
+#ifdef NDBL_DEBUG
+    if(!g_ctx.debug) return;
+    ImDrawList* list = ImGui::GetForegroundDrawList();
+    list->AddLine(p1, p2, col, thickness);
+#endif
+}
+
+void Image(Texture* _texture)
+{
+    ImGui::Image((ImTextureID)_texture->id(), _texture->size());
+}
+
+void DrawPath(ImDrawList* draw_list, const std::vector<Vec2>* path, const Vec4& color, float thickness)
+{
+    // Push segments to ImGui's current path
+    for(auto& p : *path)
+        draw_list->PathLineTo(p + Vec2(0.5f, 0.5f));
+
+    // Draw the path
+    draw_list->PathStroke( ImColor(color), 0, thickness);
+}
+
+float CalcSegmentHoverMinDist(float line_thickness )
+{
+    return line_thickness < 1.f ? 1.5f
+                           : line_thickness * 0.5f + 1.f;
+}
+
+void MultiSegmentLineBehavior(
+    const std::vector<Vec2>* path,
+    Rect bbox,
+    float thickness,
+    bool* hovered)
+{
+    if ( path->size() == 1) return;
+
+    const float hover_min_distance = CalcSegmentHoverMinDist(thickness);
+    bbox.expand(hover_min_distance);
+    const Vec2 mouse_pos = ImGui::GetMousePos();
+
+#if DEBUG_BEZIER_ENABLE
+    DebugRect(bbox.min, bbox.max, ImColor(0,255,127));
+#endif
+    // bbox vs point
+    if ( !Rect::contains( bbox, mouse_pos ) ) return;
+
+    // test each segment
+    int i = 0;
+    while( !*hovered && i < path->size() - 1 )
+    {
+        const float mouse_distance = Line_Segment_2D::point_minimum_distance(Line_Segment_2D{(*path)[i], (*path)[i + 1]}, mouse_pos );
+        *hovered = mouse_distance < hover_min_distance;
+        ++i;
+    }
+}
+
+void Grid(const Rect& region, float grid_size, int subdiv_count, ImU32 major_color, ImU32 minor_color )
+{
+    ImDrawList* draw_list   = ImGui::GetWindowDrawList();
+    const float subdiv_size = grid_size / float(subdiv_count);
+
+    Vec2  line_start;
+    int   line_count;
+    Vec2  line_len;
+    Vec2  line_dir;
+    Vec2  line_distrib_dir;
+
+    enum AXIS: int
+    {
+        AXIS_HORIZONTAL = 0,
+        AXIS_VERTICAL,
+        AXIS_COUNT
+    };
+
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        if ( axis == AXIS_HORIZONTAL )
+        {
+            line_len         = region.width();
+            line_dir         = Vec2(1.f, 0.f);
+            line_distrib_dir = Vec2(0.f, 1.f);
+            line_count       = (int)(region.height() / subdiv_size);
+        }
+        else
+        {
+            line_len         = region.height();
+            line_dir         = Vec2(0.f, 1.f);
+            line_distrib_dir = Vec2(1.f, 0.f);
+            line_count       = (int) (region.width() / subdiv_size);
+        }
+
+        for (int line_index = 0; line_index < line_count; ++line_index)
+        {
+             // Distribute along line_distrib_dir
+            const float line_scalar_pos = float(line_index) * subdiv_size;
+            line_start = region.min + line_distrib_dir * line_scalar_pos;
+
+            // Determine color (every subdiv_count lines are major)
+            ImU32& line_color = line_index % subdiv_count == 0 ? major_color : minor_color;
+
+            // Add the line (will be drawn later)
+            draw_list->AddLine(line_start, line_start + line_dir * line_len, line_color );
+        }
+    }
+}
+
+const Action* MenuItem_for_event_type(Event_Type event_type, bool selected, bool enable)
+{
+    const Action* action = action_manager_get_action_with_event_type(event_type);
+
+    if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
+    {
+        return action;
+    }
+    return nullptr;
+};
+
+} // namespace ndbl::ImGuiEx
