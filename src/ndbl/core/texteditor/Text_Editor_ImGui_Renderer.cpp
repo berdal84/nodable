@@ -4,6 +4,7 @@
 #include <string>
 #include <regex>
 #include <cmath>
+#include "ndbl/core/language/Nodlang.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h> // for imGui::GetCurrentWindow()
@@ -268,7 +269,7 @@ void text_editor_render(Text_Editor& editor, const char* title, const Palette& p
 
 	text_editor_ensure_cursor_visible(editor);
 
-	editor.ColorizeInternal();
+	// Colorize: TODO
 	
     // RENDER
 
@@ -505,23 +506,7 @@ void text_editor_render(Text_Editor& editor, const char* title, const Palette& p
 			auto id = editor.GetWordAt( text_editor_screen_pos_to_coordinates(editor, ImGui::GetMousePos()) );
 			if (!id.empty())
 			{
-				auto it = editor.mLanguageDefinition.mIdentifiers.find(id);
-				if (it != editor.mLanguageDefinition.mIdentifiers.end())
-				{
-					ImGui::BeginTooltip();
-					ImGui::TextUnformatted(it->second.mDeclaration.c_str());
-					ImGui::EndTooltip();
-				}
-				else
-				{
-					auto pi = editor.mLanguageDefinition.mPreprocIdentifiers.find(id);
-					if (pi != editor.mLanguageDefinition.mPreprocIdentifiers.end())
-					{
-						ImGui::BeginTooltip();
-						ImGui::TextUnformatted(pi->second.mDeclaration.c_str());
-						ImGui::EndTooltip();
-					}
-				}
+				// TODO
 			}
 		}
 	}
@@ -706,5 +691,6 @@ const Palette& text_editor_get_retro_blue_palette()
 		} };
 	return p;
 }
+
 
 } // namespace ndbl

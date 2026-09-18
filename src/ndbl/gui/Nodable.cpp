@@ -473,13 +473,6 @@ File* app_open_file(const Path& _path)
     File* file = bdc::memory_new<File>();
     file_init(file);
     
-    // Currently, we rely on the LanguageDefinition provided by the text editor to perform syntax highlighting
-    // In case we want to handle different languages, we'll have to do some detection here.
-    // Right now, I'll always use C language definition.
-    //
-    static Text_Editor::LanguageDefinition c_lang_def = Text_Editor::LanguageDefinition::C();
-    file->view.text_editor.SetLanguageDefinition( c_lang_def );
-
     if ( file_read(file, _path ) )
     {
         return app_add_file(file);

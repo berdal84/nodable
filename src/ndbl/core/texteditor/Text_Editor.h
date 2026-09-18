@@ -149,40 +149,6 @@ struct Text_Editor
 	typedef std::vector<Glyph> Line;
 	typedef std::vector<Line> Lines;
 
-	struct LanguageDefinition
-	{
-		typedef std::pair<std::string, PaletteIndex> TokenRegexString;
-		typedef std::vector<TokenRegexString> TokenRegexStrings;
-		typedef bool(*TokenizeCallback)(const char * in_begin, const char * in_end, const char *& out_begin, const char *& out_end, PaletteIndex & paletteIndex);
-
-		std::string mName;
-		Keywords mKeywords;
-		Identifiers mIdentifiers;
-		Identifiers mPreprocIdentifiers;
-		std::string mCommentStart, mCommentEnd, mSingleLineComment;
-		char mPreprocChar;
-		bool mAutoIndentation;
-
-		TokenizeCallback mTokenize;
-
-		TokenRegexStrings mTokenRegexStrings;
-
-		bool mCaseSensitive;
-
-		LanguageDefinition()
-			: mPreprocChar('#'), mAutoIndentation(true), mTokenize(nullptr), mCaseSensitive(true)
-		{
-		}
-
-		static const LanguageDefinition& CPlusPlus();
-		static const LanguageDefinition& HLSL();
-		static const LanguageDefinition& GLSL();
-		static const LanguageDefinition& C();
-		static const LanguageDefinition& SQL();
-		static const LanguageDefinition& AngelScript();
-		static const LanguageDefinition& Lua();
-	};
-
 	struct EditorState
 	{
 		Coordinates mSelectionStart;
@@ -223,8 +189,8 @@ struct Text_Editor
 	UndoBuffer 			mUndoBuffer;
 	int 				mUndoIndex;
 	Add_Undo_Handler    mAddUndoHandler;
-	Get_Clipboard_Handler get_clipboard_text_proc;
-	Set_Clipboard_Handler set_clipboard_text_proc;
+	Get_Clipboard_Handler mGetClipboardTextProc;
+	Set_Clipboard_Handler mSetClipboardTextProc;
 
 	int 				mTabSize;
 	bool 				mOverwrite;
@@ -243,10 +209,7 @@ struct Text_Editor
 	bool 				mHandleMouseInputs;
 	// bool 			mIgnoreImGuiChild; moved to xxx_ImGui_Impl.cpp
 	bool 				mShowWhitespaces;
-
-	LanguageDefinition 	mLanguageDefinition;
-	RegexList 			mRegexList;
-
+	bool                mAutoIndentation;
 	bool 				mCheckComments;
 	Breakpoints 		mBreakpoints;
 	ErrorMarkers 		mErrorMarkers;
@@ -254,15 +217,11 @@ struct Text_Editor
 	Coordinates 		mInteractiveStart, mInteractiveEnd;
 	std::string 		mLineBuffer;
 	uint64_t 			mStartTime;
-
+	
 	float 				mLastClick;
 
 	Text_Editor();
 	~Text_Editor();
-
-	void 				SetLanguageDefinition(const LanguageDefinition& aLanguageDef);
-	const LanguageDefinition&
-						GetLanguageDefinition() const { return mLanguageDefinition; }
 
 	void 				SetText(const std::string& aText);
 	std::string 		GetText() const;
@@ -320,10 +279,6 @@ struct Text_Editor
 
 	size_t				Size() const;
 
-	void  				ProcessInputs();
-	void  				Colorize(int aFromLine = 0, int aCount = -1);
-	void  				ColorizeRange(int aFromLine = 0, int aToLine = 0);
-	void  				ColorizeInternal();
 	int   				GetPageSize(float window_height) const;
 	std::string 		GetText(const Coordinates& aStart, const Coordinates& aEnd) const;
 	Coordinates 		GetActualCursorCoordinates() const;
