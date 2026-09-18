@@ -38,7 +38,7 @@ namespace ndbl
         bdc::String            name;
         Path                   path; // file path on disk
         File_View              view;
-        bdc::String            temp_text_buffer; // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
+        bdc::String            temp_parsed_text; // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
         Graph*                 graph;// graphical representation
         File_Flags             flags;        
     };
@@ -48,8 +48,8 @@ namespace ndbl
     void                    file_update(File*, bool isolation_on); // to call each frame
     void                    file_handle_file_view_change(File*, File_View_Event_Type type);
     size_t                  file_size(const File*);
-    void                    file_update_graph_from_text(File*, bool isolation_on);
-    void                    file_update_text_from_graph(File*, bool isolation_on);
+    void                    file_parse_text(File*, bool isolation_on);
+    void                    file_serialize_graph(File*, bool isolation_on);
     bool                    file_read(File* file, const Path& source ); // Read an File from a given path and update file's path.
     bool                    file_write(File* file, const Path& dest );  // Write an File to a given path and update file's path.
 

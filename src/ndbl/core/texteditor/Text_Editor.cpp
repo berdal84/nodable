@@ -47,7 +47,7 @@ Text_Editor::Text_Editor()
 	, mStartTime(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count())
 	, mAddUndoHandler(&DefaultAddUndoHandler)
 {
-	mLines.push_back(Line());
+	mLines.emplace_back();
 }
 
 Text_Editor::~Text_Editor()

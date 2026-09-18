@@ -243,7 +243,7 @@ float text_editor_text_distance_to_line_start(const Text_Editor& editor, const C
 }
 
 // ImGui implementation
-void text_editor_render(Text_Editor& editor, const char* title, const Palette& paletteBase, const ImVec2& size, bool border, bool ignoreImGuiChild)
+bool text_editor_render(Text_Editor& editor, const char* title, const Palette& paletteBase, const ImVec2& size, bool border, bool ignoreImGuiChild)
 {
 	editor.mWithinRender = true;
 	editor.mTextChanged  = false;
@@ -532,6 +532,8 @@ void text_editor_render(Text_Editor& editor, const char* title, const Palette& p
 	ImGui::PopStyleColor();
 
 	editor.mWithinRender = false;
+
+	return editor.mTextChanged;
 }
 
 Text_Editor::Coordinates text_editor_screen_pos_to_coordinates(const Text_Editor& editor, const Vec2& aPosition)

@@ -57,7 +57,7 @@ void file_init(File* file)
 
 void file_deinit(File* file)
 {
-    string_release(file->temp_text_buffer);
+    string_release(file->temp_parsed_text);
     file->graph->view->signal_change.disconnect();
     file->view.signal_change.disconnect();
     fileview_deinit(&file->view);
@@ -67,7 +67,7 @@ void file_deinit(File* file)
     file->graph = nullptr;
 }
 
-void file_update_text_from_graph(File* file, bool isolation_on)
+void file_serialize_graph(File* file, bool isolation_on)
 {
     if ( auto* root_node = graph_root( file->graph ) )
     {
@@ -104,14 +104,14 @@ void file_update(File* file, bool isolation_on)
 
     if ( HAS_FLAGS(file->flags, File_Flag_GRAPH_IS_DIRTY) )
     {
-        file_update_graph_from_text(file, isolation_on);
+        file_parse_text(file, isolation_on);
         graph_update(file->graph);
         UNSET_FLAGS(file->flags, File_Flag_IS_DIRTY_MASK);
     }
     else if ( HAS_FLAGS(file->flags, File_Flag_TEXT_IS_DIRTY) )
     {
         graph_update(file->graph);
-        file_update_text_from_graph(file, isolation_on);
+        file_serialize_graph(file, isolation_on);
         UNSET_FLAGS(file->flags, File_Flag_IS_DIRTY_MASK);
     }
     else
@@ -120,15 +120,16 @@ void file_update(File* file, bool isolation_on)
     }
 }
 
-void file_update_graph_from_text(File* file, bool isolation_on)
+void file_parse_text(File* file, bool isolation_on)
 {
     // Parse source code
     String text = string_copy( fileview_get_text(&file->view, isolation_on ) );
-    lang_parse(language(), file->graph, text);
-    
-    // Release and replace temp_text_buffer
-    string_release(file->temp_text_buffer);
-    file->temp_text_buffer = text;
+    lang_parse(language(), file->graph, text);    
+    file->view.is_syntax_dirty = true;
+
+    // Release and replace temp_parsed_text
+    string_release(file->temp_parsed_text);
+    file->temp_parsed_text = text;
 
     SET_FLAGS(file->graph->view->flags, Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT);
 }

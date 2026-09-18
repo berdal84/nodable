@@ -1,5 +1,6 @@
 #include "File_View.h"
 
+#include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/Flags.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
@@ -26,8 +27,8 @@ void fileview_init(File_View* file_view, File* file)
     file_view->text_overlay_window_name  = bdc::string_printf( "%s_text_overlay" , file->name.data );
     file_view->graph_overlay_window_name = bdc::string_printf( "%s_graph_overlay", file->name.data );
 
-	// file_view->text_editor.SetImGuiChildIgnored(true); is now in the render side
 	file_view->text_editor_palette = cfg->ui_text_editor_palette;
+    file_view->is_syntax_dirty     = true;
 
     ASSERT(file->graph->view);
     file_view->graph_view = file->graph->view;
@@ -193,7 +194,8 @@ void fileview_draw(File_View* file_view, float dt)
 
             // render text editor
             const bool nochild = true;
-            text_editor_render(file_view->text_editor, "Text_Editor", file_view->text_editor_palette, ImGui::GetContentRegionAvail(), nochild);
+            const bool text_changed = text_editor_render(file_view->text_editor, "Text_Editor", file_view->text_editor_palette, ImGui::GetContentRegionAvail(), nochild);
+            file_view->is_syntax_dirty = text_changed;
 
             // overlay
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );

@@ -11,7 +11,7 @@ namespace ndbl
 
     // text editor API
 
-    void            text_editor_render(Text_Editor& editor, const char* title, const Palette& palette, const ImVec2& size = ImVec2(), bool border = false, bool ignoreImGuiChild = false);
+    bool            text_editor_render(Text_Editor& editor, const char* title, const Palette& palette, const ImVec2& size = ImVec2(), bool border = false, bool ignoreImGuiChild = false);
     void            text_editor_handle_mouse_inputs(Text_Editor& editor);
     void            text_editor_handle_keyboard_inputs(Text_Editor& editor);
     Coordinates     text_editor_screen_pos_to_coordinates(const Text_Editor& editor, const Vec2& aPosition);

@@ -68,6 +68,7 @@ namespace ndbl
         bdc::String             experimental_clipboard_prev;
         bool                    experimental_clipboard_auto_paste   = false;
         bool                    is_history_dragged                  = false;
+        bool                    is_syntax_dirty                     = false;
     };
 
     void                            fileview_init(File_View*, File*);
