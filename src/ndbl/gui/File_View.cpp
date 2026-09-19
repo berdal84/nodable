@@ -45,6 +45,80 @@ void fileview_deinit(File_View* file_view)
 void fileview_update(File_View* file_view, float dt)
 {
     graphview_update(file_view->graph_view, dt);
+
+    //
+    // TODO: File needs at struct to hold temporary data resulting parsing
+    //       I must extract the state from Language and put that into a Parser_State struct.
+    //
+    if( file_view->is_syntax_dirty )
+    {
+        file_view->is_syntax_dirty = false;
+        size_t tok_id   = -1;
+        int    remainer = 0;
+        PaletteIndex index = PaletteIndex::Default;
+        for(auto& line : file_view->text_editor.mLines )
+        {
+            for(auto& glyph : line )
+            {
+                if( remainer <= 0 )
+                {
+                    ++tok_id;
+                    if( tok_id < language().ribbon.size() )
+                    {
+                        auto& tok = language().ribbon[tok_id];
+                        remainer  = tok.size();
+
+                        switch ( tok.type)
+                        {
+                        case Token_Type_literal_int:
+                        case Token_Type_literal_double:
+                            index = PaletteIndex::Number;
+                            break;
+
+                        case Token_Type_literal_string:
+                            index = PaletteIndex::String;
+                            break;
+
+                        case Token_Type_keyword_any:
+                        case Token_Type_keyword_bool:
+                        case Token_Type_keyword_double:
+                        case Token_Type_keyword_i16:
+                        case Token_Type_keyword_int:
+                        case Token_Type_keyword_string:
+                        case Token_Type_keyword_else:
+                        case Token_Type_keyword_for:
+                        case Token_Type_keyword_while:
+                        case Token_Type_keyword_if:
+                        case Token_Type_keyword_operator:
+                            index = PaletteIndex::Keyword;
+                            break;
+
+                        case Token_Type_ignore: // TODO: we should have different Token_Type_ for comments/spaces/multilinecomments
+                            index = PaletteIndex::Comment;
+                            break;
+
+                        case Token_Type_identifier:
+                            index = PaletteIndex::KnownIdentifier;
+                            break;
+
+                        default:
+                            index = PaletteIndex::Default;
+                        }
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+
+                glyph.mColorIndex = index;
+                remainer -= 1;                
+            }
+
+            remainer -= 1; // end of line is not an actual character in the editor
+        }
+        
+    }
 }
 
 Condition_Flags fileview_calc_condition_flags(File_View* file_view)
