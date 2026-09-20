@@ -22,7 +22,7 @@ namespace bdc
     };
     
     //
-    // String is super inspired by Jai language's strings. However, it is not a builtin type in C++ of course.
+    // String is super inspired by Jai parser's strings. However, it is not a builtin type in C++ of course.
     // The main goal of it is to serves as replacement for const char* and avoid calling strlen frequently.
     // The main difference with const char* - besides having a size - is that the data may not be null-terminated.
     // That offers some nice features like free-allocation slicing.

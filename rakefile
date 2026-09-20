@@ -41,7 +41,7 @@ def base_target(name, type)
     target.defines |= [
         "NDBL_#{CONFIG.upcase}",
         "NDBL_#{PLATFORM.upcase}",
-        "IMGUI_USER_CONFIG=\\\"ndbl/gui/ImGuiExConfig.h\\\"",
+        "IMGUI_USER_CONFIG=\\\"ndbl/ImGuiExConfig.h\\\"",
         "NDBL_APP_NAME=\\\"nodable\\\"",
         "NDBL_BUILD_REF=\\\"#{`git describe --tags HEAD`.chomp}-#{CONFIG}\\\"",        
         "CPPTRACE_STATIC_DEFINE", #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
@@ -187,55 +187,57 @@ common.sources = FileList[
     # BDC
     "src/bdc/Allocators.cpp",
 
-    # Nodable Core
-    "src/ndbl/core/Event_Manager.cpp",
-    "src/ndbl/core/File_System.cpp",
-    "src/ndbl/core/Format.cpp",
-    "src/ndbl/core/Graph.cpp",
-    "src/ndbl/core/language/Nodlang.cpp",
-    "src/ndbl/core/Log.cpp",
-    "src/ndbl/core/Nodable_Headless.cpp",
-    "src/ndbl/core/Node_Property.cpp",
-    "src/ndbl/core/Node_Slot.cpp",
-    "src/ndbl/core/Node.cpp",
-    "src/ndbl/core/reflection/QWord.cpp",
-    "src/ndbl/core/reflection/Type_Descriptor.cpp",
-    "src/ndbl/core/reflection/Type_Register.cpp",
-    "src/ndbl/core/reflection/Variant.cpp",
-    "src/ndbl/core/texteditor/Text_Editor.cpp",
-    "src/ndbl/core/texteditor/Text_Editor_ImGui_Renderer.cpp",
-    "src/ndbl/core/Scope.cpp",
-    "src/ndbl/core/State_Machine.cpp",
-    "src/ndbl/core/System.cpp",
-    "src/ndbl/core/Task_Manager.cpp",
-    "src/ndbl/core/Token_Ribbon.cpp",
-    "src/ndbl/core/Token.cpp",
-
-    # Nodable GUI
-    "src/ndbl/gui/Action_Manager_View.cpp",
-    "src/ndbl/gui/Action_Manager.cpp",
-    "src/ndbl/gui/Action.cpp",
-    "src/ndbl/gui/Command_Manager.cpp",
-    "src/ndbl/gui/Command.cpp",
-    "src/ndbl/gui/Config.cpp",
-    "src/ndbl/gui/File_View.cpp",
-    "src/ndbl/gui/File.cpp",
-    "src/ndbl/gui/Font_Manager.cpp",
-    "src/ndbl/gui/geometry/Bezier_Curve_Segment_2D.cpp",
-    "src/ndbl/gui/geometry/Box_2D.cpp",
-    "src/ndbl/gui/geometry/Rect.cpp",
-    "src/ndbl/gui/geometry/Spatial_Node.cpp",
-    "src/ndbl/gui/geometry/Transform_2D.cpp",
-    "src/ndbl/gui/Graph_View.cpp",
-    "src/ndbl/gui/ImGuiEx.cpp",
-    "src/ndbl/gui/Nodable_View.cpp",
-    "src/ndbl/gui/Nodable.cpp",
-    "src/ndbl/gui/Node_Property_View.cpp",
-    "src/ndbl/gui/Node_Search_Input.cpp",
-    "src/ndbl/gui/Node_Slot_View.cpp",
-    "src/ndbl/gui/Node_View.cpp",
-    "src/ndbl/gui/Scope_View.cpp",
-    "src/ndbl/gui/Texture_Manager.cpp",
+    # Nodable
+    "src/ndbl/geometry/Bezier_Curve_Segment_2D.cpp",
+    "src/ndbl/geometry/Box_2D.cpp",
+    "src/ndbl/geometry/Rect.cpp",
+    "src/ndbl/geometry/Spatial_Node.cpp",
+    "src/ndbl/geometry/Transform_2D.cpp",
+    # -
+    "src/ndbl/reflection/QWord.cpp",
+    "src/ndbl/reflection/Type_Descriptor.cpp",
+    "src/ndbl/reflection/Type_Register.cpp",
+    "src/ndbl/reflection/Variant.cpp",
+    # -
+    "src/ndbl/texteditor/Text_Editor_ImGui_Renderer.cpp",
+    "src/ndbl/texteditor/Text_Editor.cpp",
+    # -
+    "src/ndbl/Action_Manager_View.cpp",
+    "src/ndbl/Action_Manager.cpp",
+    "src/ndbl/Action.cpp",
+    "src/ndbl/Command_Manager.cpp",
+    "src/ndbl/Command.cpp",
+    "src/ndbl/Config.cpp",
+    "src/ndbl/Event_Manager.cpp",
+    "src/ndbl/File_System.cpp",
+    "src/ndbl/File_View.cpp",
+    "src/ndbl/File.cpp",
+    "src/ndbl/Font_Manager.cpp",
+    "src/ndbl/Format.cpp",
+    "src/ndbl/Graph_View.cpp",
+    "src/ndbl/Graph.cpp",
+    "src/ndbl/ImGuiEx.cpp",
+    "src/ndbl/Log.cpp",
+    "src/ndbl/Nodable_Headless.cpp",
+    "src/ndbl/Nodable_View.cpp",
+    "src/ndbl/Nodable.cpp",
+    "src/ndbl/Node_Property_View.cpp",
+    "src/ndbl/Node_Property.cpp",
+    "src/ndbl/Node_Search_Input.cpp",
+    "src/ndbl/Node_Slot_View.cpp",
+    "src/ndbl/Node_Slot.cpp",
+    "src/ndbl/Node_View.cpp",
+    "src/ndbl/Node.cpp",
+    "src/ndbl/Parser.cpp",
+    "src/ndbl/Scope_View.cpp",
+    "src/ndbl/Scope.cpp",
+    "src/ndbl/State_Machine.cpp",
+    "src/ndbl/System.cpp",
+    "src/ndbl/Task_Manager.cpp",
+    "src/ndbl/Texture_Manager.cpp",
+    "src/ndbl/Token_Ribbon.cpp",
+    "src/ndbl/Token.cpp",
+    "src/ndbl/View.cpp",
 ]
 
 common.depends_on_target = [extern]
@@ -244,7 +246,7 @@ common.depends_on_target = [extern]
 ndbl = base_target("nodable", TARGET_TYPE_EXECUTABLE)
 
 ndbl.sources = FileList[
-    "src/ndbl/app/main.cpp",
+    "src/ndbl/main.cpp",
 ]
 
 ndbl_assets = FileList[
@@ -286,22 +288,22 @@ test = base_target("test", TARGET_TYPE_EXECUTABLE)
 test.sources |= FileList[
     
     # sorted from basic to complex
-    "src/ndbl/core/reflection/index.specs.cpp",
-    "src/ndbl/core/Delegate.specs.cpp",
-    "src/ndbl/gui/geometry/Rect.specs.cpp",
-    "src/ndbl/gui/geometry/Spatial_Node.specs.cpp",
-    "src/ndbl/core/Node.specs.cpp",
-    "src/ndbl/core/Node_Slot.specs.cpp",
-    "src/ndbl/core/Token.specs.cpp",
-    "src/ndbl/core/Graph.specs.cpp",
-    "src/ndbl/core/language/Nodlang.specs.cpp",   
+    "src/ndbl/reflection/index.specs.cpp",
+    "src/ndbl/Delegate.specs.cpp",
+    "src/ndbl/geometry/Rect.specs.cpp",
+    "src/ndbl/geometry/Spatial_Node.specs.cpp",
+    "src/ndbl/Node.specs.cpp",
+    "src/ndbl/Node_Slot.specs.cpp",
+    "src/ndbl/Token.specs.cpp",
+    "src/ndbl/Graph.specs.cpp",
+    "src/ndbl/Parser.specs.cpp",   
 
     # main
     "src/test/main.cpp",
 ]
 
 test_gui_sources = FileList[
-    "src/ndbl/gui/Nodable.specs.cpp"
+    "src/ndbl/Nodable.specs.cpp"
 ]
 
 test.assets |= ndbl.assets # we load some .cpp files in test

@@ -5,11 +5,11 @@
 #include <fstream>
 #include <filesystem>
 #include "bdc/String.hpp"
-#include "ndbl/core/File_System.h"
-#include "ndbl/core/Nodable_Headless.h"
-#include "ndbl/core/language/Nodlang.h"
-#include "ndbl/core/reflection/index.h"
-#include "ndbl/core/Log.h"
+#include "ndbl/File_System.h"
+#include "ndbl/Log.h"
+#include "ndbl/Nodable_Headless.h"
+#include "ndbl/Parser.h"
+#include "ndbl/reflection/index.h"
 
 namespace testing
 {
@@ -64,7 +64,7 @@ public:
     
     void log_ribbon() const
     {
-        NDBL_LOG(Verbosity_Message, "fixture::core", "%s\n\n", language().ribbon.to_string().c_str());
+        NDBL_LOG(Verbosity_Message, "fixture::core", "%s\n\n", parser().ribbon.to_string().c_str());
     }
 };
 }

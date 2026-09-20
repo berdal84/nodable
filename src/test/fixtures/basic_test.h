@@ -1,8 +1,8 @@
 #pragma once
 
 #include "bdc/Allocators.hpp"
-#include "ndbl/core/reflection/index.h"
-#include "ndbl/core/Log.h"
+#include "ndbl/reflection/index.h"
+#include "ndbl/Log.h"
 #include <gtest/gtest.h>
 
 namespace testing

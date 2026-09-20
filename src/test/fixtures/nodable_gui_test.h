@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "ndbl/gui/Nodable.h"
-#include "ndbl/gui/Nodable_View.h"
+#include "ndbl/Nodable.h"
+#include "ndbl/Nodable_View.h"
 
 #ifdef NDBL_GUI_TEST_HUMAN_SPEED
 #include <thread>
