@@ -235,7 +235,6 @@ common.sources = FileList[
     "src/ndbl/System.cpp",
     "src/ndbl/Task_Manager.cpp",
     "src/ndbl/Texture_Manager.cpp",
-    "src/ndbl/Token_Ribbon.cpp",
     "src/ndbl/Token.cpp",
     "src/ndbl/View.cpp",
 ]

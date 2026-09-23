@@ -97,11 +97,11 @@ namespace bdc
         return freed_space;
     }
 
-    void push_allocator(Allocator& _allocator_to_push)
+    void push_allocator(Allocator* _allocator_to_push)
     {
         assert(allocator_stack_size < ALLOCATOR_STACK_CAPACITY);
-        allocator_stack[allocator_stack_size] = &_allocator_to_push;
-        allocator = &_allocator_to_push;
+        allocator_stack[allocator_stack_size] = _allocator_to_push;
+        allocator = _allocator_to_push;
         allocator_stack_size++;
     }
 
@@ -264,7 +264,7 @@ namespace bdc
         };
         #endif
 
-        push_allocator(heap_allocator);
+        push_allocator(&heap_allocator);
     }
 
     Memory_Manager_Report* memory_manager_generate_report(Memory_Manager_Report* report)

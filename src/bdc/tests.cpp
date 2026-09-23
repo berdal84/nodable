@@ -262,7 +262,7 @@ int main()
 
         TEST_BEGIN( string_concat )
         {
-            push_allocator(temp_allocator);
+            push_allocator(&temp_allocator);
             Array<char> arr = string_concat("Hello", ", World");            
             pop_allocator();
             TEST_EXPECTS( arr.size == 5 + 7);

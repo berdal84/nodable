@@ -84,7 +84,7 @@ namespace bdc
     Memory_Manager_Report*              memory_manager_generate_report(Memory_Manager_Report* report = nullptr);
     void                                memory_manager_report_print(Memory_Manager_Report* report, bool asserts_no_leaks = true);
     size_t                              memory_manager_reset_temp_allocator_buffer();
-    void                                push_allocator(Allocator&);
+    void                                push_allocator(Allocator*);
     void                                pop_allocator();
     
     [[nodiscard]] inline void* memory_malloc(size_t size, Allocator* _allocator = allocator )

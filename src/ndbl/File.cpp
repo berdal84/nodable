@@ -55,12 +55,14 @@ void file_init(File* file)
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File", "Constructor being called.\n");
 
     parser_init(file->parser);
+    serializer_init(file->serializer);
 }
 
 void file_deinit(File* file)
 {
     parser_deinit(file->parser);
-    
+    serializer_deinit(file->serializer);
+
     string_release(file->temp_parsed_text);
     file->graph->view->signal_change.disconnect();
     file->view.signal_change.disconnect();
@@ -75,9 +77,10 @@ void file_serialize_graph(File* file, bool isolation_on)
 {
     if ( auto* root_node = graph_root( file->graph ) )
     {
-        serialize_node(file->parser, root_node, Serialization_Flag_RECURSE);
-        bdc::String temp_str = parser_build_tstring(file->parser); // the Text_Editor in FileView will do a copy via an std::string
-        fileview_set_text( &file->view, temp_str, isolation_on );
+        serializer_reset(file->serializer, file->graph);
+        serialize_graph(file->serializer);
+        bdc::String tstr = serializer_build_tstring(file->serializer); // the Text_Editor in FileView will do a copy via an std::string
+        fileview_set_text( &file->view, tstr, isolation_on );
     }
     else
     {
@@ -108,12 +111,14 @@ void file_update(File* file, bool isolation_on)
     {
         file_parse_text(file, isolation_on);
         graph_update(file->graph);
+        file->view.is_syntax_dirty = true;
         UNSET_FLAGS(file->flags, File_Flag_IS_DIRTY_MASK);
     }
     else if ( HAS_FLAGS(file->flags, File_Flag_TEXT_IS_DIRTY) )
     {
         graph_update(file->graph);
         file_serialize_graph(file, isolation_on);
+        file->view.is_syntax_dirty = true;
         UNSET_FLAGS(file->flags, File_Flag_IS_DIRTY_MASK);
     }
     else
@@ -126,8 +131,9 @@ void file_parse_text(File* file, bool isolation_on)
 {
     // Parse source code
     String text = string_copy( fileview_get_text(&file->view, isolation_on ) );
-    parse(file->parser, file->graph, text);    
-    file->view.is_syntax_dirty = true;
+    parser_reset(file->parser, file->graph, text);
+    parser_tokenize(file->parser);
+    parse_graph(file->parser);
 
     // Release and replace temp_parsed_text
     string_release(file->temp_parsed_text);

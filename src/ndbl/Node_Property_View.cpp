@@ -124,17 +124,15 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
     {
         ImGui::Text("%s %s\n", view->property->type->name.c_str(), view->property->name.c_str());
 
-        Parser_Context parser;
-        parser_init(parser);
-        bdc::String_Builder sb;
-        string_builder_init(sb);
+        Serializer_Context serializer;
+        serializer_init(serializer);
         if( view->property == view->node()->value || node_find_slot_by_property( view->node(), view->property, Node_Slot::Flag_OUTPUT ))
-            serialize_node(parser, view->node(), Serialization_Flag_RECURSE);
+            serialize_node(serializer, view->node(), Serialization_Flag_RECURSE);
         else
-            serialize_property(parser, view->property);
+            serialize_property(serializer, view->property);
 
-        ImGui::Text("source: \"%s\"", bdc::string_builder_build_tstring(sb).c_str());
-
+        ImGui::Text("source: \"%s\"", serializer_build_tstring(serializer).c_str());
+        serializer_deinit(serializer);
         ImGuiEx::EndTooltip();
     }
 
@@ -224,6 +222,9 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
     Parser_Context parser;
     parser_init(parser);
+    
+    Serializer_Context serializer;
+    serializer_init(serializer);
 
     // Per type
     switch ( property_token.type )
@@ -248,7 +249,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
             if (ImGui::InputDouble(label.c_str(), &value, 0.0, 0.0, "%.6f", flags))
             {
-                bdc::String str = serialize_double(parser, value);
+                bdc::String str = serialize_double(serializer, value);
                 property_token.replace_word( str.c_str());
                 changed = true;
             }
@@ -262,7 +263,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
             if (ImGui::InputInt(label.c_str(), &value, 0, 0, flags))
             {
-                bdc::String str = serialize_int(parser, value);
+                bdc::String str = serialize_int(serializer, value);
                 property_token.replace_word(str.c_str());
                 changed = true;
             }
@@ -276,7 +277,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
             if (ImGui::Checkbox(label.c_str(), &value))
             {
-                bdc::String new_word = serialize_bool(parser, value);
+                bdc::String new_word = serialize_bool(serializer, value);
                 property_token.replace_word( new_word );
                 changed = true;
             }
@@ -295,7 +296,9 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
             break;
         }
     }
+
     parser_deinit(parser);
+    serializer_deinit(serializer);
 
     if ( compact_mode )
         ImGui::PopItemWidth();

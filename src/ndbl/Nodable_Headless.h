@@ -10,11 +10,12 @@ namespace ndbl
 
     struct App_Headless_State
     {
-        bool        auto_completion;
-        bool        should_stop;
-        Graph*      graph;
-        bdc::String source_code;
+        bool                auto_completion;
+        bool                should_stop;
+        Graph*              graph;
+        bdc::String         source_code;
         Parser_Context      parser;
+        Serializer_Context  serializer;
     };
 
     void            nodable_init(App_Headless_State*);

@@ -46,77 +46,90 @@ void fileview_update(File_View* file_view, float dt)
 {
     graphview_update(file_view->graph_view, dt);
 
-    //
-    // TODO: File needs at struct to hold temporary data resulting parsing
-    //       I must extract the state from Parser and put that into a Parser_State struct.
-    //
     if( file_view->is_syntax_dirty )
     {
         file_view->is_syntax_dirty = false;
-        size_t tok_id   = -1;
-        int    remainer = 0;
-        PaletteIndex index = PaletteIndex::Default;
-        auto& parser = file_view->file->parser;
+        
+        size_t                      next_token_id       = 0;
+        int                         colorize_char_count = 0;
+        PaletteIndex                index               = PaletteIndex::Default;
+        const std::vector<Token>&   tokens              = file_view->file->parser.pristine_tokens;
+
         for(auto& line : file_view->text_editor.mLines )
         {
             for(auto& glyph : line )
             {
-                if( remainer <= 0 )
+                while( colorize_char_count <= 0 && next_token_id < tokens.size() )
                 {
-                    ++tok_id;
-                    if( tok_id < parser.ribbon.size() )
+                    auto& tok = tokens[next_token_id];
+                    colorize_char_count = tok.size();
+                    switch ( tok.type)
                     {
-                        auto& tok = parser.ribbon[tok_id];
-                        remainer  = tok.size();
-
-                        switch ( tok.type)
+                        case Token_Type_keyword_if:                                
+                        case Token_Type_keyword_else:                                
+                        case Token_Type_keyword_for:                                
+                        case Token_Type_keyword_while:                                
+                        case Token_Type_keyword_operator:                                
+                        case Token_Type_keyword_return:                                
+                        case Token_Type_keyword_string:                                
+                        case Token_Type_keyword_double:                                
+                        case Token_Type_keyword_int:                                
+                        case Token_Type_keyword_i16:                                
+                        case Token_Type_keyword_bool:                                
+                        case Token_Type_keyword_any:                                
+                        case Token_Type_keyword_unknown:
                         {
-                        case Token_Type_literal_int:
-                        case Token_Type_literal_double:
-                            index = PaletteIndex::Number;
-                            break;
-
-                        case Token_Type_literal_string:
-                            index = PaletteIndex::String;
-                            break;
-
-                        case Token_Type_keyword_any:
-                        case Token_Type_keyword_bool:
-                        case Token_Type_keyword_double:
-                        case Token_Type_keyword_i16:
-                        case Token_Type_keyword_int:
-                        case Token_Type_keyword_string:
-                        case Token_Type_keyword_else:
-                        case Token_Type_keyword_for:
-                        case Token_Type_keyword_while:
-                        case Token_Type_keyword_if:
-                        case Token_Type_keyword_operator:
                             index = PaletteIndex::Keyword;
                             break;
-
-                        case Token_Type_ignore: // TODO: we should have different Token_Type_ for comments/spaces/multilinecomments
-                            index = PaletteIndex::Comment;
-                            break;
+                        }
 
                         case Token_Type_identifier:
+                        {
                             index = PaletteIndex::KnownIdentifier;
                             break;
+                        }
 
+                        case Token_Type_literal_string:  
+                        {
+                            index = PaletteIndex::String;
+                            break;
+                        }                              
+                        case Token_Type_literal_double:                                
+                        case Token_Type_literal_int:                                
+                        case Token_Type_literal_bool:                                
+                        case Token_Type_literal_any:                                
+                        case Token_Type_literal_unknown:
+                        {
+                            index = PaletteIndex::Number;
+                            break;
+                        }
+                        case Token_Type_comment:
+                        {
+                            index = PaletteIndex::Comment;
+                            break;
+                        }
+                        case Token_Type_multiline_comment:
+                        {
+                            index = PaletteIndex::MultiLineComment;
+                            break;
+                        }
+                        case Token_Type_end_of_line:
+                        {
+                            colorize_char_count = 0;
+                            break;
+                        }
                         default:
+                        {                            
                             index = PaletteIndex::Default;
                         }
                     }
-                    else
-                    {
-                        return;
-                    }
+
+                    ++next_token_id;
                 }
 
                 glyph.mColorIndex = index;
-                remainer -= 1;                
+                colorize_char_count -= 1;                
             }
-
-            remainer -= 1; // end of line is not an actual character in the editor
         }
         
     }
@@ -270,7 +283,7 @@ void fileview_draw(File_View* file_view, float dt)
             // render text editor
             const bool nochild = true;
             const bool text_changed = text_editor_render(file_view->text_editor, "Text_Editor", file_view->text_editor_palette, ImGui::GetContentRegionAvail(), nochild);
-            file_view->is_syntax_dirty = text_changed;
+            file_view->is_syntax_dirty |= text_changed;
 
             // overlay
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
@@ -402,6 +415,8 @@ void fileview_set_text(File_View* file_view, bdc::String new_text, bool isolatio
         NDBL_LOG(Verbosity_Message, "File_View", "Whole text updated from graph.\n");
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", new_text.c_str());
     }
+
+    file_view->is_syntax_dirty = true;
 }
 
 void fileview_set_AddUndoHandler(File_View* file_view, Text_Editor::Add_Undo_Handler handler )

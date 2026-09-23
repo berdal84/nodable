@@ -504,10 +504,10 @@ void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                 // reset token to a default value to preserve a correct serialization
                 if (head->node->type != Node_Type_VARIABLE )
                 {
-                    Parser_Context parser;
-                    parser_init(parser);
+                    Serializer_Context ctx;
+                    serializer_init(ctx);
                     Token& token = head->property->token;
-                    bdc::String token_type_as_str = serialize_token_type(parser, token.type); // TODO: simply handle literal token_type to string
+                    bdc::String token_type_as_str = serialize_token_type(ctx, token.type); // TODO: simply handle literal token_type to string
                     token.replace_word( token_type_as_str.c_str() );
                 }
                 break;

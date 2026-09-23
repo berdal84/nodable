@@ -141,7 +141,7 @@ namespace bdc
 
     inline String string_tprintf(const i8_t* fmt, auto&&...args )
     {
-        push_allocator( temp_allocator );
+        push_allocator( &temp_allocator );
         String result = string_printf(fmt, std::forward<decltype(args)>(args)...);
         pop_allocator();
         return result;
@@ -296,7 +296,7 @@ namespace bdc
 
     inline String string_tcopy(const String& source)
     {
-        push_allocator(temp_allocator);
+        push_allocator(&temp_allocator);
         String result = string_copy(source);
         pop_allocator();
         return result;
@@ -315,7 +315,7 @@ namespace bdc
         target.data = memory_malloc_array<i8_t>(alloc_size, allocator);
         target.size = source.size;
 
-        std::memcpy(target.data, source.data, alloc_size); 
+        std::memcpy(target.data, source.data, source.size); 
 
         target.data[source.size] = '\0';
 

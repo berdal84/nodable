@@ -15,7 +15,6 @@ namespace ndbl {
 	{
         Token_Type_NULL = 0, // to say 'absence of token'
 
-        Token_Type_ignore,
         Token_Type_keyword_if,
         Token_Type_keyword_else,
         Token_Type_keyword_for,
@@ -48,6 +47,10 @@ namespace ndbl {
         Token_Type_scope_end ,
         Token_Type_end_of_instruction,
         Token_Type_end_of_line,
+        Token_Type_space,
+        Token_Type_tab,
+        Token_Type_comment,
+        Token_Type_multiline_comment,
     };
 
     /** Check if a given keyword is a type (ex: bool, int, double,...)*/

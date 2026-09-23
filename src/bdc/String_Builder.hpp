@@ -14,6 +14,7 @@ namespace bdc
 
     void            string_builder_init(String_Builder&);
     void            string_builder_release(String_Builder&);
+    void            string_builder_reset(String_Builder&);
     String_Builder& string_builder_append(String_Builder&, const String& str);
     String_Builder& string_builder_append(String_Builder&, const Resizable_Array<String>& arr);
     String_Builder& string_builder_appendf(String_Builder& sb, const char* fmt, auto...args);
@@ -30,10 +31,7 @@ namespace bdc
         }
         else
         {
-            push_allocator(*sb.allocator);
-            const String formatted_str = string_printf(fmt, args...);
-            pop_allocator();
-
+            const String formatted_str = string_tprintf(fmt, args...);
             return string_builder_append(sb, formatted_str);
         }
     }
@@ -46,15 +44,37 @@ namespace bdc
 
     inline void string_builder_release(String_Builder& sb)
     {
+        push_allocator(sb.allocator);
+        for(auto& str : sb.buffer )
+        {
+            string_release(str);
+        }
+        pop_allocator();
         array_release(sb.buffer);
 
         sb.buffer.data = nullptr;
         sb.buffer.size = 0;
     }
 
+    inline void string_builder_reset(String_Builder& sb)
+    {
+        push_allocator(sb.allocator);
+        for(auto& str : sb.buffer )
+        {
+            string_release(str);
+        }
+        pop_allocator();
+        array_resize(sb.buffer, 0);
+    }
+
     inline String_Builder& string_builder_append(String_Builder& sb, const String& str)
     {
-        array_append(sb.buffer, str);
+        // String_Builder must own the strings,
+        push_allocator(sb.allocator);
+        String str_copy = string_copy(str);
+        pop_allocator();
+
+        array_append(sb.buffer, str_copy );
         return sb;
     }
 
@@ -69,7 +89,7 @@ namespace bdc
 
     inline String string_builder_build_tstring(String_Builder& sb, String separator)
     {
-        push_allocator( temp_allocator );
+        push_allocator(&temp_allocator);
         String result = string_builder_build_string(sb, separator);
         pop_allocator();
         return result;
@@ -117,7 +137,7 @@ namespace bdc
 
         data[size-1] = '\0';
 
-        string_builder_release(sb);
+        string_builder_reset(sb);
 
         String result(data, size-1, String_Flags_IS_NULL_TERMINATED);
 

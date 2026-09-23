@@ -34,16 +34,14 @@ TEST_F(Language_basics, token_t_to_type)
 
 TEST_F(Language_basics, type_to_string)
 {
-    EXPECT_EQ(serialize_type(app.parser, type_get<bool>())        , "bool" );
-    EXPECT_EQ(serialize_type(app.parser, type_get<double>())      , "double" );
-    EXPECT_EQ(serialize_type(app.parser, type_get<i16_t>())       , "i16" );
-    EXPECT_EQ(serialize_type(app.parser, type_get<int>())         , "int" );
-    EXPECT_EQ(serialize_type(app.parser, type_get<i32_t>())       , "int" );
-    EXPECT_EQ(serialize_type(app.parser, type_get<bdc::String>()) , "string" );
-    EXPECT_EQ(serialize_type(app.parser, type_get<any>())         , "any" );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<bool>())        , "bool"     );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<double>())      , "double"   );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<i16_t>())       , "i16"      );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<int>())         , "int"      );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<i32_t>())       , "int"      );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<bdc::String>()) , "string"   );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<any>())         , "any"      );
 }
-
-
 
 ///////////////////////// Atomic expressions ///////////////////////////////////////////////////////////////////////////
 
@@ -118,102 +116,61 @@ TEST_F(Language_parse_token, atomic_expression_string)
     EXPECT_EQ(token.view(), "\"Hello\"");
 }
 
-
-
-//////////////////////////// Identifiers ///////////////////////////////////////////////////////////////////////////////
-
 TEST_F(Language_tokenize, identifiers_can_start_by_a_keyword)
 {
-    bdc::String code = "int if_myvar_includes_a_keyword;";
-    tokenize(app.parser, code);
-    log_ribbon();
-    const Token& token = app.parser.ribbon[1];
-    EXPECT_EQ(token.word_view(), "if_myvar_includes_a_keyword");
-    EXPECT_EQ(token.type, Token_Type_identifier);
+    auto& ctx = tokenize("int if_myvar_includes_a_keyword;");
+    log_tokens();
+    EXPECT_EQ(ctx.tokens[2].word_view(), "if_myvar_includes_a_keyword");
+    EXPECT_EQ(ctx.tokens[2].type, Token_Type_identifier);
 }
 
-//////////////////////////// Prefix / Suffix ///////////////////////////////////////////////////////////////////////////
-
-TEST_F(Language_tokenize, identifiers_should_not_have_prefix_or_suffix)
+TEST_F(Language_tokenize, int_variable_declaration)
 {
-    bdc::String code{"int my_var ;"};
-    tokenize(app.parser, code);
-    log_ribbon();
-    const Token& token = app.parser.ribbon[1];
-    EXPECT_EQ(token.word_view()     , "my_var");
-    EXPECT_EQ(token.prefix_view()   , "");
-    EXPECT_EQ(token.suffix_view()   , "");
+    auto& ctx = tokenize("int my_var ;");
+    log_tokens();
+    EXPECT_EQ(ctx.tokens[0].view(), "int");
+    EXPECT_EQ(ctx.tokens[1].view(), " ");
+    EXPECT_EQ(ctx.tokens[2].view(), "my_var");
+    EXPECT_EQ(ctx.tokens[3].view(), " ");
+    EXPECT_EQ(ctx.tokens[4].view(), ";");
 }
-
-TEST_F(Language_tokenize, operator_suffix_and_prefix)
-{
-    bdc::String code{"int my_var = 42"};
-    tokenize(app.parser, code);
-    log_ribbon();
-    const Token& token = app.parser.ribbon[2];
-    EXPECT_EQ(token.view()          , " = ");
-    EXPECT_EQ(token.prefix_view()   , " ");
-    EXPECT_EQ(token.suffix_view()   , " ");
-}
-
-TEST_F(Language_tokenize, operator_suffix)
-{
-    bdc::String code = "int my_var= 42";
-    tokenize(app.parser, code);
-    log_ribbon();
-    const Token& token = app.parser.ribbon[2];
-    EXPECT_EQ(token.view()          , "= ");
-    EXPECT_EQ(token.prefix_view()   , "");
-    EXPECT_EQ(token.suffix_view()   , " ");
-}
-
-TEST_F(Language_tokenize, operator_prefix)
-{
-    bdc::String code = "int my_var =42";
-    tokenize(app.parser, code);
-    log_ribbon();
-    const Token& token = app.parser.ribbon[2];
-    EXPECT_EQ(token.view()          , " =");
-    EXPECT_EQ(token.prefix_view()   , " " );
-    EXPECT_EQ(token.suffix_view()   , ""  );
-}
-
 
 TEST_F(Language_tokenize, add_pow2of2_and_integer )
 {
-    bdc::String code = "pow(2,2) + 1";
-    tokenize(app.parser, code);
-    log_ribbon();
-    EXPECT_EQ(app.parser.ribbon[2].view(), "2");
-    EXPECT_EQ(app.parser.ribbon[3].view(), ",");
-    EXPECT_EQ(app.parser.ribbon[4].view(), "2");
-    EXPECT_EQ(app.parser.ribbon[5].view(), ")"); // parser should not add a " " prefix after ")"
-    EXPECT_EQ(app.parser.ribbon[6].view(), " + ");
-    EXPECT_EQ(app.parser.ribbon[7].view(), "1");
+    auto& ctx = tokenize("pow(2,2) + 1");
+    log_tokens();
+    EXPECT_EQ(ctx.tokens[0].view(), "pow");
+    EXPECT_EQ(ctx.tokens[1].view(), "(");
+    EXPECT_EQ(ctx.tokens[2].view(), "2");
+    EXPECT_EQ(ctx.tokens[3].view(), ",");
+    EXPECT_EQ(ctx.tokens[4].view(), "2");
+    EXPECT_EQ(ctx.tokens[5].view(), ")"); // parser should not add a " " prefix after ")"
+    EXPECT_EQ(ctx.tokens[6].view(), " ");
+    EXPECT_EQ(ctx.tokens[7].view(), "+");
+    EXPECT_EQ(ctx.tokens[8].view(), " ");
+    EXPECT_EQ(ctx.tokens[9].view(), "1");
 
 }
 
 TEST_F(Language_tokenize, return_integer )
 {
-    bdc::String code = "return 42";
-    tokenize(app.parser, code);
-    EXPECT_EQ(app.parser.ribbon[0].word_view(), "return");
-    EXPECT_EQ(app.parser.ribbon[1].word_view(), "42");
-
+    auto& ctx = tokenize("return 42");
+    EXPECT_EQ(ctx.tokens[0].view(), "return");
+    EXPECT_EQ(ctx.tokens[1].view(), " ");
+    EXPECT_EQ(ctx.tokens[2].view(), "42");
 }
 
 TEST_F(Language_parse_function_call, dna_to_protein)
 {
     // tokenize
-    tokenize(app.parser, "dna_to_protein(\"GATACA\")");
+    auto& ctx = tokenize("dna_to_protein(\"GATACA\")");
 
     // check
-    Token_Ribbon& ribbon = app.parser.ribbon;
-    EXPECT_EQ(ribbon.size(), 4);
-    EXPECT_EQ(ribbon.at(0).type, Token_Type_identifier);
-    EXPECT_EQ(ribbon.at(1).type, Token_Type_parenthesis_open);
-    EXPECT_EQ(ribbon.at(2).type, Token_Type_literal_string);
-    EXPECT_EQ(ribbon.at(3).type, Token_Type_parenthesis_close);
+    EXPECT_EQ(ctx.tokens.size(), 4);
+    EXPECT_EQ(ctx.tokens[0].type, Token_Type_identifier);
+    EXPECT_EQ(ctx.tokens[1].type, Token_Type_parenthesis_open);
+    EXPECT_EQ(ctx.tokens[2].type, Token_Type_literal_string);
+    EXPECT_EQ(ctx.tokens[3].type, Token_Type_parenthesis_close);
 
     // parse
     Node_Slot* function_out = parse_function_call( app.parser, graph_root_scope(app.graph) );
@@ -226,14 +183,13 @@ TEST_F(Language_parse_function_call, dna_to_protein)
 TEST_F(Language_parse_function_call, operator_add)
 {
     // tokenize
-    tokenize(app.parser, "42+42");
+    auto& ctx = tokenize("42+42");
 
     // check
-    Token_Ribbon& ribbon = app.parser.ribbon;
-    EXPECT_EQ(ribbon.size(), 3);
-    EXPECT_EQ(ribbon.at(0).type, Token_Type_literal_int);
-    EXPECT_EQ(ribbon.at(1).type, Token_Type_operator);
-    EXPECT_EQ(ribbon.at(2).type, Token_Type_literal_int);
+    EXPECT_EQ(ctx.tokens.size(), 3);
+    EXPECT_EQ(ctx.tokens[0].type, Token_Type_literal_int);
+    EXPECT_EQ(ctx.tokens[1].type, Token_Type_operator);
+    EXPECT_EQ(ctx.tokens[2].type, Token_Type_literal_int);
 
     // parse
     Node_Slot* result = parse_expression( app.parser, graph_root_scope(app.graph) );

@@ -17,8 +17,8 @@ void    _scope_set_depth_cache_dirty(const Scope*);
 
 void scope_init(Scope* scope)
 {
-    scope->token_begin = { Token_Type_ignore, "" };
-    scope->token_end   = { Token_Type_ignore, "" };
+    scope->token_begin = { Token_Type_NULL, "" };
+    scope->token_end   = { Token_Type_NULL, "" };
 }
 
 void scope_deinit(Scope* scope)

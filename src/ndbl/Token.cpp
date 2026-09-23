@@ -13,8 +13,8 @@ namespace ndbl
 using namespace bdc;
 using namespace ndbl;
 
-const Token Token::s_end_of_line        = {Token_Type_ignore, "\n"};
-const Token Token::s_end_of_instruction = {Token_Type_ignore, ";\n"};
+const Token Token::s_end_of_line        = { Token_Type_end_of_line       , "\n" };
+const Token Token::s_end_of_instruction = { Token_Type_end_of_instruction, ";"  };
 
 Token::Token(
     Token_Type  _type,

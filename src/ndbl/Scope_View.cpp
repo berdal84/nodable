@@ -167,12 +167,14 @@ void TreeNode_Node(Node* node)
         case Node_Type_OPERATOR:
         case Node_Type_FUNCTION:
         {
-            Parser_Context parser;
-            parser_init(parser);
+            Serializer_Context ctx;
+            serializer_init(ctx);
 
-            serialize_function_type(parser, &node->component.invokable.type);
-            String str = parser_build_tstring(parser);
+            serialize_function_type(ctx, &node->component.invokable.type);
+            String str = serializer_build_tstring(ctx);
             open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name.c_str(), str.c_str() );
+            
+            serializer_deinit(ctx);
             break;
         }
         case Node_Type_VARIABLE:
