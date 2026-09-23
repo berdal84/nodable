@@ -1,0 +1,16 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "dependencies": [
+        "pkgconf",
+        "zlib",
+        "libpng",
+        "freetype",
+        "sdl2",
+        "opengl",
+        "gtest",
+        "nativefiledialog-extended",
+        "gl3w",
+        "lodepng",
+        { "name":  "glm",  "version>=": "1.0.3"  }
+  ]
+}

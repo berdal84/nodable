@@ -1,0 +1,77 @@
+#pragma once
+
+#include <exception>
+#include <gtest/gtest.h>
+#include <fstream>
+#include <filesystem>
+#include "bdc/String.hpp"
+#include "ndbl/File_System.h"
+#include "ndbl/Log.h"
+#include "ndbl/Nodable_Headless.h"
+#include "ndbl/Parser.h"
+#include "ndbl/reflection/index.h"
+
+namespace testing
+{
+using namespace ndbl;
+using namespace bdc;
+
+class Nodable_Headless_Test : public Test
+{
+public:
+    App_Headless_State app;
+    Nodable_Headless_Test() {}
+    
+    void SetUp() override
+    {
+        nodable_init(&app);
+
+        set_log_verbosity( Verbosity_Message );
+        set_log_verbosity( __FILE__, Verbosity_Diagnostic );
+    }
+
+    void TearDown() override
+    {
+        nodable_deinit(&app);
+    }
+
+    Parser_Context& tokenize(const String& code)
+    {
+        parser_reset(app.parser, app.graph, code);
+        parser_tokenize(app.parser);
+        return app.parser;
+    }
+
+    String parse_and_serialize(const String &code)
+    {
+        NDBL_DEBUG_LOG(Verbosity_Message, __FILE_NAME__, "parse_and_serialize parsing \"%s\"\n", code.c_str());
+
+        ASSERT( nodable_parse(&app, code) );
+        String result = nodable_serialize(&app);
+
+        NDBL_DEBUG_LOG(Verbosity_Message, __FILE_NAME__, "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
+
+        return result;
+    }
+
+    // load a file relative to executable directory
+    String load_file(const Path& path)
+    {
+        push_allocator(&temp_allocator);
+        File_Read_Result result = file_read(path.c_str());
+        pop_allocator();
+        if(!result.ok)
+        {
+            NDBL_LOG(Verbosity_Error, __FILE_NAME__, "%s\n", result.error.c_str() );
+            VERIFY(false, "Unable to open file!" );
+        }
+        return result.content;
+    }
+    
+    void log_tokens()
+    {
+        String str = parser_to_string(app.parser);
+        NDBL_LOG(Verbosity_Message, "fixture::core", "%s\n\n", str.c_str());
+    }
+};
+}
