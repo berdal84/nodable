@@ -53,10 +53,14 @@ void file_init(File* file)
     fileview_set_AddUndoHandler(&file->view, &command_manager_AddUndoHandler );
     command_manager()->push_text_editor_AddUndoRecord = true;
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File", "Constructor being called.\n");
+
+    parser_init(file->parser);
 }
 
 void file_deinit(File* file)
 {
+    parser_deinit(file->parser);
+    
     string_release(file->temp_parsed_text);
     file->graph->view->signal_change.disconnect();
     file->view.signal_change.disconnect();
@@ -71,10 +75,8 @@ void file_serialize_graph(File* file, bool isolation_on)
 {
     if ( auto* root_node = graph_root( file->graph ) )
     {
-        bdc::String_Builder out;
-        string_builder_init(out);
-        lang_serialize_node(parser(), out, root_node, Serialization_Flag_RECURSE);
-        bdc::String temp_str = bdc::string_builder_build_tstring(out); // the Text_Editor in FileView will do a copy via an std::string
+        serialize_node(file->parser, root_node, Serialization_Flag_RECURSE);
+        bdc::String temp_str = parser_build_tstring(file->parser); // the Text_Editor in FileView will do a copy via an std::string
         fileview_set_text( &file->view, temp_str, isolation_on );
     }
     else
@@ -124,7 +126,7 @@ void file_parse_text(File* file, bool isolation_on)
 {
     // Parse source code
     String text = string_copy( fileview_get_text(&file->view, isolation_on ) );
-    lang_parse(parser(), file->graph, text);    
+    parse(file->parser, file->graph, text);    
     file->view.is_syntax_dirty = true;
 
     // Release and replace temp_parsed_text

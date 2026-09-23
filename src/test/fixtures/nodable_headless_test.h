@@ -62,9 +62,10 @@ public:
         return result.content;
     }
     
-    void log_ribbon() const
+    void log_ribbon()
     {
-        NDBL_LOG(Verbosity_Message, "fixture::core", "%s\n\n", parser().ribbon.to_string().c_str());
+        String str = app.parser.ribbon.to_string();
+        NDBL_LOG(Verbosity_Message, "fixture::core", "%s\n\n", str.c_str());
     }
 };
 }

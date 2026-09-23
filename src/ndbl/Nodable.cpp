@@ -73,7 +73,7 @@ App_State* app_init()
     // Init manager(s)
     config_init();
     appview_init();
-    language_init();
+    langdef_init();
     task_manager_init();
     command_manager_init();
 
@@ -104,7 +104,7 @@ void app_shutdown()
 
     // Shutdown managers & co.
     command_manager_shutdown();
-    language_shutdown();
+    langdef_shutdown();
     config_shutdown();
     task_manager_shutdown();
     appview_shutdown();

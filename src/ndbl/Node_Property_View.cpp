@@ -124,12 +124,14 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
     {
         ImGui::Text("%s %s\n", view->property->type->name.c_str(), view->property->name.c_str());
 
+        Parser_Context parser;
+        parser_init(parser);
         bdc::String_Builder sb;
         string_builder_init(sb);
         if( view->property == view->node()->value || node_find_slot_by_property( view->node(), view->property, Node_Slot::Flag_OUTPUT ))
-            lang_serialize_node(parser(), sb, view->node(), Serialization_Flag_RECURSE);
+            serialize_node(parser, view->node(), Serialization_Flag_RECURSE);
         else
-            lang_serialize_property(parser(), sb, view->property);
+            serialize_property(parser, view->property);
 
         ImGui::Text("source: \"%s\"", bdc::string_builder_build_tstring(sb).c_str());
 
@@ -220,6 +222,9 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
         ImGui::PushItemWidth(w);
     }
 
+    Parser_Context parser;
+    parser_init(parser);
+
     // Per type
     switch ( property_token.type )
     {
@@ -239,11 +244,11 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
         {
 
             String word  = property_token.word_view();
-            double value = lang_parse_double_or(parser(), word, 0);
+            double value = parse_double_or(parser, word, 0);
 
             if (ImGui::InputDouble(label.c_str(), &value, 0.0, 0.0, "%.6f", flags))
             {
-                bdc::String str = lang_serialize_double(parser(),  value);
+                bdc::String str = serialize_double(parser, value);
                 property_token.replace_word( str.c_str());
                 changed = true;
             }
@@ -253,11 +258,11 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
         case Token_Type_literal_int:
         {
             String word = property_token.word_view();
-            i32_t value = lang_parse_int_or( parser(), word, 0);
+            i32_t value = parse_int_or( parser, word, 0);
 
             if (ImGui::InputInt(label.c_str(), &value, 0, 0, flags))
             {
-                bdc::String str = lang_serialize_int(parser(), value);
+                bdc::String str = serialize_int(parser, value);
                 property_token.replace_word(str.c_str());
                 changed = true;
             }
@@ -267,11 +272,11 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
         case Token_Type_literal_bool:
         {
             bdc::String word = property_token.word_view();
-            bool value = lang_parse_bool_or(parser(), word, false);
+            bool value = parse_bool_or(parser, word, false);
 
             if (ImGui::Checkbox(label.c_str(), &value))
             {
-                bdc::String new_word = lang_serialize_bool(parser(), value);
+                bdc::String new_word = serialize_bool(parser, value);
                 property_token.replace_word( new_word );
                 changed = true;
             }
@@ -290,6 +295,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
             break;
         }
     }
+    parser_deinit(parser);
 
     if ( compact_mode )
         ImGui::PopItemWidth();

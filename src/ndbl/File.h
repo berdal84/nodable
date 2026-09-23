@@ -6,6 +6,7 @@
 
 #include "File_System.h"
 #include "File_View.h"
+#include "Parser.h"
 
 namespace ndbl
 {
@@ -38,6 +39,7 @@ namespace ndbl
         Path                   path; // file path on disk
         File_View              view;
         bdc::String            temp_parsed_text; // last parsed text buffer (when isolation mode is ON, this may be a portion of the file)
+        Parser_Context         parser;
         Graph*                 graph;// graphical representation
         File_Flags             flags;        
     };

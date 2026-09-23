@@ -167,10 +167,12 @@ void TreeNode_Node(Node* node)
         case Node_Type_OPERATOR:
         case Node_Type_FUNCTION:
         {
-            bdc::String_Builder sb;
-            lang_serialize_func_sig(parser(), sb, &node->component.invokable.type);
-            char str[255];
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name.c_str(), bdc::string_builder_build_tstring(sb).c_str() );
+            Parser_Context parser;
+            parser_init(parser);
+
+            serialize_function_type(parser, &node->component.invokable.type);
+            String str = parser_build_tstring(parser);
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name.c_str(), str.c_str() );
             break;
         }
         case Node_Type_VARIABLE:

@@ -48,7 +48,7 @@ void fileview_update(File_View* file_view, float dt)
 
     //
     // TODO: File needs at struct to hold temporary data resulting parsing
-    //       I must extract the state from Language and put that into a Parser_State struct.
+    //       I must extract the state from Parser and put that into a Parser_State struct.
     //
     if( file_view->is_syntax_dirty )
     {
@@ -56,6 +56,7 @@ void fileview_update(File_View* file_view, float dt)
         size_t tok_id   = -1;
         int    remainer = 0;
         PaletteIndex index = PaletteIndex::Default;
+        auto& parser = file_view->file->parser;
         for(auto& line : file_view->text_editor.mLines )
         {
             for(auto& glyph : line )
@@ -63,9 +64,9 @@ void fileview_update(File_View* file_view, float dt)
                 if( remainer <= 0 )
                 {
                     ++tok_id;
-                    if( tok_id < parser().ribbon.size() )
+                    if( tok_id < parser.ribbon.size() )
                     {
-                        auto& tok = parser().ribbon[tok_id];
+                        auto& tok = parser.ribbon[tok_id];
                         remainer  = tok.size();
 
                         switch ( tok.type)

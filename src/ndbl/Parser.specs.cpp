@@ -13,34 +13,34 @@ using namespace ndbl;
 
 TEST_F(Language_basics, can_get_add_operator_with_short_identifier )
 {
-    EXPECT_TRUE(lang_find_operator(parser(), {"+", Operator_Type::Binary}));
-    EXPECT_TRUE(lang_find_operator(parser(), {"-", Operator_Type::Unary}));
+    EXPECT_TRUE(langdef_find_operator(langdef(), {"+", Operator_Type::Binary}));
+    EXPECT_TRUE(langdef_find_operator(langdef(), {"-", Operator_Type::Unary}));
 }
 TEST_F(Language_basics, token_t_to_type)
 {
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_keyword_bool)  , type_get<bool>());
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_keyword_double), type_get<double>() );
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_keyword_i16)   , type_get<i16_t>() );
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_keyword_int)   , type_get<i32_t>() );
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_keyword_string), type_get<bdc::String>() );
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_keyword_any)   , type_get<any>() );
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_keyword_bool)  , type_get<bool>());
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_keyword_double), type_get<double>() );
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_keyword_i16)   , type_get<i16_t>() );
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_keyword_int)   , type_get<i32_t>() );
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_keyword_string), type_get<bdc::String>() );
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_keyword_any)   , type_get<any>() );
 
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_literal_bool)    , nullptr);
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_literal_double)  , nullptr);
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_literal_int)     , nullptr);
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_literal_string)  , nullptr);
-    EXPECT_EQ(lang_get_type(parser(), Token_Type_literal_any)     , nullptr);
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_literal_bool)    , nullptr);
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_literal_double)  , nullptr);
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_literal_int)     , nullptr);
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_literal_string)  , nullptr);
+    EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_literal_any)     , nullptr);
 }
 
 TEST_F(Language_basics, type_to_string)
 {
-    EXPECT_EQ(lang_serialize_type(parser(), type_get<bool>())        , "bool" );
-    EXPECT_EQ(lang_serialize_type(parser(), type_get<double>())      , "double" );
-    EXPECT_EQ(lang_serialize_type(parser(), type_get<i16_t>())       , "i16" );
-    EXPECT_EQ(lang_serialize_type(parser(), type_get<int>())         , "int" );
-    EXPECT_EQ(lang_serialize_type(parser(), type_get<i32_t>())       , "int" );
-    EXPECT_EQ(lang_serialize_type(parser(), type_get<bdc::String>()) , "string" );
-    EXPECT_EQ(lang_serialize_type(parser(), type_get<any>())         , "any" );
+    EXPECT_EQ(serialize_type(app.parser, type_get<bool>())        , "bool" );
+    EXPECT_EQ(serialize_type(app.parser, type_get<double>())      , "double" );
+    EXPECT_EQ(serialize_type(app.parser, type_get<i16_t>())       , "i16" );
+    EXPECT_EQ(serialize_type(app.parser, type_get<int>())         , "int" );
+    EXPECT_EQ(serialize_type(app.parser, type_get<i32_t>())       , "int" );
+    EXPECT_EQ(serialize_type(app.parser, type_get<bdc::String>()) , "string" );
+    EXPECT_EQ(serialize_type(app.parser, type_get<any>())         , "any" );
 }
 
 
@@ -50,7 +50,7 @@ TEST_F(Language_basics, type_to_string)
 TEST_F(Language_parse_token, atomic_expression_if)
 {
     bdc::String buffer{"if"};
-    Token token = lang_parse_token(parser(), buffer);
+    Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_keyword_if);
     EXPECT_EQ(token.view(), "if");
 }
@@ -58,7 +58,7 @@ TEST_F(Language_parse_token, atomic_expression_if)
 TEST_F(Language_parse_token, atomic_expression_else)
 {
     bdc::String buffer{"else"};
-    Token token = lang_parse_token(parser(), buffer);
+    Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_keyword_else);
     EXPECT_EQ(token.view(), "else");
 }
@@ -66,7 +66,7 @@ TEST_F(Language_parse_token, atomic_expression_else)
 TEST_F(Language_parse_token, atomic_expression_for)
 {
     bdc::String buffer{"for"};
-    Token token = lang_parse_token(parser(), buffer);
+    Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_keyword_for);
     EXPECT_EQ(token.view(), "for");
 }
@@ -74,7 +74,7 @@ TEST_F(Language_parse_token, atomic_expression_for)
 TEST_F(Language_parse_token, atomic_expression_bool_true)
 {
     bdc::String buffer{"true"};
-    Token token = lang_parse_token(parser(), buffer);
+    Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_bool);
     EXPECT_EQ(token.view(), "true");
 }
@@ -82,7 +82,7 @@ TEST_F(Language_parse_token, atomic_expression_bool_true)
 TEST_F(Language_parse_token, atomic_expression_bool_false)
 {
     bdc::String buffer{"false"};
-    Token token = lang_parse_token(parser(), buffer);
+    Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_bool);
     EXPECT_EQ(token.view(), "false");
 }
@@ -90,14 +90,14 @@ TEST_F(Language_parse_token, atomic_expression_bool_false)
 TEST_F(Language_parse_token, atomic_expression_int_5)
 {
     bdc::String buffer{"5"};
-    Token token = lang_parse_token(parser(), buffer);
+    Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_int);
 }
 
 TEST_F(Language_parse_token, atomic_expression_double_5_0)
 {
     bdc::String buffer{"5.0"};
-    Token token = lang_parse_token(parser(), buffer);
+    Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_double);
     EXPECT_EQ(token.view(), "5.0");
 }
@@ -105,7 +105,7 @@ TEST_F(Language_parse_token, atomic_expression_double_5_0)
 TEST_F(Language_parse_token, atomic_expression_double_5_0001)
 {
     bdc::String buffer{"5.0001"};
-    Token token = lang_parse_token(parser(), buffer);
+    Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_double);
     EXPECT_EQ(token.view(), "5.0001");
 }
@@ -113,7 +113,7 @@ TEST_F(Language_parse_token, atomic_expression_double_5_0001)
 TEST_F(Language_parse_token, atomic_expression_string)
 {
     bdc::String buffer{"\"Hello\""};
-    Token token = lang_parse_token(parser(), buffer);
+    Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_string);
     EXPECT_EQ(token.view(), "\"Hello\"");
 }
@@ -125,9 +125,9 @@ TEST_F(Language_parse_token, atomic_expression_string)
 TEST_F(Language_tokenize, identifiers_can_start_by_a_keyword)
 {
     bdc::String code = "int if_myvar_includes_a_keyword;";
-    lang_tokenize(parser(), code);
+    tokenize(app.parser, code);
     log_ribbon();
-    const Token& token = parser().ribbon[1];
+    const Token& token = app.parser.ribbon[1];
     EXPECT_EQ(token.word_view(), "if_myvar_includes_a_keyword");
     EXPECT_EQ(token.type, Token_Type_identifier);
 }
@@ -137,9 +137,9 @@ TEST_F(Language_tokenize, identifiers_can_start_by_a_keyword)
 TEST_F(Language_tokenize, identifiers_should_not_have_prefix_or_suffix)
 {
     bdc::String code{"int my_var ;"};
-    lang_tokenize(parser(), code);
+    tokenize(app.parser, code);
     log_ribbon();
-    const Token& token = parser().ribbon[1];
+    const Token& token = app.parser.ribbon[1];
     EXPECT_EQ(token.word_view()     , "my_var");
     EXPECT_EQ(token.prefix_view()   , "");
     EXPECT_EQ(token.suffix_view()   , "");
@@ -148,9 +148,9 @@ TEST_F(Language_tokenize, identifiers_should_not_have_prefix_or_suffix)
 TEST_F(Language_tokenize, operator_suffix_and_prefix)
 {
     bdc::String code{"int my_var = 42"};
-    lang_tokenize(parser(), code);
+    tokenize(app.parser, code);
     log_ribbon();
-    const Token& token = parser().ribbon[2];
+    const Token& token = app.parser.ribbon[2];
     EXPECT_EQ(token.view()          , " = ");
     EXPECT_EQ(token.prefix_view()   , " ");
     EXPECT_EQ(token.suffix_view()   , " ");
@@ -159,9 +159,9 @@ TEST_F(Language_tokenize, operator_suffix_and_prefix)
 TEST_F(Language_tokenize, operator_suffix)
 {
     bdc::String code = "int my_var= 42";
-    lang_tokenize(parser(), code);
+    tokenize(app.parser, code);
     log_ribbon();
-    const Token& token = parser().ribbon[2];
+    const Token& token = app.parser.ribbon[2];
     EXPECT_EQ(token.view()          , "= ");
     EXPECT_EQ(token.prefix_view()   , "");
     EXPECT_EQ(token.suffix_view()   , " ");
@@ -170,9 +170,9 @@ TEST_F(Language_tokenize, operator_suffix)
 TEST_F(Language_tokenize, operator_prefix)
 {
     bdc::String code = "int my_var =42";
-    lang_tokenize(parser(), code);
+    tokenize(app.parser, code);
     log_ribbon();
-    const Token& token = parser().ribbon[2];
+    const Token& token = app.parser.ribbon[2];
     EXPECT_EQ(token.view()          , " =");
     EXPECT_EQ(token.prefix_view()   , " " );
     EXPECT_EQ(token.suffix_view()   , ""  );
@@ -182,33 +182,33 @@ TEST_F(Language_tokenize, operator_prefix)
 TEST_F(Language_tokenize, add_pow2of2_and_integer )
 {
     bdc::String code = "pow(2,2) + 1";
-    lang_tokenize(parser(), code);
+    tokenize(app.parser, code);
     log_ribbon();
-    EXPECT_EQ(parser().ribbon[2].view(), "2");
-    EXPECT_EQ(parser().ribbon[3].view(), ",");
-    EXPECT_EQ(parser().ribbon[4].view(), "2");
-    EXPECT_EQ(parser().ribbon[5].view(), ")"); // parser should not add a " " prefix after ")"
-    EXPECT_EQ(parser().ribbon[6].view(), " + ");
-    EXPECT_EQ(parser().ribbon[7].view(), "1");
+    EXPECT_EQ(app.parser.ribbon[2].view(), "2");
+    EXPECT_EQ(app.parser.ribbon[3].view(), ",");
+    EXPECT_EQ(app.parser.ribbon[4].view(), "2");
+    EXPECT_EQ(app.parser.ribbon[5].view(), ")"); // parser should not add a " " prefix after ")"
+    EXPECT_EQ(app.parser.ribbon[6].view(), " + ");
+    EXPECT_EQ(app.parser.ribbon[7].view(), "1");
 
 }
 
 TEST_F(Language_tokenize, return_integer )
 {
     bdc::String code = "return 42";
-    lang_tokenize(parser(), code);
-    EXPECT_EQ(parser().ribbon[0].word_view(), "return");
-    EXPECT_EQ(parser().ribbon[1].word_view(), "42");
+    tokenize(app.parser, code);
+    EXPECT_EQ(app.parser.ribbon[0].word_view(), "return");
+    EXPECT_EQ(app.parser.ribbon[1].word_view(), "42");
 
 }
 
 TEST_F(Language_parse_function_call, dna_to_protein)
 {
     // tokenize
-    lang_tokenize(parser(), "dna_to_protein(\"GATACA\")");
+    tokenize(app.parser, "dna_to_protein(\"GATACA\")");
 
     // check
-    Token_Ribbon& ribbon = parser().ribbon;
+    Token_Ribbon& ribbon = app.parser.ribbon;
     EXPECT_EQ(ribbon.size(), 4);
     EXPECT_EQ(ribbon.at(0).type, Token_Type_identifier);
     EXPECT_EQ(ribbon.at(1).type, Token_Type_parenthesis_open);
@@ -216,7 +216,7 @@ TEST_F(Language_parse_function_call, dna_to_protein)
     EXPECT_EQ(ribbon.at(3).type, Token_Type_parenthesis_close);
 
     // parse
-    Node_Slot* function_out = lang_parse_function_call( parser(), graph_root_scope(app.graph) );
+    Node_Slot* function_out = parse_function_call( app.parser, graph_root_scope(app.graph) );
 
     // check
     EXPECT_TRUE(function_out!= nullptr);
@@ -226,17 +226,17 @@ TEST_F(Language_parse_function_call, dna_to_protein)
 TEST_F(Language_parse_function_call, operator_add)
 {
     // tokenize
-    lang_tokenize(parser(), "42+42");
+    tokenize(app.parser, "42+42");
 
     // check
-    Token_Ribbon& ribbon = parser().ribbon;
+    Token_Ribbon& ribbon = app.parser.ribbon;
     EXPECT_EQ(ribbon.size(), 3);
     EXPECT_EQ(ribbon.at(0).type, Token_Type_literal_int);
     EXPECT_EQ(ribbon.at(1).type, Token_Type_operator);
     EXPECT_EQ(ribbon.at(2).type, Token_Type_literal_int);
 
     // parse
-    Node_Slot* result = lang_parse_expression( parser(), graph_root_scope(app.graph) );
+    Node_Slot* result = parse_expression( app.parser, graph_root_scope(app.graph) );
 
     // check
     EXPECT_TRUE(result != nullptr );

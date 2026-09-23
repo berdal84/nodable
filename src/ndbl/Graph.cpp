@@ -504,8 +504,10 @@ void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                 // reset token to a default value to preserve a correct serialization
                 if (head->node->type != Node_Type_VARIABLE )
                 {
+                    Parser_Context parser;
+                    parser_init(parser);
                     Token& token = head->property->token;
-                    bdc::String token_type_as_str = lang_serialize_token_type_default(parser(), token.type);
+                    bdc::String token_type_as_str = serialize_token_type(parser, token.type); // TODO: simply handle literal token_type to string
                     token.replace_word( token_type_as_str.c_str() );
                 }
                 break;
@@ -625,7 +627,7 @@ Node* graph_create_node(Graph* graph, const Node_State* node_state, Scope* scope
         case Node_Type_FUNCTION:
         {
             VERIFY(node_state->function_type != nullptr, "_signature is expected when dealing with functions or operators");
-            if ( lang_is_operator( parser(), node_state->function_type ) )
+            if ( langdef_is_operator( langdef(), node_state->function_type ) )
                 return graph_create_operator( graph, node_state->function_type, scope );
             return graph_create_function( graph, node_state->function_type, scope );
         }

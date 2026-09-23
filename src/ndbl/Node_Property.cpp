@@ -54,10 +54,10 @@ namespace ndbl
         //       initialize itself m_token because it requires access to the parser.
         //       I think it would be more clear if we add an Node_Property factory function in ASTUtils
         //
-        if (!language_is_initialized()) return; // Had to do this because when I test a node without a parser, it crashes there.
+        if (!langdef_is_initialized()) return; // Had to do this because when I test a node without a parser, it crashes there.
 
         // Convert m_type to a Token_t
-        Token_Type token_type = lang_type_to_literal_token_type(parser(), property->type);
+        Token_Type token_type = langdef_type_descriptor_to_token_type_literal(langdef(), property->type);
         VERIFY(token_type != Token_Type_NULL, "This token is not handled");
 
         property->token = { token_type };

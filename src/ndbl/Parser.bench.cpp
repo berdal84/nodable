@@ -32,7 +32,7 @@ using namespace ndbl;
 
 class NodlangFixture : public benchmark::Fixture {
 public:
-    Parser*           parser;
+    Parser_Context*           parser;
     Graph*             graph;
     std::random_device random_device;  // Will be used to obtain a seed for the random number engine
     std::mt19937       generator; // Standard mersenne_twister_engine

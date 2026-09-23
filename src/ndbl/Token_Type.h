@@ -4,7 +4,7 @@
 namespace ndbl {
 
     /**
-     * @enum Identifies each Type of Token that a Language should state.
+     * @enum Identifies each Type of Token that a Parser should parse/seralize.
      * @note When the parser find a match, it assign a given Token_t to the parsed token.
      * @example
      *     "bool" => Token_t::keyword_bool

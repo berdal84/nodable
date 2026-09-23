@@ -14,12 +14,13 @@ void ndbl::nodable_init(App_Headless_State* state)
     reflection_init();
     memory_manager_init();
     task_manager_init();
-    language_init();
+    langdef_init();
+    parser_init(state->parser);
 
     // configure
     state->graph = bdc::memory_new<Graph>();
     graph_init(state->graph);
-    lang_reset( parser(), state->graph ); // in some cases (like during tests), we call parse_xxx methods that implicitly requires the state to be reset
+    parser_reset( state->parser, state->graph ); // in some cases (like during tests), we call parse_xxx methods that implicitly requires the state to be reset
 }
 
 void ndbl::nodable_deinit(App_Headless_State* state)
@@ -29,22 +30,20 @@ void ndbl::nodable_deinit(App_Headless_State* state)
     graph_deinit(state->graph);
     bdc::memory_delete(state->graph);
     task_manager_shutdown();
-    language_shutdown();
+    langdef_shutdown();
     memory_manager_shutdown();
     reflection_shutdown();
 }
 
-bdc::String ndbl::nodable_serialize(const App_Headless_State* state )
+bdc::String ndbl::nodable_serialize(App_Headless_State* state )
 {
-    String_Builder sb;
-    string_builder_init(sb);
-    lang_serialize_graph(parser(), sb, state->graph);
-    return string_builder_build_tstring(sb);
+    serialize_graph(state->parser, state->graph);
+    return parser_build_string(state->parser);
 }
 
-Graph* ndbl::nodable_parse(const App_Headless_State* state,  const bdc::String& in_code )
+Graph* ndbl::nodable_parse(App_Headless_State* state,  const bdc::String& str )
 {
-    if( !lang_parse(parser(), state->graph, in_code ) )
+    if( !parse(state->parser, state->graph, str ) )
         return nullptr;
     return state->graph;
 }

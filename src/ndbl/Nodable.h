@@ -8,7 +8,7 @@
 namespace ndbl
 {
     // forward declarations
-    class Language;
+    class Parser_Context;
     struct File;
     struct Task_Manager;
     struct Config;
