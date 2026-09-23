@@ -660,12 +660,11 @@ Node_Slot* parse_parenthesis_expression(Parser_Context& ctx, Scope* parent_scope
     Node_Slot* result = parse_expression(ctx, parent_scope);
     if ( result )
     {
-        Token token = parser_eat(ctx);
-        if (token.type != Token_Type_parenthesis_close)
+        if ( !parser_eat_if(ctx, Token_Type_parenthesis_close) )
         {
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s \n", parser_to_string(ctx).c_str());
-            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Parenthesis close expected\n",
-                        token.word_view().c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Parenthesis close expected after \n",
+                parser_get_eaten(ctx).view().c_str());
             parser_rollback(ctx);
         }
         else
