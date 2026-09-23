@@ -50,18 +50,23 @@ void fileview_update(File_View* file_view, float dt)
     {
         file_view->is_syntax_dirty = false;
         
-        size_t                      next_token_id       = 0;
-        int                         colorize_char_count = 0;
-        PaletteIndex                index               = PaletteIndex::Default;
-        const std::vector<Token>&   tokens              = file_view->file->parser.pristine_tokens;
+        size_t       next_token_id       = 0;
+        int          colorize_char_count = 0;
+        PaletteIndex index               = PaletteIndex::Default;
+        
+        Parser_Context parser;
+        parser_init(parser, nullptr, fileview_get_text(file_view,/* isolation = */ false )); // we parse the whole text even if isolation mode is on
+        parser_tokenize(parser);
+
+        NDBL_LOG(Verbosity_Message, "File_View", parser_to_string(parser).c_str());
 
         for(auto& line : file_view->text_editor.mLines )
         {
             for(auto& glyph : line )
             {
-                while( colorize_char_count <= 0 && next_token_id < tokens.size() )
+                while( colorize_char_count <= 0 && next_token_id < parser.tokens.size() )
                 {
-                    auto& tok = tokens[next_token_id];
+                    auto& tok = parser.tokens[next_token_id];
                     colorize_char_count = tok.size();
                     switch ( tok.type)
                     {
@@ -132,6 +137,7 @@ void fileview_update(File_View* file_view, float dt)
             }
         }
         
+        parser_deinit(parser);
     }
 }
 

@@ -919,7 +919,12 @@ Node_Slot* parse_expression(Parser_Context& ctx, Scope* parent_scope, u8_t _prec
 bool parser_tokenize(Parser_Context& ctx)
 {
     NDBL_LOG(Verbosity_Diagnostic, "Parser", "Tokenization ...\n");
-    ASSERT(ctx.in_text.data != nullptr);
+    
+    if( ctx.in_text.size == 0 )
+    {
+        NDBL_LOG(Verbosity_Warning, "Parser", "String is empty, nothing to tokenize.\n" );
+        return true;
+    }
 
     bdc::String remainder = ctx.in_text;
     size_t ignored_chars_count = 0;
@@ -928,7 +933,7 @@ bool parser_tokenize(Parser_Context& ctx)
     {
         Token  new_token = parse_token( ctx,  remainder );
 
-        if ( !new_token )
+        if ( new_token.type == Token_Type_NULL )
         {
             NDBL_LOG(
                 Verbosity_Warning, "Parser", 
@@ -978,12 +983,13 @@ Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
         while ( true )
         {
             if( buffer.size <= cursor )
-                return Token{ Token_Type_NULL, { buffer.data + cursor, buffer.size - cursor } };
-            if (buffer[cursor-1] == '*' && buffer[cursor] != '/')
+                return Token_Type_NULL;
+            if (buffer[cursor-1] == '*' && buffer[cursor] == '/')
                 break;
             cursor += 1;
         }
-        
+        cursor += 1;
+
         String word = {
             buffer.data,
             cursor
@@ -1000,11 +1006,12 @@ Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
     auto single_char_found = hashmap_find(ctx.langdef->token_type_by_single_char, buffer[0]); // index lookup
     if( single_char_found.ok )
     {
-        String word = bdc::string_lsplit( buffer, 1);
+        Token_Type type = *single_char_found.value;
+        String     word = bdc::string_lsplit( buffer, 1);
 
         bdc::string_advance(buffer, word.size );
 
-        return Token{ *single_char_found.value, word };
+        return Token{ type, word };
     }
 
     // operators
@@ -1112,7 +1119,7 @@ Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
 
         if( buffer[cursor] != '"' )
         {
-            return Token{ Token_Type_NULL };
+            return Token_Type_NULL;
         }
         
         ++cursor;
@@ -1146,7 +1153,7 @@ Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
         return Token{ Token_Type_identifier, word};
         
     }
-    return Token{ Token_Type_NULL };
+    return Token_Type_NULL;
 }
 
 
@@ -1994,7 +2001,6 @@ bdc::String serialize_token_type(const Serializer_Context& ctx, Token_Type token
 {
     switch (token_type)
     {
-        case Token_Type_end_of_line:     return "\n"; // TODO: handle all platforms
         case Token_Type_operator:        return "operator";
         case Token_Type_identifier:      return "identifier";
         case Token_Type_literal_string:  return "\"\"";
