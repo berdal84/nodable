@@ -140,6 +140,8 @@ void ndbl::graphview_deinit(Graph_View* graphview)
     {
         _graphview_handle_remove_node(graphview, &each_node);
     }
+
+    graphview->node_search_input.items.clear();
 }
 
 void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)

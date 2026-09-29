@@ -63,8 +63,11 @@ void file_deinit(File* file)
     parser_deinit(file->parser);
     serializer_deinit(file->serializer);
 
-    string_release(file->temp_parsed_text);
     file->graph->view->signal_change.disconnect();
+    graphview_deinit(file->graph->view);
+    file->graph = nullptr;
+
+    string_release(file->temp_parsed_text);
     file->view.signal_change.disconnect();
     fileview_deinit(&file->view);
 
