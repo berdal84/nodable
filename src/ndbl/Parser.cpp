@@ -237,13 +237,19 @@ void parser_init(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
 
 void parser_deinit(Parser_Context& ctx)
 {
-  // ..
+  array_release(ctx.flow_out);
+  // array_release(ctx.in_text); in_text is not owned
+  // graph_deinit(ctx.out_graph); out_graph is not owned
+  ctx.pristine_tokens.clear();
+  ctx.tokens.clear();
+  while(ctx.transaction.size())
+    ctx.transaction.pop();
 }
 
 void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
 {
-    ctx.in_text   = in_text;
-    ctx.out_graph = out_graph;
+    ctx.in_text   = in_text; // in_text is not owned
+    ctx.out_graph = out_graph; // out_graph is not owned
 
     ctx.tokens.clear();
     ctx.pristine_tokens.clear();
@@ -257,6 +263,8 @@ void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
     {
         graph_reset( ctx.out_graph );
     }
+
+    array_resize(ctx.flow_out, 0);
 }
 
 bool parse_graph(Parser_Context& ctx)
