@@ -41,12 +41,6 @@ void graph_deinit(Graph* graph)
 {
     graph_clear(graph);
     hashmap_release(graph->node_index_by_id);
-    
-    if( graph->view )
-    {
-        graphview_deinit( graph->view );
-        bdc::memory_free( graph->view );
-    }
 }
 
 void graph_clear(Graph* graph)

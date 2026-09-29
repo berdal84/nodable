@@ -65,14 +65,15 @@ void file_deinit(File* file)
 
     file->graph->view->signal_change.disconnect();
     graphview_deinit(file->graph->view);
-
-    string_release(file->temp_parsed_text);
-    file->view.signal_change.disconnect();
-    fileview_deinit(&file->view);
+    bdc::memory_free(file->graph->view);
 
     graph_deinit(file->graph);
     bdc::memory_delete(file->graph);
     file->graph = nullptr;
+
+    string_release(file->temp_parsed_text);
+    file->view.signal_change.disconnect();
+    fileview_deinit(&file->view);
 }
 
 void file_serialize_graph(File* file, bool isolation_on)
