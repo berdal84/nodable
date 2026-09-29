@@ -4,16 +4,15 @@
 #include "glm/gtx/matrix_transform_2d.hpp"
 #undef GLM_ENABLE_EXPERIMENTAL
 
-#include "../Asserts.h"
+#include "ndbl/Asserts.h"
 
 namespace ndbl 
 {
 
 Spatial_Node::~Spatial_Node()
 {
-    spatialnode_clear(this);
-    ASSERT( parent == nullptr ); // remove this instance from its parent before to delete it.
-    ASSERT( this->children.empty() ); // _parent is responsible for removing its children before they get delete.
+    assert( parent == nullptr ); // should have removed this node from its parent
+    assert( this->children.empty() ); // should have removed all children first
 }
 
 const glm::mat3& Spatial_Node::world_matrix() const
@@ -30,7 +29,7 @@ void spatialnode_clear(Spatial_Node* spatial_node)
 {
     while ( !spatial_node->children.empty() )
     {
-        spatialnode_remove_child(spatial_node, *spatial_node->children.begin() ); // TODO: not great to remove one by one from the begining...
+        spatialnode_remove_child(spatial_node, *spatial_node->children.begin() );
     }
 }
 
@@ -58,7 +57,7 @@ void spatialnode_set_position(Spatial_Node* spatial_node, const Vec2& desired_po
             break;
         }
         default:
-            ASSERT( false ); // Not implemented yet
+            UNREACHABLE("Unexpected desired_space");
     }
 }
 

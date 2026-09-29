@@ -108,10 +108,9 @@ void ndbl::graphview_init(Graph_View* graphview, Graph* graph)
     graphview->state_machine.bind<&_graphview_line_state_leave>(LINE_STATE, When::OnLeave);
 
     // add nodes present before connecting signals
-    for(Node& each_node : graph->nodes )
-    {
-        _graphview_handle_add_node(graphview, &each_node);
-    }
+    for( Node& each_node : graphview->graph->nodes )
+        if( !HAS_FLAGS(each_node.flags, Node_Flag_IS_DELETED) && each_node.view != nullptr )
+            _graphview_handle_add_node(graphview, &each_node);
 
     graphview->selection.signal_change.connect<&_graphview_on_selection_change>(graphview);
     graph->signal_change.connect<&_graphview_on_graph_change>(graphview);
@@ -137,9 +136,8 @@ void ndbl::graphview_deinit(Graph_View* graphview)
 
     // add nodes still present after connecting signals
     for( Node& each_node : graphview->graph->nodes )
-    {
-        _graphview_handle_remove_node(graphview, &each_node);
-    }
+        if( !HAS_FLAGS(each_node.flags, Node_Flag_IS_DELETED) && each_node.view != nullptr )
+            _graphview_handle_remove_node(graphview, &each_node);
 
     graphview->node_search_input.items.clear();
 }
@@ -163,22 +161,21 @@ void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
 void ndbl::_graphview_handle_remove_node(Graph_View* graphview, Node* node)
 {
     // Deinit and delete Node_View related data
-    if( node->view )
-    {
-        if ( Scope_View* scopeview = node->view->internal_scopeview )
-        {
-            scopeview->signal_hover.disconnect(); // I'm not sure if this is a good approach...
-        }
-    
-        if( node->view->shape.spatial_node.parent )
-        {
-            spatialnode_remove_child(node->view->shape.spatial_node.parent, &node->view->shape.spatial_node );
-        }
+    assert( node->view );
 
-        nodeview_deinit(node->view);
-        bdc::memory_delete(node->view);
-        node->view = nullptr;
+    if ( Scope_View* scopeview = node->view->internal_scopeview )
+    {
+        scopeview->signal_hover.disconnect(); // I'm not sure if this is a good approach...
     }
+
+    if( node->view->shape.spatial_node.parent )
+    {
+        spatialnode_remove_child(node->view->shape.spatial_node.parent, &node->view->shape.spatial_node );
+    }
+
+    nodeview_deinit(node->view);
+    bdc::memory_delete(node->view);
+    node->view = nullptr;
 }
 
 void ndbl::_graphview_handle_change_scope(Graph_View* graphview, Graph::Scope_Change change)
