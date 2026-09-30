@@ -21,9 +21,7 @@ namespace ndbl
     using namespace bdc;
 
     Node*   _graph_new_node(Graph*);
-    void    _graph_add_node(Graph*, Node*, Scope*); // TODO: merge this with add_node_to_index?
-    void    _graph_add_node_to_index(Graph*, Node*, size_t position);
-    void    _graph_remove_node_from_index(Graph*, Node*);
+    void    _graph_add_node(Graph*, Node*, Scope*);
 
 void graph_init(Graph* graph)
 {
@@ -51,11 +49,12 @@ void graph_clear(Graph* graph)
     // (from last to first (which is the root))
     for(u32_t i = graph->nodes.size; i > 0; --i)
     {
-        Node& node = graph->nodes[i-1];
-        graph_clean_node(&node);
-        _graph_remove_node_from_index(graph, &node);       
-        node_deinit(&node);
-        SET_FLAGS(node.flags, Node_Flag_IS_DELETED);
+        Node* node = &graph->nodes[i-1];
+        graph_clean_node(node);
+        hashmap_remove(graph->node_index_by_id, node->id );    
+        graph->signal_remove_node.emit(node);       
+        node_deinit(node);
+        SET_FLAGS(node->flags, Node_Flag_IS_DELETED);
     }
 
     array_resize(graph->nodes, 0);
@@ -90,7 +89,7 @@ bool graph_update(Graph* graph)
     array_init(node_pos_to_delete, 0, &temp_allocator);
 
     size_t i = 0;
-    for(Node&node : graph->nodes)
+    for(Node& node : graph->nodes)
     {
         if ( HAS_FLAGS(node.flags, Node_Flag_MUST_BE_DELETED) )
         {
@@ -110,8 +109,10 @@ bool graph_update(Graph* graph)
         changed |= true;
         Node* node = &graph->nodes[pos];
         graph_clean_node(node);
-        _graph_remove_node_from_index(graph, node);
+        hashmap_remove(graph->node_index_by_id, node->id );    
+        graph->signal_remove_node.emit(node);   
         node_deinit(node);
+        SET_FLAGS(node->flags, Node_Flag_IS_DELETED);
     }
 
     if ( changed )
@@ -144,27 +145,13 @@ void _graph_add_node(Graph* graph, Node* node, Scope* scope)
     }
 
     node->graph = graph;
-    _graph_add_node_to_index(graph, node, graph->nodes.size -1);
+    node->id    = string_hash( get_next_GUID("node") );
+    bdc::hashmap_add(graph->node_index_by_id, node->id, graph->nodes.size -1 );
 
     graph->signal_add_node.emit(node);
     graph->signal_change.broadcast();
 
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name.c_str(), node->get_class()->name.c_str() );
-}
-
-void _graph_add_node_to_index(Graph* graph, Node* node, size_t position)
-{
-    node->id = string_hash( get_next_GUID("node") );
-    bdc::hashmap_add(graph->node_index_by_id, node->id, position );
-
-    graph->signal_add_node.emit(node); 
-}
-
-void _graph_remove_node_from_index(Graph* graph, Node* node)
-{
-    bdc::hashmap_remove(graph->node_index_by_id, node->id );
-    
-    graph->signal_remove_node.emit(node); 
 }
 
 Node* graph_find_node(Graph* graph, const bdc::String_Hash& id)
@@ -277,7 +264,8 @@ void graph_find_and_destroy_node(Graph* graph, Node* node)
         graph_connect(prev_adjacent_slot, next_adjacent_slot, Graph_Flag_ALLOW_SIDE_EFFECTS );
     }
 
-    _graph_remove_node_from_index(graph, node);
+    hashmap_remove(graph->node_index_by_id, node->id );    
+    graph->signal_remove_node.emit(node);
     graph->signal_change.broadcast();
     node_deinit(node);
 

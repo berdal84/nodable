@@ -137,14 +137,12 @@ bool spatialnode_add_child(Spatial_Node* parent, Spatial_Node* new_child, Spatia
     return true;
 }
 
-bool spatialnode_remove_child(Spatial_Node* parent, Spatial_Node* child, Spatial_Node_Flags flags)
+bool spatialnode_remove_child(Spatial_Node* spatial_node, Spatial_Node* child, Spatial_Node_Flags flags)
 {
-    ASSERT(child);
-    if (child->parent == nullptr )
-        return false;
+    assert(spatial_node);
+    assert(child);
 
-    if ( !parent->children.erase(child) )
-        return false;
+    assert( spatial_node->children.erase(child) );
 
     if ( flags & Spatial_Node_Flag_PRESERVE_WORLD_POSITION )
     {

@@ -97,6 +97,7 @@ void node_deinit(Node* node)
     for(auto& prop : node->props )
     {
         property_deinit(prop);
+        memory_delete(prop);
     }
     // destroy all props
     array_release(node->props);
@@ -108,6 +109,7 @@ void node_deinit(Node* node)
     for(auto& slot : node->slots )
     {
         node_slot_deinit(slot);
+        memory_delete(slot);
     }
     // destroy all the slots
     array_release(node->slots);

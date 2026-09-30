@@ -109,7 +109,7 @@ void ndbl::graphview_init(Graph_View* graphview, Graph* graph)
 
     // add nodes present before connecting signals
     for( Node& each_node : graphview->graph->nodes )
-        if( !HAS_FLAGS(each_node.flags, Node_Flag_IS_DELETED) && each_node.view != nullptr )
+        if( !HAS_FLAGS(each_node.flags, Node_Flag_IS_DELETED) )
             _graphview_handle_add_node(graphview, &each_node);
 
     graphview->selection.signal_change.connect<&_graphview_on_selection_change>(graphview);
@@ -136,7 +136,7 @@ void ndbl::graphview_deinit(Graph_View* graphview)
 
     // add nodes still present after connecting signals
     for( Node& each_node : graphview->graph->nodes )
-        if( !HAS_FLAGS(each_node.flags, Node_Flag_IS_DELETED) && each_node.view != nullptr )
+        if( !HAS_FLAGS(each_node.flags, Node_Flag_IS_DELETED) )
             _graphview_handle_remove_node(graphview, &each_node);
 
     graphview->node_search_input.items.clear();
@@ -160,8 +160,13 @@ void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
 
 void ndbl::_graphview_handle_remove_node(Graph_View* graphview, Node* node)
 {
+    assert( !HAS_FLAGS(node->flags, Node_Flag_IS_DELETED));
+
     // Deinit and delete Node_View related data
-    assert( node->view );
+    if( node->view == nullptr)
+    {
+        return;
+    }
 
     if ( Scope_View* scopeview = node->view->internal_scopeview )
     {
