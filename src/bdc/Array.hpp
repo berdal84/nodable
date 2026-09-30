@@ -186,14 +186,36 @@ namespace bdc
     template<typename Elem_T, u32_t CAPACITY>
     void array_init(Inlined_Array<Elem_T, CAPACITY>& arr, u32_t initial_size = 0)
     {
-        if ( initial_size )
-            array_resize(arr, initial_size);
+        array_resize(arr, initial_size);
     }
 
     template<typename Elem_T, u32_t CAPACITY>
     void array_resize(Inlined_Array<Elem_T, CAPACITY>& arr, u32_t new_size)
     {
         assert( new_size <= arr.capacity() );
+        if( new_size == arr.size )
+        {
+            return;
+        }
+
+        // on grow, call constructor for the n new element(s)
+        if( new_size > arr.size )
+        {            
+            for( u32_t n = arr.size; n < new_size; ++n )
+            {
+                new (arr.data + n) Elem_T();
+            }
+        }
+        // on shrink, call destructor for the n extra element(s)
+        else
+        {
+            
+            for( u32_t n = new_size; n < arr.size; ++n)
+            {
+                (arr.data + n)->~Elem_T();
+            }
+        }
+
         arr.size = new_size;
     }
 
