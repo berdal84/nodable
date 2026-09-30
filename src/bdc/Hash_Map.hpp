@@ -152,13 +152,26 @@ namespace bdc
         array_resize(hashmap.entries, initial_capacity);
     };
 
-    void hashmap_release(Is_Hash_Map auto& hashmap )
+    template<Is_Hash_Map T>
+    void hashmap_release(T& hashmap )
     {
+        hashmap_clear(hashmap);
         array_release(hashmap.entries);
-        hashmap.entries  = {};
-        hashmap.size     = 0;
-        hashmap.live_size= 0;
-        hashmap.capacity = 0;
+    };
+
+    template<Is_Hash_Map T>
+    void hashmap_clear(T& hashmap )
+    {
+        using Entry_Type = typename T::Entry_Type;
+        FOR_EACH_HASHMAP_ENTRY(entry, hashmap)
+        {
+            entry.~Entry_Type();
+        }
+        hashmap.size      = 0;
+        hashmap.live_size = 0;
+        hashmap.capacity  = 0;
+
+        array_resize(hashmap.entries, 0);
     };
 
     template<typename Value_Type>

@@ -133,7 +133,7 @@ void ndbl::graphview_deinit(Graph_View* graphview)
     graphview->graph->signal_reset.disconnect();
     graphview->graph->signal_is_complete.disconnect();
     ASSERT_DEBUG_ONLY( graphview->graph->signal_change.disconnect<&_graphview_on_graph_change>(graphview) );
-
+    
     // add nodes still present after connecting signals
     for( Node& each_node : graphview->graph->nodes )
         if( !HAS_FLAGS(each_node.flags, Node_Flag_IS_DELETED) )

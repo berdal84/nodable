@@ -183,7 +183,7 @@ void app_update()
 
             case Event_Type_FILE_CLOSE:
             {
-                app_close_file();
+                app_close_current_file();
                 break;
             }
 
@@ -516,7 +516,7 @@ void app_save_file_as(File* file, const Path& _path)
     NDBL_LOG(Verbosity_Message, "App", "File saved: %s\n", _path.c_str());
 }
 
-void app_close_file()
+void app_close_current_file()
 {
     auto app = app_state();
 
@@ -525,16 +525,18 @@ void app_close_file()
 
     app_close_file(app->current_file);
 }
-void app_close_file(File* _file)
+
+void app_close_file(File* file)
 {
+    assert(file != nullptr);
+
     auto app = app_state();
 
     // Find and delete the file
-    VERIFY(_file, "Cannot close a nullptr File!");
-    auto it = std::find(app->files.begin(), app->files.end(), _file);
+    auto it = std::find(app->files.begin(), app->files.end(), file);
     VERIFY(it != app->files.end(), "Unable to find the file in the loaded_files");
     it = app->files.erase(it);
-    app->files_to_delete.push_back(_file);
+    app->files_to_delete.push_back(file);
 
     // Switch to the next file if possible
     if ( it != app->files.end() )

@@ -148,11 +148,18 @@ void langdef_shutdown()
 {
     ASSERT(g_langdef != nullptr);
 
-    array_release(g_langdef->chars);
     array_release(g_langdef->keywords);
     array_release(g_langdef->types);
     array_release(g_langdef->operators);
-    array_release(g_langdef->operators);
+    array_release(g_langdef->chars);
+    
+    hashmap_release(g_langdef->single_char_by_keyword);
+    hashmap_release(g_langdef->keyword_by_token_type);
+    hashmap_release(g_langdef->token_type_by_keyword);
+    hashmap_release(g_langdef->keyword_by_type_id);
+    hashmap_release(g_langdef->token_type_by_type_id);
+    hashmap_release(g_langdef->token_type_by_single_char);
+    hashmap_release(g_langdef->type_descriptor_by_token_type);  
 
     bdc::memory_delete(g_langdef);
     g_langdef = nullptr;

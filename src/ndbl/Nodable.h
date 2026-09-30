@@ -53,7 +53,7 @@ namespace ndbl
     void            app_set_current_file(File*);
     void            app_save_file_as(File*, const Path&);
     File*           app_add_file(File*);
-    void            app_close_file();
+    void            app_close_current_file();
     void            app_close_file(File*);
     void            app_reset_current_graph();
 }

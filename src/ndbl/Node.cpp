@@ -127,7 +127,7 @@ void node_deinit(Node* node)
     if( node->internal_scope )
     {
         scope_deinit(node->internal_scope);
-        memory_free(node->internal_scope);
+        memory_delete(node->internal_scope);
         node->internal_scope = nullptr;
     }
 

@@ -57,6 +57,7 @@ void graph_clear(Graph* graph)
         SET_FLAGS(node->flags, Node_Flag_IS_DELETED);
     }
 
+    hashmap_clear(graph->node_index_by_id);
     array_resize(graph->nodes, 0);
 
     // Add a root node
