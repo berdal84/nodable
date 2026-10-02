@@ -49,9 +49,9 @@ namespace ndbl
 
     void                    graph_init(Graph*);
     void                    graph_deinit(Graph*);
-    void                    graph_clear(Graph*);
+    void                    graph_clear(Graph*); // Delete all nodes, wires, edges and reset scope.
+    void                    graph_reset(Graph*); // clear + add root node
     bool                    graph_update(Graph*);
-    void                    graph_reset(Graph*); // Delete all nodes, wires, edges and reset scope.
     inline Node*            graph_root(Graph* graph) { return &graph->nodes[0]; /* we have the guarantee it exists, see graph_init */}
     inline const Node*      graph_root(const Graph* graph) { return &graph->nodes[0]; }
     inline Scope*           graph_root_scope(const Graph* graph) { return graph->nodes[0].internal_scope; };

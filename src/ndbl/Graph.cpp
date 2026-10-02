@@ -30,7 +30,7 @@ void graph_init(Graph* graph)
 
     hashmap_init(graph->node_index_by_id);
 
-    graph_clear(graph);
+    graph_reset(graph);
 
     NDBL_LOG(Verbosity_Diagnostic, "Graph", "Initialized " NDBL_OK "\n");
 }
@@ -43,7 +43,7 @@ void graph_deinit(Graph* graph)
 
 void graph_clear(Graph* graph)
 {
-    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Clearing ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Resetting ...\n");
 
     // Delete existing nodes
     // (from last to first (which is the root))
@@ -59,6 +59,13 @@ void graph_clear(Graph* graph)
 
     hashmap_clear(graph->node_index_by_id);
     array_resize(graph->nodes, 0);
+}
+
+void graph_reset(Graph* graph)
+{
+    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Clearing ...\n");
+
+    graph_clear(graph);
 
     // Add a root node
     Node* root_node = _graph_new_node(graph);
@@ -67,18 +74,9 @@ void graph_clear(Graph* graph)
 
     // notify
     graph->signal_change.broadcast();
-
-    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Clear " NDBL_OK "\n");
-}
-
-void graph_reset(Graph* graph)
-{
-	NDBL_LOG(Verbosity_Diagnostic,  "Graph", "Resetting ...\n");
-
-    graph_clear(graph);    
     graph->signal_reset.emit();
 
-    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Reset " NDBL_OK "\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Graph", "Clear " NDBL_OK "\n");
 }
 
 bool graph_update(Graph* graph)
