@@ -1,0 +1,14 @@
+x64-linux/
+x64-linux/share/
+x64-linux/share/gperf/
+x64-linux/share/gperf/copyright
+x64-linux/share/gperf/gperf.html
+x64-linux/share/gperf/info/
+x64-linux/share/gperf/info/gperf.info
+x64-linux/share/gperf/man1/
+x64-linux/share/gperf/man1/gperf.1
+x64-linux/share/gperf/vcpkg.spdx.json
+x64-linux/share/gperf/vcpkg_abi_info.txt
+x64-linux/tools/
+x64-linux/tools/gperf/
+x64-linux/tools/gperf/gperf

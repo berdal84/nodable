@@ -1,0 +1,15 @@
+wasm32-emscripten/
+wasm32-emscripten/include/
+wasm32-emscripten/include/EGL/
+wasm32-emscripten/include/EGL/egl.h
+wasm32-emscripten/include/EGL/eglext.h
+wasm32-emscripten/include/EGL/eglplatform.h
+wasm32-emscripten/include/KHR/
+wasm32-emscripten/include/KHR/khrplatform.h
+wasm32-emscripten/share/
+wasm32-emscripten/share/egl-registry/
+wasm32-emscripten/share/egl-registry/copyright
+wasm32-emscripten/share/egl-registry/vcpkg.spdx.json
+wasm32-emscripten/share/egl-registry/vcpkg_abi_info.txt
+wasm32-emscripten/share/opengl/
+wasm32-emscripten/share/opengl/egl.xml
