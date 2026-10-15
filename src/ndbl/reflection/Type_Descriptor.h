@@ -66,7 +66,6 @@ namespace ndbl
     {
         const Type_Descriptor* type;
         bool                   pass_by_ref;
-        bdc::String            name;
     };
 
     /**
@@ -184,14 +183,14 @@ namespace ndbl
     template<typename T>
     Type_Descriptor* type_create(const char* name)
     {
-        Type_Descriptor* type = new Type_Descriptor();
-        type_init<T>(type, name);
+        static Type_Descriptor type{};
+        type_init<T>(&type, name);
 
-        return type;
+        return &type;
     }
 
     template<typename T>
-    void type_init(Type_Descriptor* type)
+    void type_init(Type_Descriptor* type, const char* name = "")
     {
         if constexpr ( std::is_class_v<T> )
         {
@@ -226,12 +225,7 @@ namespace ndbl
             type->compiler_name = type_get_compiler_name<T>();
             type->flags         = type_get_flags<T>();
         }
-    }
 
-    template<typename T>
-    void type_init(Type_Descriptor* type, const char* name)
-    {
-        type_init<T>(type);
         type->name = name;
     }
 
@@ -245,11 +239,11 @@ namespace ndbl
             return type_register_get(id);
         }
 
-        Type_Descriptor* descriptor = new Type_Descriptor();
-        type_init<T>(descriptor);
-        type_register_insert(descriptor);
+        static Type_Descriptor descriptor{};
+        type_init<T>(&descriptor);
+        type_register_insert(&descriptor);
 
-        return descriptor;
+        return &descriptor;
     }
 
     static_assert( std::is_function_v<void()>);

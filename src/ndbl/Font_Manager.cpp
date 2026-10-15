@@ -51,7 +51,7 @@ Font_Manager* font_manager()
 void font_manager_shutdown()
 {
     ASSERT_FONT_MANAGER_IS_INITIALIZED();
-    g_font_manager->~Font_Manager(); // TODO: use zero-init containers!
+    bdc::memory_delete(g_font_manager);
     g_font_manager = nullptr;
 }
 

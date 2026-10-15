@@ -21,7 +21,7 @@ namespace ndbl
 
         property->node  = node;
         property->flags = flags;
-        property->name  = name;
+        property->name  = string_copy(name);
         
         array_init(property->slots, 0);
 
@@ -31,6 +31,8 @@ namespace ndbl
     void property_deinit( Node_Property* property)
     {
         array_release(property->slots);
+        string_release(property->name);
+        property->type  = nullptr;
         property->node  = nullptr;
         property->flags = 0;
         property->name  = "released";

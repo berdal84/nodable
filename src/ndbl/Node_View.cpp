@@ -208,11 +208,8 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
 
     if ( Scope* internal_scope = nodeview->node->internal_scope )
     {
-        auto* scopeview = bdc::memory_new<Scope_View>();
-        scopeview_init(scopeview, internal_scope);
-        internal_scope->view         = scopeview;
-        #warning TODO: remove this duplicated state, we could get the internal_scopeview with a getter (having nullptr conditions)
-        nodeview->internal_scopeview = scopeview;
+        internal_scope->view = bdc::memory_new<Scope_View>();
+        scopeview_init(internal_scope->view, internal_scope);
     }
 }
 
@@ -235,9 +232,10 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
         bdc::memory_delete(each);
     nodeview->slot_views.clear();
 
-    if( nodeview->internal_scopeview != nullptr )
+    if( const Scope* internal_scope = nodeview->node->internal_scope )
     {
-        scopeview_deinit(nodeview->internal_scopeview);
+        scopeview_deinit(internal_scope->view);
+        bdc::memory_delete<Scope_View>(internal_scope->view);
     }
     nodeview->hovered_slotview = nullptr;
 
@@ -338,8 +336,8 @@ void ndbl::nodeview_update(Node_View* nodeview, float dt)
     for(Node_Slot_View* each_slot_view  : nodeview->slot_views )
         nodeslotview_update( each_slot_view, dt );
 
-    if ( nodeview->internal_scopeview != nullptr )
-        scopeview_update( nodeview->internal_scopeview, dt );
+    if ( nodeview->node->internal_scope != nullptr )
+        scopeview_update( nodeview->node->internal_scope->view, dt );
 }
 
 bool ndbl::nodeview_draw(Node_View* nodeview)

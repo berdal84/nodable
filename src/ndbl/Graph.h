@@ -63,7 +63,6 @@ namespace ndbl
     void                    graph_connect_to_variable(Node_Slot* output_slot, Node* variable );
     void                    graph_connect_or_merge(Node_Slot* tail, Node_Slot* head);
     void                    graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags = Graph_Flag_NONE );
-    void                    graph_clean_node(Node*);
     void                    graph_transfer_children(Scope* /* from */, Scope* /* to */);
     void                    graph_change_scope(Node*, Scope* /*desired_scope*/);
     Node*                   graph_create_node(Graph*, Scope* = nullptr);

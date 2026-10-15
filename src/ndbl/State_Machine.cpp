@@ -5,12 +5,6 @@
 
 using namespace ndbl;
 
-void State_Machine::release()
-{
-    for(auto& [hash, state] : m_state)
-        bdc::memory_delete(state);
-}
-
 void State_Machine::set_default_state(const char* name)
 {
     State* state = get_state(name);
@@ -61,19 +55,14 @@ void State_Machine::stop()
     m_current_state = nullptr;
 }
 
-State* State_Machine::add_state(const char* _name)
+State* State_Machine::create_state(const char* _name)
 {
-    auto* state = bdc::memory_new<State>();
-    state->name = _name;
-    add_state(state);
-    return state;
-}
+    const auto key = Hash::hash( _name );
+    const auto& [it, success] = m_state.emplace( key, State{ .name = _name});
 
-void State_Machine::add_state(State* state)
-{
-    const auto key = Hash::hash( state->name );
-    const auto& [it, success] = m_state.emplace( key, state);
     VERIFY(success, "State name already exists");
+    
+    return &it->second;
 }
 
 void State_Machine::set_next_state(State* state)
@@ -88,11 +77,11 @@ void State_Machine::exit_state()
     set_next_state(m_default_state);
 }
 
-State *State_Machine::get_state(const char *name)
+State* State_Machine::get_state(const char *name)
 {
     auto it = m_state.find( Hash::hash(name) );
     if( it != m_state.end())
-        return it->second;
+        return &it->second;
     return nullptr;
 }
 

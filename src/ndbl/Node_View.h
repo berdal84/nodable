@@ -69,7 +69,6 @@ namespace ndbl
         >                                           view_by_property_type   = {};
         Node_Property_View*                         value_view              = nullptr;
         Node_Slot_View*                             hovered_slotview        = nullptr;
-        Scope_View*                                 internal_scopeview      = nullptr;
         float                                       opacity                 = 1.f;
         bool                                        is_expanded             = true;
         Node*                                       node;

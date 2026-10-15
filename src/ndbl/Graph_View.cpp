@@ -87,22 +87,22 @@ void ndbl::graphview_init(Graph_View* graphview, Graph* graph)
     graphview->state_machine.init(graphview);
     graphview->shape = Vec2{100.f,100.f}; // non null area
 
-    graphview->state_machine.add_state(CURSOR_STATE);
+    graphview->state_machine.create_state(CURSOR_STATE);
     graphview->state_machine.bind<&_graphview_cursor_state_tick>(CURSOR_STATE, When::OnTick);
     graphview->state_machine.set_default_state(CURSOR_STATE);
 
-    graphview->state_machine.add_state(ROI_STATE);
+    graphview->state_machine.create_state(ROI_STATE);
     graphview->state_machine.bind<&_graphview_roi_state_enter>(ROI_STATE, When::OnEnter);
     graphview->state_machine.bind<&_graphview_roi_state_tick>(ROI_STATE, When::OnTick);
 
-    graphview->state_machine.add_state(DRAG_STATE);
+    graphview->state_machine.create_state(DRAG_STATE);
     graphview->state_machine.bind<&_graphview_drag_state_enter>(DRAG_STATE, When::OnEnter);
     graphview->state_machine.bind<&_graphview_drag_state_tick>(DRAG_STATE, When::OnTick);
 
-    graphview->state_machine.add_state(VIEW_PAN_STATE);
+    graphview->state_machine.create_state(VIEW_PAN_STATE);
     graphview->state_machine.bind<&_graphview_view_pan_state_tick>(VIEW_PAN_STATE, When::OnTick);
 
-    graphview->state_machine.add_state(LINE_STATE);
+    graphview->state_machine.create_state(LINE_STATE);
     graphview->state_machine.bind<&_graphview_line_state_enter>(LINE_STATE, When::OnEnter);
     graphview->state_machine.bind<&_graphview_line_state_tick>(LINE_STATE, When::OnTick);
     graphview->state_machine.bind<&_graphview_line_state_leave>(LINE_STATE, When::OnLeave);
@@ -149,9 +149,9 @@ void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
     nodeview_init(node->view, node);
     node->view->shape.set_size({80.f, 35.f});
 
-    if (Scope_View* scopeview = node->view->internal_scopeview )
+    if (Scope* scope = node->internal_scope )
     {
-        scopeview->signal_hover.connect<&_graphview_handle_hover>(graphview); // I'm not sure if this is a good approach...
+        scope->view->signal_hover.connect<&_graphview_handle_hover>(graphview); // I'm not sure if this is a good approach...
     }
 
     // All Node_Views are parented to the Graph_View
@@ -162,15 +162,14 @@ void ndbl::_graphview_handle_remove_node(Graph_View* graphview, Node* node)
 {
     assert( !HAS_FLAGS(node->flags, Node_Flag_IS_DELETED));
 
-    // Deinit and delete Node_View related data
+    if ( Scope* scope = node->internal_scope )
+    {
+        scope->view->signal_hover.disconnect(); // I'm not sure if this is a good approach...
+    }
+
     if( node->view == nullptr)
     {
         return;
-    }
-
-    if ( Scope_View* scopeview = node->view->internal_scopeview )
-    {
-        scopeview->signal_hover.disconnect(); // I'm not sure if this is a good approach...
     }
 
     if( node->view->shape.spatial_node.parent )

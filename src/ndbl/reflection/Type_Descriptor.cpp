@@ -117,8 +117,6 @@ void Type_Descriptor::function_push_arg( const Type_Descriptor* _type, bool _pas
     Function_Arg_Descriptor arg{};
     arg.type         = _type;
     arg.pass_by_ref  = _pass_by_ref;
-    
-    arg.name = bdc::string_printf( "arg_%i", function.args.size );
 
     array_append(this->function.args, arg);
 }

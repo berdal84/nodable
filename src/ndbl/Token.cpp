@@ -28,6 +28,14 @@ Token::Token(
 , owns_data(false)
 {}
 
+Token::~Token()
+{
+    if( owns_data )
+    {
+        memory_free(data);
+    }
+}
+
 String Token::json() const
 {
     using namespace bdc;

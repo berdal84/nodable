@@ -33,7 +33,7 @@ namespace ndbl
         Token(Token_Type type, bdc::String buffer);
         Token(const Token& other) { *this = other; };
 
-        ~Token() = default;
+        ~Token();
 
         explicit    operator bool () const { return type != Token_Type_NULL; }
         Token&      operator=(const Token&);

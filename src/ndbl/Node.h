@@ -61,7 +61,7 @@ namespace ndbl
         Node_Flag_NONE                = 0,
         Node_Flag_IS_DIRTY            = 1 << 0,
         Node_Flag_WAS_IN_A_SCOPE_ONCE = 1 << 1,
-        Node_Flag_MUST_BE_DELETED     = 1 << 2,
+        Node_Flag_MARKED_FOR_DELETION     = 1 << 2,
         Node_Flag_IS_INITIALIZED      = 1 << 3,
         Node_Flag_IS_DELETED          = 1 << 4, // might be set by containers
         Node_Flag_ALL                 = ~Node_Flag_NONE,

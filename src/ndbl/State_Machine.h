@@ -34,14 +34,13 @@ namespace ndbl
     {
     public:
         void         init(void* context) { m_context_ptr = context; };
-        void         release();
         void         start();
         void         tick();
         void         stop();
         void         set_default_state(const char* name);
         const char*  get_current_state_name() const { return m_current_state->name; }
         bool         has_default_state() const { return m_current_state == m_default_state; }
-        State*       add_state(const char* name);
+        State*       create_state(const char* name);
         
         template<auto Function>
         void bind(const char* name, When when)
@@ -62,7 +61,6 @@ namespace ndbl
 
     private:
         bool   started() const { return m_current_state != nullptr; }
-        void   add_state(State*);
         State* get_state(const char* name);
         void   set_next_state(State *state);
 
@@ -77,7 +75,7 @@ namespace ndbl
             { return u; }
         };
 
-        std::unordered_map<u64_t, State*, No_Hash> m_state; // u32_t is state.name hash
+        std::unordered_map<u64_t, State, No_Hash> m_state; // u32_t is state.name hash
     };
 
 } // namespace ndbl

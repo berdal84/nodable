@@ -132,6 +132,8 @@ void node_deinit(Node* node)
     }
 
     node->signal_deinit.emit();
+    
+    node->~Node();
 }
 
 void node_init_component(Node::Component* component, Node::Component_Type component_type) 
@@ -252,6 +254,7 @@ void Node::handle_slot_change(Node_Slot::Event event, Node_Slot* slot)
 
 void node_set_name(Node* node, const String& new_name)
 {
+    string_release(node->name);
     node->name = string_copy(new_name);
     node->signal_name_change.emit(node->name);
 }
@@ -586,7 +589,7 @@ void node_init_as_invokable(Node* node, const Type_Descriptor* function_desc, No
         }
         else
         {
-            name = arg.name;
+            name = bdc::string_tprintf( "arg_%i", i );;
         }
 
         Node_Property* property  = node_add_prop(node, arg.type, name );

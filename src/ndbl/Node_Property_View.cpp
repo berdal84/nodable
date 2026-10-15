@@ -192,7 +192,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
                 case Node_Type_VARIABLE_REF:
                 {
                     const Token &connected_property_token = connected_slot->property->token;
-                    bdc::String buf = bdc::string_copy( connected_property_token.word_view());
+                    bdc::String buf = bdc::string_tcopy( connected_property_token.word_view());
                     float w = nodepropertyview_calc_input_width(buf);
                     ImGui::PushItemWidth(w);
                     Node_View* nodeview = connected_slot->node->view;

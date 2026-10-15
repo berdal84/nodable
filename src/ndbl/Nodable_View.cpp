@@ -280,6 +280,7 @@ void appview_shutdown()
 #endif
     NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Shutdown OK\n");
 
+    bdc::memory_delete(g_app_view);
     g_app_view = nullptr;
 }
 

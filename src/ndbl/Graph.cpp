@@ -18,10 +18,12 @@
 
 namespace ndbl
 {
-    using namespace bdc;
 
-    Node*   _graph_new_node(Graph*);
-    void    _graph_add_node(Graph*, Node*, Scope*);
+using namespace bdc;
+
+Node*   _graph_new_node(Graph*);
+void    _graph_add_node(Graph*, Node*, Scope*);
+void    _graph_remove_node(Graph*, Node*);
 
 void graph_init(Graph* graph)
 {
@@ -49,12 +51,7 @@ void graph_clear(Graph* graph)
     // (from last to first (which is the root))
     for(u32_t i = graph->nodes.size; i > 0; --i)
     {
-        Node* node = &graph->nodes[i-1];
-        graph_clean_node(node);
-        hashmap_remove(graph->node_index_by_id, node->id );    
-        graph->signal_remove_node.emit(node);       
-        node_deinit(node);
-        SET_FLAGS(node->flags, Node_Flag_IS_DELETED);
+        _graph_remove_node(graph, &graph->nodes[i-1]);
     }
 
     hashmap_clear(graph->node_index_by_id);
@@ -83,35 +80,21 @@ bool graph_update(Graph* graph)
 {
     bool changed = false;
 
-    // Update nodes
-    Resizable_Array<size_t> node_pos_to_delete; // store location to delete all later (avoids to allocate or move data in graph->nodes)
-    array_init(node_pos_to_delete, 0, &temp_allocator);
-
-    size_t i = 0;
-    for(Node& node : graph->nodes)
+    // Update and delete nodes as necessary
+    // Iterate from the end to the beginning to safely update and delete nodes
+    for(size_t i = graph->nodes.size; i > 0; --i)
     {
-        if ( HAS_FLAGS(node.flags, Node_Flag_MUST_BE_DELETED) )
+        if ( HAS_FLAGS(graph->nodes[i-1].flags, Node_Flag_IS_DIRTY) )
         {
-            array_append(node_pos_to_delete, i);
+            changed |= node_update(&graph->nodes[i-1]);
         }
-        else if ( HAS_FLAGS(node.flags, Node_Flag_IS_DIRTY) )
-        {
-            changed |= node_update(&node);
-        }
-        ++i;
-    }
 
-    // Delete flagged nodes
-    // Note: it is important to delete from the end to the begin of the list to avoid invalidating the positions
-    for( auto& pos : node_pos_to_delete )
-    {
-        changed |= true;
-        Node* node = &graph->nodes[pos];
-        graph_clean_node(node);
-        hashmap_remove(graph->node_index_by_id, node->id );    
-        graph->signal_remove_node.emit(node);   
-        node_deinit(node);
-        SET_FLAGS(node->flags, Node_Flag_IS_DELETED);
+        if ( HAS_FLAGS(graph->nodes[i-1].flags, Node_Flag_MARKED_FOR_DELETION) )
+        {
+            changed |= true;
+            _graph_remove_node(graph, &graph->nodes[i-1]);
+            array_remove_ordered(graph->nodes, i-1);
+        }
     }
 
     if ( changed )
@@ -153,21 +136,14 @@ void _graph_add_node(Graph* graph, Node* node, Scope* scope)
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name.c_str(), node->get_class()->name.c_str() );
 }
 
-Node* graph_find_node(Graph* graph, const bdc::String_Hash& id)
+void _graph_remove_node(Graph* graph, Node* node)
 {
-    auto result = hashmap_find(graph->node_index_by_id, id);
-    if ( !result.ok )
-    {
-        return nullptr;
-    }
+    assert( node );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "_graph_remove_node(...) - addr: %p, name: \"%s\" ..\n", node, node->name.c_str() );
 
-    return &graph->nodes[*result.value];
-}
+    graph->signal_remove_node.emit(node);
 
-void graph_clean_node(Node* node)
-{
-    ASSERT( node );
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name.c_str() );
+    hashmap_remove(graph->node_index_by_id, node->id );
 
     // disconnect and erase any link related to this node
     for(Node_Slot* each_slot : node->slots)
@@ -186,7 +162,19 @@ void graph_clean_node(Node* node)
         graph_transfer_children( _internal_scope, graph_root_scope(node->graph));
     }
 
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name.c_str() );
+    node_deinit(node);
+    SET_FLAGS(node->flags, Node_Flag_IS_DELETED);
+}
+
+Node* graph_find_node(Graph* graph, const bdc::String_Hash& id)
+{
+    auto result = hashmap_find(graph->node_index_by_id, id);
+    if ( !result.ok )
+    {
+        return nullptr;
+    }
+
+    return &graph->nodes[*result.value];
 }
 
 Node* _graph_new_node(Graph* graph)
@@ -218,7 +206,7 @@ Node* graph_create_scope(Graph* graph, Scope* parent_scope)
 Node* graph_create_variable(Graph* graph, const Type_Descriptor *_type, const bdc::String& _name, Scope* parent_scope)
 {
     Node* node = _graph_new_node(graph);
-    node_init_as_variable(node, _type, _name.c_str());
+    node_init_as_variable(node, _type, _name);
     _graph_add_node(graph, node, parent_scope);
 	return node;
 }
@@ -255,7 +243,8 @@ void graph_find_and_destroy_node(Graph* graph, Node* node)
     Node_Slot* prev_adjacent_slot = flow_in->first_adjacent();
     Node_Slot* next_adjacent_slot = flow_out->first_adjacent();
 
-    graph_clean_node(node); // flow_in/out will be cleared
+    // erase
+    _graph_remove_node(graph, node);
 
     // try to maintain flow
     if ( flow_can_be_maintained )
@@ -263,12 +252,7 @@ void graph_find_and_destroy_node(Graph* graph, Node* node)
         graph_connect(prev_adjacent_slot, next_adjacent_slot, Graph_Flag_ALLOW_SIDE_EFFECTS );
     }
 
-    hashmap_remove(graph->node_index_by_id, node->id );    
-    graph->signal_remove_node.emit(node);
     graph->signal_change.broadcast();
-    node_deinit(node);
-
-    SET_FLAGS(node->flags, Node_Flag_IS_DELETED);
 }
 
 void graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
@@ -688,7 +672,7 @@ void graph_flag_node_to_delete(Node *node, Graph_Flags flags)
                 graph_flag_node_to_delete(_child, flags);
     }
 
-    SET_FLAGS(node->flags, Node_Flag_MUST_BE_DELETED);
+    SET_FLAGS(node->flags, Node_Flag_MARKED_FOR_DELETION);
 }
 
 bool graph_contains(const Graph* graph, Node* node)
