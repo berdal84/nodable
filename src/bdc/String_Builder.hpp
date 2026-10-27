@@ -102,7 +102,6 @@ namespace bdc
 
         for( u32_t i = 0; i < sb.buffer.size; i++)
         {
-            assert( sb.buffer[i].size < 4096 ); // you sure?!!
             size += sb.buffer[i].size;
         }
 

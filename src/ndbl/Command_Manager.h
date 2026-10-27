@@ -1,17 +1,14 @@
 #pragma once
 
-#include <deque>
 #include <ctime>
 
+#include "bdc/Array.hpp"
 #include "bdc/String.hpp"
 #include "Command.h"
 #include "texteditor/Text_Editor.h"
 
 namespace ndbl
 {
-    // forward declarations
-    class Command_Manager;
-
     /**
      * The history is responsible for undo/redo commands.
      * It has_flags two containers to store past/future commands
@@ -20,13 +17,11 @@ namespace ndbl
      */
 	struct Command_Manager
 	{
-        using Commands = std::deque<Command>;
-
-        bool 			  		is_dirty = false;
-		bool                    push_text_editor_AddUndoRecord = true;
-		Command_Flags           next_command_flags;
-		Commands          		past;
-		Commands          		future;
+        bool 			  			is_dirty = false;
+		bool                    	push_text_editor_AddUndoRecord = true;
+		Command_Flags           	next_command_flags;
+		u32_t                       cursor; // ex: if cursor is 5, it means we have 5 commands in the past ("c c c c c <cursor> c ...")
+		Resizable_Array<Command> 	commands;
     };
 
 	Command_Manager* command_manager_init();
@@ -48,8 +43,8 @@ namespace ndbl
 	void    			command_manager_redo();
 	void    			command_manager_clear();
 	size_t  			command_manager_get_size(); /** To get the set_size of the history (command count) */
-	void                command_manager_move_cursor(int _pos); /** Move time cursor to past (negative value) or future (positive value). */
-	bdc::String         command_manager_get_cmd_description_at(int _cmd_position);
+	void                command_manager_set_cursor(u32_t pos); /** undo/redo automatically to set the cursor at a given position */
+	bdc::String         command_manager_get_cmd_description_at(u32_t pos);
 	std::pair<int, int> command_manager_get_command_id_range(); /** return the command position range. Ex: (-100, 20) if we have 100 commands to undo and 20 to redo */
 	void                command_manager_AddUndoHandler(Text_Editor& editor, Text_Editor::UndoRecord& undo_record);
 }

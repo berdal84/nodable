@@ -18,6 +18,7 @@ ndbl::Command_Manager* ndbl::command_manager_init()
 {
     VERIFY(g_command_manager == nullptr, "Cannot call init twice!");
     g_command_manager = bdc::memory_new<Command_Manager>();
+    array_init(g_command_manager->commands);
     return g_command_manager;
 }
 
@@ -29,38 +30,41 @@ ndbl::Command_Manager* ndbl::command_manager()
 
 void ndbl::command_manager_shutdown()
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
-	g_command_manager->past.clear();
-	g_command_manager->future.clear();
-    bdc::memory_delete(g_command_manager);
+    auto* manager = command_manager();
+	array_release(manager->commands);
+    bdc::memory_delete(manager);
     g_command_manager = nullptr;
 }
 
 void ndbl::command_manager_begin_transaction()
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
-    g_command_manager->next_command_flags = Command_Flags_TRANSACTION_BEGIN;
+    auto* manager = command_manager();
+    manager->next_command_flags = Command_Flags_TRANSACTION_BEGIN;
 }
 
 void ndbl::command_manager_end_transaction()
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
-    VERIFY(!HAS_FLAGS(g_command_manager->past.back().flags, Command_Flags_TRANSACTION_BEGIN), "Cannot end a transaction on the same command that transaction begins");
-    g_command_manager->past.back().flags |= Command_Flags_TRANSACTION_END;
+    auto* manager      = command_manager();
+    auto& last_command = array_back(manager->commands);
+
+    VERIFY(!HAS_FLAGS( last_command.flags, Command_Flags_TRANSACTION_BEGIN), "Cannot end a transaction on the same command that transaction begins");
+    last_command.flags |= Command_Flags_TRANSACTION_END;
 }
 
 void ndbl::command_manager_push_command(Command& command, bool _from_text_editor)
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
-
-    Config* cfg = config();
+    Config* cfg     = config();
+    auto*   manager = command_manager();
 
     // Set flags
-    command.flags = g_command_manager->next_command_flags;
-    g_command_manager->next_command_flags = 0;
+    command.flags = manager->next_command_flags;
+    manager->next_command_flags = 0;
 
     // clear any future commands (when we undo, commands are moved from past to future)
-    g_command_manager->future.clear();
+    if( manager->cursor < manager->commands.size )
+    {
+        array_resize(manager->commands, manager->cursor);
+    }
 
     // execute the command except if it concern text_editor.
     // since modification is already handled by text editor itself
@@ -69,138 +73,103 @@ void ndbl::command_manager_push_command(Command& command, bool _from_text_editor
         command_do(&command);
     }
 
-    g_command_manager->past.push_front(command);
+    array_append(manager->commands, command);
 
     /**
      * Ensure not to store too much undo commands.
      * We limit to a certain set_size, deleting first past commands, then future commands.
      */
-    while ( g_command_manager->past.size() > cfg->ui_history_size_max )
+    if ( manager->commands.size >= cfg->ui_history_size_max * 2 )
     {
-        g_command_manager->past.pop_back();
+        array_remove_range_ordered(manager->commands, 0, manager->commands.size-cfg->ui_history_size_max);
     }
+
+    manager->cursor = manager->commands.size;
 }
 
 void ndbl::command_manager_undo()
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
+    auto* manager = command_manager();
 
-	if ( !g_command_manager->past.empty() )
+	if ( manager->cursor > 0 )
 	{
-        Command& command_to_undo = g_command_manager->past.front();
+        Command& command_to_undo = manager->commands[manager->cursor-1];
         command_undo(&command_to_undo);
-        g_command_manager->past.pop_front();
-        g_command_manager->future.push_front(command_to_undo);
-        g_command_manager->is_dirty = true;
+        --manager->cursor;
+        manager->is_dirty = true;
     }
 }
 
 void ndbl::command_manager_redo()
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
+    auto* manager = command_manager();
 
-	if ( !g_command_manager->future.empty() )
+	if ( manager->cursor < manager->commands.size )
 	{
-        Command& command_to_redo = g_command_manager->future.front();
+        Command& command_to_redo = manager->commands[manager->cursor];
         command_redo(&command_to_redo);
-        g_command_manager->future.pop_front();
-        g_command_manager->past.push_front(command_to_redo);
-        g_command_manager->is_dirty = true;
+        ++manager->cursor;
+        manager->is_dirty = true;
 	}
 }
 
 void ndbl::command_manager_clear()
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
-
-	g_command_manager->past.clear();
-    g_command_manager->future.clear();
+    auto* manager = command_manager();
+    array_clear(manager->commands);
 }
 
-void ndbl::command_manager_move_cursor(int delta)
+void ndbl::command_manager_set_cursor(u32_t pos)
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
+    auto* manager = command_manager();
 
-	/* Do nothing if cursor is already well positioned */
-	if (delta == 0 ) return;
-
-	/* Undo or redo the required times to get the command cursor well positioned */
-	while (delta != 0)
+	while ( manager->cursor != pos )
 	{
-		if (delta > 0)
+		if ( manager->cursor < pos )
         {
 			command_manager_redo();
-            delta--;
         }
 		else
         {
 			command_manager_undo();
-            delta++;
         }
 	}
-
-    g_command_manager->is_dirty = true;
 }
 
-bdc::String ndbl::command_manager_get_cmd_description_at(int _cmd_position)
+bdc::String ndbl::command_manager_get_cmd_description_at(u32_t pos)
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
+    auto* manager = command_manager();
 
-	bdc::String_Builder sb{};
-    string_builder_init(sb);
+    if ( pos <= 0 )               return "History Begin";
+    if ( pos >= manager->cursor ) return "History End";
 
-    if (_cmd_position <= -(int)g_command_manager->past.size())
-    {
-        bdc::string_builder_append(sb, "History Begin");
-    }
-    else if ( _cmd_position >= (int)g_command_manager->future.size() )
-    {
-        bdc::string_builder_append(sb, "History End");
-    }
-    else
-	{
-        if (_cmd_position <= 0 )
-        {
-            Command& cmd = g_command_manager->past.at(abs(_cmd_position));
-            bdc::string_builder_append(sb, cmd.description );
-        }
-        else
-        {
-            Command& cmd = g_command_manager->future.at(_cmd_position-1); // index zero is m_past.front()
-            bdc::string_builder_append(sb, cmd.description );
-        }
-	}
-
-	return bdc::string_builder_build_tstring(sb);
+    Command& cmd = manager->commands[pos];
+    return cmd.description;
 }
 
 std::pair<int, int> ndbl::command_manager_get_command_id_range()
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
-
-    // (begin index, end index)
-    return std::make_pair(-(int)g_command_manager->past.size(), (int)g_command_manager->future.size());
+    auto* manager = command_manager();
+    return { 0, manager->cursor };
 }
 
 size_t ndbl::command_manager_get_size()
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
-
-    return g_command_manager->past.size() + g_command_manager->future.size();
+    auto* manager = command_manager();
+    return manager->commands.size;
 }
 
 void ndbl::command_manager_enable_text_editor_undo_buffer( bool enabled )
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
-
-    g_command_manager->push_text_editor_AddUndoRecord = enabled;
+    auto* manager = command_manager();
+    manager->push_text_editor_AddUndoRecord = enabled;
 }
 
 void ndbl::command_manager_AddUndoHandler(Text_Editor& editor, Text_Editor::UndoRecord& undo_record)
 {
-    VERIFY_COMMAND_MANAGER_IS_INITIALIZED();
+    auto* manager = command_manager();
 
-    if ( g_command_manager->push_text_editor_AddUndoRecord )
+    if ( manager->push_text_editor_AddUndoRecord )
     {
         auto* undo_record_copy = bdc::memory_new<Text_Editor::UndoRecord>();
         *undo_record_copy = undo_record;

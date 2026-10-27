@@ -174,7 +174,7 @@ void fileview_draw(File_View* file_view, float dt)
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { btn_spacing, 0});
 
-    for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++)
+    for (u32_t cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++)
     {
         ImGui::SameLine();
 
@@ -214,7 +214,7 @@ void fileview_draw(File_View* file_view, float dt)
             ImGui::GetMousePos().x > ImGui::GetItemRectMin().x &&
             ImGui::GetMousePos().x < ImGui::GetItemRectMax().x)
         {
-            command_manager_move_cursor(cmd_pos); // update history cursor position
+            command_manager_set_cursor(cmd_pos); // update history cursor position
         }
 
 

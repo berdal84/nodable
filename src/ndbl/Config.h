@@ -113,7 +113,7 @@ namespace ndbl
         std::vector<Action> actions;
         Palette        ui_text_editor_palette{};
         Padding        ui_scope_padding;
-        u64_t          ui_history_size_max{};
+        u32_t          ui_history_size_max;
         Vec2           ui_node_gap_base; // horizontal, vertical
         Vec2           ui_slot_rectangle_size;
         Vec2           ui_toolButton_size;

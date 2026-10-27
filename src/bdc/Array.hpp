@@ -167,18 +167,31 @@ namespace bdc
     template<Is_Array T>
     void array_remove_ordered(T& arr, u32_t pos)
     {
-        assert( pos <= arr.size );
-
-        for(u32_t i = pos; i < arr.size-1; ++i )
-            arr[i] = arr[i+1];
-
-        array_resize(arr, arr.size-1);
+        array_remove_range_ordered(arr, pos, 1);
     }
 
     template<Is_Array T>
     void array_remove_unordered(T& arr, u32_t pos)
     {
         static_assert(false, "array_remove_unordered is not implemented yet");
+    }
+
+    template<Is_Array T>
+    void array_remove_range_ordered(T& arr, u32_t pos, u32_t count)
+    {
+        assert( pos + count <= arr.size );
+
+        // Move the trailing items to the left
+        for(u32_t i = pos; i < pos + count; ++i )
+        {
+            if( i + count >= arr.size )
+            {
+                break;
+            }
+            arr[i] = arr[i + count];
+        }
+
+        array_resize(arr, arr.size-count);
     }
 
     template<Is_Array T>
