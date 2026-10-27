@@ -1,9 +1,9 @@
 #pragma once
 
 #include <cstddef>
-#include <unordered_map>
-#include <vector>
 
+#include "bdc/Array.hpp"
+#include "bdc/Hash_Map.hpp"
 #include "Event.h"
 #include "Action.h"
 
@@ -11,8 +11,8 @@ namespace ndbl
 {
     struct Action_Manager
     {
-        std::vector<Action>                         actions;                    // all the actions
-        std::unordered_multimap<Event_Type, size_t> actions_index_by_event_type;  // bound actions only.
+        bdc::Inlined_Array<Action, 64>   actions;               // all the actions
+        bdc::Hash_Map<u32_t, u32_t>      actions_by_event_type; // Event_Type => position in actions
     };
  
     //

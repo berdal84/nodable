@@ -114,27 +114,6 @@ namespace bdc
 
     void  hashmap_resize_entries_to_optimal_size(Is_Hash_Map auto& hashmap, u32_t capacity_min = 16);
     
-    template<Is_Hash_Map Hash_Map_Type>
-    Hash_Map_Type::Hash_Type hashmap_index(const Hash_Map_Type& hashmap, typename Hash_Map_Type::Hash_Type desired_index)
-    {
-        //
-        // We also apply a cheap modulo ( hash & ... ) to ensure values stays in entries range.
-        // This makes different hash to have the same index, the user of this function has to deal with that.
-        // The implementation of Hash_Map simply take the next FREE or TOMBSTONE slot. Once the table is rehashed,
-        // the tombstones are dropped.
-        //
-        typename Hash_Map_Type::Hash_Type index = desired_index & (hashmap.entries.size - 1);
-        //
-        // To avoid storing a state in each Entry (FREE, OCCUPIED, TOMBSTONE) we reserve 2 values.
-        // - HASHMAP_HASH_FREE:       was never OCCUPIED.
-        // - HASHMAP_HASH_TOMBSTONE:  was OCCUPIED.
-        // By consequences, any other value is considered OCCUPIED
-        //
-        if (index < Hash_Map_Hash_OCCUPIED_RANGE_START)
-            return Hash_Map_Hash_OCCUPIED_RANGE_START;
-        return index;
-    }
-
     template<Is_Hash_Map T>
     void hashmap_init(
         T&         hashmap,
@@ -193,44 +172,59 @@ namespace bdc
     Result<std::remove_pointer_t<typename T::Entry_Type>*>
     hashmap_add(T& hashmap, const typename T::Key_Type& key, const typename T::Value_Type& value)
     {
-        hashmap_resize_entries_to_optimal_size(hashmap);
+        using Hash_Type = T::Hash_Type;
 
-        // TODO:
-        // - check if entries needs to be resized
-        // - resize or not
-        // - hash the key
-        auto hash = hashmap.hash_proc(key);
-
-        // Get the ideal index in hashmap.entries that correspond to this hash
-        auto index = hashmap_index(hashmap, hash);
+        hashmap_resize_entries_to_optimal_size(hashmap);        
+        
+        Hash_Type ideal_hash = hashmap.hash_proc(key);
+        Hash_Type index      = ideal_hash & (hashmap.entries.size - 1);
+        Hash_Type hash       = ideal_hash < Hash_Map_Hash_OCCUPIED_RANGE_START ? ideal_hash + Hash_Map_Hash_OCCUPIED_RANGE_START : ideal_hash;
+        constexpr Hash_Type undefined_index = (Hash_Type)-1;
+        Hash_Type first_tombstone_index = undefined_index;
 
         // Ensure there are no duplicates
         u32_t iteration = 0;
         while( true )
         {
             assert(iteration < hashmap.entries.size / 4 * 3 && "Too much iterations for hashmap_add, it means we found too much collisions.");
-            auto& entry = hashmap.entries[index];
 
-            if( entry.hash < Hash_Map_Hash_OCCUPIED_RANGE_START )
+            if( hashmap.entries[index].hash == Hash_Map_Hash_FREE )
             {
-                entry.hash  = hash;
-                entry.key   = key;
-                entry.value = value;
+                if (first_tombstone_index != undefined_index )
+                {
+                    index = first_tombstone_index;
+                }
+
+                hashmap.entries[index].hash  = hash;
+                hashmap.entries[index].key   = key;
+                hashmap.entries[index].value = value;
 
                 hashmap.size      += 1;
                 hashmap.live_size += 1;
 
-                return { .ok = true, .value = as_pointer(entry) };
+                return { .ok = true, .value = as_pointer(hashmap.entries[index]) };
             }
 
-            if( entry.hash == hash && entry.key == key ) // duplicate found!
+            if( hashmap.entries[index].hash == Hash_Map_Hash_TOMBSTONE)
+            {
+                // Note: we can't insert at the first tombstone, the actual key might be stored in the following slots due to removals.
+                //                       vvvv
+                //      ... | OCCUPIED | TOMB | OCCUPIED |
+                //
+                if( first_tombstone_index == undefined_index )
+                {
+                    first_tombstone_index = index;
+                }
+            }
+
+            if( hashmap.entries[index].hash == hash && hashmap.entries[index].key == key ) // duplicate found!
             {
                 return { .ok = false, .value = nullptr };
             }
 
             // Here we must try a different index because the selected one is not available to us...
             // The basic strategy I use is simply to increment the index
-            index = hashmap_index(hashmap, index + 1);
+            index = (++index) & (hashmap.entries.size - 1);
             ++iteration;
         }
     };
@@ -240,10 +234,14 @@ namespace bdc
     {
         if( hashmap.size == 0) return { .ok = false };
 
-        u32_t hash      = hashmap.hash_proc(key);
-        u32_t index     = hashmap_index(hashmap, hash);
         u32_t iteration = 0;
 
+        using Hash_Type = T::Hash_Type;
+
+        Hash_Type ideal_hash = hashmap.hash_proc(key);
+        Hash_Type index      = ideal_hash & (hashmap.entries.size - 1);
+        Hash_Type hash       = ideal_hash < Hash_Map_Hash_OCCUPIED_RANGE_START ? ideal_hash + Hash_Map_Hash_OCCUPIED_RANGE_START : ideal_hash;
+    
         while( true )
         {
             assert(iteration <= hashmap.live_size && "Too much iterations for hashmap_find_index, it means we found too much collisions.");
@@ -262,7 +260,7 @@ namespace bdc
                 return { .ok = true, .value = index };
             }
 
-            index = hashmap_index(hashmap, index + 1);
+            index = (++index) & (hashmap.entries.size - 1);
             ++iteration;
         }
     };

@@ -1263,10 +1263,10 @@ void appview_update()
 {
     // Some actions can only be triggered if some conditions are met
     // We get those conditions
-    Condition_Flags condition_flags{0};
+    Action_Flags flags{0};
     if( File* file = app_state()->current_file )
     {
-        condition_flags = fileview_calc_condition_flags( &file->view );
+        flags = fileview_calc_condition_flags( &file->view );
     }
 
     SDL_Event event;
@@ -1286,7 +1286,7 @@ void appview_update()
                 {
                     VERIFY( action.event.type, "Unexpected event.type" );
 
-                    if( HAS_FLAGS(condition_flags, action.condition_flags) &&
+                    if( HAS_FLAGS(flags, action.flags) &&
                         HAS_FLAGS(event.key.keysym.mod, action.shortcut.mod) && // same mod
                         action.shortcut.key == event.key.keysym.sym ) // same key
                     {

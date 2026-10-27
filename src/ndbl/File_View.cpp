@@ -141,10 +141,10 @@ void fileview_update(File_View* file_view, float dt)
     }
 }
 
-Condition_Flags fileview_calc_condition_flags(File_View* file_view)
+Action_Flags fileview_calc_condition_flags(File_View* file_view)
 {
-    Condition_Flags result = 0;
-    result |= Condition_Flags_ENABLE_IF_HAS_SELECTION * !file_view->graph_view->selection.empty();
+    Action_Flags result = 0;
+    result |= Action_Flags_ENABLE_IF_HAS_SELECTION * !file_view->graph_view->selection.empty();
     return result;
 }
 
@@ -485,17 +485,17 @@ size_t fileview_size(const File_View* file_view)
 
 void fileview_refresh_overlay(File_View* file_view )
 {
-    Condition_Flags condition_flags = fileview_calc_condition_flags(file_view);
+    Action_Flags flags = fileview_calc_condition_flags(file_view);
     for (const Action& action: action_manager()->actions )
     {
-        if( ( action.condition_flags & condition_flags) == condition_flags && (action.condition_flags & Condition_Flags_HIGHLIGHTED) )
+        if( ( action.flags & flags) == flags && (action.flags & Action_Flags_HIGHLIGHTED) )
         {
             bdc::String label = action.label;
             label.size = label.size > 12 ? 12 : label.size;
             bdc::String shortcut_str = action.shortcut.to_string();
             File_View_Overlay_Type overlay_type;
             
-            if (action.condition_flags & Condition_Flags_HIGHLIGHTED_IN_TEXT_EDITOR)
+            if (action.flags & Action_Flags_HIGHLIGHTED_IN_TEXT_EDITOR)
                 overlay_type = File_View_Overlay_Type_TEXT;
             else
                 overlay_type = File_View_Overlay_Type_GRAPH;

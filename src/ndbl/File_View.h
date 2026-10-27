@@ -85,5 +85,5 @@ namespace ndbl
     void                            fileview_push_overlay(File_View*, File_View_Overlay_Data, File_View_Overlay_Type) ;
     void                            fileview_draw_overlay(const bdc::String& title, const std::vector<File_View_Overlay_Data>& overlay_data, const Rect& rect, const Vec2& position);
     size_t                          fileview_size(const File_View*);
-    Condition_Flags                 fileview_calc_condition_flags(File_View*);
+    Action_Flags                 fileview_calc_condition_flags(File_View*);
 }
