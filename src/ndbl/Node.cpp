@@ -99,6 +99,7 @@ void node_deinit(Node* node)
         property_deinit(prop);
         memory_delete(prop);
     }
+    
     // destroy all props
     array_release(node->props);
 
@@ -643,7 +644,8 @@ void node_variable_ref_set_variable(Node* node, Node* variable_node)
     node->component.variableref.variable_node = variable_node;
 
     property_set_type(node->value, node_variable_type(variable_node) );
-    node->value->token.replace_word( node_get_identifier(variable_node).c_str() );
+    const String identifier = node_get_identifier(variable_node);
+    node->value->token.replace_word( identifier );
 
     // bind signals
     node->component.variableref.variable_node->signal_name_change.connect< &node_variable_ref_handle_name_change>(node);
@@ -664,7 +666,7 @@ void node_variable_ref_clear_variable(Node* node)
 
 void node_variable_ref_handle_name_change(Node* node, const String& name)
 {
-    node->value->token.replace_word( name.c_str() );
+    node->value->token.replace_word( name );
 }
 
 void node_init_as_literal(Node* node, const Type_Descriptor* type_descriptor)

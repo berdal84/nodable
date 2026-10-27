@@ -1998,12 +1998,12 @@ bdc::String serialize_bool(const Serializer_Context& ctx, bool b)
 
 bdc::String serialize_int(const Serializer_Context& ctx, int i)
 {
-    return string_printf( "%i", i );
+    return string_tprintf( "%i", i );
 }
 
 bdc::String serialize_double(const Serializer_Context& ctx, double d)
 {
-    return string_printf( "%d", d );
+    return string_tprintf( "%d", d );
 }
 
 bdc::String serialize_token(const Serializer_Context& ctx, const Token& token)

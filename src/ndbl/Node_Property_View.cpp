@@ -229,18 +229,6 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
     // Per type
     switch ( property_token.type )
     {
-        case Token_Type_identifier:
-        {
-            bdc::String buf = bdc::string_tcopy(property_token.word_view().c_str());
-            flags = 0; // ReadOnly always OFF. ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
-            if (ImGui::InputText(label.c_str(), buf.data, buf.size, flags))
-            {
-                property_token.replace_word(buf);
-                changed = true;
-            }
-            break;
-        }
-
         case Token_Type_literal_double:
         {
 
@@ -249,8 +237,8 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
             if (ImGui::InputDouble(label.c_str(), &value, 0.0, 0.0, "%.6f", flags))
             {
-                bdc::String str = serialize_double(serializer, value);
-                property_token.replace_word( str.c_str());
+                bdc::String double_as_str = serialize_double(serializer, value);
+                property_token.replace_word( double_as_str );
                 changed = true;
             }
             break;
@@ -263,8 +251,8 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
             if (ImGui::InputInt(label.c_str(), &value, 0, 0, flags))
             {
-                bdc::String str = serialize_int(serializer, value);
-                property_token.replace_word(str.c_str());
+                bdc::String int_as_str = serialize_int(serializer, value);
+                property_token.replace_word( int_as_str );
                 changed = true;
             }
             break;
@@ -286,11 +274,17 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
         default:
         {
-            bdc::String value_str = string_tcopy( property_token.word_view() );
+            String word = property_token.word_view();
 
-            if (ImGui::InputText(label.c_str(), value_str.data, value_str.size, flags))
+            const u32_t string_buffer_size = 512;
+            char        string_buffer[string_buffer_size] = {0}; // Note: Should I implement a fixed-sized bdc::String ?
+            const u32_t string_buffer_len = word.size < string_buffer_size-1 ? word.size : string_buffer_size-1;
+            strncpy(string_buffer, word.data, string_buffer_len );
+
+            flags = 0; // ImGuiInputTextFlags_EnterReturnsTrue; // ReadOnly always OFF. ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
+            if (ImGui::InputText(label.c_str(), string_buffer, string_buffer_size, flags))
             {
-                property_token.replace_word(value_str);
+                property_token.replace_word( (const char*)string_buffer );
                 changed = true;
             }
             break;

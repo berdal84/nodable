@@ -47,15 +47,16 @@ void graph_clear(Graph* graph)
 {
     NDBL_LOG(Verbosity_Diagnostic, "Graph", "Resetting ...\n");
 
-    // Delete existing nodes
-    // (from last to first (which is the root))
-    for(u32_t i = graph->nodes.size; i > 0; --i)
+    // remove all nodes from last to first
+    while(graph->nodes.size)
     {
-        _graph_remove_node(graph, &graph->nodes[i-1]);
+        Node& node = array_back(graph->nodes);
+        _graph_remove_node(graph, &node );
+        array_pop(graph->nodes);
     }
 
     hashmap_clear(graph->node_index_by_id);
-    array_clear(graph->nodes);
+    assert(graph->nodes.size == 0);
 }
 
 void graph_reset(Graph* graph)
@@ -473,7 +474,7 @@ void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                     serializer_init(ctx);
                     Token& token = head->property->token;
                     bdc::String token_type_as_str = serialize_token_type(ctx, token.type); // TODO: simply handle literal token_type to string
-                    token.replace_word( token_type_as_str.c_str() );
+                    token.replace_word( token_type_as_str );
                 }
                 break;
             }

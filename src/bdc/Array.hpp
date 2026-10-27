@@ -171,6 +171,13 @@ namespace bdc
     }
 
     template<Is_Array T>
+    void array_pop(T& arr)
+    {
+        assert( arr.size != 0 );
+        array_resize(arr, arr.size-1);
+    }
+
+    template<Is_Array T>
     void array_remove_unordered(T& arr, u32_t pos)
     {
         static_assert(false, "array_remove_unordered is not implemented yet");
