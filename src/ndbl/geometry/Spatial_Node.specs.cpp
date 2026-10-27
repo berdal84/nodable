@@ -18,6 +18,9 @@ TEST_F(Spatial_Node_, add_child)
     // verify
     EXPECT_TRUE(child.parent == &root );
     EXPECT_TRUE(*root.children.begin() == &child );
+
+    // clean
+    spatialnode_remove_child(&root, &child);
 }
 
 TEST_F(Spatial_Node_, remove_child)
@@ -51,6 +54,9 @@ TEST_F(Spatial_Node_, add_child__with_offset)
     EXPECT_TRUE(*root.children.begin() == &child );
     EXPECT_FLOAT_EQ( spatialnode_position(&child).x, 10.f );
     EXPECT_FLOAT_EQ( spatialnode_position(&child).y, 15.f );
+
+    // clean
+    spatialnode_remove_child(&root, &child);
 }
 
 TEST_F(Spatial_Node_, set_pos__LOCAL_SPACE)
@@ -67,6 +73,9 @@ TEST_F(Spatial_Node_, set_pos__LOCAL_SPACE)
     // verify
     EXPECT_FLOAT_EQ(spatialnode_position(&child).x, -10.f );
     EXPECT_FLOAT_EQ(spatialnode_position(&child).y, -10.f );
+
+    // clean
+    spatialnode_remove_child(&root, &child);
 }
 
 TEST_F(Spatial_Node_, set_pos__PARENT_SPACE)
@@ -87,6 +96,9 @@ TEST_F(Spatial_Node_, set_pos__PARENT_SPACE)
     // verify
     EXPECT_FLOAT_EQ(spatialnode_position(&child).x, spatialnode_position(&root).x );
     EXPECT_FLOAT_EQ(spatialnode_position(&child).y, spatialnode_position(&root).y );
+
+    // clean
+    spatialnode_remove_child(&root, &child);
 }
 
 TEST_F(Spatial_Node_, get_pos__GLOBAL_SPACE)
@@ -108,6 +120,10 @@ TEST_F(Spatial_Node_, get_pos__GLOBAL_SPACE)
     EXPECT_FLOAT_EQ(spatialnode_position( &level1 ).y, 10.f );
     EXPECT_FLOAT_EQ(spatialnode_position( &level1, WORLD_SPACE).x, 30.f );
     EXPECT_FLOAT_EQ(spatialnode_position( &level1, WORLD_SPACE).y, 30.f );
+
+    // clean
+    spatialnode_remove_child(&root, &level0);
+    spatialnode_remove_child(&level0, &level1);
 }
 
 TEST_F(Spatial_Node_, set_pos__GLOBAL_SPACE)
@@ -132,4 +148,7 @@ TEST_F(Spatial_Node_, set_pos__GLOBAL_SPACE)
     EXPECT_FLOAT_EQ(spatialnode_position( &child, PARENT_SPACE).y, -10.f );
     EXPECT_FLOAT_EQ(spatialnode_position( &child, WORLD_SPACE).x, 0.f );
     EXPECT_FLOAT_EQ(spatialnode_position( &child, WORLD_SPACE).y, 0.f );
+
+    // clean
+    spatialnode_remove_child(&root, &child);
 }

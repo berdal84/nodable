@@ -260,7 +260,7 @@ void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
 
     ctx.tokens.clear();
     ctx.pristine_tokens.clear();
-    ctx.global_token.replace_buffer( ctx.in_text, true ); // wraps all
+    ctx.global_token.replace_buffer_readonly( ctx.in_text ); // global_token completely wraps in_text.
 
     while(!ctx.transaction.empty())
         ctx.transaction.pop();

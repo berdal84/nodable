@@ -172,13 +172,19 @@ namespace bdc
         for(u32_t i = pos; i < arr.size-1; ++i )
             arr[i] = arr[i+1];
 
-        arr.size -= 1;
+        array_resize(arr, arr.size-1);
     }
 
     template<Is_Array T>
     void array_remove_unordered(T& arr, u32_t pos)
     {
         static_assert(false, "array_remove_unordered is not implemented yet");
+    }
+
+    template<Is_Array T>
+    void array_clear(T& arr)
+    {
+        array_resize(arr, 0);
     }
 
     // Inlined_Array specific API
@@ -239,6 +245,10 @@ namespace bdc
             return;
         }
         
+        for( u32_t n = 0; n < arr.size; ++n)
+        {
+            (arr.data + n)->~Elem_T();
+        }
         memory_free(arr.data, arr.allocator);
 
         arr.data     = nullptr;
@@ -259,16 +269,35 @@ namespace bdc
     template<typename Elem_T>
     void array_resize(Resizable_Array<Elem_T>& arr, u32_t new_size)
     {
+        if( arr.size == new_size )
+        {
+            return;
+        }
+
         if( arr.capacity < new_size )
         {
             u32_t capacity = array_compute_capacity_from_size(new_size, 16);
             array_ensure_has_capacity(arr, capacity);
         }
 
-        for( u32_t i = arr.size; i < new_size; ++i)
-        {
-            new (arr.data + i) Elem_T();
+        // on grow, call constructor for the n new element(s)
+        if( new_size > arr.size )
+        {            
+            for( u32_t n = arr.size; n < new_size; ++n )
+            {
+                new (arr.data + n) Elem_T();
+            }
         }
+        // on shrink, call destructor for the n extra element(s)
+        else
+        {
+            
+            for( u32_t n = new_size; n < arr.size; ++n)
+            {
+                (arr.data + n)->~Elem_T();
+            }
+        }
+
         arr.size = new_size;
     }
 

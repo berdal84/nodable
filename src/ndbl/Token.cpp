@@ -120,7 +120,7 @@ Token& Token::operator=(const Token& other)
     return *this;
 }
 
-void Token::replace_buffer(const String& _buffer, bool external_only )
+void Token::replace_buffer_readonly(const String& _buffer)
 {
     // here, we consider that the whole buffer will be into the "word" part, no suffix/prefix.
 
@@ -130,15 +130,24 @@ void Token::replace_buffer(const String& _buffer, bool external_only )
         owns_data = false;
     }
 
-    if( external_only )
+    this->data = _buffer.data;
+    prefix_size    = 0;
+    word_size      = _buffer.size;
+    suffix_size    = 0;
+}
+
+void Token::replace_buffer_readwrite(const String& _buffer )
+{
+    // here, we consider that the whole buffer will be into the "word" part, no suffix/prefix.
+
+    if( owns_data )
     {
-        this->data = _buffer.data;
+        memory_free(data);
+        owns_data = false;
     }
-    else
-    {
-        this->data = string_copy(_buffer).data;
-        owns_data = true;
-    }
+
+    this->data = string_copy(_buffer).data;
+    owns_data = true;
 
     prefix_size    = 0;
     word_size      = _buffer.size;

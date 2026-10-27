@@ -55,7 +55,7 @@ void graph_clear(Graph* graph)
     }
 
     hashmap_clear(graph->node_index_by_id);
-    array_resize(graph->nodes, 0);
+    array_clear(graph->nodes);
 }
 
 void graph_reset(Graph* graph)
@@ -181,10 +181,10 @@ Node* _graph_new_node(Graph* graph)
 {
     ASSERT(graph->nodes.size < NODE_MAX_COUNT);
 
-    Node& node = array_append(graph->nodes, {} );
+    Node node;
     node.id = string_hash( get_next_GUID("Node") );
 
-    return &node;
+    return &array_append(graph->nodes, node );
 }
 
 Node* graph_create_return(Graph* graph, const Type_Descriptor* type_descriptor, Scope* parent_scope)

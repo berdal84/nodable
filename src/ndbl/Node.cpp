@@ -132,8 +132,6 @@ void node_deinit(Node* node)
     }
 
     node->signal_deinit.emit();
-    
-    node->~Node();
 }
 
 void node_init_component(Node::Component* component, Node::Component_Type component_type) 
@@ -608,7 +606,7 @@ void node_init_as_variable(Node* node, const Type_Descriptor* _type, const Strin
     // Init identifier property
     property_set_type(node->value, _type);
     node->value->token = Token{Token_Type_identifier};
-    node->value->token.replace_word(_identifier); // might come from String::c_str()
+    node->value->token.replace_buffer_readonly(_identifier); // might come from String::c_str()
 
     // Init Node_Slots
     node_add_slot(node, node->value, Node_Slot::Flag_INPUT, 1); // to connect an initialization expression

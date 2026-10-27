@@ -57,7 +57,8 @@ namespace ndbl
         void        remove_suffix_and_prefix();
         void        suffix_push_back(const bdc::String&);
         void        prefix_push_front(const bdc::String&);
-        void        replace_buffer(const bdc::String& buffer, bool external_only = false);
+        void        replace_buffer_readonly(const bdc::String& buffer);
+        void        replace_buffer_readwrite(const bdc::String& buffer);
         void        replace_word(const bdc::String&);
         u32_t       char_position() const;
         bdc::String json()const;
