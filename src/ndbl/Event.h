@@ -69,6 +69,8 @@ namespace ndbl
         operator bool ()
         { return type != Event_Type_NULL; }
     };
+    
+    static constexpr Event null_event{};
 
     struct Event_Data__Selection
     {
