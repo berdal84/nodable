@@ -167,21 +167,22 @@ void fileview_draw(File_View* file_view, float dt)
     float btn_height    = cfg->ui_history_btn_height;
     float btn_width_max = cfg->ui_history_btn_width_max;
 
-    size_t history_size = command_manager_get_size();
-    std::pair<int, int> history_range = command_manager_get_command_id_range();
+    Command_Manager* cmd_manager = command_manager();
+    size_t history_size = cmd_manager->commands.size;
     float avail_width = ImGui::GetContentRegionAvail().x;
     float btn_width = fmin(btn_width_max, avail_width / float(history_size + 1) - btn_spacing);
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { btn_spacing, 0});
 
-    for (u32_t cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++)
+    for (u32_t i = 0; i <= history_size; i++) // i == history_size is valid, it corresponds to the 'END'
     {
         ImGui::SameLine();
 
-        bdc::String label = bdc::string_tprintf("##%i", cmd_pos);
+        bdc::String label = bdc::string_tprintf("##%i", i);
 
         // Draw a highlighted button for the current history position
-        if (cmd_pos == 0) {
+        if (i == cmd_manager->cursor )
+        {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
             ImGui::Button(label.c_str(), {btn_width, btn_height});
             ImGui::PopStyleColor();
@@ -203,7 +204,7 @@ void fileview_draw(File_View* file_view, float dt)
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
             if (ImGuiEx::BeginTooltip())
             {
-                ImGui::Text("%s", command_manager_get_cmd_description_at(cmd_pos).c_str());
+                ImGui::Text("%s", command_manager_get_cmd_description_at(i).c_str());
                 ImGuiEx::EndTooltip();
             }
             ImGui::PopStyleVar();
@@ -214,7 +215,7 @@ void fileview_draw(File_View* file_view, float dt)
             ImGui::GetMousePos().x > ImGui::GetItemRectMin().x &&
             ImGui::GetMousePos().x < ImGui::GetItemRectMax().x)
         {
-            command_manager_set_cursor(cmd_pos); // update history cursor position
+            command_manager_set_cursor(i);
         }
 
 

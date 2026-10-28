@@ -51,7 +51,7 @@ void ndbl::command_manager_end_transaction()
     last_command.flags |= Command_Flags_TRANSACTION_END;
 }
 
-void ndbl::command_manager_push_command(Command& command, bool _from_text_editor)
+void ndbl::command_manager_push_command(Command& command, bool skip_command_execution)
 {
     Config* cfg     = config();
     auto*   manager = command_manager();
@@ -68,7 +68,7 @@ void ndbl::command_manager_push_command(Command& command, bool _from_text_editor
 
     // execute the command except if it concern text_editor.
     // since modification is already handled by text editor itself
-    if ( !_from_text_editor )
+    if ( !skip_command_execution )
     {
         command_do(&command);
     }
@@ -145,18 +145,6 @@ bdc::String ndbl::command_manager_get_cmd_description_at(u32_t pos)
 
     Command& cmd = manager->commands[pos];
     return cmd.description;
-}
-
-std::pair<int, int> ndbl::command_manager_get_command_id_range()
-{
-    auto* manager = command_manager();
-    return { 0, manager->cursor };
-}
-
-size_t ndbl::command_manager_get_size()
-{
-    auto* manager = command_manager();
-    return manager->commands.size;
 }
 
 void ndbl::command_manager_enable_text_editor_undo_buffer( bool enabled )
