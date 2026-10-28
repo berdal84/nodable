@@ -118,7 +118,8 @@ File_Read_Result file_read(const Path& path)
     }
 
     Resizable_Array<i8_t> bytes;
-    array_init(bytes, 1024, allocator); // let's use 1K minimum
+    array_init(bytes); 
+    array_ensure_has_capacity(bytes, 1024); // let's use 1K minimum
 
     while( true )
     {

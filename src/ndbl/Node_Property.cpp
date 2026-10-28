@@ -23,7 +23,7 @@ namespace ndbl
         property->flags = flags;
         property->name  = string_copy(name);
         
-        array_init(property->slots, 0);
+        array_init(property->slots);
 
         property_set_type(property, type);
     }

@@ -128,7 +128,6 @@ namespace bdc
         hashmap.capacity  = initial_capacity;
 
         array_init(hashmap.entries, initial_capacity, hashmap.allocator);
-        array_resize(hashmap.entries, initial_capacity);
     };
 
     template<Is_Hash_Map T>

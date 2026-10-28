@@ -248,13 +248,23 @@ namespace bdc
     // Resizable_Array specific API
 
     template<typename Elem_T>
-    void array_init(Resizable_Array<Elem_T>& arr, u32_t initial_capacity = 0, Allocator* _allocator = nullptr)
+    void array_init(Resizable_Array<Elem_T>& arr, Allocator* _allocator)
+    {
+        return array_init(arr, 0, _allocator);
+    }
+
+    template<typename Elem_T>
+    void array_init(Resizable_Array<Elem_T>& arr, u32_t initial_size = 0, Allocator* _allocator = nullptr)
     {
         arr.size        = 0;
         arr.data        = nullptr;
         arr.capacity    = 0;
         arr.allocator   = _allocator ? _allocator : allocator;
-        array_ensure_has_capacity(arr, initial_capacity);
+
+        if( initial_size )
+        {
+            array_resize(arr, initial_size);
+        }
     }
 
     template<typename Elem_T>

@@ -289,7 +289,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, 0, &temp_allocator);
+            array_init(arr, &temp_allocator);
 
             for(int i = 0; i < 10; ++i) array_append(arr, i+1);
             for(int i = 0; i < 10; ++i) TEST_EXPECTS( arr[i] == i+1);
@@ -303,7 +303,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, 0, &temp_allocator);
+            array_init(arr, &temp_allocator);
 
             for(int i = 0; i < 129; ++i)
             {
@@ -320,7 +320,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, 0, &temp_allocator);
+            array_init(arr, &temp_allocator);
 
             array_append(arr, 10);
             array_append(arr, 42);
@@ -339,7 +339,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, 0, &temp_allocator);
+            array_init(arr, &temp_allocator);
 
             array_append(arr, 0);
             array_append(arr, 1);
@@ -358,7 +358,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, 0, &temp_allocator);
+            array_init(arr, &temp_allocator);
 
             array_resize(arr, 16);
             for(u32_t i = 0; i < arr.size; ++i)

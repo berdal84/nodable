@@ -39,7 +39,7 @@ namespace bdc
     inline void string_builder_init(String_Builder& sb)
     {
         sb.allocator = &temp_allocator;
-        array_init(sb.buffer, 0, sb.allocator);
+        array_init(sb.buffer, sb.allocator);
     }
 
     inline void string_builder_release(String_Builder& sb)

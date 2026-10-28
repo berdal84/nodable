@@ -640,7 +640,7 @@ Node* graph_create_empty_instruction(Graph* graph, Scope* scope)
 Array<Scope*> graph_collect_root_scopes(const Graph* graph)
 {
     Resizable_Array<Scope *> result;
-    array_init(result, 0, &temp_allocator);
+    array_init(result, &temp_allocator);
     for (const Node& node : graph->nodes )
         if ( node.internal_scope != nullptr )
             if ( scope_get_depth(node.internal_scope) == 0 )
@@ -651,7 +651,7 @@ Array<Scope*> graph_collect_root_scopes(const Graph* graph)
 Array<Scope*> graph_collect_scopes(const Graph* graph)
 {
     Resizable_Array<Scope *> result;
-    array_init(result, 0, &temp_allocator);
+    array_init(result, &temp_allocator);
     for(const Node& node : graph->nodes)
         if ( node.scope )
             array_append( result, node.scope );

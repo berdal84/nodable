@@ -1334,8 +1334,7 @@ Node_Slot* parse_function_call(Parser_Context& ctx, Scope* parent_scope)
             return nullptr;
         }
     }
-    bdc::Resizable_Array<Node_Slot*> result_slots;
-    array_init(result_slots, 16, &temp_allocator);
+    bdc::Inlined_Array<Node_Slot*, 16> result_slots;
 
     // Declare a new function prototype
     Type_Descriptor function_type;
