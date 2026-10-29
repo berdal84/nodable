@@ -75,11 +75,9 @@ namespace bdc
     {
         using Elem_T = _Elem_T;
 
-        u32_t     size = 0;
-        Elem_T    data[CAPACITY]; // data must be 2nd to match with other arrays
-
-        constexpr u32_t capacity() const
-        { return CAPACITY; }
+        u32_t           size            = 0;
+        Elem_T          data[CAPACITY]  = {}; // data must be 2nd to match with other arrays
+        static constexpr u32_t capacity = CAPACITY;
 
         inline const Elem_T& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return data[pos]; }
         inline Elem_T&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return data[pos]; }
@@ -218,7 +216,7 @@ namespace bdc
     template<typename Elem_T, u32_t CAPACITY>
     void array_resize(Inlined_Array<Elem_T, CAPACITY>& arr, u32_t new_size)
     {
-        assert( new_size <= arr.capacity() );
+        assert( new_size <= arr.capacity );
         if( new_size == arr.size )
         {
             return;

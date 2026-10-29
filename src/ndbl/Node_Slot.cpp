@@ -23,10 +23,10 @@ void node_slot_init(
     
     if (capacity == 0)
     {
-        capacity = slot->adjacent.capacity();
+        capacity = slot->adjacent.capacity;
     }
 
-    ASSERT( capacity <= slot->adjacent.capacity() );
+    ASSERT( capacity <= slot->adjacent.capacity );
 
     slot->position = position;
     slot->capacity = capacity;
