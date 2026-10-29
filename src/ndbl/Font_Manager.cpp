@@ -1,5 +1,5 @@
 #include "Font_Manager.h"
-
+#include <imgui.h> // for ImFont
 #include "Asserts.h"
 #include "File_System.h"
 #include "Font_Manager_Config.h"
@@ -16,27 +16,22 @@ static Font_Manager* g_font_manager = nullptr;
 Font_Manager* font_manager_init(const Font_Manager_Config* config)
 {
     VERIFY(g_font_manager == nullptr, "font_manager_init() called twice?");
+
     g_font_manager = bdc::memory_new<Font_Manager>();
     g_font_manager->config = config;
-    
-    for (const Font_Config& text_font : config->text)
-    {
-        font_manager_load(text_font);
-    }
 
-    // Assign text_fonts (user might want to change it later, but we need defaults)
-    for( int each_slot = 0; each_slot < Font_Slot_COUNT; ++each_slot )
+    for(u32_t slot = 0; slot < Font_Slot_COUNT; ++slot )
     {
-        const bdc::String& font_name = config->defaults[each_slot];
-        if( !font_name.empty() )
+        if( slot == Font_Slot_Icons)
         {
-            g_font_manager->fonts_by_slot[each_slot] = font_manager_get_by_name(font_name);
+            // Font_Slot_Icons don't need to be loaded, it is merged in other fonts on demand.
+            continue;
         }
-        else
-        {
-            NDBL_LOG(Verbosity_Warning, "NodableView", "No default text_font declared for slot #%i, using ImGui's default text_font as fallback\n", each_slot);
-            g_font_manager->fonts_by_slot[each_slot] = ImGui::GetDefaultFont();
-        }
+
+        const Font_Config& font_config = g_font_manager->config->fonts[slot];
+        ImFont*            font        = font_manager_load(font_config); 
+        assert(font != nullptr);
+        g_font_manager->fonts_by_slot[slot] = font;
     }
 
     return g_font_manager;
@@ -58,26 +53,25 @@ void font_manager_shutdown()
 ImFont* font_manager_load(const Font_Config& font_config)
 {
     Font_Manager* font_manager = ndbl::font_manager();
-    VERIFY(font_manager->fonts_by_name.find(font_config.id) == font_manager->fonts_by_name.end(), "use of same key for different fonts is not allowed");
-
-    ImFont*   font     = nullptr;
-    auto&     io       = ImGui::GetIO();
+    ImGuiIO&      io           = ImGui::GetIO();
 
     // Create text_font
-    {
-        ImFontConfig imfont_cfg;
-        imfont_cfg.RasterizerMultiply = 1.2f;
-        imfont_cfg.OversampleH = 2;
-        imfont_cfg.OversampleV = 3;
-        Path absolute_path = Path::get_asset_path(font_config.path);
-        NDBL_LOG(Verbosity_Diagnostic, "NodableView", "Adding text_font from file ... %s\n", absolute_path.c_str());
-        font = io.Fonts->AddFontFromFileTTF(absolute_path.c_str(), font_config.size * font_manager->config->subsamples, &imfont_cfg);
-    }
+    ImFontConfig imfont_cfg;
+    imfont_cfg.RasterizerMultiply = 1.2f;
+    imfont_cfg.OversampleH = 2;
+    imfont_cfg.OversampleV = 3;
+    Path absolute_path = Path::get_asset_path(font_config.path);
+    NDBL_LOG(Verbosity_Diagnostic, "NodableView", "Adding text_font from file ... %s\n", absolute_path.c_str());
+    ImFont* font = io.Fonts->AddFontFromFileTTF(absolute_path.c_str(), font_config.size * font_manager->config->subsamples, &imfont_cfg);
+    assert(font != nullptr);
 
     // Add Icons my merging to previous text_font.
-    if (font_config.icons_enable )
+    if ( font_config.icons_enable )
     {
-        if(strlen( font_manager->config->icon.path) == 0)
+        const Font_Config& icon_font_config = font_manager->config->fonts[Font_Slot_Icons];
+        assert(icon_font_config.id != font_config.id); // font config cannot merge itself!
+
+        if( icon_font_config.path.size == 0)
         {
             NDBL_LOG(Verbosity_Warning, "NodableView", "config().font_manager.icon.path is empty, icons will be \"?\"\n");
             return font;
@@ -92,27 +86,23 @@ ImFont* font_manager_load(const Font_Config& font_config)
         imfont_cfg.OversampleH = 2;
         imfont_cfg.OversampleV = 3;
         //imfont_cfg.GlyphOffset.y = -(text_font.icons_size - text_font.size)/2.f;
-        imfont_cfg.GlyphMinAdvanceX = font_config.icons_size * font_manager->config->subsamples; // monospace to fix text alignment in drop down menus.
-        Path absolute_path = Path::get_asset_path(font_manager->config->icon.path);
-        font = io.Fonts->AddFontFromFileTTF(absolute_path.c_str(), font_config.icons_size * font_manager->config->subsamples, &imfont_cfg, icons_ranges);
+        const float size = font_config.size * font_manager->config->icons_scale * font_manager->config->subsamples;
+        imfont_cfg.GlyphMinAdvanceX = size; // monospace to fix text alignment in drop down menus.
+        Path absolute_path = Path::get_asset_path(icon_font_config.path);
+        font = io.Fonts->AddFontFromFileTTF(absolute_path.c_str(), size, &imfont_cfg, icons_ranges);
+        assert(font != nullptr);
         NDBL_LOG(Verbosity_Diagnostic, "NodableView", "Merging icons font ...\n");
     }
 
     font->Scale = 1.0f / font_manager->config->subsamples;
 
-    font_manager->fonts_by_name.insert_or_assign(font_config.id, font);
-    NDBL_LOG(Verbosity_Diagnostic, "NodableView", "Font %s added: \"%s\"\n", font_config.id, font_config.path );
+    NDBL_LOG(Verbosity_Diagnostic, "NodableView", "Font %s added: \"%s\"\n", font_config.id.c_str(), font_config.path.c_str() );
     return font;
 }
 
-ImFont* font_manager_get_by_slot(Font_Slot slot)
+ImFont* font_manager_get_font(Font_Slot slot)
 {
-    return font_manager()->fonts_by_slot.at(slot);
-}
-
-ImFont* font_manager_get_by_name(const bdc::String& name)
-{
-    return font_manager()->fonts_by_name.at(name);
+    return font_manager()->fonts_by_slot[slot];
 }
 
 } // namespace ndbl

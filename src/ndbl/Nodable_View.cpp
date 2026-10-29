@@ -324,7 +324,7 @@ void appview_draw()
     {
         ImGui::PopStyleVar( 3 );
 
-        ImGui::SetCurrentFont(font_manager_get_by_slot(Font_Slot_Paragraph) );
+        ImGui::SetCurrentFont( font_manager_get_font(Font_Slot_Default) );
 
         // Show/Hide ImGui Demo Window
 
@@ -788,7 +788,7 @@ void appview_draw()
             const Vec2&   button_size   = config()->ui_toolButton_size;
 
             ImGui::PopStyleVar();
-            ImGui::PushFont(font_manager_get_by_slot(Font_Slot_ToolBtn));
+            ImGui::PushFont(font_manager_get_font(Font_Slot_ToolBtn));
             ImGui::BeginGroup();
 
             // reset
@@ -1060,7 +1060,7 @@ void appview_draw()
         {
         if (ImGui::Begin( config()->ui_help_window_label.data ))
         {
-            ImGui::PushFont(font_manager_get_by_slot(Font_Slot_Heading));
+            ImGui::PushFont(font_manager_get_font(Font_Slot_Heading));
             ImGui::Text("Welcome to Nodable!");
             ImGui::PopFont();
             ImGui::NewLine();
@@ -1075,7 +1075,7 @@ void appview_draw()
             ImGuiEx::BulletTextWrapped(
                     "but keep in mind the app is the text, any change not affecting the text (such as child positions or orphan primary_child) will be lost.");
             ImGui::NewLine();
-            ImGui::PushFont(font_manager_get_by_slot(Font_Slot_Heading));
+            ImGui::PushFont(font_manager_get_font(Font_Slot_Heading));
             ImGui::Text("Quick start");
             ImGui::PopFont();
             ImGui::NewLine();
@@ -1116,7 +1116,7 @@ void appview_draw()
             {
                 ImGui::Indent(center_area.x * 0.05f);
 
-                ImGui::PushFont(font_manager_get_by_slot(Font_Slot_ToolBtn));
+                ImGui::PushFont(font_manager_get_font(Font_Slot_ToolBtn));
                 ImGui::NewLine();
 
                 ImVec2 btn_size(center_area.x * 0.44f, 40.0f);

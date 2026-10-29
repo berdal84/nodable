@@ -224,7 +224,7 @@ void fileview_draw(File_View* file_view, float dt)
 
     // 2)
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
-    ImGui::PushFont( font_manager_get_by_slot(Font_Slot_Code) );
+    ImGui::PushFont( font_manager_get_font(Font_Slot_Default) );
 
     ImGui::BeginChild("File_View", ImGui::GetContentRegionAvail(), false, 0);
     {

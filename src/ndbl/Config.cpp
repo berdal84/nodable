@@ -60,26 +60,6 @@ void config_reset()
         Vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
     };
 
-    g_config->font_manager = {
-        {{
-            "default",                  // id
-            "fonts/CenturyGothic.ttf",  // path
-            18.0f,                      // size in px.
-            true,                       // include icons?
-            18.0f                       // icons size in px.
-        }},
-        {
-            "default", // Font_Slot_Paragraph
-            "default", // Font_Slot_Heading
-            "default", // Font_Slot_Code
-            "default"  // Font_Slot_ToolBtn
-        },
-        {
-            "FA-solid-900",           // Icon font name
-            "fonts/fa-solid-900.ttf"  // Icon font path
-        },
-        1.0f  // subsampling
-    };
     g_config->padding         = { 10.0f, 10.0f };
     g_config->antialiased     = true;
     g_config->window_rounding = 0.f;
@@ -209,25 +189,15 @@ void config_reset()
     g_config->dockspace_top_size          = 36.f;
     g_config->dockspace_bottom_size       = 110.f;
 
-    const char *k_paragraph = "Paragraph";
-    const char *k_heading   = "Heading 1";
-    const char *k_code      = "Code";
-    const char *k_tool      = "Tool Button";
-
-    g_config->font_manager.text = {
-        // id          , font_path                           , size , icons? , icons size
-        { k_paragraph  , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
-        { k_heading    , "fonts/JetBrainsMono-Bold.ttf"      , 20.0f, true   , 20.0f      },
-        { k_code       , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
-        { k_tool       , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true   , 16.0f      }
-    };
-
-    g_config->font_manager.defaults[Font_Slot_Paragraph] = k_paragraph;
-    g_config->font_manager.defaults[Font_Slot_Heading]   = k_heading;
-    g_config->font_manager.defaults[Font_Slot_Code]      = k_code;
-    g_config->font_manager.defaults[Font_Slot_ToolBtn]   = k_tool;
-    g_config->font_manager.subsamples                   = 1.0f;
-    g_config->font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
+    // Font Manager
+    //                                                    id           , path                                , size , icons?
+    g_config->font_manager.fonts[Font_Slot_Default]   = { "Paragraph"  , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true  };
+    g_config->font_manager.fonts[Font_Slot_Heading]   = { "Heading"    , "fonts/JetBrainsMono-Bold.ttf"      , 20.0f, true  };
+    g_config->font_manager.fonts[Font_Slot_ToolBtn]   = { "ToolBtn"    , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true  };
+    g_config->font_manager.fonts[Font_Slot_Icons]     = { "Icons"      , "fonts/fa-solid-900.ttf"            , 16.0f        };
+    g_config->font_manager.subsamples                 = 1.0f;
+    g_config->font_manager.icons_scale                = 1.0f;
+    
     g_config->app_default_title = NDBL_APP_NAME " " NDBL_BUILD_REF " - Built " __DATE__ " at " __TIME__;
 
     // Actions
@@ -248,22 +218,22 @@ void config_reset()
         {{ Event_Type_TOGGLE_ISOLATION_FLAGS    }, "Isolation"          , {SDLK_i, KMOD_CTRL }, Action_Flags_ENABLE | Action_Flags_HIGHLIGHTED_IN_TEXT_EDITOR},
         {{ Event_Type_MOVE                      }, "Drag whole "        , {SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Action_Flags_ENABLE | Action_Flags_HIGHLIGHTED_IN_GRAPH_EDITOR},
         {{ Event_Type_FRAME_SELECTION           }, "Frame Selection"    , {SDLK_f, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION | Action_Flags_HIGHLIGHTED_IN_GRAPH_EDITOR},
-        {{ Event_Type_FRAME_SELECTION           }, "Frame All"          , {SDLK_f, KMOD_LCTRL }, .flags = Action_Flags_DISABLE_INDEXING },
+        {{ Event_Type_FRAME_SELECTION           }, "Frame All"          , {SDLK_f, KMOD_LCTRL }, Action_Flags_DISABLE_INDEXING },
         {{ Event_Type_TOGGLE_HELP               }, "Splashscreen"       , {SDLK_F1 }},    
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_RETURN      }, ICON_FA_CODE " Return Statement"      , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_IF_ELSE     }, ICON_FA_CODE " Condition"             , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_FOR_LOOP    }, ICON_FA_CODE " For Loop"              , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_WHILE_LOOP  }, ICON_FA_CODE " While Loop"            , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_SCOPE       }, ICON_FA_CODE " Scope"                 , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_ROOT        }, ICON_FA_CODE " Entry Point"           , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, ICON_FA_DATABASE " Boolean Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, ICON_FA_DATABASE " Double Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, ICON_FA_DATABASE " Integer Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, ICON_FA_DATABASE " String Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, ICON_FA_FILE " Boolean Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, ICON_FA_FILE " Double Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, ICON_FA_FILE " Integer Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
-        {{ .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, ICON_FA_FILE " String Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_RETURN      }, .label = ICON_FA_CODE " Return Statement"      , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_IF_ELSE     }, .label = ICON_FA_CODE " Condition"             , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_FOR_LOOP    }, .label = ICON_FA_CODE " For Loop"              , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_WHILE_LOOP  }, .label = ICON_FA_CODE " While Loop"            , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_SCOPE       }, .label = ICON_FA_CODE " Scope"                 , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_ROOT        }, .label = ICON_FA_CODE " Entry Point"           , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " Boolean Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " Double Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " Integer Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " String Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, .label = ICON_FA_FILE " Boolean Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, .label = ICON_FA_FILE " Double Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, .label = ICON_FA_FILE " Integer Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, .label = ICON_FA_FILE " String Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
     };
 }
 
