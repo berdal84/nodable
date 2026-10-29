@@ -3,9 +3,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdio>
-#include <stack>
-#include <vector>
-
+#include "bdc/Array.hpp"
 #include "Asserts.h"
 #include "geometry/Rect.h"
 #include "geometry/Vec2.h"
@@ -118,9 +116,9 @@ namespace ndbl
 
     struct Layout_State
     {
-        bool                   should_be_cleared = false;
-        std::vector<Element>   elements;
-        std::stack<Element*>   stack;
+        bool                         should_be_cleared = false;
+        Inlined_Array<Element, 4096> elements;
+        Inlined_Array<Element*, 32>  stack;
     };
 
     static Layout_State layout_state;
@@ -170,17 +168,12 @@ namespace ndbl
 
     inline void layout_init()
     {
-        layout()->elements.reserve(4096);
     }
 
     inline void layout_deinit()
     {
-        layout()->elements.clear();
-
-        while(!layout()->stack.empty())   
-        {
-            layout()->stack.pop();
-        }
+        array_clear(layout()->elements);
+        array_clear(layout()->stack);
     }
 
     inline void layout_begin_frame()
@@ -199,7 +192,8 @@ namespace ndbl
 
     inline Element* layout_new_elem(const Element& elem)
     {
-        return &layout()->elements.emplace_back(elem);
+        array_append(layout()->elements, elem);
+        return &array_back(layout()->elements);
     }
 
     inline Element* layout_new_container(Axis axis)
@@ -213,34 +207,34 @@ namespace ndbl
     inline void layout_begin()
     {
         Element* elem = layout_new_container(AXIS_NONE);
-        layout()->stack.push( elem );
+        array_append(layout()->stack, elem );
     };
 
     inline void layout_end()
     {
-        VERIFY(layout()->stack.size() > 0, "LAYOUT_BEGIN/END mismatch!");
-        auto* current = layout()->stack.top();
-        layout()->stack.pop();     
+        VERIFY(layout()->stack.size > 0, "LAYOUT_BEGIN/END mismatch!");
+        auto* current = array_back(layout()->stack);
+        array_pop(layout()->stack);     
     };
 
-    inline std::vector<Element>& layout_elements()
+    inline Array<Element> layout_elements()
     {
-        return layout()->elements;
+        return array_view(layout()->elements);
     }
     
     inline Element* layout_current_element()
     {
-        return &layout()->elements.back();
+        return &array_back(layout()->elements);
     }
 
     inline void layout__begin(Axis axis)
     {
-        VERIFY(layout()->elements.size() < layout()->elements.capacity(), "Buffer overflow!");
+        VERIFY(layout()->elements.size < layout()->elements.capacity, "Buffer overflow!");
         
-        Element* parent = layout()->stack.top();
-        Element* elem  = layout_new_container(axis);
+        Element* parent = array_back(layout()->stack);
+        Element* elem   = layout_new_container(axis);
 
-        layout()->stack.push(elem);
+        array_append(layout()->stack, elem);
         elem_push_back(parent, elem);
     }
 
@@ -256,13 +250,18 @@ namespace ndbl
 
     inline void layout_compute_sizes_and_positions()
     {
+        if(layout()->elements.size == 0)
+        {
+            return;
+        }
+
         // I compute sizes and positions from last to first Element
         // This way I am sure I start from leaf and end with root.
 
         // PASS 1: compute sizes
-        for(auto it = layout()->elements.rbegin(); it != layout()->elements.rend(); ++it)
+        for(u32_t i = layout()->elements.size-1; i != (u32_t)-1; i-- )
         {
-            Element& parent = *it;
+            Element& parent = layout()->elements[i];
 
             if ( parent.type != Element::Type_CONTAINER || elem_is_empty(&parent) )
             {
@@ -437,16 +436,16 @@ namespace ndbl
 
     inline void layout_set_gap(float gap)
     {
-        Element* elem = layout()->stack.top();
+        Element* elem = array_back(layout()->stack);
         ASSERT(elem->type == Element::Type_CONTAINER);
         elem->container.gap = gap;
     }
 
     inline void layout_push(const Element& elem)
     {
-        VERIFY(layout()->elements.size() < layout()->elements.capacity(), "Buffer overflow!");
+        VERIFY(layout()->elements.size < layout()->elements.capacity, "Buffer overflow!");
         
-        Element* parent = layout()->stack.top();
+        Element* parent = array_back(layout()->stack);
         ASSERT(parent->type == Element::Type_CONTAINER);
 
         Element* new_element = layout_new_elem(elem);
