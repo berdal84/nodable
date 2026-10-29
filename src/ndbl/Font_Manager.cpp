@@ -2,7 +2,6 @@
 #include <imgui.h> // for ImFont
 #include "Asserts.h"
 #include "File_System.h"
-#include "Font_Manager_Config.h"
 #include "ImGuiEx.h"
 #include "Log.h"
 

@@ -4,7 +4,7 @@
 #include "Action.h"
 #include "Color.h"
 #include "Config.h"
-#include "Font_Manager_Config.h"
+#include "Font_Manager.h"
 #include "geometry/Rect.h"
 #include "geometry/Vec2.h"
 #include "geometry/Vec4.h"
