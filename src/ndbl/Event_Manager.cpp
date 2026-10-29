@@ -58,7 +58,7 @@ void event_manager_push_event(Event event)
     }
 
     g_event_manager->event_queue_ring[next_pos] = event;
-    g_event_manager->event_queue_back           = next_pos;
+    g_event_manager->event_queue_back           = (next_pos + 1) % g_event_manager->event_queue_ring.capacity;
 }
 
 const Event& event_manager_pop_event()
