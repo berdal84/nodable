@@ -3,7 +3,6 @@
 #include <cassert>
 #include <cstring>
 #include <chrono>
-#include <xxhash/xxhash64.h>
 
 #include "bdc/String.hpp"
 #include "bdc/Types.hpp"
