@@ -82,6 +82,8 @@ using namespace ndbl;
 
 void ndbl::graphview_init(Graph_View* graphview, Graph* graph)
 {
+    nodesearchinput_init(graphview->node_search_input);
+
     graphview->graph = graph;
 
     graphview->state_machine.init(graphview);
@@ -139,7 +141,7 @@ void ndbl::graphview_deinit(Graph_View* graphview)
         if( !HAS_FLAGS(each_node.flags, Node_Flag_IS_DELETED) )
             _graphview_handle_remove_node(graphview, &each_node);
 
-    graphview->node_search_input.items.clear();
+    nodesearchinput_release(graphview->node_search_input);
 }
 
 void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
@@ -846,7 +848,7 @@ void ndbl::graphview_reset_all_properties(Graph_View* graphview)
 
 void ndbl::_graphview_draw_context_menu(Graph_View* graphview, Node_Slot_View* dragged_slotview)
 {
-    if (Action* triggered_action = nodeview_contextmenu_draw_search_input( &graphview->node_search_input, dragged_slotview, 10))
+    if (Action* triggered_action = nodesearchinput_draw( graphview->node_search_input, dragged_slotview, 10))
     {
         // Generate an event from this action, add some info to the state and dispatch it.
         Event event = triggered_action->event;

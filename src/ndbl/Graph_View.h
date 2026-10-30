@@ -24,17 +24,17 @@ namespace ndbl
 
     struct Graph_View
     {
-        Graph_View_Flags                    flags = 0;
+        Graph_View_Flags             flags = 0;
         Simple_Signal                signal_change;
-        Node_Search_Input                   node_search_input;
-        View                                hovered;
-        View                                focused;
-        View_Selection                      selection;
+        Node_Search_Input            node_search_input;
+        View                         hovered;
+        View                         focused;
+        View_Selection               selection;
         Box_2D                       shape;
         State_Machine                state_machine;
         Vec2                         state_roi_start_pos;
         Vec2                         state_roi_end_pos;   
-        Graph*                              graph;
+        Graph*                       graph;
     };
     
     void    graphview_init(Graph_View* view, Graph* owner);
