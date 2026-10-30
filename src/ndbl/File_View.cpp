@@ -58,8 +58,6 @@ void fileview_update(File_View* file_view, float dt)
         parser_init(parser, nullptr, fileview_get_text(file_view,/* isolation = */ false )); // we parse the whole text even if isolation mode is on
         parser_tokenize(parser);
 
-        NDBL_LOG(Verbosity_Message, "File_View", parser_to_string(parser).c_str());
-
         for(auto& line : file_view->text_editor.mLines )
         {
             for(auto& glyph : line )

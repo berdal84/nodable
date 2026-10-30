@@ -26,8 +26,8 @@ public:
     {
         nodable_init(&app);
 
-        set_log_verbosity( Verbosity_Message );
-        set_log_verbosity( __FILE__, Verbosity_Diagnostic );
+        log_set_verbosity( Verbosity_Message );
+        log_set_verbosity( __FILE__, Verbosity_Diagnostic );
     }
 
     void TearDown() override

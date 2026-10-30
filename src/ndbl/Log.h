@@ -2,10 +2,11 @@
 
 #include "bdc/String.hpp"
 #include "bdc/String_Builder.hpp"
+#include "bdc/Array.hpp"
+#include "bdc/Hash_Map.hpp"
 #include "Format.h"
 #include <chrono>
 #include <ctime>
-#include <deque>
 #include <map>
 
 #define NDBL_COLOR_DEFAULT     "\033[0m"
@@ -33,14 +34,10 @@
 
 #ifdef NDBL_DEBUG
 #   define NDBL_DEBUG_LOG(...)         NDBL_LOG( __VA_ARGS__ )
-#   define NDBL_LOG_MESSAGE_MAX_COUNT  500000
 #   define NDBL_LOG_VERBOSITY_DEFAULT  Verbosity_Diagnostic
-#   define NDBL_LOG_MESSAGE_MEMORY_MAX 400*1000*1000
 #else
 #   define NDBL_DEBUG_LOG(...)         /* NDBL_DEBUG_LOG disabled when NDBL_DEBUG is false */
-#   define NDBL_LOG_MESSAGE_MAX_COUNT  1000
 #   define NDBL_LOG_VERBOSITY_DEFAULT  Verbosity_Message
-#   define NDBL_LOG_MESSAGE_MEMORY_MAX 2*1000*1000
 #endif
 
 #define NDBL_ERROR   Verbosity_Error
@@ -53,71 +50,76 @@ namespace ndbl
     using namespace bdc;
 
     // Different verbosity levels a message can have
-    typedef int Verbosity;
-    enum Verbosity_: int
+    enum Verbosity: i8_t
     {
-        Verbosity_Error      = 0, // lowest level (always logged)
-        Verbosity_Warning    = 1,
-        Verbosity_Message    = 2,
-        Verbosity_Diagnostic = 3, // highest level (rarely logged)
+        Verbosity_Diagnostic, // rarely logged
+        Verbosity_Message   , // ..
+        Verbosity_Warning   , // ..
+        Verbosity_Error     , // always logged
 
         Verbosity_COUNT,
     };
 
-    struct VerbosityFilter
+    // Verbosity_Flags to make binary masks (to toggle visibility on a per-level basis)
+    typedef u8_t Verbosity_Flags;
+
+    // helper to convert 1 or more verbosity levels to verbosity flags.
+    template<typename... T>
+    constexpr Verbosity_Flags verbosity_flags(T... values)
     {
-        bool data[Verbosity_COUNT]; // TODO: we could use flags
+        return ((1u << values) | ...);
+    }
 
-        VerbosityFilter(bool default_value = false)
-        {
-            reset_all(default_value);
-        }
+    enum Verbosity_Flags_: u8_t
+    {
+        Verbosity_Flags_Error      = verbosity_flags(Verbosity_Error),
+        Verbosity_Flags_Warning    = verbosity_flags(Verbosity_Warning), 
+        Verbosity_Flags_Message    = verbosity_flags(Verbosity_Message), 
+        Verbosity_Flags_Diagnostic = verbosity_flags(Verbosity_Diagnostic), 
 
-        bool all_checked() const
-        {
-            for( int i = 0; i < Verbosity_COUNT; ++i )
-                if ( !data[i] )
-                    return false;
-            return true;
-        }
-
-        void reset_all(bool default_value = false)
-        {
-            for( int i = 0; i < Verbosity_COUNT; ++i )
-                data[i] = default_value;
-        }
-
+        Verbosity_Flags_All        = verbosity_flags(Verbosity_Diagnostic,
+                                                     Verbosity_Message,
+                                                     Verbosity_Warning,
+                                                     Verbosity_Error)
     };
 
-    struct MessageData
+    struct Log_Entry
     {
         using clock_t = std::chrono::time_point<std::chrono::system_clock>;
 
-        const char*     category;   // short category name (ex: "Game", "App", etc.)
-        Verbosity       verbosity;  // verbosity level
-        String     text;       // message content
-        clock_t         date;       // printed at date
+        const char* category;   // short category name (ex: "Game", "App", etc.)
+        Verbosity   verbosity;  // verbosity level
+        String      text;       // message content
+        clock_t     date;       // printed at date
     };
 
-    struct LogState
+    struct Log_State
     {
-        Verbosity                        verbosity = NDBL_LOG_VERBOSITY_DEFAULT;
-        std::map<u64_t, Verbosity>       verbosity_by_category_hash = {};
-        std::deque<MessageData>          messages = {};
-        VerbosityFilter                  verbosity_filter{true}; // true => checked by default
+        Verbosity                        verbosity              = NDBL_LOG_VERBOSITY_DEFAULT;
+        Hash_Map<bdc::String, Verbosity> verbosity_by_category  = {};
+        static constexpr u32_t           ring_buffer_size       = 1024*16; // max line count that can be hold in memory
+        u32_t                            ring_buffer_cursor     = 0; // index of the latest message
+        Log_Entry                        ring_buffer[ring_buffer_size]= {0};
     };
 
-    LogState&        get_log_state();
-    void             set_log_verbosity(const String& category, Verbosity level); // Set verbosity level for a given category
-    void             set_log_verbosity(Verbosity level); // override verbosity globally
-    Verbosity        get_log_verbosity(const String& category);
-    static Verbosity get_log_verbosity() { return get_log_state().verbosity; }
+    Log_State&       log_manager();
+    void             log_set_verbosity(Verbosity); // reset verbosity globally (clear any category override)
+    void             log_set_verbosity(const String& category, Verbosity); // override for a given category
+    Verbosity        log_get_verbosity();
+    Verbosity        log_get_verbosity(const String& category);
+    Log_Entry&       log_get_message_at(u32_t pos);
     void             flush(); // Ensure all messages have been printed out
-    bool             show_log_message(const MessageData&, const VerbosityFilter& filter); // return true if messages needs to be displayed depending on filter and global verbosity
 
     template<typename...Args>
     void log(Verbosity verbosity, const char* category, const char* fmt, Args... args) // print a message like "[time|verbosity|category] message"
     {
+        if ( verbosity < log_get_verbosity(category) )
+        {
+            return;
+        }
+
+        Log_State& state = log_manager();
+
         struct VerbosityInfo
         {
             const char* label;
@@ -125,47 +127,35 @@ namespace ndbl
         };
 
         constexpr VerbosityInfo verbosity_info[Verbosity_COUNT] = {
-            { "ERROR"     , NDBL_COLOR_RED     }, // Verbosity_Error
-            { "WARNING"   , NDBL_COLOR_MAGENTA }, // Verbosity_Warning
-            { "MESSAGE"   , NDBL_COLOR_DEFAULT }, // Verbosity_Message
             { "DIAGNOSTIC", NDBL_COLOR_DEFAULT }, // Verbosity_Diagnostic
+            { "MESSAGE"   , NDBL_COLOR_DEFAULT }, // Verbosity_Message
+            { "WARNING"   , NDBL_COLOR_MAGENTA }, // Verbosity_Warning
+            { "ERROR"     , NDBL_COLOR_RED     }, // Verbosity_Error
         };
 
-        MessageData message{};
+        Log_Entry msg = {};
 
-        message.date            = std::chrono::system_clock::now();
-        message.verbosity       = verbosity;
-        message.category        = category;
+        msg.date      = std::chrono::system_clock::now();
+        msg.verbosity = verbosity;
+        msg.category  = category;
 
         // message
         String_Builder sb{};
         string_builder_init(sb);
-        string_builder_appendf(sb, "[%s|%s|%s] ", Format::tprint_time_point(message.date).c_str(), verbosity_info[verbosity].label, category);
+        string_builder_appendf(sb, "[%s|%s|%s] ", Format::tprint_time_point(msg.date).c_str(), verbosity_info[verbosity].label, category);
         string_builder_appendf(sb, fmt, args...);
 
-        message.text = string_builder_build_tstring(sb);
+        msg.text = string_builder_build_string(sb);
 
-        // print if allowed
-        if ( message.verbosity <= get_log_verbosity(category) )
-        {
-            // Print colored content
-            printf("%s%s%s",
-                verbosity_info[verbosity].color,
-                message.text.c_str(),
-                NDBL_COLOR_DEFAULT);
+        // print to stdout
+        printf("%s%s%s",
+            verbosity_info[verbosity].color,
+            msg.text.c_str(),
+            NDBL_COLOR_DEFAULT);
 
-            // add to logs
-            get_log_state().messages.emplace_front(message);
-        }
-
-        // Constraint the queue to have a limited size
-        if ( get_log_state().messages.size() > NDBL_LOG_MESSAGE_MAX_COUNT )
-        {
-            get_log_state().messages.resize( NDBL_LOG_MESSAGE_MAX_COUNT / 2 );
-        }
+        // store in message ring and advance cursor
+        string_release(state.ring_buffer[state.ring_buffer_cursor].text); // release old message
+        state.ring_buffer[state.ring_buffer_cursor] = msg;
+        state.ring_buffer_cursor = (state.ring_buffer_cursor+1) % state.ring_buffer_size;
     }
-
-    static_assert(
-        NDBL_LOG_MESSAGE_MAX_COUNT * (sizeof(MessageData)) < NDBL_LOG_MESSAGE_MEMORY_MAX,
-        "tools' log messages can go above limit");
 }

@@ -433,81 +433,92 @@ void appview_draw()
         ImGui::DockSpace( view->dockspaces[Dockspace_ROOT] );
 
         // Status Window
-        if ( ImGui::Begin( k_status_window_name ) && !get_log_state().messages.empty())
+        if ( ImGui::Begin( k_status_window_name ) )
         {
-            const float line_height = ImGui::GetTextLineHeightWithSpacing();
+            const float  line_height = ImGui::GetTextLineHeightWithSpacing();
+            Log_State& log         = log_manager();
 
             if ( ImGui::BeginChild("filters", ImVec2(-1, line_height * 1.2f )) )
             {
                 ImGui::BeginGroup();
-                ImGui::Text("Filter Messages: "); ImGui::SameLine();
-
-                auto draw_filter = [&](const char* label, Verbosity verbosity)
+                auto draw_message_filter = [&](const char* label, Verbosity_Flags flags)
                 {
-                    ImGui::Checkbox(label, &get_log_state().verbosity_filter.data[verbosity] );
-                };
-
-                auto draw_filter_all = [&](const char* label)
-                {
-                    bool checked = get_log_state().verbosity_filter.all_checked();
+                    // cfg->log_verbosity_masks is a mask, 0: unmasked, 1: masked.
+                    bool checked = !HAS_FLAGS(cfg->log_verbosity_masks, flags);
                     if ( ImGui::Checkbox(label, &checked ) )
                     {
-                        get_log_state().verbosity_filter.reset_all(checked);
+                        SET_FLAGS_VALUE(cfg->log_verbosity_masks, flags, !checked );
                     }
                 };
 
-                draw_filter_all("All" );                            ImGui::SameLine();
-                draw_filter("Errors"      , Verbosity_Error );      ImGui::SameLine();
-                draw_filter("Warnings"    , Verbosity_Warning );    ImGui::SameLine();
-                draw_filter("Messages"    , Verbosity_Message );    ImGui::SameLine();
-                draw_filter("Diagnostics" , Verbosity_Diagnostic ); ImGui::SameLine();
+                draw_message_filter("All"         , Verbosity_Flags_All );        ImGui::SameLine();
+                draw_message_filter("Errors"      , Verbosity_Flags_Error );      ImGui::SameLine();
+                draw_message_filter("Warnings"    , Verbosity_Flags_Warning );    ImGui::SameLine();
+                draw_message_filter("Messages"    , Verbosity_Flags_Message );    ImGui::SameLine();
+                draw_message_filter("Diagnostics" , Verbosity_Flags_Diagnostic ); ImGui::SameLine();
+                
+                ImGui::SetCursorPosX( ImGui::GetCursorPosX() + 20.0f );
+                bool follow = !cfg->log_disable_follow;
+                if( ImGui::Checkbox("Follow Logs", &follow ))
+                {
+                    cfg->log_disable_follow = !follow;
+                }
 
-                ImGui::EndGroup();
+                ImGui::EndGroup();                
             }
             ImGui::EndChild();
 
             if ( ImGui::BeginChild("messages") )
             {
-                u32_t message_to_display_count = std::min( get_log_state().messages.size(), cfg->log_message_display_max_count );
-                size_t message_processed_count = 0;
-                size_t message_displayed_count = 0;
+                bool is_log_empty = true;
 
-                auto it = get_log_state().messages.rbegin();
-                while ( message_displayed_count < message_to_display_count && it != get_log_state().messages.rend() )
+                Vec4 color_grey = { 0.5f, 0.5f, 0.5f, 1.0f };
+                ImGui::TextColored(color_grey, "--- begin ---");
+                
+                for(u32_t i = 0; i < log.ring_buffer_size; ++i)
                 {
-                    const MessageData& message = *it;
-                    if ( show_log_message( message, get_log_state().verbosity_filter ) )
+                    Log_Entry& msg = log_get_message_at(i); // messages are sorted from last to first
+
+                    // User might have filtered-out this particular verbosity level
+                    if( HAS_FLAGS(cfg->log_verbosity_masks, verbosity_flags(msg.verbosity) ) )
                     {
-                        ImRect line_rect{
-                            ImGui::GetCursorScreenPos(),
-                            ImGui::GetCursorScreenPos()
-                        };
+                        continue;
+                    }
 
-                        line_rect.Max.y += line_height;
-                        line_rect.Max.x += 100.0f;
+                    if( msg.text.size == 0)
+                    {
+                        continue;
+                    }
 
-                        if ( ImGui::IsRectVisible( line_rect.Min, line_rect.Max ) )// draw only when line is visible to optimize rendering
+                    // Optim to avoid to draw hidden text.
+                    Vec2 text_size = ImGui::CalcTextSize(msg.text.data, msg.text.data + msg.text.size );                   
+                    if ( !ImGui::IsRectVisible( ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + text_size ) )
+                    {
+                        if( !is_log_empty )
                         {
-                            ImGui::TextColored( cfg->log_color[message.verbosity], "%s", message.text.c_str() );
-                            ++message_displayed_count;
-                        }
-                        else
-                        {
-                            ImGui::NewLine();
+                            ImGui::Dummy(text_size);
                         }
                     }
-                    ++message_processed_count;
-                    ++it;
+                    else
+                    {
+                        ImGui::TextColored(cfg->log_color[msg.verbosity], STRING_FMT, STRING_FMT_ARGS(msg.text) );                        
+                    }
+
+                    is_log_empty = false;
                 }
 
-                if ( message_displayed_count == 0 )
+                if ( is_log_empty )
                 {
-                    ImGui::Text( "Nothing here..." );
+                    ImGui::TextColored(color_grey, "--- empty ---" );
                 }
-
-                if ( !ImGui::IsWindowHovered() )
+                else if( ImGui::GetContentRegionAvail().y > ImGui::GetTextLineHeight() * 1.25f )
                 {
-                    ImGui::SetScrollHereY();
+                    ImGui::TextColored(color_grey, "---  end  ---");
+                }                
+
+                if ( !cfg->log_disable_follow )
+                {
+                    ImGui::SetScrollY( ImGui::GetScrollMaxY() );
                 }
             }
             ImGui::EndChild();
@@ -706,9 +717,9 @@ void appview_draw()
             {
                 auto menu_item_verbosity = [](Verbosity verbosity, const char* label)
                 {
-                    if (ImGui::MenuItem(label, "", get_log_verbosity() == verbosity))
+                    if (ImGui::MenuItem(label, "", log_get_verbosity() == verbosity))
                     {
-                        set_log_verbosity(verbosity);
+                        log_set_verbosity(verbosity);
                     }
                 };
 
@@ -1232,8 +1243,6 @@ void appview_draw()
     view->dt_in_ms      = float(new_dt);
     view->dt_in_s       = float(new_dt) / 1000.f;
     before              = now;
-
-    NDBL_DEBUG_LOG( NDBL_DIAG, "App_View", "dt: %f sec, %i msec \n", view->dt_in_s, view->dt_in_ms);
 
     // Format nice title
     bdc::String title = string_tprintf("%s | %4.0ffps %s", view->title.data, view->smoothed_fps, cfg->fps_limit_on ? "" : "unlimited!");

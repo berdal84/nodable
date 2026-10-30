@@ -10,6 +10,12 @@
 #include "Types.hpp"
 #include "Type_Traits.hpp"
 
+// to use with printf
+// ex: printf( "Value: " STRING_FMT, STRING_VA( str ) );
+//
+#define STRING_FMT "%.*s"
+#define STRING_FMT_ARGS( str ) str.size, str.data
+
 namespace bdc 
 {
     typedef u8_t String_Flags;
@@ -58,7 +64,7 @@ namespace bdc
         inline i8_t&    operator[](u32_t pos) { assert(pos < size && "String_View::operator[]() - out of bounds position!"); return data[pos]; };       
         inline          operator Array<i8_t>& () { return *reinterpret_cast<Array<i8_t>*>(this); }
         inline          operator const Array<i8_t>& () const { return *reinterpret_cast<const Array<i8_t>*>(this); }
-        String&         operator=(const String&);
+        String&         operator=(const String&) = default;
         
         const i8_t*     c_str() const;
         inline bool     empty() const { return size == 0; }
@@ -92,6 +98,11 @@ namespace bdc
 
     constexpr u32_t constexpr_strlen(const i8_t* cstr)
     {
+        if( cstr == nullptr)
+        {
+            return 0;
+        }
+        
         size_t len = 0;
         while( cstr[len] != '\0')
         {
@@ -170,13 +181,6 @@ namespace bdc
         snprintf( string_data, string_len, fmt, std::forward<decltype(args)>(args)...);
 
         return String{ string_data, string_len-1, String_Flags_IS_NULL_TERMINATED };
-    }
-
-    inline String& String::operator=(const String& data)
-    {
-        if ( this == &data ) return *this;
-        memcpy(static_cast<void*>(this), static_cast<const void*>(&data), sizeof(String));
-        return *this;
     }
 
     inline const i8_t* String::c_str() const
@@ -284,7 +288,12 @@ namespace bdc
 
     inline const i8_t* string_cstr(const String& str)
     {
-        if ( (str.flags & String_Flags_IS_NULL_TERMINATED) || str.data == nullptr )
+        if ( str.data == nullptr )
+        {
+            return "";
+        }
+        
+        if ( (str.flags & String_Flags_IS_NULL_TERMINATED))
         {
             return str.data;
         }

@@ -1223,7 +1223,7 @@ String parser_to_string(const Parser_Context& ctx)
         string_builder_append(sb, "\n");
     }
 
-    return string_builder_build_tstring(sb).c_str();
+    return string_builder_build_tstring(sb);
 }
 
 String parser_to_string(Parser_Context& ctx, size_t begin, size_t end)

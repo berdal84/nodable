@@ -1,42 +1,46 @@
 #include "Log.h"
-#include "bdc/String_Hash.hpp"
-#include <iostream>
+#include <iostream> // for std::flush and std::cout
 
 namespace ndbl
 {
 
-LogState& get_log_state()
+static Log_State g_log = {};
+
+Log_State& log_manager()
 {
-    static LogState state{};
-    return state;
+    return g_log;
 }
 
-bool show_log_message(const MessageData& message, const VerbosityFilter& filter)
+void log_set_verbosity(const bdc::String& category, Verbosity level)
 {
-    if ( message.verbosity <= get_log_verbosity( message.category ) )
-        return filter.data[message.verbosity];
-    return false;
+    hashmap_add( g_log.verbosity_by_category, category, level );
 }
 
-void set_log_verbosity(const bdc::String& category, Verbosity level)
+void log_set_verbosity(Verbosity level)
 {
-    get_log_state().verbosity_by_category_hash.insert_or_assign( bdc::string_hash(category).hash , level );
+    g_log.verbosity = level;
+    hashmap_clear( g_log.verbosity_by_category ); // ensure no overrides remains
 }
 
-void set_log_verbosity(Verbosity level)
+Verbosity log_get_verbosity()
 {
-    get_log_state().verbosity = level;
-    get_log_state().verbosity_by_category_hash.clear(); // ensure no overrides remains
+    return g_log.verbosity;
 }
 
-Verbosity get_log_verbosity(const bdc::String& category)
+Verbosity log_get_verbosity(const bdc::String& category)
 {
-    const auto& pair = get_log_state().verbosity_by_category_hash.find( bdc::string_hash(category).hash );
-    if (pair != get_log_state().verbosity_by_category_hash.end() )
+    auto found = hashmap_find( g_log.verbosity_by_category, category );
+    if ( found.ok )
     {
-        return pair->second;
+        return *found.value;
     }
-    return get_log_state().verbosity;
+    return g_log.verbosity;
+}
+
+Log_Entry& log_get_message_at(u32_t pos)
+{
+    u32_t ring_index = (g_log.ring_buffer_cursor + pos) % g_log.ring_buffer_size;
+    return g_log.ring_buffer[ring_index];
 }
 
 void flush()

@@ -63,7 +63,9 @@ namespace ndbl
         float          dockspace_bottom_size;
         float          dockspace_top_size;
         float          dockspace_right_ratio;
-        size_t         log_message_display_max_count;
+        u32_t          log_message_display_max_count;
+        u32_t          log_verbosity_masks;
+        bool           log_disable_follow;
 
         std::array<float, Size_COUNT>     size_factor;
         std::array<Vec4, Verbosity_COUNT> log_color;

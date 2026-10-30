@@ -53,12 +53,12 @@ void config_reset()
         2.0f, // LG
     };
 
-    g_config->log_color = {
-        Vec4(0.5f, 0.0f, 0.0f, 1.0f), // red
-        Vec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
-        Vec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
-        Vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
-    };
+    g_config->log_color[Verbosity_Diagnostic] = { 0.0f, 0.0f, 0.0f, 0.5f };
+    g_config->log_color[Verbosity_Message]    = { 0.1f, 0.1f, 0.1f, 1.0f };
+    g_config->log_color[Verbosity_Warning]    = { 0.5f, 0.0f, 0.5f, 1.0f }; // violet
+    g_config->log_color[Verbosity_Error]      = { 0.5f, 0.0f, 0.0f, 1.0f }; // red
+
+    g_config->log_verbosity_masks = Verbosity_Flags_Diagnostic; // by default we don't want to display those messages
 
     g_config->padding         = { 10.0f, 10.0f };
     g_config->antialiased     = true;
