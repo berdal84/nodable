@@ -5,22 +5,22 @@
 
 namespace ndbl
 {
-    static float normalize(float _value, float _min, float _max)
-    { return glm::clamp(_value, _min, _max) / (_max - _min); }
+    inline float normalize(float x, float xmin, float xmax)
+    { return glm::clamp(x, xmin, xmax) / (xmax - xmin); }
 
-    static float clamped_lerp(float a, float b, float f)
+    inline float clamped_lerp(float a, float b, float f)
     { return glm::mix(a, b, glm::clamp( f, 0.f, 1.f) ); }
 
-    static double clamped_lerp(double a, double b, double f)
+    inline double clamped_lerp(double a, double b, double f)
     { return glm::mix(a, b, glm::clamp( f, 0.0, 1.0) ); }
 
-    static float wave(float min, float max, double time, float speed)
+    inline float wave(float min, float max, double time, float speed)
     {
         float factor = 0.5f * ( 1.0f + std::sin( time * speed ) );
         return clamped_lerp(min, max, factor);
     }
 
-    static i64_t signed_diff(u64_t a, u64_t b)
+    inline i64_t signed_diff(u64_t a, u64_t b)
     {
         if ( a == b )
             return 0;
