@@ -8,9 +8,8 @@
 namespace ndbl
 {
     // Forward declaration
-    class Node;
-    class Node_Property;
-    class Node_View;
+    struct Node;
+    struct Node_Property;
     struct Node_Slot_View;
     
     struct Node_Slot
