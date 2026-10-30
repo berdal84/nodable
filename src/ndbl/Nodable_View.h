@@ -1,8 +1,7 @@
 #pragma once
 
 #include <SDL.h>
-#include <vector>
-#include <array>
+#include <vector> // to store screenshot data, lodepng needs a vector.
 #include <imgui.h>
 
 #include "bdc/String.hpp"
