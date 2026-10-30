@@ -70,6 +70,9 @@ App_State* app_init()
     ASSERT(g_app == nullptr);
     g_app = bdc::memory_new<App_State>();
 
+    array_init(g_app->files);
+    array_init(g_app->files_to_delete);
+
     // Init manager(s)
     config_init();
     appview_init();
@@ -108,6 +111,9 @@ void app_shutdown()
     config_shutdown();
     task_manager_shutdown();
     appview_shutdown();
+
+    array_release(g_app->files);
+    array_release(g_app->files_to_delete);
 
     bdc::memory_delete(g_app);
     g_app = nullptr;
@@ -151,7 +157,8 @@ void app_update()
         file_deinit(file);
         bdc::memory_delete(file);
     }
-    app->files_to_delete.clear();
+
+    array_clear(app->files_to_delete);
 
     // Update current file
     if (app->current_file)
@@ -486,7 +493,7 @@ File* app_add_file(File* file)
 {
     auto app = app_state();
     VERIFY(file, "File is nullptr");
-    app->files.push_back( file );
+    array_append(app->files, file);
     app->current_file = file;
     event_manager_push_event({ .type = Event_Type_FILE_OPENED, .data1 = file });
     return file;
@@ -533,20 +540,14 @@ void app_close_file(File* file)
     auto app = app_state();
 
     // Find and delete the file
-    auto it = std::find(app->files.begin(), app->files.end(), file);
-    VERIFY(it != app->files.end(), "Unable to find the file in the loaded_files");
-    it = app->files.erase(it);
-    app->files_to_delete.push_back(file);
+    auto found = array_find(app->files, file);
+    VERIFY(found.ok, "Unable to find the file in the loaded_files");
+    array_remove_ordered(app->files, found.at_pos);
+    array_append(app->files_to_delete, file);
 
     // Switch to the next file if possible
-    if ( it != app->files.end() )
-    {
-        app->current_file = *it;
-    }
-    else
-    {
-        app->current_file = nullptr;
-    }
+    // Note: why do I have a duplicated state? I could use an index?
+    app->current_file = app->files.size ? array_back(app->files) : nullptr;
 }
 
 void app_reset_current_graph()

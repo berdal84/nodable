@@ -127,7 +127,7 @@ namespace bdc
 
     struct Array_Find_Result
     {
-        bool  found  = false;
+        bool  ok     = false;
         u32_t at_pos = (u32_t)-1;
     };
 
@@ -136,22 +136,22 @@ namespace bdc
     {
         for(u32_t i = 0; i < arr.size; i++)
             if ( arr[i] == elem )
-                return { .found = true, .at_pos = i };
+                return { .ok = true, .at_pos = i };
 
-        return { .found = false };
+        return { .ok = false };
     }
 
     template<Is_Array T>
     Array_Find_Result array_rfind(T& arr, const typename T::Elem_T& elem)
     {
         if( arr.size == 0)
-            return { .found = false };
+            return { .ok = false };
 
         for(u32_t i = arr.size-1; i >= 0; i--)
             if ( arr[i] == elem )
-                return { .found = true, .at_pos = i };
+                return { .ok = true, .at_pos = i };
 
-        return { .found = false };
+        return { .ok = false };
     }
     
     template<Is_Array T>

@@ -71,7 +71,7 @@ void node_slot_add_adjacent(Node_Slot* slot, Node_Slot* other)
 bool node_slot_remove_adjacent(Node_Slot* slot, Node_Slot* other)
 {
     Array_Find_Result result = array_find(slot->adjacent, other);
-    if( !result.found )
+    if( !result.ok )
     {
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Node_Slot", "remove_adjacent(Node_Slot*) - slot not found");
         return false;

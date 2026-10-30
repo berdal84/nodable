@@ -785,7 +785,7 @@ void appview_draw()
     // All windows are docked to a dockspace (defined in signal_reset_layout() )
 
     ImGuiID ds_root = view->dockspaces[Dockspace_ROOT];
-    if( !app_state()->files.empty() )
+    if( app_state()->files.size )
     {
         //----------------------------------------------------------------------------------------
         // Draw tool bar
