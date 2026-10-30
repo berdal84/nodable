@@ -20,7 +20,7 @@ TEST_F(Node_Slot_, default_capacity)
 {
     Node_Slot slot;
     node_slot_init(&slot);
-    EXPECT_TRUE(slot.capacity == slot.adjacent.capacity());
+    EXPECT_TRUE(slot.capacity == slot.adjacent.capacity);
 }
 
 TEST_F(Node_Slot_, is_full)
