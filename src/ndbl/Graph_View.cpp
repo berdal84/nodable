@@ -160,8 +160,6 @@ void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
 
 void ndbl::_graphview_handle_remove_node(Graph_View* graphview, Node* node)
 {
-    assert( !HAS_FLAGS(node->flags, Node_Flag_IS_DELETED));
-
     if ( Scope* scope = node->internal_scope )
     {
         scope->view->signal_hover.disconnect(); // I'm not sure if this is a good approach...
