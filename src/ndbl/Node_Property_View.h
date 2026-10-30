@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bdc/Array.hpp"
 #include "geometry/Box_2D.h"
 #include "View_Flags.h"
 #include "Config.h"
@@ -7,9 +8,9 @@
 namespace ndbl
 {
     // forward declarations
-    class Node_Property;
-    class Node_View;
-    class Node;
+    struct Node_Property;
+    struct Node_View;
+    struct Node;
     struct Node_Slot;
 
     /**
@@ -17,11 +18,11 @@ namespace ndbl
      */
     struct Node_Property_View
     {
-        bool                show;       // TODO: move this to State_View?
-        bool                touched;    // TODO: move this to State_View?
+        bool                show;       // Note: move this to View_Flags?
+        bool                touched;    // Note: move this to View_Flags?
         Node_Property*      property;
-        View_Flags   flags;
-        Box_2D       shape;
+        View_Flags          flags;
+        Box_2D              shape;
 
         Node*               node() const;
         Node_Slot*          connected_slot() const;
@@ -34,6 +35,6 @@ namespace ndbl
     bool  nodepropertyview_draw(Node_Property_View*, View_Detail); // return true when changed
     void  nodepropertyview_reset(Node_Property_View*);
     bool  nodepropertyview_draw_input(Node_Property_View*, bool _compact_mode, bdc::String _override_label = "");
-    bool  nodepropertyview_draw_all(const std::vector<Node_Property_View*>&, View_Detail);
+    bool  nodepropertyview_draw_all(const bdc::Array<Node_Property_View*>&, View_Detail);
     float nodepropertyview_calc_input_width(const bdc::String& text);
 }

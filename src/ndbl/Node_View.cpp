@@ -2,7 +2,6 @@
 
 #include <algorithm> // for std::max
 #include <glm/trigonometric.hpp> // for sinus
-#include <vector>
 
 #include "bdc/Allocators.hpp"
 #include "Asserts.h"
@@ -38,10 +37,19 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
 
     Config* cfg = config();
 
+    // init containers
+    
+    hashmap_init( nodeview->view_by_property );
+    for(u32_t i = 0; i < Property_Category_COUNT; ++i)
+    {
+        array_init(nodeview->view_by_property_category[i]);
+    }
+    array_init(nodeview->slot_views);
+
     // 1. Create Property views
     //-------------------------
 
-    VERIFY(nodeview->view_by_property.empty(), "Cannot be called twice");
+    VERIFY(nodeview->view_by_property.size == 0, "Cannot be called twice");
 
     for (Node_Property* property : nodeview->node->props )
     {
@@ -80,18 +88,18 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
         bool has_out = node_find_slot_by_property(nodeview->node, property, Node_Slot::Flag_OUTPUT );
 
         if ( has_in)
-            nodeview->view_by_property_type[Property_Category_IN].push_back(propertyview);
+            array_append( nodeview->view_by_property_category[Property_Category_IN], propertyview);
         if ( has_out)
-            nodeview->view_by_property_type[Property_Category_OUT].push_back(propertyview);
+            array_append( nodeview->view_by_property_category[Property_Category_OUT], propertyview);
 
         if ( has_in && has_out )
-            nodeview->view_by_property_type[Property_Category_INOUT_STRICTLY].push_back(propertyview);
+            array_append( nodeview->view_by_property_category[Property_Category_INOUT_STRICTLY], propertyview);
         else if ( has_in )
-            nodeview->view_by_property_type[Property_Category_IN_STRICTLY].push_back(propertyview);
+            array_append( nodeview->view_by_property_category[Property_Category_IN_STRICTLY], propertyview);
         else if ( has_out )
-            nodeview->view_by_property_type[Property_Category_OUT_STRICTLY].push_back(propertyview);
+            array_append( nodeview->view_by_property_category[Property_Category_OUT_STRICTLY], propertyview);
 
-        nodeview->view_by_property.emplace(property, propertyview);
+        hashmap_add( nodeview->view_by_property, property, propertyview);
     }
 
     // 2. Create a Node_Slot_View per slot
@@ -99,7 +107,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
 
     for(Node_Slot_View* each : nodeview->slot_views )
         bdc::memory_delete(each);
-    nodeview->slot_views.clear();
+    array_clear(nodeview->slot_views);
 
     auto get_shapetype = [](const Node_Slot* slot)
     {
@@ -150,7 +158,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
         spatialnode_add_child( &nodeview->shape.spatial_node, &view->shape.spatial_node );
         spatialnode_set_position(&view->shape.spatial_node, {}, PARENT_SPACE);
         
-        nodeview->slot_views.push_back(view);
+        array_append(nodeview->slot_views, view);
     }
 
     // Make sure inputs/outputs are aligned with the property views (if present) and not the node's view.
@@ -217,20 +225,23 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
 {
     spatialnode_clear(&nodeview->shape.spatial_node);
 
-    for(auto& [_, each] : nodeview->view_by_property )
+    FOR_EACH_HASHMAP_VALUE(each, nodeview->view_by_property)
     {
         nodepropertyview_deinit(each);
         bdc::memory_delete(each);
     }
-    nodeview->view_by_property.clear();
+    hashmap_release( nodeview->view_by_property );
 
-    for(auto& vector : nodeview->view_by_property_type )
-        vector.clear();
-    // no m_view_by_property_type.clear(), it is an std::array
+    for(u32_t i = 0; i < Property_Category_COUNT; ++i)
+    {
+        array_release(nodeview->view_by_property_category[i]);
+    }
 
     for(auto* each : nodeview->slot_views )
+    {
         bdc::memory_delete(each);
-    nodeview->slot_views.clear();
+    }
+    array_release(nodeview->slot_views);
 
     if( const Scope* internal_scope = nodeview->node->internal_scope )
     {
@@ -482,14 +493,14 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
     // Draw the properties depending on node type
     if (nodeview->node->type != Node_Type_OPERATOR )
     {
-        changed |= nodepropertyview_draw_all(nodeview->view_by_property_type[Property_Category_IN_STRICTLY]    , cfg->ui_node_detail);
-        changed |= nodepropertyview_draw_all(nodeview->view_by_property_type[Property_Category_INOUT_STRICTLY] , cfg->ui_node_detail);
-        changed |= nodepropertyview_draw_all(nodeview->view_by_property_type[Property_Category_OUT_STRICTLY]   , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all( array_view(nodeview->view_by_property_category[Property_Category_IN_STRICTLY])    , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all( array_view(nodeview->view_by_property_category[Property_Category_INOUT_STRICTLY]) , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all( array_view(nodeview->view_by_property_category[Property_Category_OUT_STRICTLY])   , cfg->ui_node_detail);
     }
     else
     {
         size_t i = 0;
-        for( Node_Property_View* property_view : nodeview->view_by_property_type[Property_Category_IN] )
+        for( Node_Property_View* property_view : nodeview->view_by_property_category[Property_Category_IN] )
         {
             ImGui::SameLine();
             changed |= nodepropertyview_draw( property_view, cfg->ui_node_detail );
@@ -593,13 +604,13 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
 
     // Draw exposed input properties
 
-    auto draw_properties = [&](const bdc::String title, const std::vector<Node_Property_View*>& views) -> bool
+    auto draw_properties = [&](const bdc::String title, const bdc::Array<Node_Property_View*>& views) -> bool
     {
         bool changed = false;
         ImGui::Text("%s:", title.c_str());
         ImGui::Separator();
         ImGui::Indent();
-        if( views.empty() )
+        if( views.size == 0)
         {
             ImGui::Text("None.");
             ImGui::Separator();
@@ -617,10 +628,10 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
     };
 
     ImGui::Separator();
-    changed |= draw_properties("Inputs(s)", nodeview->view_by_property_type[Property_Category_IN_STRICTLY]);
-    changed |= draw_properties("In/Out(s)", nodeview->view_by_property_type[Property_Category_INOUT_STRICTLY]);
+    changed |= draw_properties("Inputs(s)", array_view( nodeview->view_by_property_category[Property_Category_IN_STRICTLY] ));
+    changed |= draw_properties("In/Out(s)", array_view( nodeview->view_by_property_category[Property_Category_INOUT_STRICTLY] ));
     ImGui::Separator();
-    changed |= draw_properties("Output(s)", nodeview->view_by_property_type[Property_Category_OUT_STRICTLY]);
+    changed |= draw_properties("Output(s)", array_view( nodeview->view_by_property_category[Property_Category_OUT_STRICTLY] ));
 
 #ifdef NDBL_DEBUG
 
@@ -824,13 +835,14 @@ Node_View* ndbl::nodeview_substitute_with_parent_if_not_visible(Node_View* _view
     return nullptr;
 }
 
-std::vector<Node_View*> ndbl::nodeview_get_adjacent(const Node_View* nodeview, Node_Slot::Flags flags)
+bdc::Array<Node_View*> ndbl::nodeview_get_adjacent(const Node_View* nodeview, Node_Slot::Flags flags)
 {
-    std::vector<Node_View*> result;
-        for(auto adjacent_node : node_get_adjacent_nodes( nodeview->node, flags ) )
-            if( adjacent_node->view )
-                result.push_back( adjacent_node->view );
-    return result;
+    bdc::Resizable_Array<Node_View*> result;
+    array_init(result, &temp_allocator);
+    for(auto adjacent_node : node_get_adjacent_nodes( nodeview->node, flags ) )
+        if( adjacent_node->view )
+            array_append(result, adjacent_node->view );
+    return array_view(result);
 }
 
 void ndbl::nodeview_draw_slot(Node_View* nodeview, Node_Slot_View* slot_view)
@@ -845,15 +857,15 @@ void ndbl::nodeview_draw_slot(Node_View* nodeview, Node_Slot_View* slot_view)
 
 Node_Property_View* ndbl::nodeview_find_property_view(Node_View* nodeview, const Node_Property* property)
 {
-    auto found = nodeview->view_by_property.find(property );
-    if (found != nodeview->view_by_property.end() )
-        return found->second;
+    bdc::Result<Node_Property_View*> found = hashmap_find( nodeview->view_by_property, property );
+    if (found.ok)
+        return found.value;
     return nullptr;
 }
 
 void ndbl::nodeview_reset_all_properties(Node_View* nodeview)
 {
-    for( auto& [_, property_view] : nodeview->view_by_property )
+    FOR_EACH_HASHMAP_VALUE( property_view, nodeview->view_by_property )
     {
         nodepropertyview_reset(property_view);
     }

@@ -10,8 +10,6 @@
 
 namespace ndbl
 {
-    class Node_View;
-
     enum Shape_Type
     {
         Shape_Type_NONE = 0,
@@ -21,9 +19,9 @@ namespace ndbl
 
     struct Node_Slot_View
     {   
-        Node_Slot*                slot;
-        u32_t                     index;
-        Shape_Type                shape_type;
+        Node_Slot*         slot;
+        u32_t              index;
+        Shape_Type         shape_type;
         Vec2               direction; // cached
         Vec2               alignment_pivot;
         const Box_2D*      alignment_ref;
@@ -33,7 +31,7 @@ namespace ndbl
         GETTER( Node*            , node      , slot->node )
         GETTER( Node_Property*   , property  , slot->property )
 
-        inline bool                          allows(Node_Slot::Flag flags) const { return HAS_FLAGS(slot->flags, flags); }
+        inline bool                   allows(Node_Slot::Flag flags) const { return HAS_FLAGS(slot->flags, flags); }
         inline const Type_Descriptor* property_type()const                { return property() ? property()->type : nullptr; }
     };
 

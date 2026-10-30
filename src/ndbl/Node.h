@@ -7,15 +7,14 @@
 #include "Asserts.h"
 #include "reflection/Type_Descriptor.h"
 #include "Node_Property.h"
-#include "Node_Slot.h"
+#include "Node_Slot.h" // Note: could we forward declare this?
 
 namespace ndbl
 {
     // forward declarations
-    class Graph;
-    class Scope;
-    class Node;
-    class Node_Slot;
+    struct Graph;
+    struct Scope;
+    struct Node_View;
     
     typedef int Node_Type;
     enum Node_Type_

@@ -1,8 +1,7 @@
 #pragma once
 
-#include <unordered_map>
-
 #include "bdc/String.hpp"
+#include "bdc/Hash_Map.hpp"
 #include "reflection/GETTERS_SETTERS.h"
 #include "Node_Property.h"
 #include "geometry/Box_2D.h"
@@ -17,11 +16,8 @@ namespace ndbl
 {
     // forward declaration
     struct Node;
-    struct Graph;
-    struct Scope_View;
     struct Node_Slot;
     struct Node_Slot_View;
-    struct Graph_View;
 
     /**
      * Enum to define some color types
@@ -55,36 +51,30 @@ namespace ndbl
 
     struct Node_View
 	{
-        Box_2D                               shape;
-        View_Flags                           flags  = 0;
-        std::array<const Vec4*, Color_COUNT> colors = {&Config::COLOR_ERROR};
-        std::vector<Node_Slot_View*>                slot_views;
-        std::unordered_map<
-            const Node_Property*,
-            Node_Property_View*
-        >                                           view_by_property;
-        std::array<
-        std::vector<Node_Property_View*>,
-        Property_Category_COUNT
-        >                                           view_by_property_type   = {};
-        Node_Property_View*                         value_view              = nullptr;
-        Node_Slot_View*                             hovered_slotview        = nullptr;
-        float                                       opacity                 = 1.f;
-        bool                                        is_expanded             = true;
-        Node*                                       node;
+        Box_2D                                                   shape;
+        View_Flags                                               flags  = 0;
+        const Vec4*                                              colors[Color_COUNT] = {&Config::COLOR_ERROR};
+        bdc::Resizable_Array<Node_Slot_View*>                    slot_views;
+        bdc::Hash_Map<const Node_Property*, Node_Property_View*> view_by_property;
+        bdc::Resizable_Array<Node_Property_View*>                view_by_property_category[Property_Category_COUNT] = {};
+        Node_Property_View*                                      value_view              = nullptr;
+        Node_Slot_View*                                          hovered_slotview        = nullptr;
+        float                                                    opacity                 = 1.f;
+        bool                                                     is_expanded             = true;
+        Node*                                                    node;
 
         GETTER(Spatial_Node&, spatial_node, shape.spatial_node);
     };
 
     void                    nodeview_init(Node_View* view, Node* owner);
     void                    nodeview_deinit(Node_View* view);
-    std::vector<Node_View*> nodeview_get_adjacent(const Node_View*, Node_Slot::Flags);
+    bdc::Array<Node_View*>  nodeview_get_adjacent(const Node_View*, Node_Slot::Flags);
     bool                    nodeview_draw(Node_View*);
     void                    nodeview_update(Node_View*, float);
     void                    nodeview_arrange_recursively(Node_View*, bool smoothly = true);
     bdc::String             nodeview_get_label(const Node_View*);
-    inline Rect      nodeview_get_rect(const Node_View* node_view, Space space = WORLD_SPACE) { return node_view->shape.rect(space); }
-    Rect             nodeview_get_rect_ex(const Node_View*, Space, Node_View_Flags);
+    inline Rect             nodeview_get_rect(const Node_View* node_view, Space space = WORLD_SPACE) { return node_view->shape.rect(space); }
+    Rect                    nodeview_get_rect_ex(const Node_View*, Space, Node_View_Flags);
     void                    nodeview_set_visible_recursively(Node_View*, bool);
     void                    nodeview_toggle_expandcollapse(Node_View*);
     void                    nodeview_reset_all_properties(Node_View*);

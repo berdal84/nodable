@@ -57,15 +57,19 @@ namespace bdc
     {
         if constexpr ( std::is_integral_v<Key_Type> )
         {
-            return (Hash_Type)key; // it's ok if we truncate keys larger than Hash_Type, our Hash_Map cannot contain more than 2^32 elements.
+            return (Hash_Type)key;
+        }
+        else if constexpr ( std::is_pointer_v<Key_Type> )
+        {
+            return (Hash_Type)(size_t)key;
         }
         else if constexpr ( std::is_same_v<Key_Type, String_Hash> )
         {
-            return key.hash;
+            return (Hash_Type)key.hash;
         }
         else if constexpr ( std::is_same_v<Key_Type, String> )
         {
-            return string_hash(key).hash;
+            return (Hash_Type)string_hash(key).hash;
         }
         else
         {

@@ -300,17 +300,18 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
     return changed;
 }
 
-bool ndbl::nodepropertyview_draw_all(const std::vector<Node_Property_View *>& views, View_Detail detail)
+bool ndbl::nodepropertyview_draw_all(const bdc::Array<Node_Property_View *>& views, View_Detail detail)
 {
-    bool changed = false;
-
-    if ( !views.empty() )
+    if ( views.size == 0 )
     {
-        for(auto view : views)
-        {
-            ImGui::SameLine();
-            changed |= nodepropertyview_draw(view, detail );
-        }
+        return false;
+    }
+
+    bool changed = false;
+    for(auto view : views)
+    {
+        ImGui::SameLine();
+        changed |= nodepropertyview_draw(view, detail );
     }
 
     return changed;
