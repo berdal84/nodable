@@ -747,6 +747,12 @@ def target_define_tasks(target)
             log(target, "Running DONE")
         end
 
+        task :run_with_valgrind => :build do
+            log(target, "Running ...")
+            system("valgrind --leak-check=full --track-origins=yes #{target.binary}", exception: true)
+            log(target, "Running DONE")
+        end
+
         task :zip do
 
             # Copy binary and related files + assets into dist folder
