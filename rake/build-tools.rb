@@ -695,16 +695,19 @@ def target_define_tasks(target)
         end    
     end
 
+    desc "Remove '#{target.name}' intermediate files"
     task :clean do
         # FileUtils.rm_rf was too slow, that's why we use:
         sh "rm", "-rf", target.build_dir
     end
 
+    desc "Remove '#{target.name}' intermediate files and generated binary"
     task :clobber do
         # Remove build dir and dist file
         sh "rm", "-rf", target.build_dir, target.binary
     end
 
+    desc "Rebuild '#{target.name}'"
     task :rebuild => [:clean, :build]
 
     multitask :objects => target.objects_to_link do
@@ -713,7 +716,7 @@ def target_define_tasks(target)
 
     case target.type
     when TARGET_TYPE_OBJECTS
-
+        desc "Build '#{target.name}'"
         task :build => :objects
 
     when TARGET_TYPE_EXECUTABLE
@@ -722,6 +725,7 @@ def target_define_tasks(target)
             target_link(target)
         end
 
+        desc "Link '#{target.name}'"
         task :link => target.binary 
 
         # Declare a task per asset to copy
@@ -734,8 +738,10 @@ def target_define_tasks(target)
 
         multitask :copy_assets => target.cached_assets_dst
 
+        desc "Build '#{target.name}'"
         task :build => [:link, :copy_assets]
                 
+        desc "Run '#{target.name}'"
         task :run => :build do
             log(target, "Running ...")
             case PLATFORM
@@ -747,12 +753,17 @@ def target_define_tasks(target)
             log(target, "Running DONE")
         end
 
-        task :run_with_valgrind => :build do
+        desc "Run '#{target.name}' (with valgrind)"
+        task :valgrind => :build do
+            if PLATFORM == PLATFORM_WEB
+                raise "Unable to run valgrind on platform '#{PLATFORM}'. Rerun with PLATFORM=#{PLATFORM_WINDOWS}|#{PLATFORM_LINUX}" 
+            end
             log(target, "Running ...")
             system("valgrind --leak-check=full --track-origins=yes #{target.binary}", exception: true)
             log(target, "Running DONE")
         end
 
+        desc "Zip '#{target.name}' (latest build, destination '#{ZIPPED_DIST_DIR}')"
         task :zip do
 
             # Copy binary and related files + assets into dist folder

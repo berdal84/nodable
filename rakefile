@@ -327,7 +327,6 @@ test.depends_on_target = [
 # HIGH LEVEL TASKS
 #---------------------------------------------------------------------------
 
-desc "Running rake without task"
 task :default => :help
 
 desc "Print this help message"
@@ -335,17 +334,17 @@ task :help do
     print_help()
 end
 
-desc "Run nodable"
+desc "nodable:run alias"
 task :run =>  'nodable:run'
 
-desc "Build nodable"
+desc "nodable:build alias"
 multitask :build => 'nodable:build'
 
-desc "Build nodable"
+desc "nodable:build + test:build alias"
 multitask :build_all => ['nodable:build', 'test:build']
 
 if PLATFORM == PLATFORM_WINDOWS or PLATFORM == PLATFORM_LINUX
-    desc "Run all tests"
+    desc "test:run alias"
     task :test => 'test:run'
 else
     desc "Run all tests"
@@ -360,10 +359,10 @@ task :rebuild => [
     'build',
 ]
 
-desc "Remove intermediate files"
+desc "Remove intermediate files (all targets)"
 define_clean_task()
 
-desc "Remove intermediate files and any other files"
+desc "Remove intermediate files and any other files (all targets)"
 define_clobber_task()
 
 task :rebuild_all do
@@ -397,7 +396,7 @@ task :ci do
     end    
 end
 
-desc "Install system dependencies"
+desc "Install platform dependencies (apt packages|emscripten|...)"
 task :install do
     case PLATFORM
     when PLATFORM_LINUX             
