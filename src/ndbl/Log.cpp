@@ -32,7 +32,7 @@ Verbosity log_get_verbosity(const bdc::String& category)
     auto found = hashmap_find( g_log.verbosity_by_category, category );
     if ( found.ok )
     {
-        return *found.value;
+        return *found.data;
     }
     return g_log.verbosity;
 }

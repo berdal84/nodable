@@ -220,7 +220,10 @@ void DebugLine(const Vec2& p1, const Vec2& p2, ImU32 col, float thickness)
 
 void Image(Texture* _texture)
 {
-    ImGui::Image((ImTextureID)_texture->id(), _texture->size());
+    ImGui::Image(
+        (ImTextureID)(u64_t)_texture->gl_handler,
+        ImVec2{(float)_texture->image.width, (float)_texture->image.height }
+    );
 }
 
 void DrawPath(ImDrawList* draw_list, const std::vector<Vec2>* path, const Vec4& color, float thickness)

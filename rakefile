@@ -23,7 +23,7 @@ def base_target(name, type)
     target = target(
         name,
         type,
-        CXXSTD23 # required by <stacktrace>
+        CXXSTD23 # required by <stacktrace> and <scope>
     )
     
     target.unity_build_on = true
@@ -217,6 +217,7 @@ common.sources = FileList[
     "src/ndbl/Graph_View.cpp",
     "src/ndbl/Graph.cpp",
     "src/ndbl/ImGuiEx.cpp",
+    "src/ndbl/Image.cpp",
     "src/ndbl/Log.cpp",
     "src/ndbl/Nodable_Headless.cpp",
     "src/ndbl/Nodable_View.cpp",

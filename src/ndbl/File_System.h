@@ -5,14 +5,12 @@
 
 namespace ndbl
 {
-    // Wraps a std::filesystem object as a multi-platform interface (bdc::String under linux is super permissive, but it does not compiles on MSVC..)
-    class Path
+    // Wraps a std::filesystem
+    // Note: I should move the declaration/definition of Path in the cpp, and simply forward declare Path here.
+    //       API should be in C-style accepting Path*. This will prevent <filesystem> to be included each time this header is included too.
+    struct Path
     {
-    public:
-
-        Path()
-        : m_path()
-        {}
+        Path() = default;
         
         Path(const char* str)
         : m_path(str)
@@ -27,6 +25,7 @@ namespace ndbl
         {}
 
         const char*  c_str()const;
+        bdc::String  tstring()const;
         bool         is_absolute() const;
         bool         is_relative() const;
         Path         filename() const;

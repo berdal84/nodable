@@ -1,26 +1,20 @@
 #pragma once
 
 #include <SDL.h>
-#include <vector> // to store screenshot data, lodepng needs a vector.
-#include <imgui.h>
 
 #include "bdc/String.hpp"
 #include "bdc/Types.hpp"
 #include "File_System.h"
+#include "Image.h"
 #include "reflection/GETTERS_SETTERS.h"
 #include "Action_Manager.h"
 #include "Nodable.h"
-#include "Texture.h"
-
 
 namespace ndbl
 {
     // forward declarations
-    class App_State;    
-    class Texture_Manager;
-    class Event_Manager;
-    class Font_Manager;
-
+    struct Texture;
+    
     enum Dialog_Type // Helps to configure the file browse dialog
     {
         Dialog_Type_SaveAs,   // Allows to set a new file or select an existing file
@@ -58,7 +52,7 @@ namespace ndbl
         float           smoothed_fps                    = 0.f;
         bool            should_reset_layout             = false;
         bool            show_splashscreen               = false;
-        ImGuiID         dockspaces[Dockspace_COUNT]     = {0};
+        u32_t           dockspaces[Dockspace_COUNT]     = {0}; // to store ImGuiIDs aka u32_t
         Texture*        logo                            = nullptr;
         bool            show_properties_editor          = false;
         bool            show_imgui_demo                 = false;
@@ -76,8 +70,6 @@ namespace ndbl
     bool            appview_is_fullscreen();
     void            appview_set_fullscreen(bool b );
     void            appview_set_title(const bdc::String& string );
-    std::vector<unsigned char> appview_take_screenshot();
-    
+    Image           appview_capture_screen();
     bool            appview_pick_file_path(Path& _out_path, Dialog_Type); // pick a file and store its path in _out_path
-
 }

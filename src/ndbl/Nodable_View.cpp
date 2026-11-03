@@ -1,6 +1,6 @@
 #include "Nodable_View.h"
 #include <cstddef>
-#include <lodepng.h> // to save screenshot as PNG
+#include <imgui.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <SDL_timer.h>
@@ -30,6 +30,7 @@
 #include "System.h"
 #include "Texture_Manager.h"
 #include "View.h"
+#include "Texture.h"
 
 #define VERIFY_NODABLEVIEW_IS_INITIALIZED() VERIFY(g_app_view != nullptr, "Nodable_View is not initialized, did you call nodableview_init() ?")
 
@@ -55,7 +56,7 @@ App_View_State* appview_init()
     auto* view = bdc::memory_new<App_View_State>();
     g_app_view = view;
 
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "init ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "init ...\n");
     ASSERT(app_state() != nullptr);
     
     view->dt_in_ms      = 1000 / 30;
@@ -67,12 +68,12 @@ App_View_State* appview_init()
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
-        NDBL_LOG(Verbosity_Error,  __FILE__, "-- SDL Error: %s\n", SDL_GetError());
+        NDBL_LOG(Verbosity_Error,  "Nodable_View.cpp", "-- SDL Error: %s\n", SDL_GetError());
         VERIFY(false, "Unable to initialize SDL");
     }
 
     // Setup window
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Setup SDL ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Setup SDL ...\n");
 
     // Decide GL+GLSL versions
 #ifdef NDBL_DESKTOP
@@ -121,7 +122,7 @@ App_View_State* appview_init()
 #endif
 
     // Setup Dear ImGui binding
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Init ImGui ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Init ImGui ...\n");
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -136,7 +137,7 @@ App_View_State* appview_init()
     // Override ImGui's default Style
     // TODO: consider declaring new members in Config rather than modifying values from there.
     //       see colors[ImGuiCol_Button]
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- patch ImGui's style ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- patch ImGui's style ...\n");
     ImGuiStyle& style = ImGui::GetStyle();
     ImVec4 * colors = style.Colors;
     colors[ImGuiCol_Text]                   = Vec4(0.20f, 0.20f, 0.20f, 1.00f);
@@ -217,68 +218,68 @@ App_View_State* appview_init()
     }
 
     // Setup Platform/Renderer bindings
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Init backend for OpenGL ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Init backend for OpenGL ...\n");
     if( !ImGui_ImplSDL2_InitForOpenGL(view->sdl_window, view->sdl_gl_context) )
     {
-        NDBL_LOG(Verbosity_Error, __FILE__, "Unable to ImGui_ImplSDL2_InitForOpenGL\n");
+        NDBL_LOG(Verbosity_Error, "Nodable_View.cpp", "Unable to ImGui_ImplSDL2_InitForOpenGL\n");
     }
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- init OpenGL (glsl_version: %s) ...\n", glsl_version);
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- init OpenGL (glsl_version: %s) ...\n", glsl_version);
     if( !ImGui_ImplOpenGL3_Init(glsl_version) )
     {
-        NDBL_LOG(Verbosity_Error, __FILE__, "Unable to ImGui_ImplSDL2_InitForOpenGL\n");
+        NDBL_LOG(Verbosity_Error, "Nodable_View.cpp", "Unable to ImGui_ImplSDL2_InitForOpenGL\n");
     }
 #ifdef NDBL_DESKTOP
     if (NFD_Init() != NFD_OKAY)
     {
-        NDBL_LOG(Verbosity_Error, __FILE__, "Unable to NFD_Init\n");
+        NDBL_LOG(Verbosity_Error, "Nodable_View.cpp", "Unable to NFD_Init\n");
     }
 #endif
     view->show_splashscreen = cfg->show_splashscreen_default;
 
     // init managers
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Init managers ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Init managers ...\n");
     texture_manager_init();
     font_manager_init(&config()->font_manager);
     event_manager_init();
     action_manager_init();
 
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Init DONE\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Init DONE\n");
 
     // Load splashscreen image
     Path path        = Path::get_asset_path(config()->ui_splashscreen_imagePath );
-    g_app_view->logo = texture_manager_load(path);
+    g_app_view->logo = texture_manager_get_or_load(path);
 
     return g_app_view;
 }
 
 void appview_shutdown()
 {
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "Shutting down ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "Shutting down ...\n");
 
     App_View_State* view = appview();
     
     // shutdown managers    
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Shutting down managers ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Shutting down managers ...\n");
     action_manager_shutdown();
     event_manager_shutdown();
     font_manager_shutdown();
     texture_manager_shutdown();
 
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Shutting down OpenGL3 ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Shutting down OpenGL3 ...\n");
     ImGui_ImplOpenGL3_Shutdown();
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Shutting down SDL2 ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Shutting down SDL2 ...\n");
     ImGui_ImplSDL2_Shutdown();
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Destroying ImGui context ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Destroying ImGui context ...\n");
     ImGui::DestroyContext    ();
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Shutdown SDL ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Shutdown SDL ...\n");
     SDL_GL_DeleteContext     (view->sdl_gl_context);
     SDL_DestroyWindow        (view->sdl_window);
     SDL_Quit                 ();
 #ifdef NDBL_DESKTOP
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Quitting NFD (Native File Dialog) ...\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Quitting NFD (Native File Dialog) ...\n");
     NFD_Quit();
 #endif
-    NDBL_LOG(Verbosity_Diagnostic, __FILE__, "-- Shutdown OK\n");
+    NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Shutdown OK\n");
 
     bdc::memory_delete(g_app_view);
     g_app_view = nullptr;
@@ -349,7 +350,8 @@ void appview_draw()
             ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
             // Image
-            ImGui::SameLine((ImGui::GetContentRegionAvail().x - (float)view->logo->width) * 0.5f); // center img
+            float empty_space = ImGui::GetContentRegionAvail().x - (float)view->logo->image.width;
+            ImGui::SameLine(0.5f * empty_space ); // center img
             ImGuiEx::Image(view->logo);
 
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {50.0f, 30.0f});
@@ -1251,21 +1253,41 @@ void appview_draw()
     SDL_SetWindowTitle(view->sdl_window, title.data);
 }
 
+template <typename F>
+struct defer_t {
+    F f;
+    defer_t(F f) : f(std::move(f)) {}
+    ~defer_t() { f(); }
+};
+
+#define DEFER(stmt) \
+    auto _defer_##__LINE__ = defer_t([&] { stmt; });
+
 void appview_save_screenshot(const bdc::String relative_path)
 {
     App_View_State* view = appview();
     
-    NDBL_LOG(Verbosity_Message, __FILE__, "Taking screenshot ...\n");
+    NDBL_LOG( NDBL_MESSAGE, "Nodable_View.cpp", "Save screenshot ...\n");
     auto path = Path::get_executable_path().parent_path() / "screenshots" / relative_path;
     if (!Path::exists(path.parent_path()))
     {
         Path::create_directories(path.parent_path());
     }
     
-    std::vector<unsigned char> out = appview_take_screenshot();
-    NDBL_LOG(Verbosity_Message, __FILE__, "Save screenshot ...\n");
-    lodepng::save_file(out, path.c_str());
-    NDBL_LOG(Verbosity_Message, __FILE__, "Save screenshot " NDBL_OK " (%s)\n", path.c_str());
+    Image image = appview_capture_screen();
+    DEFER( image_release(image) )
+
+    image_vflip(image); // OpenGL convention axis are Y flipped :)
+
+    Image_Write_Result result = image_write(image, path);
+
+    if(!result.ok)
+    {
+        NDBL_LOG( NDBL_ERROR, "Nodable_View.cpp", "Unable to save screenshot (%s)\n", result.error.c_str());
+        return;
+    }    
+
+    NDBL_LOG( NDBL_MESSAGE, "Nodable_View.cpp", "Save screenshot " NDBL_OK " (%s)\n", path.c_str());
 }
 
 void appview_update()
@@ -1319,7 +1341,7 @@ void appview_update()
 bool appview_pick_file_path(Path& _out_path, Dialog_Type _dialog_type)
 {
 #if __EMSCRIPTEN__
-    NDBL_LOG(Verbosity_Error, __FILE__, "Not implemented yet!");
+    NDBL_LOG(Verbosity_Error, "Nodable_View.cpp", "Not implemented yet!");
     return false;
 #else
     nfdchar_t *picked_path;
@@ -1342,10 +1364,10 @@ bool appview_pick_file_path(Path& _out_path, Dialog_Type _dialog_type)
             NFD_FreePath(picked_path);
             return true;
         case NFD_CANCEL:
-            NDBL_DEBUG_LOG(Verbosity_Diagnostic, __FILE__, "pick_file_path cancelled by user");
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "pick_file_path cancelled by user");
             return false;
         default:
-            NDBL_LOG(Verbosity_Error, __FILE__, "%s\n", NFD_GetError());
+            NDBL_LOG(Verbosity_Error, "Nodable_View.cpp", "%s\n", NFD_GetError());
             return false;
     }
 #endif // !__EMSCRIPTEN__
@@ -1361,34 +1383,27 @@ void _nodableview_dock_window(const bdc::String& window_name, Dockspace dockspac
     ImGui::DockBuilderDockWindow(window_name.data, appview()->dockspaces[dockspace]);
 }
 
-std::vector<unsigned char> appview_take_screenshot()
+Image appview_capture_screen()
 {
 #ifdef __EMSCRIPTEN__
     return {};
     // TODO: some glXXX are unavailable, but anyways it's not something we need in WEB, we can use browser for that.
 #else
-    NDBL_LOG(Verbosity_Message, __FILE__, "Taking screenshot ...\n");
-    int width, height;
-    SDL_GetWindowSize(appview()->sdl_window, &width, &height);
-    GLsizei stride = 4 * width;
-    GLsizei bufferSize = stride * height;
-    std::vector<unsigned char> buffer(bufferSize);
+    NDBL_LOG(Verbosity_Message, "Nodable_View.cpp", "Taking screenshot ...\n");
+
+    int window_width, window_height;
+    SDL_GL_GetDrawableSize(appview()->sdl_window, &window_width, &window_height);
+
+    Image image;
+    image_init(image, window_width, window_height, Image_Type_RGBA_8Bits);
+    
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadBuffer( GL_BACK);
-    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+    glReadPixels(0, 0, image.width, image.height, GL_RGBA, GL_UNSIGNED_BYTE, image.data);
 
-    // vertical flip
-    std::vector<unsigned char> flipped(bufferSize);
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < stride; ++x) {
-            flipped[y*stride+x] = buffer[(height-y-1)*stride+x];
-        }
-    }
+    NDBL_LOG(Verbosity_Message, "Nodable_View.cpp", "Taking screenshot " NDBL_OK "\n");
 
-    std::vector<unsigned char> out;
-    lodepng::encode(out, flipped.data(), width, height, LCT_RGBA);
-    NDBL_LOG(Verbosity_Message, __FILE__, "Taking screenshot " NDBL_OK "\n");
-    return out;
+    return image;
 #endif
 }
 

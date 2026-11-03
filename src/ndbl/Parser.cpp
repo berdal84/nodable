@@ -204,7 +204,7 @@ int langdef_get_precedence(const Language_Definition& langdef, const Type_Descri
 const Type_Descriptor* langdef_get_type_descriptor_from_token_type(const Language_Definition& langdef, Token_Type _token)
 {
     if ( auto found = hashmap_find( langdef.type_descriptor_by_token_type, _token) )
-        return found.value;
+        return found.data;
     return nullptr;
 }
 
@@ -1020,7 +1020,7 @@ Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
     auto single_char_found = hashmap_find(ctx.langdef->token_type_by_single_char, buffer[0]); // index lookup
     if( single_char_found.ok )
     {
-        Token_Type type = *single_char_found.value;
+        Token_Type type = *single_char_found.data;
         String     word = bdc::string_lsplit( buffer, 1);
 
         bdc::string_advance(buffer, word.size );
@@ -1160,7 +1160,7 @@ Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
         auto keyword_found = hashmap_find(ctx.langdef->token_type_by_keyword, word_hash.hash );
         if ( keyword_found )
         {            
-            return Token{ *keyword_found.value, word };
+            return Token{ *keyword_found.data, word };
         }
 
         // ...otherwise, symbol is an identifier
@@ -1889,7 +1889,7 @@ void serialize_return(Serializer_Context& ctx, const Node* node)
     }
     else
     {
-        string_builder_append(ctx.out_sb, *hashmap_find(ctx.langdef->keyword_by_token_type, Token_Type_keyword_return).value );
+        string_builder_append(ctx.out_sb, *hashmap_find(ctx.langdef->keyword_by_token_type, Token_Type_keyword_return).data );
         string_builder_append(ctx.out_sb, " ");
     }
 
@@ -2027,11 +2027,11 @@ bdc::String serialize_token_type(const Serializer_Context& ctx, Token_Type token
         {
             if (auto found = hashmap_find(ctx.langdef->keyword_by_token_type, token_type))
             {
-                return *found.value;
+                return *found.data;
             }
             if (auto found = hashmap_find(ctx.langdef->single_char_by_keyword, token_type))
             {
-                return String{*found.value};
+                return String{*found.data};
             }
             return "<?>";
         }
@@ -2118,7 +2118,7 @@ bdc::String serialize_type(const Serializer_Context& ctx, const Type_Descriptor*
 {
     if (auto found = hashmap_find(ctx.langdef->keyword_by_type_id, type->id.hash_code() ))
     {
-        return *found.value;
+        return *found.data;
     }
     return "";
 }

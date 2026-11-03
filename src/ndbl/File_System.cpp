@@ -13,7 +13,7 @@ using namespace bdc;
 
 const char* Path::c_str() const
 {
-    return string_tprintf("%s", m_path.string().c_str() ).data;
+    return tstring().data;
 }
 
 bool Path::is_absolute() const
@@ -24,6 +24,11 @@ bool Path::is_absolute() const
 bool Path::is_relative() const
 {
     return m_path.is_relative();
+}
+
+bdc::String Path::tstring() const
+{
+    return string_tprintf("%s", m_path.string().c_str() );
 }
 
 Path Path::filename() const

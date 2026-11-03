@@ -156,11 +156,11 @@ namespace bdc
         array_resize(hashmap.entries, 0);
     };
 
-    template<typename Value_Type>
+    template<typename T>
     struct Result
     {
         bool            ok;
-        Value_Type      value;
+        T               data;
         inline operator bool () const { return ok; }
     };
 
@@ -205,7 +205,7 @@ namespace bdc
                 hashmap.size      += 1;
                 hashmap.live_size += 1;
 
-                return { .ok = true, .value = as_pointer(hashmap.entries[index]) };
+                return { .ok = true, .data = as_pointer(hashmap.entries[index]) };
             }
 
             if( hashmap.entries[index].hash == Hash_Map_Hash_TOMBSTONE)
@@ -222,7 +222,7 @@ namespace bdc
 
             if( hashmap.entries[index].hash == hash && hashmap.entries[index].key == key ) // duplicate found!
             {
-                return { .ok = false, .value = nullptr };
+                return { .ok = false, .data = nullptr };
             }
 
             // Here we must try a different index because the selected one is not available to us...
@@ -260,7 +260,7 @@ namespace bdc
 
             if( entry.hash != Hash_Map_Hash_TOMBSTONE && entry.hash == hash && entry.key == key ) // two keys might have the same hash, we must compare key after hash.
             {
-                return { .ok = true, .value = index };
+                return { .ok = true, .data = index };
             }
 
             index = (++index) & (hashmap.entries.size - 1);
@@ -276,11 +276,11 @@ namespace bdc
         if( found.ok )
         {
             assert(hashmap.size != 0);
-            hashmap.entries[found.value].hash = Hash_Map_Hash_TOMBSTONE;
+            hashmap.entries[found.data].hash = Hash_Map_Hash_TOMBSTONE;
             hashmap.size -= 1;
             // hashmap.live_size remains the same, because having tombstones has an effect when removing elements
             // indeed, it takes more time when the map is full of tombstones.
-            return { .ok = true, .value = as_pointer(hashmap.entries[found.value].value) };
+            return { .ok = true, .data = as_pointer(hashmap.entries[found.data].value) };
         }
         return { .ok = false };
     };
@@ -292,9 +292,9 @@ namespace bdc
         Result<u32_t> found = hashmap_find_index(hashmap, key);
         if( found.ok )
         {
-            return { .ok = true, .value = as_pointer(hashmap.entries[found.value].value) };
+            return { .ok = true, .data = as_pointer(hashmap.entries[found.data].value) };
         }
-        return { .ok = false, .value = nullptr };
+        return { .ok = false, .data = nullptr };
     };
 
     template<Is_Hash_Map Hash_Map_Type>

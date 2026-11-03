@@ -859,7 +859,7 @@ Node_Property_View* ndbl::nodeview_find_property_view(Node_View* nodeview, const
 {
     bdc::Result<Node_Property_View*> found = hashmap_find( nodeview->view_by_property, property );
     if (found.ok)
-        return found.value;
+        return found.data;
     return nullptr;
 }
 

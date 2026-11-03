@@ -521,7 +521,7 @@ const Node_Property* node_find_prop_by_name(const Node* node, const String& name
 
     if( result.ok )
     {
-        return result.value;
+        return result.data;
     }
 
     ASSERT(false);

@@ -57,7 +57,7 @@ namespace ndbl
             String str = string_printf("Unable to find an action bound to EventId %i\n", type);
             VERIFY(false, str.c_str() );
         }
-        return &g_action_manager->actions[*found.value];
+        return &g_action_manager->actions[*found.data];
     }
 
     void action_manager_register_action(const Action& action )// Add a new action (can be triggered via shortcut)

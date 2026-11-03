@@ -6,132 +6,111 @@
 #include "Texture.h"
 #include "Log.h"
 #include "Asserts.h"
-
-#define VERIFY_TEXTURE_MANAGER_IS_INITIALIZED() VERIFY( g_texture_manager != nullptr, "g_texture_manager is not initialized, did you cann texture_manager_init() ?")
+#include "File_System.h"
 
 namespace ndbl
 {
 
 static Texture_Manager* g_texture_manager{ nullptr };
 
-Texture*    _texture_manager_load_png_to_gpu(const Path&);      // Create a texture (loaded to GPU) from a png file path
-int         _texture_manager_load_png(const Path&, Texture*);   // Load a PNG file to Texture (RAM only)
-int         _texture_manager_load_to_gpu(Texture*);             // Load a Texture to GPU
+Texture*    _texture_load_png_from_disk_to_gpu(const Path&);
+int         _texture_load_from_memory_to_gpu(Texture*);
 
 Texture_Manager* texture_manager_init()
 {
-    ASSERT(g_texture_manager == nullptr);
+    VERIFY( g_texture_manager == nullptr, "g_texture_manager is already initialized, did you forgot to call texture_manager_shutdown() ?")
     g_texture_manager = bdc::memory_new<Texture_Manager>();
+    hashmap_init(g_texture_manager->texture_by_absolute_path);
     return g_texture_manager;
 }
 
 Texture_Manager* texture_manager()
 {
-    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
+    VERIFY( g_texture_manager != nullptr, "g_texture_manager is not initialized, did you forgot to call texture_manager_init() ?")
     return g_texture_manager;
 }
 
 void texture_manager_shutdown()
 {
-    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
-    ASSERT(g_texture_manager != nullptr);
+    VERIFY( g_texture_manager != nullptr, "g_texture_manager is not initialized, you might have called this twice or didn't call texture_manager_ini() at all.")
     texture_manager_release_all();
     bdc::memory_delete( g_texture_manager );
     g_texture_manager = nullptr;
 }
 
-Texture* texture_manager_load(const Path& path)
+Texture* texture_manager_get_or_load(const Path& path)
 {
-    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
+    Texture_Manager* state = texture_manager();
 
-    // Return if already exists
-    auto tex = g_texture_manager->texture_by_absolute_path.find(path.c_str());
-    if (tex != g_texture_manager->texture_by_absolute_path.end() )
-        return tex->second;
-
-    return _texture_manager_load_png_to_gpu(path);
+    // Return if already exists..
+    Result found = hashmap_find( state->texture_by_absolute_path, path.tstring() );
+    if ( found )
+    {
+        return found.data;
+    }
+    // ... or load
+    return _texture_load_png_from_disk_to_gpu(path);
 }
 
 bool texture_manager_release_all()
 {
-    VERIFY_TEXTURE_MANAGER_IS_INITIALIZED();
+    Texture_Manager* state = texture_manager();
 
     bool success = true;
-    for( auto pair : g_texture_manager->texture_by_absolute_path )
+    FOR_EACH_HASHMAP_VALUE( texture, state->texture_by_absolute_path )
     {
-        bdc::String path    = pair.first;
-        Texture*    texture = pair.second;
-
-        if( texture->gl_handler ) // is zero when texture is not loaded to GPU
+        if( texture.gl_handler ) // is zero when texture is not loaded to GPU
         {
-            glDeleteTextures(1, &texture->gl_handler);
+            glDeleteTextures(1, &texture.gl_handler);
             if( GL_NO_ERROR != glGetError())
             {
                 success = false;
-                NDBL_LOG(Verbosity_Warning, "Texture_Manager", "Unable to release: %s (code: %i)\n", path.c_str(), glGetError());
+                NDBL_LOG(Verbosity_Warning, "Texture_Manager", "Unable to release: " STRING_FMT " (code: %i)\n", STRING_FMT_ARGS(texture.name), glGetError());
             }
             else
             {
-                NDBL_LOG(Verbosity_Diagnostic, "Texture_Manager", "Released %s\n", path.c_str());
+                NDBL_LOG(Verbosity_Diagnostic, "Texture_Manager", "Released " STRING_FMT "\n", STRING_FMT_ARGS(texture.name));
             }
         }
-        bdc::string_release(path);
-        bdc::memory_delete(texture);
+        texture_release(texture);
     }
-    g_texture_manager->texture_by_absolute_path.clear();
+    hashmap_release(state->texture_by_absolute_path);
     return success;
 }
 
-Texture* _texture_manager_load_png_to_gpu(const Path &path)
+Texture* _texture_load_png_from_disk_to_gpu(const Path &path)
 {
-    Texture_Manager* texture_manager = ndbl::texture_manager();
+    Texture_Manager* state = texture_manager();   
     
-    auto* texture = bdc::memory_new<Texture>();
+    NDBL_LOG(Verbosity_Diagnostic, "Texture_Manager", "Loading file from disk to GPU: %s\n", path.c_str());
 
     // 1. Load png file to Texture (RAM only)
-    int error = _texture_manager_load_png(path, texture);
-    if ( error )
+    Image_Load_Result loaded = image_load(path);
+    if ( !loaded.ok )
     {
-        bdc::memory_delete(texture);
-        NDBL_LOG(Verbosity_Error, "Texture_Manager", "Unable to load png (code %u): %s\n",  error, path.c_str());
+        NDBL_LOG(Verbosity_Error, "Texture_Manager", "Unable to load png, error: %s\n", loaded.error.c_str());
         VERIFY(false, "Unable to load png");
     }
 
     // 2. Load texture to GPU
-    error = _texture_manager_load_to_gpu(texture);
+    Texture texture;    
+    texture_init(texture, path.tstring(), loaded.image);
+
+    u16_t error = _texture_load_from_memory_to_gpu(&texture);
     if ( error )
     {
-        bdc::memory_delete(texture);
+        texture_release(texture);
         NDBL_LOG(Verbosity_Error, "Texture_Manager", "Unable to load texture to GPU (code %u): %s\n",  error, path.c_str());
         return nullptr;
     }
 
-    texture_manager->texture_by_absolute_path.emplace(bdc::string_copy(path.c_str()), texture);
-    NDBL_LOG(Verbosity_Diagnostic, "Texture_Manager", "File loaded to GPU: %s\n", path.c_str());
+    Result result = hashmap_add(state->texture_by_absolute_path, texture.name, texture);
+    NDBL_LOG(Verbosity_Diagnostic, "Texture_Manager", "-- File loaded to GPU\n");
 
-    return texture;
+    return &result.data->value;
 }
 
-int _texture_manager_load_png(const Path& path, Texture* texture)
-{
-    NDBL_LOG(Verbosity_Diagnostic, "Texture_Manager", "Loading PNG from disk %s ...\n", path.c_str());
-    std::vector<unsigned char> buffer;
-    unsigned error = lodepng::load_file(buffer, path.c_str() ); //load the image file with given filename
-    if (error) {
-        NDBL_LOG(Verbosity_Diagnostic, "Texture_Manager", "Error: %i %s\n", error, lodepng_error_text(error) );
-        return 1;
-    }
-    NDBL_LOG(Verbosity_Diagnostic, "Texture_Manager", "Decoding PNG %s ...\n", path.c_str());
-    error = lodepng::decode(texture->buffer, (unsigned&)texture->width, (unsigned&)texture->height, buffer); //decode the png
-    if (error) {
-        NDBL_LOG(Verbosity_Diagnostic, "Texture_Manager", "Error: %i %s\n", error, lodepng_error_text(error) );
-        return 2;
-    }
-    NDBL_LOG(Verbosity_Diagnostic, "Texture_Manager", "PNG read (image: %i x %i px)\n", texture->width, texture->height );
-    return 0;
-}
-
-int _texture_manager_load_to_gpu(Texture* texture)
+int _texture_load_from_memory_to_gpu(Texture* texture)
 {
     // Create a OpenGL texture identifier
     glGenTextures(1, &texture->gl_handler);
@@ -144,7 +123,7 @@ int _texture_manager_load_to_gpu(Texture* texture)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE); // Same
 
     // Load image data
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (int)texture->width, (int)texture->height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->buffer.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture->image.width, texture->image.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, texture->image.data);
 
     return glGetError();
 }

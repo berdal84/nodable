@@ -175,7 +175,7 @@ Node* graph_find_node(Graph* graph, const bdc::String_Hash& id)
         return nullptr;
     }
 
-    return &graph->nodes[*result.value];
+    return &graph->nodes[*result.data];
 }
 
 Node* _graph_new_node(Graph* graph)
