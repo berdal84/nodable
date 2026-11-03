@@ -194,10 +194,8 @@ common.sources = FileList[
     "src/ndbl/geometry/Spatial_Node.cpp",
     "src/ndbl/geometry/Transform_2D.cpp",
     # -
-    "src/ndbl/reflection/QWord.cpp",
     "src/ndbl/reflection/Type_Descriptor.cpp",
     "src/ndbl/reflection/Type_Register.cpp",
-    "src/ndbl/reflection/Variant.cpp",
     # -
     "src/ndbl/texteditor/Text_Editor_ImGui_Renderer.cpp",
     "src/ndbl/texteditor/Text_Editor.cpp",

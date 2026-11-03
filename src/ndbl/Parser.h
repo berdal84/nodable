@@ -14,9 +14,9 @@
 namespace ndbl
 {
     // forward declarations
-    class Scope;
-    class Node;
-    class Node_Property;
+    struct Scope;
+    struct Node;
+    struct Node_Property;
 
     typedef int Serialization_Flags;
     enum Serialization_Flag_

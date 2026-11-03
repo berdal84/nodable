@@ -9,8 +9,7 @@
 namespace ndbl
 {
     // forward decl.
-    class Node;
-    class Scope_View;
+    struct Scope_View;
 
     typedef int Scope_Flags;
     enum Scope_Flag_

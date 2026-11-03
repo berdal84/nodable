@@ -120,13 +120,11 @@ namespace ndbl
     }
 }
 
-// required to compare Variant<..., Node_Slot_Link_View>
 inline bool operator==(const ndbl::Node_Slot_Link_View& a, const ndbl::Node_Slot_Link_View& b) 
 {
     return a.tail == b.tail && a.head == b.head;
 }
 
-// Custom hash provided to work in std::hash<std::Variant<Node_Slot_Link_View, ...>>
 template<>
 struct std::hash<ndbl::Node_Slot_Link_View>
 {
