@@ -174,9 +174,11 @@ int main()
         }
         TEST_END
 
-        TEST_BEGIN( String(const Array<char>&) )
+        TEST_BEGIN( String / char array_literal[N] interoperability )
         {
-            String str = string_tcopy(Array<char>{ 'B', 'o', 'n', 'j', 'o', 'u', 'r', '\0'});
+            char array_literal[8] = { 'B', 'o', 'n', 'j', 'o', 'u', 'r', '\0'};
+
+            String str{ array_literal };
 
             TEST_EXPECTS( str[0] == 'B' );
             str[0] = 'b';

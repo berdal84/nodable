@@ -16,32 +16,45 @@ namespace bdc
     {
         using Elem_T = _Elem_T;
 
-        u32_t   size; // size must be 1st to be the same type as Inlined_Array
+        u32_t   size; // In order to match memory layout with Inlined_Array<N>, we declare size first and data second.
         Elem_T* data;
 
-        Array()             = default;
-        Array(const Array&) = default;
-        ~Array()            = default;
+        constexpr Array()             = default;
+        constexpr Array(const Array&) = default;
+        ~Array() = default;
 
-        Array(u32_t _size, Elem_T* _data): data(_data), size(_size) {}
-        Array(const std::initializer_list<Elem_T>& list)
-        : data(const_cast<Elem_T*>(&*list.begin()) )
-        , size( list.size() )
-        {}
+        constexpr inline Array(u32_t /* size */, Elem_T* /* data */);
 
-        inline const Elem_T& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return data[pos]; }
-        inline Elem_T&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return data[pos]; }
-        inline Elem_T*       begin()        { return data; }
-        inline Elem_T*       end()          { return data + size; }
-        inline const Elem_T* begin() const { return data; }
-        inline const Elem_T* end() const   { return data + size; }
+        template<size_t ARRAY_LITERAL_SIZE>
+        constexpr inline Array(Elem_T (&/* array_literal */)[ARRAY_LITERAL_SIZE] );
+
+        inline const Elem_T& operator[](u32_t pos) const    { assert(pos < size && "out of bounds"); return data[pos]; }
+        inline Elem_T&       operator[](u32_t pos)          { assert(pos < size && "out of bounds"); return data[pos]; }
+        inline Elem_T*       begin()                        { return data; }
+        inline Elem_T*       end()                          { return data + size; }
+        inline const Elem_T* begin() const                  { return data; }
+        inline const Elem_T* end() const                    { return data + size; }
     };
+
+    template<typename Elem_T>
+    constexpr inline Array<Elem_T>::Array(u32_t _size, Elem_T* _data)
+    : data(_data)
+    , size(_size)
+    {}
+
+    template<typename Elem_T> // yeah, I have to do this in CPP to declare my implementation outside my struct...
+    template<size_t ARRAY_LITERAL_SIZE>        // ... two template<...>. Crazy sh!t.
+    constexpr inline Array<Elem_T>::Array(Elem_T (&array_literal)[ARRAY_LITERAL_SIZE])
+    : size(ARRAY_LITERAL_SIZE)
+    , data(&array_literal)
+    {
+        static_assert( ARRAY_LITERAL_SIZE < (u32_t)-1, "Statically allocated array size must fit in u32_t");
+    }
 
     // Simply declare array_join, user must implement it. Only array_join for String is implement in String.hpp.
     template<typename Elem_T>
     Elem_T array_join(const Array<Elem_T>& array, const Elem_T& separator );
 
-    
     //
     // Resizable_Array<T> is like a Array<T> memory wise, but is aware of its buffer capacity and allocator.
     //
@@ -50,22 +63,24 @@ namespace bdc
     {
         using Elem_T = _Elem_T;
 
-        u32_t       size = 0; // size must be 1st to be the same type as Inlined_Array
-        Elem_T*     data = 0;
-        u32_t       capacity = 0;
-        Allocator*  allocator = 0;
+        u32_t       size        = 0; // In order to match memory layout with Inlined_Array<N>, we declare size first and data second.
+        Elem_T*     data        = 0;
+
+        u32_t       capacity    = 0; // Can't put this close to 'size', because size and data must be together to match Inlined_Array<N> layout.
+        Allocator*  allocator   = 0;
             
         Resizable_Array() = default;
         Resizable_Array(const Resizable_Array& ) = default;
         ~Resizable_Array() = default;
 
-        inline const Elem_T& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return data[pos]; }
-        inline Elem_T&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return data[pos]; }
-        inline Elem_T*       begin()        { return data; }
-        inline Elem_T*       end()          { return data + size; }
-        inline const Elem_T* begin() const { return data; }
-        inline const Elem_T* end() const   { return data + size; }
+        inline const Elem_T& operator[](u32_t pos) const    { assert(pos < size && "out of bounds"); return data[pos]; }
+        inline Elem_T&       operator[](u32_t pos)          { assert(pos < size && "out of bounds"); return data[pos]; }
+        inline Elem_T*       begin()                        { return data; }
+        inline Elem_T*       end()                          { return data + size; }
+        inline const Elem_T* begin() const                  { return data; }
+        inline const Elem_T* end() const                    { return data + size; }
     };
+
 
     //
     // Inlined_Array is like a fixed-capacity Array<T> that is aware of its (fixed-)capacity.
@@ -75,16 +90,16 @@ namespace bdc
     {
         using Elem_T = _Elem_T;
 
-        u32_t           size            = 0;
-        Elem_T          data[CAPACITY]  = {}; // data must be 2nd to match with other arrays
-        static constexpr u32_t capacity = CAPACITY;
+        u32_t                   size            = 0;
+        Elem_T                  data[CAPACITY]  = {};       // since capacity is unknown, we must put it second. This way all array types have some common memory layout for its members (size, data).
+        static constexpr u32_t  capacity        = CAPACITY;
 
-        inline const Elem_T& operator[](u32_t pos) const { assert(pos < size && "out of bounds");return data[pos]; }
-        inline Elem_T&       operator[](u32_t pos)       { assert(pos < size && "out of bounds");return data[pos]; }
-        inline Elem_T*       begin()        { return data; }
-        inline Elem_T*       end()          { return data + size; }
-        inline const Elem_T* begin() const { return data; }
-        inline const Elem_T* end() const   { return data + size; }
+        inline const Elem_T& operator[](u32_t pos) const    { assert(pos < size && "out of bounds"); return data[pos]; }
+        inline Elem_T&       operator[](u32_t pos)          { assert(pos < size && "out of bounds"); return data[pos]; }
+        inline Elem_T*       begin()                        { return data; }
+        inline Elem_T*       end()                          { return data + size; }
+        inline const Elem_T* begin() const                  { return data; }
+        inline const Elem_T* end() const                    { return data + size; }
     };
     static_assert( std::is_default_constructible_v<Inlined_Array<i8_t, 16>> );
     
