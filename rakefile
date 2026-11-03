@@ -180,6 +180,12 @@ if DESKTOP
     ]
 end
 
+bdc = base_target("bdc", TARGET_TYPE_EXECUTABLE)
+
+bdc.sources = FileList[
+    "src/bdc/tests.cpp",
+]
+
 common = base_target("common", TARGET_TYPE_OBJECTS)
 
 common.sources = FileList[
@@ -343,8 +349,8 @@ desc "nodable:build + test:build alias"
 multitask :build_all => ['nodable:build', 'test:build']
 
 if PLATFORM == PLATFORM_WINDOWS or PLATFORM == PLATFORM_LINUX
-    desc "test:run alias"
-    task :test => 'test:run'
+    desc "Run both bdc and nodable tests"
+    task :test => ['bdc:run', 'test:run']
 else
     desc "Run all tests"
     task :test do
@@ -423,6 +429,7 @@ end
 # TARGETS' TASKS - automatically generated
 #---------------------------------------------------------------------------
 
+target_define_tasks( bdc )
 target_define_tasks( extern )
 target_define_tasks( common )
 target_define_tasks( ndbl )

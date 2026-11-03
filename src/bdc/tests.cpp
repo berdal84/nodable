@@ -327,7 +327,7 @@ int main()
             array_append(arr, 1);
 
             auto result = array_find(arr, 42);
-            TEST_EXPECTS( result.found );
+            TEST_EXPECTS( result.ok );
             TEST_EXPECTS( result.at_pos == 1);
 
             memory_manager_shutdown();
@@ -387,7 +387,7 @@ int main()
             TEST_EXPECTS(is_zero_initialized(arr));
 
             TEST_EXPECTS(arr.size == 0);
-            TEST_EXPECTS(arr.capacity() == 16);
+            TEST_EXPECTS(arr.capacity == 16);
 
             memory_manager_shutdown();
         }
