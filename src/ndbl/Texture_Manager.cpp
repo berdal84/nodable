@@ -18,7 +18,7 @@ int         _texture_load_from_memory_to_gpu(Texture*);
 
 Texture_Manager* texture_manager_init()
 {
-    VERIFY( g_texture_manager == nullptr, "g_texture_manager is already initialized, did you forgot to call texture_manager_shutdown() ?")
+    VERIFY( g_texture_manager == nullptr, "g_texture_manager is already initialized, did you forgot to call texture_manager_shutdown() ?");
     g_texture_manager = bdc::memory_new<Texture_Manager>();
     hashmap_init(g_texture_manager->texture_by_absolute_path);
     return g_texture_manager;
@@ -26,13 +26,13 @@ Texture_Manager* texture_manager_init()
 
 Texture_Manager* texture_manager()
 {
-    VERIFY( g_texture_manager != nullptr, "g_texture_manager is not initialized, did you forgot to call texture_manager_init() ?")
+    VERIFY( g_texture_manager != nullptr, "g_texture_manager is not initialized, did you forgot to call texture_manager_init() ?");
     return g_texture_manager;
 }
 
 void texture_manager_shutdown()
 {
-    VERIFY( g_texture_manager != nullptr, "g_texture_manager is not initialized, you might have called this twice or didn't call texture_manager_ini() at all.")
+    VERIFY( g_texture_manager != nullptr, "g_texture_manager is not initialized, you might have called this twice or didn't call texture_manager_ini() at all.");
     texture_manager_release_all();
     bdc::memory_delete( g_texture_manager );
     g_texture_manager = nullptr;
