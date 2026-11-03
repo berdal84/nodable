@@ -176,13 +176,11 @@ int main()
 
         TEST_BEGIN( String(const Array<char>&) )
         {
-            Array<char> arr{ 'B', 'o', 'n', 'j', 'o', 'u', 'r'};
-            
-            String str = arr;
+            String str = string_tcopy(Array<char>{ 'B', 'o', 'n', 'j', 'o', 'u', 'r', '\0'});
 
-            TEST_EXPECTS( arr[0] == 'B' );
+            TEST_EXPECTS( str[0] == 'B' );
             str[0] = 'b';
-            TEST_EXPECTS( arr[0] == 'b' );
+            TEST_EXPECTS( str[0] == 'b' );
         }
         TEST_END
 
