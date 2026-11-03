@@ -4,11 +4,11 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 #include <SDL_timer.h>
-
 #ifdef NDBL_DESKTOP
-    #include <nfd.h>
+#include <nfd.h>
 #endif
 
+#include "DEFER.h"
 #include "Action_Manager_View.h"
 #include "Action_Manager.h"
 #include "Asserts.h"
@@ -1253,16 +1253,6 @@ void appview_draw()
     SDL_SetWindowTitle(view->sdl_window, title.data);
 }
 
-template <typename F>
-struct defer_t {
-    F f;
-    defer_t(F f) : f(std::move(f)) {}
-    ~defer_t() { f(); }
-};
-
-#define DEFER(stmt) \
-    auto _defer_##__LINE__ = defer_t([&] { stmt; });
-
 void appview_save_screenshot(const bdc::String relative_path)
 {
     App_View_State* view = appview();
@@ -1275,7 +1265,7 @@ void appview_save_screenshot(const bdc::String relative_path)
     }
     
     Image image = appview_capture_screen();
-    DEFER( image_release(image) )
+    DEFER(image_release(image);)
 
     image_vflip(image); // OpenGL convention axis are Y flipped :)
 
