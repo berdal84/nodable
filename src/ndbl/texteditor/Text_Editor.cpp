@@ -1376,6 +1376,7 @@ void Text_Editor::DefaultSetClipBoardText(const char* str)
 const char* Text_Editor::DefaultGetClipBoardText()
 {
 	assert(false && "Not implemented yet!");
+	return "";
 }
 
 void Text_Editor::Copy()
