@@ -128,6 +128,162 @@ int main()
     }
     TEST_SUITE_END
 
+    TEST_SUITE_BEGIN( Array<int> )
+    {
+        TEST_BEGIN( is_zero_initialized )
+        {
+            Resizable_Array<int> arr{};
+            TEST_EXPECTS( is_zero_initialized(arr) );
+        }
+        TEST_END;
+
+        TEST_BEGIN( array_append(int) )
+        {
+            memory_manager_init();
+
+            Resizable_Array<int> arr;
+            array_init(arr, &temp_allocator);
+
+            for(int i = 0; i < 10; ++i) array_append(arr, i+1);
+            for(int i = 0; i < 10; ++i) TEST_EXPECTS( arr[i] == i+1);
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+
+        TEST_BEGIN( Resizable_Array should have a capacity in power of two )
+        {
+            memory_manager_init();
+
+            Resizable_Array<int> arr;
+            array_init(arr, &temp_allocator);
+
+            for(int i = 0; i < 129; ++i)
+            {
+                array_append(arr, i+1);
+                TEST_EXPECTS(arr.capacity == array_compute_capacity_from_size(arr.size, 16) );
+            }
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+
+        TEST_BEGIN( array_find() )
+        {
+            memory_manager_init();
+
+            Resizable_Array<int> arr;
+            array_init(arr, &temp_allocator);
+
+            array_append(arr, 10);
+            array_append(arr, 42);
+            array_append(arr, 1);
+
+            auto result = array_find(arr, 42);
+            TEST_EXPECTS( result.ok );
+            TEST_EXPECTS( result.at_pos == 1);
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+
+        TEST_BEGIN( array_remove_ordered )
+        {
+            memory_manager_init();
+
+            Resizable_Array<int> arr;
+            array_init(arr, &temp_allocator);
+
+            array_append(arr, 0);
+            array_append(arr, 1);
+            array_append(arr, 2);
+
+            array_remove_ordered(arr, 1);
+
+            TEST_EXPECTS( arr[1] == 2 );
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+
+        TEST_BEGIN( array_resize(size_t) )
+        {
+            memory_manager_init();
+
+            Resizable_Array<int> arr;
+            array_init(arr, &temp_allocator);
+
+            array_resize(arr, 16);
+            for(u32_t i = 0; i < arr.size; ++i)
+                arr[i] = i;
+            TEST_EXPECTS( arr.size == 16);
+            
+            // resize must preserve data on the first 16 indices
+            array_resize(arr, 32);
+            for(u32_t i = 0; i < 16; ++i)
+                TEST_EXPECTS( arr[i] == i);
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+
+        TEST_BEGIN( array_concat(a, b) )
+        {
+            memory_manager_init();
+
+            u32_t a[] = { 0, 1, 2, 3, 4 };
+            u32_t b[] = { 5, 6, 7, 8, 9 };
+
+            Array<u32_t> result = array_tconcat(Array{a}, Array{b});
+
+            TEST_EXPECTS(result.size == 5+5);
+            for(u32_t i = 0; i < result.size; ++i)
+            {
+                TEST_EXPECTS( result[i] == i);
+            }
+            memory_manager_shutdown();
+        }
+        TEST_END
+    }
+    TEST_SUITE_END
+
+    TEST_SUITE_BEGIN( Inlined_Array<int> )
+    {
+        TEST_BEGIN( initialisation )
+        {
+            memory_manager_init();
+
+            Inlined_Array<int, 16> arr{};
+            TEST_EXPECTS(is_zero_initialized(arr));
+
+            TEST_EXPECTS(arr.size == 0);
+            TEST_EXPECTS(arr.capacity == 16);
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+
+        TEST_BEGIN( array_append )
+        {
+            memory_manager_init();
+
+            Inlined_Array<int, 16> arr;
+            
+            array_append(arr, 42);
+            TEST_EXPECTS(arr.size == 1);
+            TEST_EXPECTS(arr[0] == 42);
+
+            array_append(arr, 43);
+            TEST_EXPECTS(arr.size == 2);
+            TEST_EXPECTS(arr[0] == 42);
+            TEST_EXPECTS(arr[1] == 43);
+
+            memory_manager_shutdown();
+        }
+        TEST_END
+    }
+    TEST_SUITE_END
+
     TEST_SUITE_BEGIN(String)
     {
         memory_manager_init();
@@ -271,146 +427,6 @@ int main()
         TEST_END
 
         memory_manager_shutdown();
-    }
-    TEST_SUITE_END
-
-
-    TEST_SUITE_BEGIN( Array<int> )
-    {
-        TEST_BEGIN( is_zero_initialized )
-        {
-            Resizable_Array<int> arr{};
-            TEST_EXPECTS( is_zero_initialized(arr) );
-        }
-        TEST_END;
-
-        TEST_BEGIN( array_append(int) )
-        {
-            memory_manager_init();
-
-            Resizable_Array<int> arr;
-            array_init(arr, &temp_allocator);
-
-            for(int i = 0; i < 10; ++i) array_append(arr, i+1);
-            for(int i = 0; i < 10; ++i) TEST_EXPECTS( arr[i] == i+1);
-
-            memory_manager_shutdown();
-        }
-        TEST_END
-
-        TEST_BEGIN( Resizable_Array should have a capacity in power of two )
-        {
-            memory_manager_init();
-
-            Resizable_Array<int> arr;
-            array_init(arr, &temp_allocator);
-
-            for(int i = 0; i < 129; ++i)
-            {
-                array_append(arr, i+1);
-                TEST_EXPECTS(arr.capacity == array_compute_capacity_from_size(arr.size, 16) );
-            }
-
-            memory_manager_shutdown();
-        }
-        TEST_END
-
-        TEST_BEGIN( array_find() )
-        {
-            memory_manager_init();
-
-            Resizable_Array<int> arr;
-            array_init(arr, &temp_allocator);
-
-            array_append(arr, 10);
-            array_append(arr, 42);
-            array_append(arr, 1);
-
-            auto result = array_find(arr, 42);
-            TEST_EXPECTS( result.ok );
-            TEST_EXPECTS( result.at_pos == 1);
-
-            memory_manager_shutdown();
-        }
-        TEST_END
-
-        TEST_BEGIN( array_remove_ordered )
-        {
-            memory_manager_init();
-
-            Resizable_Array<int> arr;
-            array_init(arr, &temp_allocator);
-
-            array_append(arr, 0);
-            array_append(arr, 1);
-            array_append(arr, 2);
-
-            array_remove_ordered(arr, 1);
-
-            TEST_EXPECTS( arr[1] == 2 );
-
-            memory_manager_shutdown();
-        }
-        TEST_END
-
-        TEST_BEGIN( array_resize(size_t) )
-        {
-            memory_manager_init();
-
-            Resizable_Array<int> arr;
-            array_init(arr, &temp_allocator);
-
-            array_resize(arr, 16);
-            for(u32_t i = 0; i < arr.size; ++i)
-                arr[i] = i;
-            TEST_EXPECTS( arr.size == 16);
-            
-            // resize must preserve data on the first 16 indices
-            array_resize(arr, 32);
-            for(u32_t i = 0; i < 16; ++i)
-                TEST_EXPECTS( arr[i] == i);
-
-            memory_manager_shutdown();
-        }
-        TEST_END
-
-    }
-    TEST_SUITE_END
-
-    TEST_SUITE_BEGIN( Inlined_Array<int> )
-    {
-        TEST_BEGIN( initialisation )
-        {
-            memory_manager_init();
-
-            Inlined_Array<int, 16> arr{};
-            TEST_EXPECTS(is_zero_initialized(arr));
-
-            TEST_EXPECTS(arr.size == 0);
-            TEST_EXPECTS(arr.capacity == 16);
-
-            memory_manager_shutdown();
-        }
-        TEST_END
-
-        TEST_BEGIN( array_append )
-        {
-            memory_manager_init();
-
-            Inlined_Array<int, 16> arr;
-            
-            array_append(arr, 42);
-            TEST_EXPECTS(arr.size == 1);
-            TEST_EXPECTS(arr[0] == 42);
-
-            array_append(arr, 43);
-            TEST_EXPECTS(arr.size == 2);
-            TEST_EXPECTS(arr[0] == 42);
-            TEST_EXPECTS(arr[1] == 43);
-
-            memory_manager_shutdown();
-        }
-        TEST_END
     }
     TEST_SUITE_END
 

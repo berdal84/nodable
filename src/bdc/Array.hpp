@@ -2,7 +2,8 @@
 
 #include <cassert>
 #include <cstring>
-#include <initializer_list> // for std::initializer_list
+#include <initializer_list>
+#include <algorithm> // for std::copy
 
 #include "Allocators.hpp"
 #include "Types.hpp"
@@ -46,7 +47,7 @@ namespace bdc
     template<size_t ARRAY_LITERAL_SIZE>        // ... two template<...>. Crazy sh!t.
     constexpr inline Array<Elem_T>::Array(Elem_T (&array_literal)[ARRAY_LITERAL_SIZE])
     : size(ARRAY_LITERAL_SIZE)
-    , data(&array_literal)
+    , data(reinterpret_cast<Elem_T*>(&array_literal))
     {
         static_assert( ARRAY_LITERAL_SIZE < (u32_t)-1, "Statically allocated array size must fit in u32_t");
     }
@@ -367,22 +368,37 @@ namespace bdc
         arr.capacity = capacity;
     }
 
+    // Note: consider using array_concat (faster) instead .
     template<typename Elem_T>
-    void array_append(Resizable_Array<Elem_T>& arr, std::initializer_list<Elem_T>&& list)
+    void array_append(Resizable_Array<Elem_T>& arr, const std::initializer_list<Elem_T>& other)
     {
-        for( auto& each : list)
+        for(auto& each : other)
+        {
             array_append(arr, each);
+        }
     }
 
     template<typename Elem_T>
-    Array<Elem_T> array_concat(const Array<Elem_T>& a, const Array<Elem_T>& b, Allocator* allocator )
+    Array<Elem_T> array_tconcat(const Array<Elem_T>& a, const Array<Elem_T>& b)
     {
         Resizable_Array<Elem_T> result{};
-        array_resize(result, a.size + b.size);
-        memcpy( result.data   , a.data, a.size);
-        memcpy(&result[a.size], b.data, b.size);
-
-        return result;
+        array_init(result, &temp_allocator);        
+        return array_view( array_concat(result, a, b) );
     }
+
+    template<typename Elem_T>
+    Resizable_Array<Elem_T>& array_concat(Resizable_Array<Elem_T>& out, const Array<Elem_T>& a, const Array<Elem_T>& b)
+    {
+        u32_t out_initial_size = out.size;
+        array_resize(out, out.size + a.size + b.size);
+        
+        // Note: constructor needs to be called, we do not distinguish POD from other data structures yet.
+
+        std::copy(a.begin(), a.end(), out.begin() + out_initial_size);
+        std::copy(b.begin(), b.end(), out.begin() + out_initial_size + a.size);
+
+        return out;
+    }
+
 
 } // namespace bdc
