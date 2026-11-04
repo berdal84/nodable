@@ -34,7 +34,7 @@ void fileview_init(File_View* file_view, File* file)
     NDBL_ASSERT(file->graph->view);
     file_view->graph_view = file->graph->view;
 
-    NDBL_VERIFY( file_view->file->graph->view, "A Graph_View component is required by File_View" );
+    NDBL_ASSERT( file_view->file->graph->view, "A Graph_View component is required by File_View" );
 }
 
 void fileview_deinit(File_View* file_view)

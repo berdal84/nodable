@@ -106,7 +106,7 @@ namespace ndbl
         void connect(Object_Type* object_ptr)
         {
             auto delegate = Delegate_Type::template from<Function_Type>(object_ptr);
-            NDBL_VERIFY( delegate.callable(), "TMethod is not callable on object_ptr. Is object_ptr null?" );
+            NDBL_ASSERT( delegate.callable(), "TMethod is not callable on object_ptr. Is object_ptr null?" );
             connect(delegate);
             // TODO: return an identifier/hash to disconnect with?
         }

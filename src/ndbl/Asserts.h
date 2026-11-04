@@ -1,69 +1,55 @@
 #pragma once
-#include "bdc/Allocators.hpp"
-#include "Log.h"
-
 #ifndef NDBL_ASSERTIONS_ENABLE
-#define NDBL_ASSERTIONS_ENABLE true // When false, any ASSERT/VERIFY macros are disable
+#define NDBL_ASSERTIONS_ENABLE true
 #endif
 
-#if NDBL_ASSERTIONS_ENABLE // ---------------------------------------------------------------------------
+#if NDBL_ASSERTIONS_ENABLE
 
-    #define NDBL_NOEXCEPT NDBL_RELEASE // In release, we disable exceptions and fallback on regular asserts
+    #include "bdc/Stacktrace.hpp"
+    #include <cassert>
+    #include <iostream> // for std::flush, std::cout
 
-    #if NDBL_NOEXCEPT // --------------------------------------------------------------------------------
-
-        #include <cassert>
-        #define NDBL_ASSERT(expression)          assert( (expression) )
-        #define NDBL_VERIFY(expression, message) NDBL_ASSERT( expression )
-
-    #else // NDBL_NOEXCEPT ------------------------------------------------------------------------------
-
-        #include <exception> // for std::runtime_error
-
-        #define NDBL_VERIFY_(expression, message_if_fails, throw_on_failure )\
+    #define NDBL_ASSERT(expression, ... ) \
         if( !(expression) ) \
         { \
             BDC_PRINT_STACKTRACE(); \
-            printf("VERIFY: %s was evaluated false. Message: %s\n", #expression, message_if_fails ); \
-            flush(); \
-            if ( throw_on_failure ) \
-                throw std::runtime_error(message_if_fails); \
+            printf("NDBL_ASSERT: Expression '%s' is false. \n." __VA_OPT__(" Reason: " __VA_ARGS__ ), #expression ); \
+            std::cout << std::flush; \
             assert( false ); \
         }
 
-        #define NDBL_ASSERT(expression)          NDBL_VERIFY_( (expression), "Assertion failed: " #expression" is false", false )
-        #define NDBL_VERIFY(expression, message) NDBL_VERIFY_( (expression), message                                    , true )
+    #ifdef NDBL_DEBUG
+        #define NDBL_ASSERT_DEBUG_ONLY(expression, ... ) \
+            NDBL_ASSERT(expression, __VA_ARGS__, "(debug only)")
+    #else
+        #define NDBL_ASSERT_DEBUG_ONLY(expression, ... ) \
+            // NDBL_ASSERT_DEBUG_ONLY was removed, NDBL_DEBUG is false.
+    #endif
 
-        #endif // !NDBL_NOEXCEPT
+    #define NDBL_TODO( message ) \
+        do { \
+            BDC_PRINT_STACKTRACE(); \
+            printf("NDBL_TODO: %s\n", #message); \
+            std::cout << std::flush; \
+            assert( false ); \
+        } while(0)
 
-        // DEBUG SPECIFIC
-        #ifdef NDBL_DEBUG
-        #define NDBL_ASSERT_DEBUG_ONLY(expression) NDBL_ASSERT(expression)
-        #else
-        #define NDBL_ASSERT_DEBUG_ONLY(expression)
-    #endif // NDBL_NOEXCEPT -----------------------------------------------------------------------------
+    #define NDBL_UNREACHABLE( ... ) \
+    do { \
+        BDC_PRINT_STACKTRACE(); \
+        printf("NDBL_UNREACHABLE: %s\n", #__VA_ARGS__); \
+        std::cout << std::flush; \
+        assert( false ); \
+    } while(0)
 
-#else // NDBL_ASSERTIONS_ENABLE -------------------------------------------------------------------------
+#else // NDBL_ASSERTIONS_ENABLE
 
-    // Disable the macros completely
     #define NDBL_ASSERT(...)
-    #define NDBL_VERIFY(...)
+    #define NDBL_TODO(...)
+    #define NDBL_UNREACHABLE( ... )
 
-#endif // NDBL_ASSERTIONS_ENABLE -----------------------------------------------------------------------
+#endif // NDBL_ASSERTIONS_ENABLE
 
-#define NDBL_UNREACHABLE( ... ) \
-do { \
-    BDC_PRINT_STACKTRACE(); \
-    printf("UNREACHABLE: %s\n", #__VA_ARGS__); \
-    flush(); \
-    assert( false ); \
-} while(0)
 
-#define NDBL_TODO( message ) \
-do { \
-    BDC_PRINT_STACKTRACE(); \
-    printf("TODO: %s\n", #message); \
-    flush(); \
-    assert( false ); \
-} while(0)
+
 

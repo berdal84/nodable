@@ -45,7 +45,7 @@ Rect GetContentRegion(Space origin)
                 ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMax()
             };
         default:
-            NDBL_VERIFY(false, "This space is not allowed");
+            NDBL_ASSERT(false, "This space is not allowed");
     }
     return GetContentRegion(PARENT_SPACE);
 }

@@ -40,7 +40,7 @@ namespace ndbl
 
 static App_State* g_app = {}; // The main loop needs a static function pointer to run, we have to grab App_View_State* globaly.
 
-#define VERIFY_NODABLE_IS_INITIALIZED() NDBL_VERIFY(g_app != nullptr, "Nodable is not initialized, did you call nodable_init() ?")
+#define VERIFY_NODABLE_IS_INITIALIZED() NDBL_ASSERT(g_app != nullptr, "Nodable is not initialized, did you call nodable_init() ?")
 
 template<typename Type>
 static Type_Descriptor* create_variable_node_signature()
@@ -492,7 +492,7 @@ File* app_open_file(const Path& _path)
 File* app_add_file(File* file)
 {
     auto app = app_state();
-    NDBL_VERIFY(file, "File is nullptr");
+    NDBL_ASSERT(file, "File is nullptr");
     array_append(app->files, file);
     app->current_file = file;
     event_manager_push_event({ .type = Event_Type_FILE_OPENED, .data1 = file });
@@ -503,7 +503,7 @@ void app_save_file(File* file)
 {
     auto app = app_state();
 
-    NDBL_VERIFY(file, "file must be defined");
+    NDBL_ASSERT(file, "file must be defined");
 
 	if ( !file_write(file, file->path) )
     {
@@ -541,7 +541,7 @@ void app_close_file(File* file)
 
     // Find and delete the file
     auto found = array_find(app->files, file);
-    NDBL_VERIFY(found.ok, "Unable to find the file in the loaded_files");
+    NDBL_ASSERT(found.ok, "Unable to find the file in the loaded_files");
     array_remove_ordered(app->files, found.at_pos);
     array_append(app->files_to_delete, file);
 

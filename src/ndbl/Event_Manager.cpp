@@ -3,7 +3,7 @@
 #include "Asserts.h"
 #include "Task_Manager.h"
 
-#define VERIFY_EVENT_MANAGER_IS_INITIALIZED() NDBL_VERIFY( g_event_manager != nullptr, "g_event_manager is not initialized, did you cann event_manager_init() ?")
+#define VERIFY_EVENT_MANAGER_IS_INITIALIZED() NDBL_ASSERT( g_event_manager != nullptr, "g_event_manager is not initialized, did you cann event_manager_init() ?")
 
 namespace ndbl
 {
@@ -12,7 +12,7 @@ static Event_Manager* g_event_manager = nullptr;
 
 Event_Manager* event_manager_init()
 {
-    NDBL_VERIFY(g_event_manager == nullptr, "Cannot be called twice"); // singleton
+    NDBL_ASSERT(g_event_manager == nullptr, "Cannot be called twice"); // singleton
 
     g_event_manager = bdc::memory_new<Event_Manager>();
     array_init(g_event_manager->event_queue_ring, 128);

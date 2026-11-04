@@ -17,7 +17,7 @@ void type_register_clear()
 Type_Descriptor* type_register_get(std::type_index index)
 {
     auto found = g_type_register.find(index);
-    NDBL_VERIFY(found != g_type_register.end(), "reflection: type not found!");
+    NDBL_ASSERT(found != g_type_register.end(), "reflection: type not found!");
     return found->second;
 }
 

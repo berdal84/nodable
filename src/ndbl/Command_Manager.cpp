@@ -12,11 +12,11 @@ namespace ndbl
     static Command_Manager* g_command_manager = nullptr;
 }
 
-#define VERIFY_COMMAND_MANAGER_IS_INITIALIZED() NDBL_VERIFY( ndbl::g_command_manager != nullptr, "g_command_manager is null, did you call command_manager_init() ?")
+#define VERIFY_COMMAND_MANAGER_IS_INITIALIZED() NDBL_ASSERT( ndbl::g_command_manager != nullptr, "g_command_manager is null, did you call command_manager_init() ?")
 
 ndbl::Command_Manager* ndbl::command_manager_init()
 {
-    NDBL_VERIFY(g_command_manager == nullptr, "Cannot call init twice!");
+    NDBL_ASSERT(g_command_manager == nullptr, "Cannot call init twice!");
     g_command_manager = bdc::memory_new<Command_Manager>();
     array_init(g_command_manager->commands);
     return g_command_manager;
@@ -47,7 +47,7 @@ void ndbl::command_manager_end_transaction()
     auto* manager      = command_manager();
     auto& last_command = array_back(manager->commands);
 
-    NDBL_VERIFY(!HAS_FLAGS( last_command.flags, Command_Flags_TRANSACTION_BEGIN), "Cannot end a transaction on the same command that transaction begins");
+    NDBL_ASSERT(!HAS_FLAGS( last_command.flags, Command_Flags_TRANSACTION_BEGIN), "Cannot end a transaction on the same command that transaction begins");
     last_command.flags |= Command_Flags_TRANSACTION_END;
 }
 

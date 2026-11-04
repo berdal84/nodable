@@ -212,7 +212,7 @@ namespace ndbl
 
     inline void layout_end()
     {
-        NDBL_VERIFY(layout()->stack.size > 0, "LAYOUT_BEGIN/END mismatch!");
+        NDBL_ASSERT(layout()->stack.size > 0, "LAYOUT_BEGIN/END mismatch!");
         auto* current = array_back(layout()->stack);
         array_pop(layout()->stack);     
     };
@@ -229,7 +229,7 @@ namespace ndbl
 
     inline void layout__begin(Axis axis)
     {
-        NDBL_VERIFY(layout()->elements.size < layout()->elements.capacity, "Buffer overflow!");
+        NDBL_ASSERT(layout()->elements.size < layout()->elements.capacity, "Buffer overflow!");
         
         Element* parent = array_back(layout()->stack);
         Element* elem   = layout_new_container(axis);
@@ -443,7 +443,7 @@ namespace ndbl
 
     inline void layout_push(const Element& elem)
     {
-        NDBL_VERIFY(layout()->elements.size < layout()->elements.capacity, "Buffer overflow!");
+        NDBL_ASSERT(layout()->elements.size < layout()->elements.capacity, "Buffer overflow!");
         
         Element* parent = array_back(layout()->stack);
         NDBL_ASSERT(parent->type == Element::Type_CONTAINER);

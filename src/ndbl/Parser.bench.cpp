@@ -117,7 +117,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, tokenize__some_code_to_graph)(benchmark::Stat
 
     for (auto _ : state)
     {
-        NDBL_VERIFY(parser->tokenize(code), "parse failed");
+        NDBL_ASSERT(parser->tokenize(code), "parse failed");
     }
 }
 

@@ -94,7 +94,7 @@ Vec2 spatialnode_position(const Spatial_Node* spatial_node, Space space)
     switch ( space )
     {
         default:
-            NDBL_VERIFY( false, "This space is not handled");
+            NDBL_UNREACHABLE("This space is not handled");
 
         case LOCAL_SPACE:
             return {0.f, 0.f};
@@ -116,8 +116,8 @@ Vec2 spatialnode_position(const Spatial_Node* spatial_node, Space space)
 bool spatialnode_add_child(Spatial_Node* parent, Spatial_Node* new_child, Spatial_Node_Flags flags)
 {
     NDBL_ASSERT( new_child != nullptr );
-    NDBL_VERIFY( new_child->parent == nullptr, "Child already has a parent, remove it first from parent" );
-    NDBL_VERIFY( new_child != parent, "Adding itself as primary_child" );
+    NDBL_ASSERT( new_child->parent == nullptr, "Child already has a parent, remove it first from parent" );
+    NDBL_ASSERT( new_child != parent, "Adding itself as primary_child" );
 
     auto [it, inserted] = parent->children.insert(new_child);
 

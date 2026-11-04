@@ -188,7 +188,7 @@ void ndbl::_graphview_handle_change_scope(Graph_View* graphview, Graph::Scope_Ch
     //       to be child of the Graph_View instead.
 
     // auto* node.view = componentbag_get<Node_View>(&change.node->component.bag);
-    // NDBL_VERIFY(node.view, "a node.view must be present since we are in a Graph_View");
+    // NDBL_ASSERT(node.view, "a node.view must be present since we are in a Graph_View");
 
     // // Un-parent from old scope's spatial node
     // if( auto _parent = node.view->shape.spatial_node.parent )
@@ -207,7 +207,7 @@ ImGuiID make_wire_id(const Node_Slot *ptr1, const Node_Slot *ptr2)
 
 void ndbl::_graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *from, const Vec2 &end_pos, bool* hovered)
 {
-    NDBL_VERIFY(from != nullptr, "from slot can't be nullptr");
+    NDBL_ASSERT(from != nullptr, "from slot can't be nullptr");
 
     Config* cfg = config();
 
@@ -1179,7 +1179,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
         }
 
         default:
-            NDBL_VERIFY(false, "Unhandled case, must be implemented!");
+            NDBL_ASSERT(false, "Unhandled case, must be implemented!");
     }
 }
 

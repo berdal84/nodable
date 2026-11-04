@@ -117,12 +117,12 @@ void _graph_add_node(Graph* graph, Node* node, Scope* scope)
 
     if( !scope )
     {
-        NDBL_VERIFY( &graph->nodes[0] == node, "you didn't provided a scope argument, which is only valid for the first insert (root node).");
+        NDBL_ASSERT( &graph->nodes[0] == node, "you didn't provided a scope argument, which is only valid for the first insert (root node).");
     }
     else
     {
-        NDBL_VERIFY( node->scope == nullptr, "node must be unscoped, use scope argument instead" );
-        NDBL_VERIFY( scope->node->graph == graph, "the provided scope belong to another graph" );
+        NDBL_ASSERT( node->scope == nullptr, "node must be unscoped, use scope argument instead" );
+        NDBL_ASSERT( scope->node->graph == graph, "the provided scope belong to another graph" );
         NDBL_ASSERT(!HAS_FLAGS(node->flags, Node_Flag_WAS_IN_A_SCOPE_ONCE)); // double-check
         scope_append(scope, node);
     }
@@ -265,9 +265,9 @@ void graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
     NDBL_ASSERT(!head->is_full());
     NDBL_ASSERT(HAS_FLAGS(tail->flags, Node_Slot::Flag_OUTPUT ) );
     NDBL_ASSERT(!tail->is_full());
-    NDBL_VERIFY(head->property, "tail property must be defined" );
-    NDBL_VERIFY(tail->property, "head property must be defined" );
-    NDBL_VERIFY(head->node != tail->node, "Can't connect same primary_child!" );
+    NDBL_ASSERT(head->property, "tail property must be defined" );
+    NDBL_ASSERT(tail->property, "head property must be defined" );
+    NDBL_ASSERT(head->node != tail->node, "Can't connect same primary_child!" );
 
     // now graph is abstract
 //    const type* out_type = __out->property->get_type();
@@ -381,7 +381,7 @@ void graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                 }
                 else
                 {
-                    NDBL_VERIFY(false, "Unexpected edge count");
+                    NDBL_ASSERT(false, "Unexpected edge count");
                 }
                 break;
             }
@@ -479,7 +479,7 @@ void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                 break;
             }
             default:
-                NDBL_VERIFY(false, "Unexpected _edge.type()");
+                NDBL_ASSERT(false, "Unexpected _edge.type()");
         }
     }
 
@@ -592,7 +592,7 @@ Node* graph_create_node(Graph* graph, const Node_State* node_state, Scope* scope
 
         case Node_Type_FUNCTION:
         {
-            NDBL_VERIFY(node_state->function_type != nullptr, "_signature is expected when dealing with functions or operators");
+            NDBL_ASSERT(node_state->function_type != nullptr, "_signature is expected when dealing with functions or operators");
             if ( langdef_is_operator( langdef(), node_state->function_type ) )
                 return graph_create_operator( graph, node_state->function_type, scope );
             return graph_create_function( graph, node_state->function_type, scope );
@@ -695,8 +695,8 @@ void graph_change_scope(Node* node, Scope* desired_scope)
 {
     Scope* current_scope = node->scope;
 
-    NDBL_VERIFY( current_scope != nullptr, "node must be scoped to be changed for another scope");
-    NDBL_VERIFY( desired_scope != nullptr, "a non null desired scope is expected");
+    NDBL_ASSERT( current_scope != nullptr, "node must be scoped to be changed for another scope");
+    NDBL_ASSERT( desired_scope != nullptr, "a non null desired scope is expected");
 
     if ( desired_scope == current_scope )
     {

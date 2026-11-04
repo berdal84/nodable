@@ -79,8 +79,8 @@ namespace ndbl
     Node*                   graph_create_scope(Graph*, Scope* scope = nullptr);
     Node*                   graph_create_return(Graph*, const Type_Descriptor*, Scope* = nullptr);
     Node*                   graph_create_node(Graph*, const Node_State*, Scope* = nullptr);
-    Array<Scope *>          graph_collect_scopes(const Graph*);
-    Array<Scope *>          graph_collect_root_scopes(const Graph*);
+    bdc::Array<Scope *>     graph_collect_scopes(const Graph*);
+    bdc::Array<Scope *>     graph_collect_root_scopes(const Graph*);
     void                    graph_flag_node_to_delete(Node*, Graph_Flags = Graph_Flag_NONE);
     bool                    graph_contains(const Graph*, Node*);
     Node*                   graph_get_latest_created_node(Graph*);

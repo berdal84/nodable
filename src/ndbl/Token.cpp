@@ -83,7 +83,7 @@ void Token::take_prefix_suffix_from(Token* source)
 
 void Token::remove_suffix_and_prefix()
 {
-    NDBL_VERIFY(!owns_data, "Not possible when Token owns data, data ptr would be lost");
+    NDBL_ASSERT(!owns_data, "Not possible when Token owns data, data ptr would be lost");
     data        += suffix_size;
     suffix_size  = 0;
     prefix_size  = 0; 
@@ -100,7 +100,7 @@ void Token::clear()
 
 u32_t Token::char_position() const
 {
-    NDBL_VERIFY(false, "This was previously returning the position of the token word on the global"
+    NDBL_ASSERT(false, "This was previously returning the position of the token word on the global"
                   "parsed string, now it does not. We should change that.");
     return suffix_size;
 }
@@ -223,7 +223,7 @@ void Token::set_offset(size_t pos)
 
 void Token::lextend_prefix(size_t l_amount)
 {
-    NDBL_VERIFY(!owns_data, "Only allowed when token does not owns the buffer");
+    NDBL_ASSERT(!owns_data, "Only allowed when token does not owns the buffer");
     data        -= l_amount;
     prefix_size += l_amount;
 }

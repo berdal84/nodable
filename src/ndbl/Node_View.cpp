@@ -49,7 +49,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
     // 1. Create Property views
     //-------------------------
 
-    NDBL_VERIFY(nodeview->view_by_property.size == 0, "Cannot be called twice");
+    NDBL_ASSERT(nodeview->view_by_property.size == 0, "Cannot be called twice");
 
     for (Node_Property* property : nodeview->node->props )
     {

@@ -113,7 +113,7 @@ bool nodeslotview_draw(Node_Slot_View* view)
             break;
         }
         default:
-            NDBL_VERIFY(false, "Unhandled case");
+            NDBL_ASSERT(false, "Unhandled case");
     }
 
     if ( ImGuiEx::BeginTooltip() )

@@ -1,9 +1,9 @@
 #include "Allocators.hpp"
-
+#include "MACROS.hpp"
 
 #ifdef BDC_DEBUG_ALLOCATORS
-#include <vector>    // to store allocation metadata in a container that is outside
-#include <algorithm> // for std::find
+    #include <vector>    // to store allocation metadata in a container that is outside
+    #include <algorithm> // for std::find
 #endif // BDC_DEBUG_ALLOCATORS
 
 namespace bdc
@@ -99,7 +99,7 @@ namespace bdc
 
     void push_allocator(Allocator* _allocator_to_push)
     {
-        assert(allocator_stack_size < ALLOCATOR_STACK_CAPACITY);
+        BDC_ASSERT(allocator_stack_size < ALLOCATOR_STACK_CAPACITY);
         allocator_stack[allocator_stack_size] = _allocator_to_push;
         allocator = _allocator_to_push;
         allocator_stack_size++;
@@ -107,7 +107,7 @@ namespace bdc
 
     void pop_allocator()
     {
-        assert(allocator_stack_size > 0);
+        BDC_ASSERT(allocator_stack_size > 0);
         allocator_stack_size--;
         allocator = allocator_stack[allocator_stack_size-1];
     }
@@ -153,7 +153,7 @@ namespace bdc
 
     void* temp_allocator_realloc(void* src_ptr, size_t size)
     {
-        assert(src_ptr != nullptr);
+        BDC_ASSERT(src_ptr != nullptr);
         
         Allocation_Header* src_header = get_header(src_ptr);
         
@@ -169,7 +169,7 @@ namespace bdc
         
         Allocation_Header* dest_header = temp_allocator_buffer_acquire(size);
         void*              dest_ptr    = get_pointer(dest_header);
-        assert(dest_ptr && "Unable to acquire memory from temp buffer is nullptr!");
+        BDC_ASSERT(dest_ptr && "Unable to acquire memory from temp buffer is nullptr!");
 
         if( src_ptr != dest_ptr )
         {
@@ -189,7 +189,7 @@ namespace bdc
         void* ptr = std::malloc( size );
 
         #ifdef BDC_DEBUG_ALLOCATORS
-            assert(ptr != nullptr);
+            BDC_ASSERT(ptr != nullptr);
             heap_allocator_tracker.after_malloc(ptr, size);
         #endif
         
@@ -210,13 +210,13 @@ namespace bdc
         void* old_ptr = ptr;
         
         #ifdef BDC_DEBUG_ALLOCATORS 
-            assert(old_ptr != nullptr);
+            BDC_ASSERT(old_ptr != nullptr);
         #endif
 
         char* new_ptr = reinterpret_cast<char*>(std::realloc(old_ptr, size));
 
         #ifdef BDC_DEBUG_ALLOCATORS                
-            assert(new_ptr != nullptr);
+            BDC_ASSERT(new_ptr != nullptr);
             heap_allocator_tracker.after_realloc(old_ptr, new_ptr, size);
         #endif
 
@@ -246,7 +246,7 @@ namespace bdc
         // Allocate temporary buffer
         BDC_LOG_DEBUG(" -- Allocating %zu bytes for the temp_allocator_buffer ...\n", temp_buffer_size);
         char* data = reinterpret_cast<char*>(std::malloc(temp_buffer_size));
-        assert(data);        
+        BDC_ASSERT(data);        
         temp_allocator_buffer = {
             .data = data,
             .size = temp_buffer_size,
@@ -340,7 +340,7 @@ namespace bdc
         
         if (asserts_no_leaks)
         {
-            assert(!report->has_leaked && "Memory Leak Found!");
+            BDC_ASSERT(!report->has_leaked && "Memory Leak Found!");
         }
     }
 
@@ -368,7 +368,7 @@ namespace bdc
 
     const Memory_Allocation_Info* Memory_Allocation_Tracker::find_allocation(void* ptr) const
     {
-        assert(ptr != nullptr);
+        BDC_ASSERT(ptr != nullptr);
         for(auto& each : allocations)
             if (each.data == ptr)
                 return &each;
@@ -377,14 +377,14 @@ namespace bdc
 
     void Memory_Allocation_Tracker::after_realloc(void* old_ptr, void* new_ptr, size_t new_size )
     {
-        assert(old_ptr != nullptr);
-        assert(new_ptr != nullptr);
+        BDC_ASSERT(old_ptr != nullptr);
+        BDC_ASSERT(new_ptr != nullptr);
 
         auto old = std::find_if(
             allocations.begin(), allocations.end(),
             [old_ptr](auto& item){ return item.data == old_ptr; }
         );
-        assert( old != allocations.end() && "Unknown address!");
+        BDC_ASSERT( old != allocations.end() && "Unknown address!");
 
         allocations.erase(old);
 

@@ -15,9 +15,9 @@ namespace ndbl
         const bdc::String       name
     )
     {
-        NDBL_VERIFY( node    , "node is can't be nullptr");
-        NDBL_VERIFY( property, "property is can't be nullptr");
-        NDBL_VERIFY( type    , "type can't be nullptr"   );
+        NDBL_ASSERT( node    , "node is can't be nullptr");
+        NDBL_ASSERT( property, "property is can't be nullptr");
+        NDBL_ASSERT( type    , "type can't be nullptr"   );
 
         property->node  = node;
         property->flags = flags;
@@ -60,7 +60,7 @@ namespace ndbl
 
         // Convert m_type to a Token_t
         Token_Type token_type = langdef_type_descriptor_to_token_type_literal(langdef(), property->type);
-        NDBL_VERIFY(token_type != Token_Type_NULL, "This token is not handled");
+        NDBL_ASSERT(token_type != Token_Type_NULL, "This token is not handled");
 
         property->token = { token_type };
     }

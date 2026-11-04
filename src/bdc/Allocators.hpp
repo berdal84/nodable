@@ -1,20 +1,9 @@
 #pragma once
 #include <cstdlib>
-#include <cassert> // for assert
 #include <cstring> // for memset
 
-#include "MACROS.hpp"
 #include "Types.hpp"
-
-#ifdef BDC_DEBUG_ALLOCATORS
-    #include <ostream>    // for std::cout, std::endl
-    #include <stacktrace> // for std::stacktrace
-    #define BDC_PRINT_STACKTRACE() \
-        std::stacktrace st = std::stacktrace::current(); \
-        std::cout << st << std::endl
-#else
-    #define BDC_PRINT_STACKTRACE() /* BDC_PRINT_STACKTRACE is disabled */
-#endif // BDC_DEBUG_ALLOCATORS
+#include "Stacktrace.hpp"
 
 #ifdef BDC_ENABLE_LOGS
     #include <cstdio>     // for std::printf

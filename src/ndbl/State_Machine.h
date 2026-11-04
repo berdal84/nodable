@@ -46,7 +46,7 @@ namespace ndbl
         void bind(const char* name, When when)
         {
             // Guards
-            NDBL_VERIFY( when < When_COUNT, "when argument is out of bound" );
+            NDBL_ASSERT( when < When_COUNT, "when argument is out of bound" );
 
             // Find the state
             State* state = get_state(name);

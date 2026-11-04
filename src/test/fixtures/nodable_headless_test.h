@@ -63,7 +63,7 @@ public:
         if(!result.ok)
         {
             NDBL_LOG(Verbosity_Error, __FILE_NAME__, "%s\n", result.error.c_str() );
-            NDBL_VERIFY(false, "Unable to open file!" );
+            NDBL_ASSERT(false, "Unable to open file!" );
         }
         return result.content;
     }

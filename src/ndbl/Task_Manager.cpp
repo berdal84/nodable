@@ -4,7 +4,7 @@
 
 #include "Asserts.h"
 
-#define VERIFY_TASKMANAGER_IS_INITIALIZED() NDBL_VERIFY(g_task_manager != nullptr, "Task_Manager is not initialized, did you call task_manager_init() ?")
+#define VERIFY_TASKMANAGER_IS_INITIALIZED() NDBL_ASSERT(g_task_manager != nullptr, "Task_Manager is not initialized, did you call task_manager_init() ?")
 
 namespace ndbl
 {
@@ -19,8 +19,8 @@ Task_Manager* task_manager()
 
 Task_Manager* task_manager_init(const Task_Manager::Config& config)
 {
-    NDBL_VERIFY(g_task_manager == nullptr, "Did you initialize twice? OR fogot to shutdown?");
-    NDBL_VERIFY(config.max_capacity >= config.reserve_size, "[init_task_manager] can't reserve more space than capacity!" );
+    NDBL_ASSERT(g_task_manager == nullptr, "Did you initialize twice? OR fogot to shutdown?");
+    NDBL_ASSERT(config.max_capacity >= config.reserve_size, "[init_task_manager] can't reserve more space than capacity!" );
     g_task_manager = bdc::memory_new<Task_Manager>();
     g_task_manager->tasks.reserve(config.reserve_size );
     return g_task_manager;
@@ -29,7 +29,7 @@ Task_Manager* task_manager_init(const Task_Manager::Config& config)
 void task_manager_shutdown()
 {
     VERIFY_TASKMANAGER_IS_INITIALIZED();
-    NDBL_VERIFY(g_task_manager != nullptr, "Task_Manager must be initialised. Did you call init_task_manager()?");
+    NDBL_ASSERT(g_task_manager != nullptr, "Task_Manager must be initialised. Did you call init_task_manager()?");
     bdc::memory_delete( g_task_manager );
     g_task_manager = nullptr;
 }
@@ -84,7 +84,7 @@ void task_manager_run_task(std::future<void>&& task)
         ++it;
     }
 
-    NDBL_VERIFY(g_task_manager->tasks.size() < g_task_manager->config.max_capacity, "[Task_Manager::schedule_task] m_tasks buffer is full. Did you call update_world_matrix() frequently? Consider increasing max_capacity when calling init_task_manager()");
+    NDBL_ASSERT(g_task_manager->tasks.size() < g_task_manager->config.max_capacity, "[Task_Manager::schedule_task] m_tasks buffer is full. Did you call update_world_matrix() frequently? Consider increasing max_capacity when calling init_task_manager()");
 
     g_task_manager->tasks.push_back(std::move(task));
 }

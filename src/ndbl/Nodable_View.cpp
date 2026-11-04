@@ -32,7 +32,7 @@
 #include "View.h"
 #include "Texture.h"
 
-#define VERIFY_NODABLEVIEW_IS_INITIALIZED() NDBL_VERIFY(g_app_view != nullptr, "Nodable_View is not initialized, did you call nodableview_init() ?")
+#define VERIFY_NODABLEVIEW_IS_INITIALIZED() NDBL_ASSERT(g_app_view != nullptr, "Nodable_View is not initialized, did you call nodableview_init() ?")
 
 namespace ndbl
 {
@@ -50,8 +50,8 @@ App_View_State* appview()
 
 App_View_State* appview_init()
 {
-    NDBL_VERIFY(g_app_view == nullptr, "Nodable_View is already initialized, did you forgot to call nodableview_shutdown() or called init twice?");
-    NDBL_VERIFY(app_state() != nullptr, "Nodable is not initialized, did you call nodable_init() ?");
+    NDBL_ASSERT(g_app_view == nullptr, "Nodable_View is already initialized, did you forgot to call nodableview_shutdown() or called init twice?");
+    NDBL_ASSERT(app_state() != nullptr, "Nodable is not initialized, did you call nodable_init() ?");
 
     auto* view = bdc::memory_new<App_View_State>();
     g_app_view = view;
@@ -69,7 +69,7 @@ App_View_State* appview_init()
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
         NDBL_LOG(Verbosity_Error,  "Nodable_View.cpp", "-- SDL Error: %s\n", SDL_GetError());
-        NDBL_VERIFY(false, "Unable to initialize SDL");
+        NDBL_ASSERT(false, "Unable to initialize SDL");
     }
 
     // Setup window
@@ -111,10 +111,10 @@ App_View_State* appview_init()
                                     SDL_WINDOW_MAXIMIZED |
                                     SDL_WINDOW_SHOWN
     );
-    NDBL_VERIFY(view->sdl_window, "-- SDL_CreateWindow failed" );
+    NDBL_ASSERT(view->sdl_window, "-- SDL_CreateWindow failed" );
     
     view->sdl_gl_context = SDL_GL_CreateContext(view->sdl_window);
-    NDBL_VERIFY(view->sdl_gl_context, "-- SDL_GL_CreateContext failed" );
+    NDBL_ASSERT(view->sdl_gl_context, "-- SDL_GL_CreateContext failed" );
 
 #ifdef NDBL_DESKTOP
     SDL_GL_SetSwapInterval(1); // https://wiki.libsdl.org/SDL2/SDL_GL_SetSwapInterval
@@ -289,7 +289,7 @@ void appview_draw()
 {
     App_View_State* view = appview();
 
-    NDBL_VERIFY(view->logo != nullptr, "Logo is nullptr, did you call init_ex() ?");
+    NDBL_ASSERT(view->logo != nullptr, "Logo is nullptr, did you call init_ex() ?");
 
     const float dt = view->dt_in_s;
 
@@ -889,7 +889,7 @@ void appview_draw()
 
                 // Hierarchy
                 Scope* scope = graph_root_scope(current_file->graph);
-                NDBL_VERIFY(scope, "An Scope root is required to draw the AST as an ImGui tree");
+                NDBL_ASSERT(scope, "An Scope root is required to draw the AST as an ImGui tree");
                 TreeNode_Scope("Graph's Root Scope", scope);
             }
 
@@ -1305,7 +1305,7 @@ void appview_update()
             case SDL_KEYDOWN:
                 for(const Action& action: action_manager()->actions )
                 {
-                    NDBL_VERIFY( action.event.type, "Unexpected event.type" );
+                    NDBL_ASSERT( action.event.type, "Unexpected event.type" );
 
                     if( HAS_FLAGS(flags, action.flags) &&
                         HAS_FLAGS(event.key.keysym.mod, action.shortcut.mod) && // same mod

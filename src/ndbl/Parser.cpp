@@ -140,7 +140,7 @@ bool langdef_is_initialized()
 
 Language_Definition& langdef()
 {
-    NDBL_VERIFY(g_langdef, "No ctx found, did you call init_language?");
+    NDBL_ASSERT(g_langdef, "No ctx found, did you call init_language?");
     return *g_langdef;
 }
 
@@ -277,7 +277,7 @@ void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
 bool parse_graph(Parser_Context& ctx)
 {
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing ...\n%s\n", ctx.in_text.c_str() );
-    NDBL_VERIFY(ctx.out_graph != nullptr, "A Graph is expected");
+    NDBL_ASSERT(ctx.out_graph != nullptr, "A Graph is expected");
 
     //
     // Optimize the Token_Ribbon
@@ -1761,7 +1761,7 @@ const Node_Slot* serialize_invokable(Serializer_Context& ctx, const Node* _node)
                 }
 
                 // Operator
-                NDBL_VERIFY( _node->component.invokable.identifier_token, "identifier token should have been assigned in parse_function_call");
+                NDBL_ASSERT( _node->component.invokable.identifier_token, "identifier token should have been assigned in parse_function_call");
                 string_builder_append( ctx.out_sb, serialize_token( ctx, _node->component.invokable.identifier_token ));
 
                 // Right part of the expression
@@ -1917,7 +1917,7 @@ void serialize_input(Serializer_Context& ctx, const Node_Slot* slot, Serializati
     }
     else
     {
-        NDBL_VERIFY( _flags & Serialization_Flag_RECURSE, "Why would you call serialize_input without RECURSE flag?");
+        NDBL_ASSERT( _flags & Serialization_Flag_RECURSE, "Why would you call serialize_input without RECURSE flag?");
         // Append token prefix?
         if (adjacent_property->token)
             string_builder_append(ctx.out_sb, adjacent_property->token.prefix_view());
@@ -1946,7 +1946,7 @@ void serialize_node_value_out(Serializer_Context& ctx, const Node_Slot* slot, Se
 
     // Otherwise, it might be a variable reference, so we serialize the identifier only
     NDBL_ASSERT(slot->node->type == Node_Type_VARIABLE ); // Can't be another type
-    NDBL_VERIFY( slot == slot->node->component.variable.ref_out, "Cannot serialize an other slot from a VariableNode");
+    NDBL_ASSERT( slot == slot->node->component.variable.ref_out, "Cannot serialize an other slot from a VariableNode");
     string_builder_append(  ctx.out_sb, node_get_identifier(slot->node) );
 }
 
@@ -1971,7 +1971,7 @@ void serialize_node(Serializer_Context& ctx, const Node* node, Serialization_Fla
         case Node_Type_EMPTY_INSTRUCTION: serialize_empty_instruction(ctx, node);        break;
         case Node_Type_ROOT:              [[fallthrough]];
         case Node_Type_SCOPE:             serialize_scope(ctx, node->internal_scope );   break;
-        default:                          NDBL_VERIFY(false, "Unhandled NodeType, can't serialize");
+        default:                          NDBL_ASSERT(false, "Unhandled NodeType, can't serialize");
     }
 
     String token_str = serialize_token( ctx, node->suffix );
@@ -2040,7 +2040,7 @@ bdc::String serialize_token_type(const Serializer_Context& ctx, Token_Type token
 
 void serialize_graph(Serializer_Context& ctx)
 {
-    NDBL_VERIFY(ctx.in_graph != nullptr, "Did you call serialize_begin()");
+    NDBL_ASSERT(ctx.in_graph != nullptr, "Did you call serialize_begin()");
     const Node* root_node = graph_root(ctx.in_graph);
     if ( root_node == nullptr )
     {

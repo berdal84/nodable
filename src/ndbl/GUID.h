@@ -19,7 +19,7 @@ namespace ndbl
     //
     static String get_next_GUID(const String& salt)
     {
-        NDBL_VERIFY( 0 < salt.size && salt.size <= 64, "salt.size must be in ]1, 32]");
+        NDBL_ASSERT( 0 < salt.size && salt.size <= 64, "salt.size must be in ]1, 32]");
 
         // Get current time
         auto now = std::chrono::system_clock::now();

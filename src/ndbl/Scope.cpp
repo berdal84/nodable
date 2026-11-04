@@ -23,8 +23,8 @@ void scope_init(Scope* scope)
 
 void scope_deinit(Scope* scope)
 {
-    NDBL_VERIFY(scope->parent == nullptr, "Remove this scope from parent first");
-    NDBL_VERIFY(scope->children.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
+    NDBL_ASSERT(scope->parent == nullptr, "Remove this scope from parent first");
+    NDBL_ASSERT(scope->children.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
     scope_reset_head(scope);
     NDBL_ASSERT(scope->head == nullptr);
     NDBL_ASSERT(scope->children.empty());
@@ -73,8 +73,8 @@ void scope_append(Scope* scope, Node *node)
 
     const Scope* previous_scope = node->scope;
     NDBL_ASSERT(node);
-    NDBL_VERIFY(previous_scope == nullptr, "Node should have no scope");
-    NDBL_VERIFY(node != scope->node, "Can't add a node into its own internal scope" );
+    NDBL_ASSERT(previous_scope == nullptr, "Node should have no scope");
+    NDBL_ASSERT(node != scope->node, "Can't add a node into its own internal scope" );
 
     // Insert
     const auto& [_, ok] = scope->children.insert(node); NDBL_ASSERT(ok);
@@ -146,7 +146,7 @@ std::vector<Node*>& scope_get_leaves_ex(std::vector<Node*>& out, Scope* scope)
 void scope_remove(Scope* scope, Node *node)
 {
     NDBL_ASSERT( node );
-    NDBL_VERIFY( node->scope == scope, "node can't be inside its own Scope");
+    NDBL_ASSERT( node->scope == scope, "node can't be inside its own Scope");
 
     scope->_cached_backbone_dirty = true;
 
@@ -252,7 +252,7 @@ std::set<Scope*>& scope_get_descendent_ex(std::set<Scope*>& out, Scope* scope, s
 
 void scope_reset_parent(Scope* scope, Scope* new_parent)
 {
-    NDBL_VERIFY(new_parent != scope->parent, "new_parent is expected to be different than the current one");
+    NDBL_ASSERT(new_parent != scope->parent, "new_parent is expected to be different than the current one");
     scope->parent = new_parent;
     _scope_set_depth_cache_dirty(scope);
 }
@@ -275,8 +275,8 @@ bool scope_contains(const Scope* scope, Node* node)
 void scope_reset_head(Scope* scope, Node* new_head)
 {
 #ifdef NDBL_DEBUG
-    NDBL_VERIFY( !new_head      || new_head->scope      == scope, "Node must be from this scope");
-    NDBL_VERIFY( !scope->head || scope->head->scope == scope, "node as backbone head should never be removed before to reset backbone head")
+    NDBL_ASSERT( !new_head      || new_head->scope      == scope, "Node must be from this scope");
+    NDBL_ASSERT( !scope->head || scope->head->scope == scope, "node as backbone head should never be removed before to reset backbone head")
 #endif
     scope->head = new_head;
 }
