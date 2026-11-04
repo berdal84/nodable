@@ -8,17 +8,17 @@ namespace ndbl
     
 using namespace bdc;
 
-String Shortcut::to_string() const
+String shortcut_to_tstring(const Shortcut& shortcut)
 {
     String_Builder sb;
     string_builder_init(sb);
 
-    if( mod & KMOD_CTRL )       string_builder_append( sb, "Ctrl + ");
-    if( mod & KMOD_ALT )        string_builder_append( sb, "Alt + ");
-    if( key )                   string_builder_append( sb, SDL_GetKeyName(key));
-    if( !description.empty() )  string_builder_append( sb, description);
+    if( shortcut.mod & KMOD_CTRL )       string_builder_append( sb, "Ctrl +");
+    if( shortcut.mod & KMOD_ALT )        string_builder_append( sb, "Alt +");
+    if( shortcut.key )                   string_builder_append( sb, SDL_GetKeyName(shortcut.key));
+    if( !shortcut.description.empty() )  string_builder_append( sb, shortcut.description);
 
-    return string_builder_build_tstring(sb);
+    return string_builder_build_tstring(sb, " ");
 }
 
 } // namespace ndbl

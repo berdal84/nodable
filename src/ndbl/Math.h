@@ -5,6 +5,10 @@
 
 namespace ndbl
 {
+    template<typename T>
+    inline T min(T a, T b)
+    { return a > b ? b : a; }
+
     inline float normalize(float x, float xmin, float xmax)
     { return glm::clamp(x, xmin, xmax) / (xmax - xmin); }
 

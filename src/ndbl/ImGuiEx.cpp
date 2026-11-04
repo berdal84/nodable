@@ -324,7 +324,7 @@ const Action* MenuItem_for_event_type(Event_Type event_type, bool selected, bool
 {
     const Action* action = action_manager_get_action_with_event_type(event_type);
 
-    if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
+    if (ImGui::MenuItem( action->label.c_str(), shortcut_to_tstring(action->shortcut).data, selected, enable))
     {
         return action;
     }

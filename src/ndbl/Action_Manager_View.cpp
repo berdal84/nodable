@@ -26,9 +26,9 @@ void action_manager_view_draw(Action_Manager* manager)
                 event_manager_push_event( action.event);
             }
             ImGui::SameLine();
-            ImGui::Text("%s", action.label.c_str());
+            ImGui::Text(STRING_FMT, STRING_FMT_ARGS(action.label));
             ImGui::TableNextColumn();
-            ImGui::Text("%s", action.shortcut.to_string().c_str()); // TODO: handle shortcut edition
+            ImGui::Text(STRING_FMT, STRING_FMT_ARGS(shortcut_to_tstring(action.shortcut))); // Note: handle shortcut edition?
             ImGui::PopID();
         }
         ImGui::EndTable();

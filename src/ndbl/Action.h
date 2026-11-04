@@ -33,8 +33,9 @@ namespace ndbl
         SDL_Keycode key         = SDLK_UNKNOWN;     // a key to be pressed
         SDL_Keymod  mod         = KMOD_NONE;        // modifiers (alt, ctrl, etc.)
         bdc::String description;
-        bdc::String to_string() const;              // TODO: this could be a precomputed
     };
+
+    String shortcut_to_tstring(const Shortcut&); // Return a string including shortcut and description (ex: "Ctrl + Alt + M Do this")
 
     struct Action 
     {

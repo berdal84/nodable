@@ -15,6 +15,7 @@
 #include "Node.h"
 #include "Parser.h"
 #include "texteditor/Text_Editor_ImGui_Renderer.h"
+#include "Math.h" // for min()
 
 namespace ndbl
 {
@@ -490,16 +491,15 @@ void fileview_refresh_overlay(File_View* file_view )
         if( ( action.flags & flags) == flags && (action.flags & Action_Flags_HIGHLIGHTED) )
         {
             bdc::String label = action.label;
-            label.size = label.size > 12 ? 12 : label.size;
-            bdc::String shortcut_str = action.shortcut.to_string();
-            File_View_Overlay_Type overlay_type;
-            
-            if (action.flags & Action_Flags_HIGHLIGHTED_IN_TEXT_EDITOR)
-                overlay_type = File_View_Overlay_Type_TEXT;
-            else
-                overlay_type = File_View_Overlay_Type_GRAPH;
+            label.size = min(label.size, 12u);
 
-            fileview_push_overlay(file_view, {label, shortcut_str}, overlay_type);
+            File_View_Overlay_Type overlay_type = File_View_Overlay_Type_GRAPH;            
+            if (action.flags & Action_Flags_HIGHLIGHTED_IN_TEXT_EDITOR)
+            {
+                overlay_type = File_View_Overlay_Type_TEXT;
+            }
+
+            fileview_push_overlay(file_view, {label, shortcut_to_tstring(action.shortcut)}, overlay_type);
         }
     }
 }
