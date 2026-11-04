@@ -53,7 +53,7 @@ namespace ndbl
         bool           fps_limit_on;
         float          fps_limit;
         u32_t          dt_cap; // in ms
-        Color          background_color;
+        Vec4           background_color;
         Vec4           button_activeColor;
         Vec4           button_hoveredColor;
         Vec4           button_color;

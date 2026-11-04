@@ -1204,8 +1204,8 @@ void appview_draw()
     ImGuiIO& io = ImGui::GetIO();
 
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    Vec4& color = cfg->background_color.value;
-    glClearColor( color.x, color.y, color.z, color.w);
+    Vec4& bg_color = cfg->background_color;
+    glClearColor( bg_color.x, bg_color.y, bg_color.z, bg_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
 
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

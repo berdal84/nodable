@@ -106,16 +106,16 @@ void config_reset()
     for (auto& col : g_config->ui_node_fill_color)
         col = Vec4(0.7f, 0.9f, 0.7f, 1.0f); // green;
 
-    g_config->ui_node_fill_color[Node_Type_VARIABLE]     =  Color(171, 190, 255);
+    g_config->ui_node_fill_color[Node_Type_VARIABLE]     =  color_from_rgba_u8(171, 190, 255);
     g_config->ui_node_fill_color[Node_Type_VARIABLE_REF] =  g_config->ui_node_fill_color[Node_Type_VARIABLE];
-    g_config->ui_node_fill_color[Node_Type_LITERAL]      =  Color(200, 200, 200);
-    g_config->ui_node_fill_color[Node_Type_FUNCTION]     =  Color(255, 199, 115);
+    g_config->ui_node_fill_color[Node_Type_LITERAL]      =  color_from_rgba_u8(200, 200, 200);
+    g_config->ui_node_fill_color[Node_Type_FUNCTION]     =  color_from_rgba_u8(255, 199, 115);
     g_config->ui_node_fill_color[Node_Type_OPERATOR]     =  g_config->ui_node_fill_color[Node_Type_FUNCTION];
 
     g_config->ui_slot_border_color                  = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    g_config->ui_slot_hovered_color                 = Color(200, 200, 200);
-    g_config->ui_slot_color_light                   = Color(255, 255, 255);
-    g_config->ui_slot_color_dark                    = Color(127, 127, 127);
+    g_config->ui_slot_hovered_color                 = color_from_rgba_u8(200, 200, 200);
+    g_config->ui_slot_color_light                   = color_from_rgba_u8(255, 255, 255);
+    g_config->ui_slot_color_dark                    = color_from_rgba_u8(127, 127, 127);
     g_config->ui_node_gap_base                      = Vec2(40.0f, 40.f);
     g_config->ui_node_speed                         = 20.0f;
     g_config->ui_node_physics_frequency             = 120.f;
@@ -131,12 +131,12 @@ void config_reset()
     g_config->ui_wire_bezier_roundness              = Vec2{0.25f, 2.0f};
     g_config->ui_wire_bezier_thickness              = 2.0f;
     g_config->ui_wire_bezier_fade_lensqr_range      = {300.0f*300.f, 1000.0f*1000.0f};
-    g_config->ui_wire_color                         = Color(255, 255, 255);
+    g_config->ui_wire_color                         = color_from_rgba_u8(255, 255, 255);
     g_config->ui_wire_shadowColor                   = g_config->ui_node_shadowColor;
 
     // code flow
-    g_config->ui_codeflow_color                     = Color(150, 170, 140); // slightly green
-    g_config->ui_codeflow_shadowColor               = Color(0, 0, 0, 64);
+    g_config->ui_codeflow_color                     = color_from_rgba_u8(150, 170, 140); // slightly green
+    g_config->ui_codeflow_shadowColor               = color_from_rgba_u8(0, 0, 0, 64);
     g_config->ui_codeflow_thickness_ratio           = 0.45f; // relative to ui_slot_rectangle_size.x
 
     // buttons
@@ -170,13 +170,13 @@ void config_reset()
     g_config->ui_scope_border_radius                = 7.f;
     g_config->ui_scope_border_thickness             = 3.f;
     g_config->ui_scope_gap_base                     = 10.f;
-    g_config->ui_scope_fill_col_light               = Color(100, 100, 100);
-    g_config->ui_scope_fill_col_dark                = Color(70,70,70);
-    g_config->ui_scope_border_col                   = Color(255,255,255,40);
+    g_config->ui_scope_fill_col_light               = color_from_rgba_u8(100, 100, 100);
+    g_config->ui_scope_fill_col_dark                = color_from_rgba_u8(70,70,70);
+    g_config->ui_scope_border_col                   = color_from_rgba_u8(255,255,255,40);
 
     // Graph
-    g_config->ui_graph_grid_color_major             = Color(0, 0, 0, 42);
-    g_config->ui_graph_grid_color_minor             = Color(0, 0, 0, 17);
+    g_config->ui_graph_grid_color_major             = color_from_rgba_u8(0, 0, 0, 42);
+    g_config->ui_graph_grid_color_minor             = color_from_rgba_u8(0, 0, 0, 17);
     g_config->ui_grid_subdiv_count                  = 4;
     g_config->ui_grid_size                          = 100.0f;
 
