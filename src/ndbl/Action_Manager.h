@@ -1,7 +1,5 @@
 #pragma once
 
-#include <cstddef>
-
 #include "bdc/Array.hpp"
 #include "bdc/Hash_Map.hpp"
 #include "Event.h"
