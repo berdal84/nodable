@@ -5,7 +5,7 @@
 #include "ImGuiEx.h"
 #include "Log.h"
 
-#define ASSERT_FONT_MANAGER_IS_INITIALIZED() VERIFY(g_font_manager != nullptr, "g_font_manager can't be found. Did you call font_manager_init() ?")
+#define ASSERT_FONT_MANAGER_IS_INITIALIZED() NDBL_VERIFY(g_font_manager != nullptr, "g_font_manager can't be found. Did you call font_manager_init() ?")
 
 namespace ndbl
 {
@@ -14,7 +14,7 @@ static Font_Manager* g_font_manager = nullptr;
 
 Font_Manager* font_manager_init(const Font_Manager_Config* config)
 {
-    VERIFY(g_font_manager == nullptr, "font_manager_init() called twice?");
+    NDBL_VERIFY(g_font_manager == nullptr, "font_manager_init() called twice?");
 
     g_font_manager = bdc::memory_new<Font_Manager>();
     g_font_manager->config = config;

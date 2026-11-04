@@ -43,7 +43,7 @@ namespace ndbl
         : static_function_ptr(func)
         , type(DELEGATE_TYPE_STATIC)
         {
-            ASSERT( func != nullptr );
+            NDBL_ASSERT( func != nullptr );
         }
 
         bool is_null() const
@@ -70,7 +70,7 @@ namespace ndbl
 
         void bind(void* new_object_ptr)
         {
-            ASSERT( type == DELEGATE_TYPE_METHOD );
+            NDBL_ASSERT( type == DELEGATE_TYPE_METHOD );
             object_ptr = new_object_ptr;
         }
 

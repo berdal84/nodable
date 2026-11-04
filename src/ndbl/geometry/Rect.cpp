@@ -6,7 +6,7 @@ using namespace ndbl;
 
 Rect Rect::bounding_rect(const std::vector<Vec2>* points )
 {
-    ASSERT(points->empty() == false);
+    NDBL_ASSERT(points->empty() == false);
     Vec2 first = points->front();
     Rect result{ first, first };
     for ( auto it = points->begin() + 1; it != points->end(); it++ )
@@ -29,8 +29,8 @@ Rect Rect::bounding_rect(const std::vector<Rect>& rect )
 
 Rect Rect::bounding_rect(const Rect& a, const Rect& b )
 {
-    ASSERT(!a.is_inverted());
-    ASSERT(!b.is_inverted());
+    NDBL_ASSERT(!a.is_inverted());
+    NDBL_ASSERT(!b.is_inverted());
 
     if ( !a.has_area() )
         return b;
@@ -47,8 +47,8 @@ Rect Rect::bounding_rect(const Rect& a, const Rect& b )
 
 bool Rect::contains( const Rect& a, const Rect& b )
 {
-    ASSERT(!a.is_inverted());
-    ASSERT(!b.is_inverted());
+    NDBL_ASSERT(!a.is_inverted());
+    NDBL_ASSERT(!b.is_inverted());
 
     if ( a.min.x <= b.min.x )
         if ( a.min.y <= b.min.y )
@@ -60,7 +60,7 @@ bool Rect::contains( const Rect& a, const Rect& b )
 
 bool Rect::contains( const Rect& rect, const Vec2& point )
 {
-    ASSERT(!rect.is_inverted());
+    NDBL_ASSERT(!rect.is_inverted());
 
     return point.x >= rect.min.x &&
            point.x <= rect.max.x &&

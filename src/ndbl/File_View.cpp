@@ -31,10 +31,10 @@ void fileview_init(File_View* file_view, File* file)
 	file_view->text_editor_palette = cfg->ui_text_editor_palette;
     file_view->is_syntax_dirty     = true;
 
-    ASSERT(file->graph->view);
+    NDBL_ASSERT(file->graph->view);
     file_view->graph_view = file->graph->view;
 
-    VERIFY( file_view->file->graph->view, "A Graph_View component is required by File_View" );
+    NDBL_VERIFY( file_view->file->graph->view, "A Graph_View component is required by File_View" );
 }
 
 void fileview_deinit(File_View* file_view)
@@ -372,7 +372,7 @@ bdc::String fileview_get_text( const File_View* file_view, bool isolation_on )
         tmp = file_view->text_editor.GetCurrentLineText(); // By default, we consider the current line as the selection
     }
 
-    ASSERT( tmp.size() < (u32_t)(-1));
+    NDBL_ASSERT( tmp.size() < (u32_t)(-1));
     bdc::String result = bdc::string_tcopy( bdc::String{tmp.data(), (u32_t)tmp.size()} );
     return result;
 }

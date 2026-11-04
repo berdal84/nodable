@@ -33,7 +33,7 @@ namespace ndbl
     //      Signal<void(int)> signal_change;
     //      signal_change.connect<&Number::set_value>(&number); // &Number::set_value has same type as signal template argument
     //      signal_change.emit(42);
-    //      ASSERT(number.value() == 42);
+    //      NDBL_ASSERT(number.value() == 42);
     //
     //      // note that trying to connect another method will fail, see Broadcast_Signal instead
     //      Number another_number;
@@ -64,10 +64,10 @@ namespace ndbl
         
         void connect(const Delegate_Type& delegate)
         {
-            ASSERT_DEBUG_ONLY(_m_delegate.is_null()); // Did you forgot to disconnect() before?
+            NDBL_ASSERT_DEBUG_ONLY(_m_delegate.is_null()); // Did you forgot to disconnect() before?
                                                         // Broadcasting not allowed. Did you called this multiple times on purpose?
                                                         // Use SignalN or SignalNR instead.
-            ASSERT_DEBUG_ONLY(delegate.callable());     // Delegate should be callable..
+            NDBL_ASSERT_DEBUG_ONLY(delegate.callable());     // Delegate should be callable..
             if( delegate.callable() )                   // ..and, in release we don't want to call it.
                 _m_delegate = delegate;
 
@@ -77,7 +77,7 @@ namespace ndbl
         void disconnect()
         {
             _m_delegate = {};
-            ASSERT_DEBUG_ONLY(_m_delegate.is_null());
+            NDBL_ASSERT_DEBUG_ONLY(_m_delegate.is_null());
         }
 
         Result_Type emit(Arg_Types...args) const // emit signal to the listener, if any.
@@ -106,7 +106,7 @@ namespace ndbl
         void connect(Object_Type* object_ptr)
         {
             auto delegate = Delegate_Type::template from<Function_Type>(object_ptr);
-            VERIFY( delegate.callable(), "TMethod is not callable on object_ptr. Is object_ptr null?" );
+            NDBL_VERIFY( delegate.callable(), "TMethod is not callable on object_ptr. Is object_ptr null?" );
             connect(delegate);
             // TODO: return an identifier/hash to disconnect with?
         }

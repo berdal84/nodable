@@ -161,7 +161,7 @@ void ndbl::command_new_node_do(Command* command)
             case Node_Type_FUNCTION:
                 break;
             default:
-                UNREACHABLE("Unexpected Node_Type: %i\n", node_state->type );
+                NDBL_UNREACHABLE("Unexpected Node_Type: %i\n", node_state->type );
         }
     }
 

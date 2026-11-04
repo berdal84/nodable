@@ -128,8 +128,8 @@ namespace ndbl
 
     inline void element_link(Element* a, Element* b)
     {
-        ASSERT(a != nullptr);
-        ASSERT(b != nullptr);
+        NDBL_ASSERT(a != nullptr);
+        NDBL_ASSERT(b != nullptr);
 
         b->prev = a;
         a->next = b;
@@ -212,7 +212,7 @@ namespace ndbl
 
     inline void layout_end()
     {
-        VERIFY(layout()->stack.size > 0, "LAYOUT_BEGIN/END mismatch!");
+        NDBL_VERIFY(layout()->stack.size > 0, "LAYOUT_BEGIN/END mismatch!");
         auto* current = array_back(layout()->stack);
         array_pop(layout()->stack);     
     };
@@ -229,7 +229,7 @@ namespace ndbl
 
     inline void layout__begin(Axis axis)
     {
-        VERIFY(layout()->elements.size < layout()->elements.capacity, "Buffer overflow!");
+        NDBL_VERIFY(layout()->elements.size < layout()->elements.capacity, "Buffer overflow!");
         
         Element* parent = array_back(layout()->stack);
         Element* elem   = layout_new_container(axis);
@@ -331,7 +331,7 @@ namespace ndbl
 
                 default:
                 {
-                    UNREACHABLE("Unexpected Axis: %i", parent.container.main_axis );
+                    NDBL_UNREACHABLE("Unexpected Axis: %i", parent.container.main_axis );
                 }
             }
         }
@@ -355,8 +355,8 @@ namespace ndbl
                 continue;
             }
 
-            ASSERT(element.dimension.width != -1);
-            ASSERT(element.dimension.height != -1);
+            NDBL_ASSERT(element.dimension.width != -1);
+            NDBL_ASSERT(element.dimension.height != -1);
 
             Vec2 cursor = element.position;
 
@@ -384,7 +384,7 @@ namespace ndbl
 
                 default:
                 {
-                    UNREACHABLE("Unexpected Axis: %i", element.container.main_axis );
+                    NDBL_UNREACHABLE("Unexpected Axis: %i", element.container.main_axis );
                 }
             }
             
@@ -425,7 +425,7 @@ namespace ndbl
 
                     default:
                     {
-                        UNREACHABLE("Unexpected Container_Config: %i", element.container.main_axis );
+                        NDBL_UNREACHABLE("Unexpected Container_Config: %i", element.container.main_axis );
                     }
                 }
 
@@ -437,16 +437,16 @@ namespace ndbl
     inline void layout_set_gap(float gap)
     {
         Element* elem = array_back(layout()->stack);
-        ASSERT(elem->type == Element::Type_CONTAINER);
+        NDBL_ASSERT(elem->type == Element::Type_CONTAINER);
         elem->container.gap = gap;
     }
 
     inline void layout_push(const Element& elem)
     {
-        VERIFY(layout()->elements.size < layout()->elements.capacity, "Buffer overflow!");
+        NDBL_VERIFY(layout()->elements.size < layout()->elements.capacity, "Buffer overflow!");
         
         Element* parent = array_back(layout()->stack);
-        ASSERT(parent->type == Element::Type_CONTAINER);
+        NDBL_ASSERT(parent->type == Element::Type_CONTAINER);
 
         Element* new_element = layout_new_elem(elem);
         elem_push_back(parent, new_element);

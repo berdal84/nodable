@@ -40,7 +40,7 @@ namespace ndbl
 
 static App_State* g_app = {}; // The main loop needs a static function pointer to run, we have to grab App_View_State* globaly.
 
-#define VERIFY_NODABLE_IS_INITIALIZED() VERIFY(g_app != nullptr, "Nodable is not initialized, did you call nodable_init() ?")
+#define VERIFY_NODABLE_IS_INITIALIZED() NDBL_VERIFY(g_app != nullptr, "Nodable is not initialized, did you call nodable_init() ?")
 
 template<typename Type>
 static Type_Descriptor* create_variable_node_signature()
@@ -67,7 +67,7 @@ App_State* app_init()
     DEFINE_REFLECT(Graph_View);
 
     // Expose a global pointer
-    ASSERT(g_app == nullptr);
+    NDBL_ASSERT(g_app == nullptr);
     g_app = bdc::memory_new<App_State>();
 
     array_init(g_app->files);
@@ -265,7 +265,7 @@ void app_update()
 
             case Event_Type_FILE_OPENED:
             {
-                ASSERT(app->current_file != nullptr );
+                NDBL_ASSERT(app->current_file != nullptr );
                 fileview_clear_overlay(&app->current_file->view);
                 fileview_refresh_overlay(&app->current_file->view);
                 break;
@@ -350,7 +350,7 @@ void app_update()
             {
                 auto tail = static_cast<Node_Slot*>(event.data1);
                 auto head = static_cast<Node_Slot*>(event.data2);
-                ASSERT(head != tail);
+                NDBL_ASSERT(head != tail);
                 if ( tail->order() == Node_Slot::Flag_ORDER_2ND )
                 {
                     if ( head->order() == Node_Slot::Flag_ORDER_2ND )
@@ -421,7 +421,7 @@ void app_update()
                     const Type_Descriptor*  type                = slot_view->property()->type;
                     Node_Slot*              complementary_slot  = node_find_slot_by_property_type(new_node, complementary_flags, type);
 
-                    ASSERT(complementary_slot != nullptr); // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
+                    NDBL_ASSERT(complementary_slot != nullptr); // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
 
                     Node_Slot* out = slot_view->slot;
                     Node_Slot* in  = complementary_slot;
@@ -450,7 +450,7 @@ void app_update()
 
             default:
             {
-                UNREACHABLE("Unexpected Event_Type");
+                NDBL_UNREACHABLE("Unexpected Event_Type");
             }
         }
     }
@@ -492,7 +492,7 @@ File* app_open_file(const Path& _path)
 File* app_add_file(File* file)
 {
     auto app = app_state();
-    VERIFY(file, "File is nullptr");
+    NDBL_VERIFY(file, "File is nullptr");
     array_append(app->files, file);
     app->current_file = file;
     event_manager_push_event({ .type = Event_Type_FILE_OPENED, .data1 = file });
@@ -503,7 +503,7 @@ void app_save_file(File* file)
 {
     auto app = app_state();
 
-    VERIFY(file, "file must be defined");
+    NDBL_VERIFY(file, "file must be defined");
 
 	if ( !file_write(file, file->path) )
     {
@@ -541,7 +541,7 @@ void app_close_file(File* file)
 
     // Find and delete the file
     auto found = array_find(app->files, file);
-    VERIFY(found.ok, "Unable to find the file in the loaded_files");
+    NDBL_VERIFY(found.ok, "Unable to find the file in the loaded_files");
     array_remove_ordered(app->files, found.at_pos);
     array_append(app->files_to_delete, file);
 

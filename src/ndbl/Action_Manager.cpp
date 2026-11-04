@@ -4,7 +4,7 @@
 #include "Event.h"
 #include "Log.h"
 
-#define ASSERT_ACTION_MANAGER_IS_INITIALIZED() VERIFY(g_action_manager != nullptr, "event manager can't be found. Did you call action_manager_init ?")
+#define ASSERT_ACTION_MANAGER_IS_INITIALIZED() NDBL_VERIFY(g_action_manager != nullptr, "event manager can't be found. Did you call action_manager_init ?")
 
 // private
 namespace ndbl
@@ -20,7 +20,7 @@ namespace ndbl
 
     Action_Manager* action_manager_init()
     {
-        VERIFY(g_action_manager == nullptr, "Only works once, you can't call init when a current action manager is set.");
+        NDBL_VERIFY(g_action_manager == nullptr, "Only works once, you can't call init when a current action manager is set.");
 
         g_action_manager = bdc::memory_new<Action_Manager>();
         hashmap_init(g_action_manager->actions_by_event_type);
@@ -30,7 +30,7 @@ namespace ndbl
 
     void action_manager_set_current(Action_Manager* action_manager)
     {
-        VERIFY(action_manager != nullptr, "action_manager cant' be null!");
+        NDBL_VERIFY(action_manager != nullptr, "action_manager cant' be null!");
         g_action_manager = action_manager;
     }
 
@@ -55,7 +55,7 @@ namespace ndbl
         if ( !found.ok )
         {
             String str = string_printf("Unable to find an action bound to EventId %i\n", type);
-            VERIFY(false, str.c_str() );
+            NDBL_VERIFY(false, str.c_str() );
         }
         return &g_action_manager->actions[*found.data];
     }
@@ -69,7 +69,7 @@ namespace ndbl
         if( !HAS_FLAGS(action.flags, Action_Flags_DISABLE_INDEXING ) )
         {
             auto found = hashmap_find_index(g_action_manager->actions_by_event_type, action.event.type);
-            ASSERT(!found.ok && "We should only have one action per event type in the index."); 
+            NDBL_ASSERT(!found.ok && "We should only have one action per event type in the index."); 
             hashmap_add(g_action_manager->actions_by_event_type, action.event.type, pos);
         }
 

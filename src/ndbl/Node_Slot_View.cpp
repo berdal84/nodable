@@ -20,8 +20,8 @@ void nodeslotview_init(
     const Box_2D*   alignment_ref
 )
 {
-    ASSERT(view != nullptr);
-    ASSERT(slot != nullptr);
+    NDBL_ASSERT(view != nullptr);
+    NDBL_ASSERT(slot != nullptr);
 
     view->slot              = slot;
     view->alignment_pivot   = align;
@@ -113,7 +113,7 @@ bool nodeslotview_draw(Node_Slot_View* view)
             break;
         }
         default:
-            VERIFY(false, "Unhandled case");
+            NDBL_VERIFY(false, "Unhandled case");
     }
 
     if ( ImGuiEx::BeginTooltip() )

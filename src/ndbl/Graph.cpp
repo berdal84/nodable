@@ -28,7 +28,7 @@ void    _graph_remove_node(Graph*, Node*);
 void graph_init(Graph* graph)
 {
     NDBL_LOG(Verbosity_Diagnostic, "Graph", "Initializing ...\n");
-    ASSERT( graph->nodes.size == 0 ); // Did you call graph_init multiple times? Did you forgot to call graph_deinit() after each graph_init() ?
+    NDBL_ASSERT( graph->nodes.size == 0 ); // Did you call graph_init multiple times? Did you forgot to call graph_deinit() after each graph_init() ?
 
     hashmap_init(graph->node_index_by_id);
 
@@ -117,13 +117,13 @@ void _graph_add_node(Graph* graph, Node* node, Scope* scope)
 
     if( !scope )
     {
-        VERIFY( &graph->nodes[0] == node, "you didn't provided a scope argument, which is only valid for the first insert (root node).");
+        NDBL_VERIFY( &graph->nodes[0] == node, "you didn't provided a scope argument, which is only valid for the first insert (root node).");
     }
     else
     {
-        VERIFY( node->scope == nullptr, "node must be unscoped, use scope argument instead" );
-        VERIFY( scope->node->graph == graph, "the provided scope belong to another graph" );
-        ASSERT(!HAS_FLAGS(node->flags, Node_Flag_WAS_IN_A_SCOPE_ONCE)); // double-check
+        NDBL_VERIFY( node->scope == nullptr, "node must be unscoped, use scope argument instead" );
+        NDBL_VERIFY( scope->node->graph == graph, "the provided scope belong to another graph" );
+        NDBL_ASSERT(!HAS_FLAGS(node->flags, Node_Flag_WAS_IN_A_SCOPE_ONCE)); // double-check
         scope_append(scope, node);
     }
 
@@ -180,7 +180,7 @@ Node* graph_find_node(Graph* graph, const bdc::String_Hash& id)
 
 Node* _graph_new_node(Graph* graph)
 {
-    ASSERT(graph->nodes.size < NODE_MAX_COUNT);
+    NDBL_ASSERT(graph->nodes.size < NODE_MAX_COUNT);
 
     Node node;
     node.id = string_hash( get_next_GUID("Node") );
@@ -234,7 +234,7 @@ void graph_find_and_destroy_node(Graph* graph, Node* node)
         return;
 
     auto found = graph_find_node(graph, node->id);
-    ASSERT( found );
+    NDBL_ASSERT( found );
 
     // backup slots
     const Node_Slot* flow_in  = node->flow_in();
@@ -259,15 +259,15 @@ void graph_find_and_destroy_node(Graph* graph, Node* node)
 void graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
 {
     // Guards
-    ASSERT(tail != nullptr);
-    ASSERT(head != nullptr);
-    ASSERT(HAS_FLAGS(head->flags, Node_Slot::Flag_INPUT ) );
-    ASSERT(!head->is_full());
-    ASSERT(HAS_FLAGS(tail->flags, Node_Slot::Flag_OUTPUT ) );
-    ASSERT(!tail->is_full());
-    VERIFY(head->property, "tail property must be defined" );
-    VERIFY(tail->property, "head property must be defined" );
-    VERIFY(head->node != tail->node, "Can't connect same primary_child!" );
+    NDBL_ASSERT(tail != nullptr);
+    NDBL_ASSERT(head != nullptr);
+    NDBL_ASSERT(HAS_FLAGS(head->flags, Node_Slot::Flag_INPUT ) );
+    NDBL_ASSERT(!head->is_full());
+    NDBL_ASSERT(HAS_FLAGS(tail->flags, Node_Slot::Flag_OUTPUT ) );
+    NDBL_ASSERT(!tail->is_full());
+    NDBL_VERIFY(head->property, "tail property must be defined" );
+    NDBL_VERIFY(tail->property, "head property must be defined" );
+    NDBL_VERIFY(head->node != tail->node, "Can't connect same primary_child!" );
 
     // now graph is abstract
 //    const type* out_type = __out->property->get_type();
@@ -299,8 +299,8 @@ void graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
 void graph_connect_to_variable(Node_Slot* output_slot, Node* _variable )
 {
     // Guards
-    ASSERT( HAS_FLAGS(output_slot->flags, Node_Slot::Flag_OUTPUT) );
-    ASSERT( !output_slot->is_full() );
+    NDBL_ASSERT( HAS_FLAGS(output_slot->flags, Node_Slot::Flag_OUTPUT) );
+    NDBL_ASSERT( !output_slot->is_full() );
     return graph_connect_or_merge( output_slot, _variable->value_in() );
 }
 
@@ -313,8 +313,8 @@ void graph_connect(const std::set<Node_Slot*>& tails, Node_Slot* head, Graph_Fla
 
 void graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
 {
-    ASSERT(tail != nullptr);
-    ASSERT(head != nullptr);
+    NDBL_ASSERT(tail != nullptr);
+    NDBL_ASSERT(head != nullptr);
 
     // DirectedEdge is just data, we must add manually cross-references to each end of the edge
     node_slot_add_adjacent( tail, head );
@@ -327,7 +327,7 @@ void graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
         {
             case Node_Slot::Flag_TYPE_FLOW:
             {
-                ASSERT( tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
+                NDBL_ASSERT( tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
 
                 Node*  previous_node      = tail->node;
                 Node*  next_node          = head->node;
@@ -381,7 +381,7 @@ void graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                 }
                 else
                 {
-                    VERIFY(false, "Unexpected edge count");
+                    NDBL_VERIFY(false, "Unexpected edge count");
                 }
                 break;
             }
@@ -412,7 +412,7 @@ void graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                 break;
             }
             default:
-                UNREACHABLE("This connection type is not yet implemented");
+                NDBL_UNREACHABLE("This connection type is not yet implemented");
         }
     }
 
@@ -423,7 +423,7 @@ void graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
 
 void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
 {
-    ASSERT_DEBUG_ONLY(tail->type() == head->type());
+    NDBL_ASSERT_DEBUG_ONLY(tail->type() == head->type());
 
     // disconnect the slots
     node_slot_remove_adjacent(tail, head);
@@ -436,7 +436,7 @@ void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
         {
             case Node_Slot::Flag_TYPE_FLOW:
             {
-                ASSERT( tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
+                NDBL_ASSERT( tail->type_and_order() == Node_Slot::Flag_FLOW_OUT );
                 // Ensure disconnected node gets in the right scope
                 //
                 Scope* target_scope = graph_root_scope(tail->node->graph);
@@ -454,9 +454,9 @@ void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
 
                     if ( ancestor != nullptr )
                     {
-                        ASSERT( ancestor->parent != nullptr );
+                        NDBL_ASSERT( ancestor->parent != nullptr );
                         target_scope = ancestor->parent;
-                        ASSERT(false); // TODO: here we must create a flow edge from the ancestor's node to edge.head->node
+                        NDBL_ASSERT(false); // TODO: here we must create a flow edge from the ancestor's node to edge.head->node
                     }
                 }
                 graph_change_scope(head->node, target_scope);
@@ -465,7 +465,7 @@ void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
 
             case Node_Slot::Flag_TYPE_VALUE:
             {
-                ASSERT(tail->type_and_order() == Node_Slot::Flag_OUTPUT );
+                NDBL_ASSERT(tail->type_and_order() == Node_Slot::Flag_OUTPUT );
 
                 // reset token to a default value to preserve a correct serialization
                 if (head->node->type != Node_Type_VARIABLE )
@@ -479,7 +479,7 @@ void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                 break;
             }
             default:
-                VERIFY(false, "Unexpected _edge.type()");
+                NDBL_VERIFY(false, "Unexpected _edge.type()");
         }
     }
 
@@ -565,7 +565,7 @@ Node* graph_create_node(Graph* graph, const Node_State* node_state, Scope* scope
             if ( node_state->function_type->function.return_type == type_get<bdc::String>()  )
                 return graph_create_variable_decl<bdc::String>(graph, "str", scope);
 
-            UNREACHABLE("Unexpected function_type!");
+            NDBL_UNREACHABLE("Unexpected function_type!");
         }
         
         case Node_Type_LITERAL:
@@ -582,7 +582,7 @@ Node* graph_create_node(Graph* graph, const Node_State* node_state, Scope* scope
             if ( node_state->function_type->function.return_type == type_get<bdc::String>()  )
                 return graph_create_literal<bdc::String>(graph, scope);
 
-            UNREACHABLE("Unexpected function_type!");
+            NDBL_UNREACHABLE("Unexpected function_type!");
         }
         
         case Node_Type_RETURN:
@@ -592,14 +592,14 @@ Node* graph_create_node(Graph* graph, const Node_State* node_state, Scope* scope
 
         case Node_Type_FUNCTION:
         {
-            VERIFY(node_state->function_type != nullptr, "_signature is expected when dealing with functions or operators");
+            NDBL_VERIFY(node_state->function_type != nullptr, "_signature is expected when dealing with functions or operators");
             if ( langdef_is_operator( langdef(), node_state->function_type ) )
                 return graph_create_operator( graph, node_state->function_type, scope );
             return graph_create_function( graph, node_state->function_type, scope );
         }
 
         default:
-            UNREACHABLE("Unexpected Create_Node_Type: %i\n", node_state->type);
+            NDBL_UNREACHABLE("Unexpected Create_Node_Type: %i\n", node_state->type);
             return nullptr;
     }
 }
@@ -695,8 +695,8 @@ void graph_change_scope(Node* node, Scope* desired_scope)
 {
     Scope* current_scope = node->scope;
 
-    VERIFY( current_scope != nullptr, "node must be scoped to be changed for another scope");
-    VERIFY( desired_scope != nullptr, "a non null desired scope is expected");
+    NDBL_VERIFY( current_scope != nullptr, "node must be scoped to be changed for another scope");
+    NDBL_VERIFY( desired_scope != nullptr, "a non null desired scope is expected");
 
     if ( desired_scope == current_scope )
     {
@@ -706,7 +706,7 @@ void graph_change_scope(Node* node, Scope* desired_scope)
     scope_remove(current_scope, node);
     scope_append(desired_scope, node);
 
-    ASSERT_DEBUG_ONLY(node->graph != nullptr);
+    NDBL_ASSERT_DEBUG_ONLY(node->graph != nullptr);
     node->graph->signal_change_scope.emit({
         node, 
         current_scope,
@@ -716,17 +716,17 @@ void graph_change_scope(Node* node, Scope* desired_scope)
 
 void graph_transfer_children(Scope* source, Scope* target)
 {
-    ASSERT(source);
-    ASSERT(target);
+    NDBL_ASSERT(source);
+    NDBL_ASSERT(target);
 
     std::set<Node*> child_copy{source->children};
     for(Node* _child : child_copy)
     {
         graph_change_scope(_child, target);
-        ASSERT(_child->scope == target);
+        NDBL_ASSERT(_child->scope == target);
     }
 
-    ASSERT( scope_is_empty(source) );
+    NDBL_ASSERT( scope_is_empty(source) );
 }
 
 } // namespace ndbl

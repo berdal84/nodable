@@ -71,8 +71,8 @@ Array<Node*> Node::flow_outputs() const
 
 void node_init(Node* node, Node_Type type, const String& label)
 {
-    ASSERT( node != nullptr );
-    VERIFY( !HAS_FLAGS(node->flags, Node_Flag_IS_INITIALIZED), "You cannot initialize twice");
+    NDBL_ASSERT( node != nullptr );
+    NDBL_VERIFY( !HAS_FLAGS(node->flags, Node_Flag_IS_INITIALIZED), "You cannot initialize twice");
 
     array_init(node->props);
     array_init(node->slots);
@@ -89,7 +89,7 @@ void node_init(Node* node, Node_Type type, const String& label)
 
 void node_deinit(Node* node)
 {
-    ASSERT(node != nullptr);
+    NDBL_ASSERT(node != nullptr);
 
     string_release(node->name);
 
@@ -147,7 +147,7 @@ void node_init_component(Node::Component* component, Node::Component_Type compon
         case Node::Component_Type_VARIABLE:       new (&component->variable)    Node::Variable_Component();     break;
         default:
             // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
+            NDBL_UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
     }
 }
 
@@ -163,7 +163,7 @@ void node_deinit_component(Node::Component* component, Node::Component_Type comp
         case Node::Component_Type_VARIABLE:       component->variable.~Variable_Component();         break;
         default:
             // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
+            NDBL_UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
     }
 
     component->component_type = 0;
@@ -200,7 +200,7 @@ Node::Component_Type to_component_type(Node_Type type)
 const Type_Descriptor* node_get_connected_function_type(const Node* node, const String& property_name)
 {
     const Node_Slot* slot = node_find_slot_by_property_name(node, property_name, Node_Slot::Flag_INPUT );
-    VERIFY(slot!= nullptr, "Unable to find input slot for this property name");
+    NDBL_VERIFY(slot!= nullptr, "Unable to find input slot for this property name");
     const Node_Slot* adjacent_slot = slot->first_adjacent();
 
     if ( adjacent_slot )
@@ -260,11 +260,11 @@ void node_set_name(Node* node, const String& new_name)
 
 Node_Slot* node_add_slot(Node* node, Node_Property* property, Node_Slot::Flags flags, size_t capacity, size_t position)
 {
-    ASSERT( property != nullptr );
-    ASSERT( property->node == node );
+    NDBL_ASSERT( property != nullptr );
+    NDBL_ASSERT( property->node == node );
     if ( (flags & Node_Slot::Flag_FLOW_OUT) == Node_Slot::Flag_FLOW_OUT)
     {
-        VERIFY( capacity == 1, "Node_Slot::Flag_FLOW_OUT can only have a capacity of 1" );
+        NDBL_VERIFY( capacity == 1, "Node_Slot::Flag_FLOW_OUT can only have a capacity of 1" );
     }
 
     Node_Slot* slot = memory_new<Node_Slot>();
@@ -338,7 +338,7 @@ Array<Node_Slot*> node_filter_slots(const Node* node, Node_Slot::Flags flags)
 {
     const auto if_has_flags = [flags](const Node_Slot* _slot)
     {
-        ASSERT_DEBUG_ONLY(_slot != nullptr);
+        NDBL_ASSERT_DEBUG_ONLY(_slot != nullptr);
         return HAS_FLAGS(_slot->flags, flags);
     };
     return node_filter_slots(node, if_has_flags);
@@ -427,8 +427,8 @@ bool node_update(Node* node)
 
 void node_init_internal_scope(Node* node)
 {
-    VERIFY( node->internal_scope == nullptr, "Can't call init_internal_scope() more than once");
-    VERIFY( node->scope == nullptr, "Must be initialized prior to reset_parent()");
+    NDBL_VERIFY( node->internal_scope == nullptr, "Can't call init_internal_scope() more than once");
+    NDBL_VERIFY( node->scope == nullptr, "Must be initialized prior to reset_parent()");
 
     auto* scope = memory_new<Scope>();
     scope_init(scope);
@@ -489,7 +489,7 @@ bool node_has_prop(const Node* node, const String& name)
 Node_Property* node_add_prop(Node* node, const Type_Descriptor* type, const String name, Node_Property::Flags flags )
 {
     // guards
-    VERIFY(!node_has_prop(node, name), "Property name already used");
+    NDBL_VERIFY(!node_has_prop(node, name), "Property name already used");
 
     // create
     auto* new_property = memory_new<Node_Property>(); // TODO: use a static-sized array with a given limit (ex: 10 props)
@@ -498,7 +498,7 @@ Node_Property* node_add_prop(Node* node, const Type_Descriptor* type, const Stri
     // register / index
     array_append(node->props, new_property);
     auto result = hashmap_add(node->props_by_name, string_hash(new_property->name), new_property);
-    ASSERT(result.ok);
+    NDBL_ASSERT(result.ok);
 
     return new_property;
 }
@@ -524,14 +524,14 @@ const Node_Property* node_find_prop_by_name(const Node* node, const String& name
         return result.data;
     }
 
-    ASSERT(false);
+    NDBL_ASSERT(false);
     return nullptr;
 }
 
 void node_init_as_invokable(Node* node, const Type_Descriptor* function_desc, Node_Type node_type )
 {
-    ASSERT(node != nullptr);
-    ASSERT(node_type == Node_Type_OPERATOR || node_type == Node_Type_FUNCTION );
+    NDBL_ASSERT(node != nullptr);
+    NDBL_ASSERT(node_type == Node_Type_OPERATOR || node_type == Node_Type_FUNCTION );
 
     node_init(node, node_type, function_desc->name);
     node->component.invokable.type = *function_desc;
@@ -556,7 +556,7 @@ void node_init_as_invokable(Node* node, const Type_Descriptor* function_desc, No
             break;
         }
         default:
-            VERIFY(false, "Type not allowed");
+            NDBL_VERIFY(false, "Type not allowed");
     }
 
     // Create a result/value
@@ -569,8 +569,8 @@ void node_init_as_invokable(Node* node, const Type_Descriptor* function_desc, No
     // Create arguments
     if (node->type == Node_Type_OPERATOR )
     {
-        VERIFY(function_desc->function.args.size >= 1, "An operator must have one argument minimum");
-        VERIFY(function_desc->function.args.size <= 2, "An operator cannot have more than 2 arguments");
+        NDBL_VERIFY(function_desc->function.args.size >= 1, "An operator must have one argument minimum");
+        NDBL_VERIFY(function_desc->function.args.size <= 2, "An operator cannot have more than 2 arguments");
     }
 
     for (size_t i = 0; i < function_desc->function.args.size; i++ )
@@ -638,8 +638,8 @@ void node_init_as_variable_ref(Node* node)
 
 void node_variable_ref_set_variable(Node* node, Node* variable_node)
 {
-    ASSERT_DEBUG_ONLY(variable_node != nullptr);
-    VERIFY( node->component.variableref.variable_node == nullptr, "Can't call twice");
+    NDBL_ASSERT_DEBUG_ONLY(variable_node != nullptr);
+    NDBL_VERIFY( node->component.variableref.variable_node == nullptr, "Can't call twice");
 
     node->component.variableref.variable_node = variable_node;
 
@@ -686,8 +686,8 @@ void node_init_as_literal(Node* node, const Type_Descriptor* type_descriptor)
 
 void node_init_branches(Node* node, size_t branch_count)
 {
-    VERIFY( 1 < branch_count && branch_count <= Node::Branching_Component::BRANCH_MAX, "branch_count is out of range");
-    VERIFY( node_has_switch_behavior(node), "Node does not have a switch behavior" );
+    NDBL_VERIFY( 1 < branch_count && branch_count <= Node::Branching_Component::BRANCH_MAX, "branch_count is out of range");
+    NDBL_VERIFY( node_has_switch_behavior(node), "Node does not have a switch behavior" );
 
 
     node->component.branching.branch_count = branch_count;
@@ -870,10 +870,10 @@ bool node_is_conditional(const Node* node)
 bool node_is_output_node_in_expression(const Node* input_node, const Node* output_node)
 {
 #ifdef NDBL_DEBUG
-    ASSERT(input_node);
-    ASSERT(output_node);
+    NDBL_ASSERT(input_node);
+    NDBL_ASSERT(output_node);
     const bool is_an_output = std::find(input_node->outputs().begin(), input_node->outputs().end(), output_node) != input_node->outputs().end();
-    ASSERT(is_an_output);
+    NDBL_ASSERT(is_an_output);
 #endif
 
     if ( node_is_instruction(input_node ) )

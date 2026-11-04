@@ -24,14 +24,14 @@ constexpr float PROPERTY_INPUT_SIZE_MIN  = 12.0f;
 
 void ndbl::nodepropertyview_init(Node_Property_View* view, Node_Property* property)
 {
-    ASSERT(property);
+    NDBL_ASSERT(property);
     view->shape    = Vec2{10.f, 10.f}; // can't be 0,0
     view->property = property;
 }
 
 void ndbl::nodepropertyview_deinit(Node_Property_View* view)
 {
-    ASSERT(view->property);
+    NDBL_ASSERT(view->property);
     view->property = nullptr;
 }
 
@@ -92,7 +92,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
         }
 
         default:
-            UNREACHABLE("Unexpected View_Detail_ case (value: %i)\n", _detail);
+            NDBL_UNREACHABLE("Unexpected View_Detail_ case (value: %i)\n", _detail);
     }
 
     // input
@@ -139,7 +139,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
     // Update position and size
     // We want the rectangle to fit the Node_View in height,
     // but we resize it to fit the property input field in width.
-    ASSERT(node->view);
+    NDBL_ASSERT(node->view);
     Rect new_rect  = node->view->shape.rect(WORLD_SPACE);
     new_rect.min.x = ImGui::GetItemRectMin().x;
     new_rect.max.x = ImGui::GetItemRectMax().x;

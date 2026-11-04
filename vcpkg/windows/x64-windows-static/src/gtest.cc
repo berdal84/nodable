@@ -847,7 +847,7 @@ class PositiveAndNegativeUnitTestFilter {
       positive_filter_ = UnitTestFilter(
           positive_filter.empty() ? kUniversalFilter : positive_filter);
 
-      // TODO(b/214626361): Fail on multiple '-' characters
+      // NDBL_TODO(b/214626361): Fail on multiple '-' characters
       // For the moment to preserve old behavior we concatenate the rest of the
       // string parts with `-` as separator to generate the negative filter.
       auto negative_filter_string = positive_and_negative_filters[1];
@@ -2395,7 +2395,7 @@ static std::vector<std::string> GetReservedAttributesForElement(
 }
 
 #if GTEST_HAS_FILE_SYSTEM
-// TODO(jdesprez): Merge the two getReserved attributes once skip is improved
+// NDBL_TODO(jdesprez): Merge the two getReserved attributes once skip is improved
 // This function is only used when file systems are enabled.
 static std::vector<std::string> GetReservedOutputAttributesForElement(
     const std::string& xml_element) {

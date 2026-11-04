@@ -46,7 +46,7 @@ public:
     {
         NDBL_DEBUG_LOG(Verbosity_Message, __FILE_NAME__, "parse_and_serialize parsing \"%s\"\n", code.c_str());
 
-        ASSERT( nodable_parse(&app, code) );
+        NDBL_ASSERT( nodable_parse(&app, code) );
         String result = nodable_serialize(&app);
 
         NDBL_DEBUG_LOG(Verbosity_Message, __FILE_NAME__, "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
@@ -63,7 +63,7 @@ public:
         if(!result.ok)
         {
             NDBL_LOG(Verbosity_Error, __FILE_NAME__, "%s\n", result.error.c_str() );
-            VERIFY(false, "Unable to open file!" );
+            NDBL_VERIFY(false, "Unable to open file!" );
         }
         return result.content;
     }

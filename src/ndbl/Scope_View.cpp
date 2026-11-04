@@ -15,7 +15,7 @@ namespace ndbl
 
 void scopeview_init(Scope_View* scope_view, Scope* scope)
 {
-    ASSERT(scope != nullptr);
+    NDBL_ASSERT(scope != nullptr);
     scope_view->scope   = scope;
 }
 
@@ -43,7 +43,7 @@ void scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags flags)
     scope_view->wrapped_node_view.clear();
     auto wrap_nodeview = [&](Node_View* nodeview )
     {
-        ASSERT( nodeview );
+        NDBL_ASSERT( nodeview );
         if ( HAS_FLAGS(nodeview->flags, View_Flag_HIDDEN) )
             return;
 

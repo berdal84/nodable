@@ -12,11 +12,11 @@ namespace ndbl
 
 static Config* g_config = {};
 
-#define VERIFY_NDBLCONFIG_IS_INITIALIZED() VERIFY(g_config != nullptr, "Config is not initialized, did you call config_init() ?")
+#define VERIFY_NDBLCONFIG_IS_INITIALIZED() NDBL_VERIFY(g_config != nullptr, "Config is not initialized, did you call config_init() ?")
 
 Config* config_init()
 {
-    ASSERT(g_config == nullptr);
+    NDBL_ASSERT(g_config == nullptr);
     
     g_config = bdc::memory_new<Config>();
     config_reset();

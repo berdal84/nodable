@@ -10,8 +10,8 @@ using namespace ndbl;
 
 void Transform_2D::set_position(const Vec2& p)
 {
-    ASSERT(!std::isnan(p.x));
-    ASSERT(!std::isnan(p.x));
+    NDBL_ASSERT(!std::isnan(p.x));
+    NDBL_ASSERT(!std::isnan(p.x));
     _position     = p;
     _matrix_dirty = true;
 }

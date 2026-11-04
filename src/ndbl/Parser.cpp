@@ -33,7 +33,7 @@ static Language_Definition* g_langdef = nullptr;
 
 Language_Definition& langdef_init()
 {
-    ASSERT(g_langdef == nullptr);
+    NDBL_ASSERT(g_langdef == nullptr);
 
     Language_Definition* langdef = bdc::memory_new<Language_Definition>();
 
@@ -140,13 +140,13 @@ bool langdef_is_initialized()
 
 Language_Definition& langdef()
 {
-    VERIFY(g_langdef, "No ctx found, did you call init_language?");
+    NDBL_VERIFY(g_langdef, "No ctx found, did you call init_language?");
     return *g_langdef;
 }
 
 void langdef_shutdown()
 {
-    ASSERT(g_langdef != nullptr);
+    NDBL_ASSERT(g_langdef != nullptr);
 
     array_release(g_langdef->keywords);
     array_release(g_langdef->types);
@@ -277,7 +277,7 @@ void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
 bool parse_graph(Parser_Context& ctx)
 {
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing ...\n%s\n", ctx.in_text.c_str() );
-    VERIFY(ctx.out_graph != nullptr, "A Graph is expected");
+    NDBL_VERIFY(ctx.out_graph != nullptr, "A Graph is expected");
 
     //
     // Optimize the Token_Ribbon
@@ -286,7 +286,7 @@ bool parse_graph(Parser_Context& ctx)
     //
 
     NDBL_LOG(Verbosity_Diagnostic, "Parser", "Tokenization ...\n");
-    ASSERT(ctx.in_text.data != nullptr);
+    NDBL_ASSERT(ctx.in_text.data != nullptr);
 
     size_t ignored_chars_count = 0;
     ctx.pristine_tokens = ctx.tokens;
@@ -496,7 +496,7 @@ Node_Slot* parse_token(const Parser_Context& ctx, Scope* parent_scope, const Tok
 Node_Slot* parse_binary_operation_expression(Parser_Context& ctx, Scope* parent_scope, u8_t _precedence, Node_Slot* _left)
 {
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing binary expression ...\n");
-    ASSERT(_left != nullptr);
+    NDBL_ASSERT(_left != nullptr);
 
     if (!parser_can_eat(ctx, 2))
     {
@@ -798,7 +798,7 @@ Node* parse_empty_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flo
 
 Node* parse_scoped_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_out)
 {
-    ASSERT(parent_scope);
+    NDBL_ASSERT(parent_scope);
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing scoped block ...\n");
 
     Token token_begin = parser_eat_if(ctx, Token_Type_scope_begin);
@@ -966,7 +966,7 @@ bool parser_tokenize(Parser_Context& ctx)
 
 Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
 {
-    ASSERT(buffer.size > 0);
+    NDBL_ASSERT(buffer.size > 0);
 
     // single-line comment
     if ( buffer.size > 2 && buffer[0] == '/' && buffer[1] == '/')
@@ -1228,8 +1228,8 @@ String parser_to_string(const Parser_Context& ctx)
 
 String parser_to_string(Parser_Context& ctx, size_t begin, size_t end)
 {
-    ASSERT(begin <= end);
-    ASSERT(end <= ctx.tokens.size() );
+    NDBL_ASSERT(begin <= end);
+    NDBL_ASSERT(end <= ctx.tokens.size() );
 
     String_Builder sb;
     for( size_t i = begin; i < end; ++i )
@@ -1250,7 +1250,7 @@ Token parser_eat_if(Parser_Context& ctx, Token_Type expectedType)
 
 const Token& parser_get_eaten(const Parser_Context& ctx)
 {
-    ASSERT(ctx.cursor > 0);
+    NDBL_ASSERT(ctx.cursor > 0);
     return ctx.tokens[ctx.cursor - 1];
 }
 
@@ -1291,7 +1291,7 @@ void parser_commit(Parser_Context& ctx)
 
 bool parser_can_eat(const Parser_Context& ctx, size_t token_count)
 {
-    ASSERT(token_count > 0);
+    NDBL_ASSERT(token_count > 0);
     return ctx.cursor + token_count <= ctx.tokens.size() ;
 }
 
@@ -1385,7 +1385,7 @@ Node_Slot* parse_function_call(Parser_Context& ctx, Scope* parent_scope)
 Node* parse_atomic_code_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_out)
 {
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing atomic code block ..\n");
-    ASSERT(flow_out);
+    NDBL_ASSERT(flow_out);
 
     // most common case
     Node* block = nullptr;
@@ -1761,7 +1761,7 @@ const Node_Slot* serialize_invokable(Serializer_Context& ctx, const Node* _node)
                 }
 
                 // Operator
-                VERIFY( _node->component.invokable.identifier_token, "identifier token should have been assigned in parse_function_call");
+                NDBL_VERIFY( _node->component.invokable.identifier_token, "identifier token should have been assigned in parse_function_call");
                 string_builder_append( ctx.out_sb, serialize_token( ctx, _node->component.invokable.identifier_token ));
 
                 // Right part of the expression
@@ -1779,7 +1779,7 @@ const Node_Slot* serialize_invokable(Serializer_Context& ctx, const Node* _node)
             {
                 // operator ( ... innerOperator ... )   ex:   -(a+b)
 
-                ASSERT( _node->component.invokable.identifier_token );
+                NDBL_ASSERT( _node->component.invokable.identifier_token );
                 string_builder_append( ctx.out_sb, serialize_token( ctx, _node->component.invokable.identifier_token) );
 
                 bool needs_braces    = node_get_connected_function_type(_node, LEFT_VALUE_PROPERTY) != nullptr;
@@ -1806,7 +1806,7 @@ void serialize_function_call(Serializer_Context& ctx, const Type_Descriptor *fun
 
     for (const Node_Slot* input_slot : inputs)
     {
-        ASSERT( HAS_FLAGS(input_slot->flags, Node_Slot::Flag_INPUT) );
+        NDBL_ASSERT( HAS_FLAGS(input_slot->flags, Node_Slot::Flag_INPUT) );
         if ( input_slot != inputs[0])
         {
             string_builder_append( ctx.out_sb, serialize_token_type(ctx, Token_Type_list_separator));
@@ -1839,14 +1839,14 @@ void serialize_function_type(Serializer_Context& ctx, const Type_Descriptor *fun
 
 void serialize_variable_ref(Serializer_Context& ctx, const Node* _node)
 {
-    ASSERT(_node->type == Node_Type_VARIABLE_REF);
+    NDBL_ASSERT(_node->type == Node_Type_VARIABLE_REF);
     String token_str = serialize_token( ctx, node_get_identifier_token(_node) );
     string_builder_append( ctx.out_sb, token_str);
 }
 
 void serialize_variable(Serializer_Context& ctx, const Node *_node)
 {
-    ASSERT(_node->type == Node_Type_VARIABLE);
+    NDBL_ASSERT(_node->type == Node_Type_VARIABLE);
 
     // 1. Serialize variable's type
 
@@ -1881,7 +1881,7 @@ void serialize_variable(Serializer_Context& ctx, const Node *_node)
 
 void serialize_return(Serializer_Context& ctx, const Node* node)
 {
-    ASSERT(node->type == Node_Type_RETURN);
+    NDBL_ASSERT(node->type == Node_Type_RETURN);
 
     if( node->value->token )
     {
@@ -1901,7 +1901,7 @@ void serialize_return(Serializer_Context& ctx, const Node* node)
 
 void serialize_input(Serializer_Context& ctx, const Node_Slot* slot, Serialization_Flags _flags )
 {
-    ASSERT( HAS_FLAGS(slot->flags, Node_Slot::Flag_INPUT ) );
+    NDBL_ASSERT( HAS_FLAGS(slot->flags, Node_Slot::Flag_INPUT ) );
 
     const Node_Slot*     adjacent_slot     = slot->first_adjacent();
     const Node_Property* adjacent_property = adjacent_slot != nullptr ? adjacent_slot->property
@@ -1917,7 +1917,7 @@ void serialize_input(Serializer_Context& ctx, const Node_Slot* slot, Serializati
     }
     else
     {
-        VERIFY( _flags & Serialization_Flag_RECURSE, "Why would you call serialize_input without RECURSE flag?");
+        NDBL_VERIFY( _flags & Serialization_Flag_RECURSE, "Why would you call serialize_input without RECURSE flag?");
         // Append token prefix?
         if (adjacent_property->token)
             string_builder_append(ctx.out_sb, adjacent_property->token.prefix_view());
@@ -1945,8 +1945,8 @@ void serialize_node_value_out(Serializer_Context& ctx, const Node_Slot* slot, Se
     }
 
     // Otherwise, it might be a variable reference, so we serialize the identifier only
-    ASSERT(slot->node->type == Node_Type_VARIABLE ); // Can't be another type
-    VERIFY( slot == slot->node->component.variable.ref_out, "Cannot serialize an other slot from a VariableNode");
+    NDBL_ASSERT(slot->node->type == Node_Type_VARIABLE ); // Can't be another type
+    NDBL_VERIFY( slot == slot->node->component.variable.ref_out, "Cannot serialize an other slot from a VariableNode");
     string_builder_append(  ctx.out_sb, node_get_identifier(slot->node) );
 }
 
@@ -1955,7 +1955,7 @@ void serialize_node(Serializer_Context& ctx, const Node* node, Serialization_Fla
     if ( node == nullptr )
         return;
 
-    ASSERT( _flags == Serialization_Flag_RECURSE ); // The only flag configuration handled for now
+    NDBL_ASSERT( _flags == Serialization_Flag_RECURSE ); // The only flag configuration handled for now
 
     switch ( node->type )
     {
@@ -1971,7 +1971,7 @@ void serialize_node(Serializer_Context& ctx, const Node* node, Serialization_Fla
         case Node_Type_EMPTY_INSTRUCTION: serialize_empty_instruction(ctx, node);        break;
         case Node_Type_ROOT:              [[fallthrough]];
         case Node_Type_SCOPE:             serialize_scope(ctx, node->internal_scope );   break;
-        default:                          VERIFY(false, "Unhandled NodeType, can't serialize");
+        default:                          NDBL_VERIFY(false, "Unhandled NodeType, can't serialize");
     }
 
     String token_str = serialize_token( ctx, node->suffix );
@@ -2040,7 +2040,7 @@ bdc::String serialize_token_type(const Serializer_Context& ctx, Token_Type token
 
 void serialize_graph(Serializer_Context& ctx)
 {
-    VERIFY(ctx.in_graph != nullptr, "Did you call serialize_begin()");
+    NDBL_VERIFY(ctx.in_graph != nullptr, "Did you call serialize_begin()");
     const Node* root_node = graph_root(ctx.in_graph);
     if ( root_node == nullptr )
     {
@@ -2052,7 +2052,7 @@ void serialize_graph(Serializer_Context& ctx)
 
 void serialize_for_loop(Serializer_Context& ctx, const Node* _for_loop)
 {
-    ASSERT( _for_loop->type == Node_Type_FOR_LOOP );
+    NDBL_ASSERT( _for_loop->type == Node_Type_FOR_LOOP );
 
     string_builder_append( ctx.out_sb, serialize_token( ctx, _for_loop->component.branching.branch_prefix) );
     string_builder_append( ctx.out_sb, serialize_token_type(ctx, Token_Type_parenthesis_open) );
@@ -2070,7 +2070,7 @@ void serialize_for_loop(Serializer_Context& ctx, const Node* _for_loop)
 
 void serialize_while_loop(Serializer_Context& ctx, const Node* _while_loop_node)
 {
-    ASSERT( _while_loop_node->type == Node_Type_WHILE_LOOP );
+    NDBL_ASSERT( _while_loop_node->type == Node_Type_WHILE_LOOP );
 
     // while
     String while_str = serialize_token( ctx, _while_loop_node->component.branching.branch_prefix);
@@ -2089,7 +2089,7 @@ void serialize_while_loop(Serializer_Context& ctx, const Node* _while_loop_node)
 
 void serialize_if_else(Serializer_Context& ctx, const Node* if_node )
 {
-    ASSERT( if_node->type == Node_Type_IF_ELSE );
+    NDBL_ASSERT( if_node->type == Node_Type_IF_ELSE );
 
     // if
     String if_str = serialize_token( ctx, if_node->component.branching.branch_prefix );
@@ -2125,13 +2125,13 @@ bdc::String serialize_type(const Serializer_Context& ctx, const Type_Descriptor*
 
 void serialize_literal(Serializer_Context& ctx, const Node* node)
 {
-    ASSERT( node->type == Node_Type_LITERAL );
+    NDBL_ASSERT( node->type == Node_Type_LITERAL );
     serialize_property( ctx, node->value );
 }
 
 void serialize_empty_instruction(Serializer_Context& ctx, const Node* node)
 {
-    ASSERT( node->type == Node_Type_EMPTY_INSTRUCTION );
+    NDBL_ASSERT( node->type == Node_Type_EMPTY_INSTRUCTION );
     string_builder_append( ctx.out_sb, serialize_token( ctx, node->value->token ) );
 }
 

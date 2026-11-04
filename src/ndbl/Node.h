@@ -115,12 +115,12 @@ namespace ndbl
             Node_Slot*              initialization_slot;
             Node_Slot*              iteration_slot;
 
-            Node_Slot*              branch_out(Branch branch)                       { ASSERT(branch < branch_count); return branch_slots[branch]; }
-            const Node_Slot*        branch_out(Branch branch) const                 { ASSERT(branch < branch_count); return branch_slots[branch]; }
-            const Node*             condition(Branch branch = Branch_TRUE) const    { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]->first_adjacent_node(); }
-            Node*                   condition(Branch branch = Branch_TRUE)          { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]->first_adjacent_node(); }
-            const Node_Slot*        condition_in(Branch branch = Branch_TRUE) const { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]; }
-            Node_Slot*              condition_in(Branch branch = Branch_TRUE)       { ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]; }    
+            Node_Slot*              branch_out(Branch branch)                       { NDBL_ASSERT(branch < branch_count); return branch_slots[branch]; }
+            const Node_Slot*        branch_out(Branch branch) const                 { NDBL_ASSERT(branch < branch_count); return branch_slots[branch]; }
+            const Node*             condition(Branch branch = Branch_TRUE) const    { NDBL_ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]->first_adjacent_node(); }
+            Node*                   condition(Branch branch = Branch_TRUE)          { NDBL_ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]->first_adjacent_node(); }
+            const Node_Slot*        condition_in(Branch branch = Branch_TRUE) const { NDBL_ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]; }
+            Node_Slot*              condition_in(Branch branch = Branch_TRUE)       { NDBL_ASSERT(Branch_FALSE < branch && branch < branch_count); return condition_in_slots[branch - 1]; }    
         };
 
         struct Invokable_Component

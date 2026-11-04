@@ -32,7 +32,7 @@ using namespace ndbl;
 
 void ndbl::nodeview_init(Node_View* nodeview, Node* node)
 {
-    ASSERT(node);    
+    NDBL_ASSERT(node);    
     nodeview->node = node;
 
     Config* cfg = config();
@@ -49,7 +49,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
     // 1. Create Property views
     //-------------------------
 
-    VERIFY(nodeview->view_by_property.size == 0, "Cannot be called twice");
+    NDBL_VERIFY(nodeview->view_by_property.size == 0, "Cannot be called twice");
 
     for (Node_Property* property : nodeview->node->props )
     {
@@ -118,7 +118,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
             case Node_Slot::Flag_TYPE_VALUE:
                 return Shape_Type_CIRCLE;
             default:
-                ASSERT(false); // no implemented yet
+                NDBL_ASSERT(false); // no implemented yet
                 return Shape_Type_CIRCLE;
         }
     };
@@ -136,7 +136,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
             case Node_Slot::Flag_FLOW_OUT:
                 return BOTTOM_LEFT;
             default:
-                ASSERT(false); // not implemented yet
+                NDBL_ASSERT(false); // not implemented yet
                 return TOP;
         }
     };
@@ -360,7 +360,7 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
         return false;
     }
 
-    ASSERT( nodeview->node );
+    NDBL_ASSERT( nodeview->node );
 
     Config*     cfg       = config();
 	bool        changed   = false;
@@ -687,7 +687,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
                 bdc::String label = bdc::string_tprintf( "%s %p (%s %p)", scope->name.c_str(), scope, scope->node->name.c_str(), scope->node);
                 if ( ImGui::Button(label.c_str()) )
                 {
-                    ASSERT(node->graph->view);
+                    NDBL_ASSERT(node->graph->view);
                     view_selection_clear(&node->graph->view->selection);
                     view_selection_add(&node->graph->view->selection, scope->node->view );
                 }

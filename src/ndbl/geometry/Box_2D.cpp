@@ -47,8 +47,8 @@ Rect Box_2D::rect(Space space) const
 
 void Box_2D::set_size(const Vec2& _size)
 {
-    ASSERT(_size.x >= 0); // Area cannot be zero
-    ASSERT(_size.y >= 0); //
+    NDBL_ASSERT(_size.x >= 0); // Area cannot be zero
+    NDBL_ASSERT(_size.y >= 0); //
     size = _size;
 }
 

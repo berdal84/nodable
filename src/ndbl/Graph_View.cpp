@@ -134,7 +134,7 @@ void ndbl::graphview_deinit(Graph_View* graphview)
     graphview->graph->signal_remove_node.disconnect();
     graphview->graph->signal_reset.disconnect();
     graphview->graph->signal_is_complete.disconnect();
-    ASSERT_DEBUG_ONLY( graphview->graph->signal_change.disconnect<&_graphview_on_graph_change>(graphview) );
+    NDBL_ASSERT_DEBUG_ONLY( graphview->graph->signal_change.disconnect<&_graphview_on_graph_change>(graphview) );
     
     // add nodes still present after connecting signals
     for( Node& each_node : graphview->graph->nodes )
@@ -188,7 +188,7 @@ void ndbl::_graphview_handle_change_scope(Graph_View* graphview, Graph::Scope_Ch
     //       to be child of the Graph_View instead.
 
     // auto* node.view = componentbag_get<Node_View>(&change.node->component.bag);
-    // VERIFY(node.view, "a node.view must be present since we are in a Graph_View");
+    // NDBL_VERIFY(node.view, "a node.view must be present since we are in a Graph_View");
 
     // // Un-parent from old scope's spatial node
     // if( auto _parent = node.view->shape.spatial_node.parent )
@@ -207,7 +207,7 @@ ImGuiID make_wire_id(const Node_Slot *ptr1, const Node_Slot *ptr2)
 
 void ndbl::_graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *from, const Vec2 &end_pos, bool* hovered)
 {
-    VERIFY(from != nullptr, "from slot can't be nullptr");
+    NDBL_VERIFY(from != nullptr, "from slot can't be nullptr");
 
     Config* cfg = config();
 
@@ -508,7 +508,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
                 
                 default:
                 {
-                    UNREACHABLE("Unexpected Element_Type: %i\n", el.type);
+                    NDBL_UNREACHABLE("Unexpected Element_Type: %i\n", el.type);
                 }
             } 
             
@@ -667,7 +667,7 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graphview, Node_View* no
             }
             else
             {
-                UNREACHABLE("Not implemented yet");
+                NDBL_UNREACHABLE("Not implemented yet");
             }
         }
         else
@@ -684,7 +684,7 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graphview, Node_View* no
 
 void ndbl::graphview_update(Graph_View* graphview, float dt)
 {
-    ASSERT( graphview->graph );
+    NDBL_ASSERT( graphview->graph );
 
     if( graphview->flags & Graph_View_Flag_NEEDS_TO_BE_RESET)
     {
@@ -804,7 +804,7 @@ void ndbl::_graphview_on_selection_change(Graph_View* graphview, View_Selection_
         }
         default:
         {
-            ASSERT(false); // unhandled case
+            NDBL_ASSERT(false); // unhandled case
         }
     }
 }
@@ -925,7 +925,7 @@ void ndbl::_graphview_view_pan_state_tick(Graph_View* graphview)
 
 void ndbl::_graphview_select_scope(Graph_View* graphview, Scope_View* scopeview)
 {
-    ASSERT(scopeview);
+    NDBL_ASSERT(scopeview);
 
     // 1) Gather Node_Views that are a child (direct or not) of the scopeview
 
@@ -1179,7 +1179,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
         }
 
         default:
-            VERIFY(false, "Unhandled case, must be implemented!");
+            NDBL_VERIFY(false, "Unhandled case, must be implemented!");
     }
 }
 
@@ -1187,7 +1187,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
 
 void ndbl::_graphview_line_state_enter(Graph_View* graphview)
 {
-    ASSERT( graphview->focused.type == View_Type_SLOT );
+    NDBL_ASSERT( graphview->focused.type == View_Type_SLOT );
 }
 
 void ndbl::_graphview_line_state_tick(Graph_View* graphview)

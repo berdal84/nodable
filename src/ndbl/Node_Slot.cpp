@@ -17,7 +17,7 @@ void node_slot_init(
     u32_t               position
 )
 {
-    VERIFY( !HAS_FLAGS(flags, Node_Slot::Flag_IS_FULL), "Node_Slot::Flag_IS_FULL is for readonly use" );
+    NDBL_VERIFY( !HAS_FLAGS(flags, Node_Slot::Flag_IS_FULL), "Node_Slot::Flag_IS_FULL is for readonly use" );
 
     array_init(slot->adjacent);
     
@@ -26,7 +26,7 @@ void node_slot_init(
         capacity = slot->adjacent.capacity;
     }
 
-    ASSERT( capacity <= slot->adjacent.capacity );
+    NDBL_ASSERT( capacity <= slot->adjacent.capacity );
 
     slot->position = position;
     slot->capacity = capacity;
@@ -47,7 +47,7 @@ void node_slot_deinit(Node_Slot* slot)
 
 Node_Slot* node_slot_adjacent_at(const Node_Slot* slot, u8_t pos)
 {
-    ASSERT(pos < slot->capacity);    
+    NDBL_ASSERT(pos < slot->capacity);    
     if ( pos < slot->adjacent.size)
         return slot->adjacent[pos];
     return nullptr;
@@ -55,11 +55,11 @@ Node_Slot* node_slot_adjacent_at(const Node_Slot* slot, u8_t pos)
 
 void node_slot_add_adjacent(Node_Slot* slot, Node_Slot* other)
 {
-    ASSERT(slot != nullptr);
-    ASSERT(other != nullptr);
-    VERIFY(other != slot, "Reflexive edge not handled" );
-    VERIFY(slot->type() == other->type() , "Node_Slot must have common type" );
-    VERIFY(slot->adjacent.size < slot->capacity, "Capacity max reached!" );
+    NDBL_ASSERT(slot != nullptr);
+    NDBL_ASSERT(other != nullptr);
+    NDBL_VERIFY(other != slot, "Reflexive edge not handled" );
+    NDBL_VERIFY(slot->type() == other->type() , "Node_Slot must have common type" );
+    NDBL_VERIFY(slot->adjacent.size < slot->capacity, "Capacity max reached!" );
     array_append(slot->adjacent, other);
     if ( slot->adjacent.size == slot->capacity )
     {

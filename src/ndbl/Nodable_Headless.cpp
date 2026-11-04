@@ -27,7 +27,7 @@ void ndbl::nodable_deinit(App_Headless_State* state)
 {
     parser_deinit(state->parser);
     serializer_deinit(state->serializer);
-    ASSERT(state->graph);
+    NDBL_ASSERT(state->graph);
     nodable_clear(state);
     graph_deinit(state->graph);
     bdc::memory_delete(state->graph);

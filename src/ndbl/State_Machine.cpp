@@ -8,8 +8,8 @@ using namespace ndbl;
 void State_Machine::set_default_state(const char* name)
 {
     State* state = get_state(name);
-    VERIFY(state != nullptr, "Can't find state");
-    VERIFY(m_default_state == nullptr, "This method must be called once");
+    NDBL_VERIFY(state != nullptr, "Can't find state");
+    NDBL_VERIFY(m_default_state == nullptr, "This method must be called once");
     m_default_state = state;
 }
 
@@ -26,7 +26,7 @@ void State_Machine::tick()
     }
 #endif
 
-    ASSERT(m_current_state != nullptr);
+    NDBL_ASSERT(m_current_state != nullptr);
     m_current_state->delegate[OnTick].call();
 
     // Early return if no transition is found
@@ -42,15 +42,15 @@ void State_Machine::tick()
 
 void State_Machine::start()
 {
-    VERIFY( m_context_ptr != nullptr, "Did you call init(void* context) first?");
-    VERIFY( !started(), "State_Machine is already started");
+    NDBL_VERIFY( m_context_ptr != nullptr, "Did you call init(void* context) first?");
+    NDBL_VERIFY( !started(), "State_Machine is already started");
     m_current_state = m_default_state;
     m_current_state->delegate[OnEnter].call();
 }
 
 void State_Machine::stop()
 {
-    VERIFY( started(), "State_Machine is not started");
+    NDBL_VERIFY( started(), "State_Machine is not started");
     m_current_state->delegate[OnLeave].call();
     m_current_state = nullptr;
 }
@@ -60,20 +60,20 @@ State* State_Machine::create_state(const char* _name)
     const auto key = Hash::hash( _name );
     const auto& [it, success] = m_state.emplace( key, State{ .name = _name});
 
-    VERIFY(success, "State name already exists");
+    NDBL_VERIFY(success, "State name already exists");
     
     return &it->second;
 }
 
 void State_Machine::set_next_state(State* state)
 {
-    VERIFY(m_next_state == nullptr, "Can't change twice within a single tick");
+    NDBL_VERIFY(m_next_state == nullptr, "Can't change twice within a single tick");
     m_next_state = state;
 }
 
 void State_Machine::exit_state()
 {
-    VERIFY(m_current_state != m_default_state, "Default state can't be exited!");
+    NDBL_VERIFY(m_current_state != m_default_state, "Default state can't be exited!");
     set_next_state(m_default_state);
 }
 
@@ -88,6 +88,6 @@ State* State_Machine::get_state(const char *name)
 void State_Machine::change_state(const char *name)
 {
     State* state = get_state(name);
-    VERIFY(state != nullptr, "Unable to find state");
+    NDBL_VERIFY(state != nullptr, "Unable to find state");
     set_next_state(state);
 }

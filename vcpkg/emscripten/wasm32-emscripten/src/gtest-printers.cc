@@ -280,7 +280,7 @@ void PrintTo(signed char c, ::std::ostream* os) { PrintCharAndCodeTo(c, os); }
 // code otherwise and also as its code.  L'\0' is printed as "L'\\0'".
 void PrintTo(wchar_t wc, ostream* os) { PrintCharAndCodeTo(wc, os); }
 
-// TODO(dcheng): Consider making this delegate to PrintCharAndCodeTo() as well.
+// NDBL_TODO(dcheng): Consider making this delegate to PrintCharAndCodeTo() as well.
 void PrintTo(char32_t c, ::std::ostream* os) {
   *os << std::hex << "U+" << std::uppercase << std::setfill('0') << std::setw(4)
       << static_cast<uint32_t>(c);

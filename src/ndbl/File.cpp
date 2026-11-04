@@ -103,7 +103,7 @@ void file_update(File* file, bool isolation_on)
     {
         if ( HAS_FLAGS(config()->flags, Config_Flag_EXPERIMENTAL_HYBRID_COMMAND_MANAGER) )
         {
-            ASSERT(false); // Not implemented yet
+            NDBL_ASSERT(false); // Not implemented yet
         }
         else
         {
@@ -225,7 +225,7 @@ void file_handle_file_view_change(File* file, File_View_Event_Type type)
             break;
         
         default:
-            UNREACHABLE("Unhandled File_View_Event_Type (value: %i)\n", type);
+            NDBL_UNREACHABLE("Unhandled File_View_Event_Type (value: %i)\n", type);
     }
 }
 

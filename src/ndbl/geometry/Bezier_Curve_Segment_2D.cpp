@@ -56,7 +56,7 @@ std::vector<Vec2>* beziercurve_tesselate(std::vector<Vec2>* path, const Bezier_C
     path->push_back(curve->p1);
     if (num_segments == 0)
     {
-        ASSERT(curve_tesselation_tol > 0.0f);
+        NDBL_ASSERT(curve_tesselation_tol > 0.0f);
         PathBezierCubicCurveToCasteljau(path, *curve, curve_tesselation_tol, 0); // Auto-tessellated
     }
     else

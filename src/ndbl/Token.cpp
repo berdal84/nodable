@@ -83,7 +83,7 @@ void Token::take_prefix_suffix_from(Token* source)
 
 void Token::remove_suffix_and_prefix()
 {
-    VERIFY(!owns_data, "Not possible when Token owns data, data ptr would be lost");
+    NDBL_VERIFY(!owns_data, "Not possible when Token owns data, data ptr would be lost");
     data        += suffix_size;
     suffix_size  = 0;
     prefix_size  = 0; 
@@ -100,7 +100,7 @@ void Token::clear()
 
 u32_t Token::char_position() const
 {
-    VERIFY(false, "This was previously returning the position of the token word on the global"
+    NDBL_VERIFY(false, "This was previously returning the position of the token word on the global"
                   "parsed string, now it does not. We should change that.");
     return suffix_size;
 }
@@ -203,27 +203,27 @@ void Token::suffix_push_back(const String& str)
 
 void Token::lextend_word(size_t amount)
 {
-    if( amount < 0) ASSERT(prefix_size >= -amount);
+    if( amount < 0) NDBL_ASSERT(prefix_size >= -amount);
     prefix_size += amount;
     word_size   -= amount;
 }
 
 void Token::rextend_word(size_t amount)
 {
-    if( amount > 0) ASSERT(suffix_size >= amount);
+    if( amount > 0) NDBL_ASSERT(suffix_size >= amount);
     word_size   += amount;
     suffix_size -= amount;
 }
 
 void Token::set_offset(size_t pos)
 {
-    TODO("Not implemented yet:");
+    NDBL_TODO("Not implemented yet:");
     // TODO: update views
 }
 
 void Token::lextend_prefix(size_t l_amount)
 {
-    VERIFY(!owns_data, "Only allowed when token does not owns the buffer");
+    NDBL_VERIFY(!owns_data, "Only allowed when token does not owns the buffer");
     data        -= l_amount;
     prefix_size += l_amount;
 }
@@ -235,7 +235,7 @@ void Token::rextend_suffix(size_t r_amount)
 
 void Token::rtrim_word(size_t l_amount)
 {
-    ASSERT( word_size >= l_amount );
+    NDBL_ASSERT( word_size >= l_amount );
     word_size   -= l_amount;
     suffix_size += l_amount;
 }

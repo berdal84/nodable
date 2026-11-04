@@ -46,11 +46,11 @@ namespace ndbl
         void bind(const char* name, When when)
         {
             // Guards
-            VERIFY( when < When_COUNT, "when argument is out of bound" );
+            NDBL_VERIFY( when < When_COUNT, "when argument is out of bound" );
 
             // Find the state
             State* state = get_state(name);
-            ASSERT(state != nullptr);
+            NDBL_ASSERT(state != nullptr);
 
             // Override the delegate
             state->delegate[when] = Simple_Delegate::from<Function>(m_context_ptr);

@@ -15,7 +15,7 @@ Rect view_bounding_rect( const std::vector<View>& views, Space space )
     rect.reserve(views.size());
     for (const View& view : views)
     {
-        VERIFY( view.type == View_Type_NODE, "Must contain only Node_Views!");
+        NDBL_VERIFY( view.type == View_Type_NODE, "Must contain only Node_Views!");
         rect.emplace_back( nodeview_get_rect(view.nodeview, space) ) ;
     }
     // compute bbox
@@ -87,7 +87,7 @@ View view_selection_first_of(const View_Selection* selection, View_Type type) //
         if ( elem.type == type )
             return elem;
 
-    ASSERT(false); // unreachable case
+    NDBL_ASSERT(false); // unreachable case
     return {};
 }
 
