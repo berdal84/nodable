@@ -83,7 +83,7 @@ namespace ndbl
 
         struct Function
         {
-            bdc::Inlined_Array<Function_Arg_Descriptor, 8> args = {0};
+            bdc::Inlined_Array<Function_Arg_Descriptor, 8> args = {};
             const Type_Descriptor*                         return_type;
         } function;
 

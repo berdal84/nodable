@@ -231,10 +231,10 @@ int main()
         {
             memory_manager_init();
 
-            u32_t a[] = { 0, 1, 2, 3, 4 };
-            u32_t b[] = { 5, 6, 7, 8, 9 };
+            constexpr Inlined_Array<u32_t, 5> a = { 0, 1, 2, 3, 4 };
+            constexpr Inlined_Array<u32_t, 5> b = { 5, 6, 7, 8, 9 };
 
-            Array<u32_t> result = array_tconcat(Array{a}, Array{b});
+            Array<u32_t> result = array_tconcat(a, b);
 
             TEST_EXPECTS(result.size == 5+5);
             for(u32_t i = 0; i < result.size; ++i)

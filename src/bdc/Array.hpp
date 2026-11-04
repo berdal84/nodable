@@ -26,8 +26,8 @@ namespace bdc
 
         constexpr inline Array(u32_t /* size */, Elem_T* /* data */);
 
-        template<size_t ARRAY_LITERAL_SIZE>
-        constexpr inline Array(Elem_T (&/* array_literal */)[ARRAY_LITERAL_SIZE] );
+        template<size_t N>
+        constexpr inline Array(Elem_T (&/* array_literal */)[N] );
 
         inline const Elem_T& operator[](u32_t pos) const    { assert(pos < size && "out of bounds"); return data[pos]; }
         inline Elem_T&       operator[](u32_t pos)          { assert(pos < size && "out of bounds"); return data[pos]; }
@@ -44,12 +44,12 @@ namespace bdc
     {}
 
     template<typename Elem_T> // yeah, I have to do this in CPP to declare my implementation outside my struct...
-    template<size_t ARRAY_LITERAL_SIZE>        // ... two template<...>. Crazy sh!t.
-    constexpr inline Array<Elem_T>::Array(Elem_T (&array_literal)[ARRAY_LITERAL_SIZE])
-    : size(ARRAY_LITERAL_SIZE)
+    template<size_t N>        // ... two template<...>. Crazy sh!t.
+    constexpr inline Array<Elem_T>::Array(Elem_T (&array_literal)[N])
+    : size(N)
     , data(reinterpret_cast<Elem_T*>(&array_literal))
     {
-        static_assert( ARRAY_LITERAL_SIZE < (u32_t)-1, "Statically allocated array size must fit in u32_t");
+        static_assert( N < (u32_t)-1, "Statically allocated array size must fit in u32_t");
     }
 
     // Simply declare array_join, user must implement it. Only array_join for String is implement in String.hpp.
@@ -94,6 +94,11 @@ namespace bdc
         u32_t                   size            = 0;
         Elem_T                  data[CAPACITY]  = {};       // since capacity is unknown, we must put it second. This way all array types have some common memory layout for its members (size, data).
         static constexpr u32_t  capacity        = CAPACITY;
+        
+        constexpr inline Inlined_Array() = default;
+        constexpr inline Inlined_Array(const std::initializer_list<Elem_T>& list);
+        template<size_t N>
+        constexpr inline Inlined_Array(Elem_T (&/* array_literal */)[N] );
 
         inline const Elem_T& operator[](u32_t pos) const    { assert(pos < size && "out of bounds"); return data[pos]; }
         inline Elem_T&       operator[](u32_t pos)          { assert(pos < size && "out of bounds"); return data[pos]; }
@@ -104,6 +109,25 @@ namespace bdc
     };
     static_assert( std::is_default_constructible_v<Inlined_Array<i8_t, 16>> );
     
+    template<typename Elem_T, u32_t CAPACITY>
+    constexpr inline Inlined_Array<Elem_T, CAPACITY>::Inlined_Array(const std::initializer_list<Elem_T>& list)
+    : size(list.size())
+    , data()
+    {
+        assert( list.size() <= CAPACITY && "Statically allocated array size must fit CAPACITY");
+        std::copy( list.begin(), list.end(), data );
+    }
+
+    template<typename Elem_T, u32_t CAPACITY> // yeah, I have to do this in CPP to declare my implementation outside my struct...
+    template<size_t N>        // ... two template<...>. Crazy sh!t.
+    constexpr inline Inlined_Array<Elem_T, CAPACITY>::Inlined_Array(Elem_T (&array_literal)[N])
+    : size(N)
+    , data()
+    {
+        static_assert( N <= CAPACITY, "Statically allocated array size must fit in u32_t");
+        std::copy( (&array_literal), (&array_literal) + N, &data );
+    }
+
     // Minimal concept to know if a given type is compatible with the generic array API
     template<typename T>
     concept Is_Array = requires(T& t, u32_t pos)
@@ -378,16 +402,16 @@ namespace bdc
         }
     }
 
-    template<typename Elem_T>
-    Array<Elem_T> array_tconcat(const Array<Elem_T>& a, const Array<Elem_T>& b)
+    template<Is_Array A, Is_Array B, typename Elem_T = A::Elem_T>
+    Array<Elem_T> array_tconcat(const A& a, const B& b)
     {
         Resizable_Array<Elem_T> result{};
         array_init(result, &temp_allocator);        
         return array_view( array_concat(result, a, b) );
     }
 
-    template<typename Elem_T>
-    Resizable_Array<Elem_T>& array_concat(Resizable_Array<Elem_T>& out, const Array<Elem_T>& a, const Array<Elem_T>& b)
+    template<Is_Array A, Is_Array B, typename Elem_T = A::Elem_T>
+    Resizable_Array<Elem_T>& array_concat(Resizable_Array<Elem_T>& out, const A& a, const B& b)
     {
         u32_t out_initial_size = out.size;
         array_resize(out, out.size + a.size + b.size);
