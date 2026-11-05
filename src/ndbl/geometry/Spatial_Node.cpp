@@ -35,7 +35,7 @@ void spatialnode_clear(Spatial_Node* spatial_node)
 
 void spatialnode_set_position(Spatial_Node* spatial_node, const Vec2& _pos)
 {
-    spatial_node->transform.set_position(_pos ); // PARENT_SPACE
+    transform2d_set_position(spatial_node->transform, _pos ); // PARENT_SPACE
     spatialnode_set_world_transform_dirty(spatial_node);
 }
 
@@ -76,9 +76,9 @@ void spatialnode_update_world_matrix(Spatial_Node* spatial_node)
         return;
 
     if ( spatial_node->parent )
-        spatial_node->cached_world_matrix = spatial_node->transform.matrix() * spatial_node->parent->world_matrix();
+        spatial_node->cached_world_matrix = transform2d_get_matrix(spatial_node->transform) * spatial_node->parent->world_matrix();
     else
-        spatial_node->cached_world_matrix = spatial_node->transform.matrix();
+        spatial_node->cached_world_matrix = transform2d_get_matrix(spatial_node->transform);
 
     spatial_node->cached_world_matrix_inv   = glm::inverse( spatial_node->cached_world_matrix );
     spatial_node->cached_world_matrix_are_dirty = false;
@@ -86,7 +86,7 @@ void spatialnode_update_world_matrix(Spatial_Node* spatial_node)
 
 Vec2 spatialnode_position(const Spatial_Node* spatial_node)
 {
-    return spatial_node->transform.position();
+    return transform2d_get_position(spatial_node->transform);
 }
 
 Vec2 spatialnode_position(const Spatial_Node* spatial_node, Space space) 
@@ -161,7 +161,7 @@ bool spatialnode_remove_child(Spatial_Node* spatial_node, Spatial_Node* child, S
 void spatialnode_translate(Spatial_Node* spatial_node, const Vec2& delta)
 {
     // Since Transform2D cannot be rotated yet, we can apply the translation in parent space
-    spatial_node->transform.set_position(spatial_node->transform.position() + delta );
+    transform2d_set_position(spatial_node->transform, spatial_node->transform.position + delta );
     spatialnode_set_world_transform_dirty(spatial_node);
 }
 

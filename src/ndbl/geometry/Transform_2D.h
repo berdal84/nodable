@@ -6,24 +6,26 @@
 
 namespace ndbl
 {
-    // To edit easily position (/rotation/scale) and get the matrix3x3 representation
+    // 2D position/rotation/scale structure associated with some matrix3x3 (cached)
     struct Transform_2D
     {
-        void             set_position(const Vec2& p);
-        //void             set_rotation_z(float degrees);
-        //void             set_scale(const Vec2& p);
-        Vec2             position() const { return _position; }
-        //Vec2             rotation_z() const { return _rotation_z; }
-        //Vec2             scale() const { return _scale; };
-        const glm::mat3& matrix() const; // "const": in reality, m_matrix might be updated, but we consider it as a simple cache.
-        const glm::mat3& matrix_inv() const; // same..
+        Vec2                position   = {0.f, 0.f};
+        Vec2                scale      = {1.f, 1.f};
+        constexpr static float rotation_z = 0.0f; // I don't need that currently, so it static.
 
-        void             _update_matrix();
-        Vec2             _position   = {0.f, 0.f};
-        float            _rotation_z = 0.f;
-        Vec2             _scale      = {1.f, 1.f};
-        glm::mat3        _matrix;
-        glm::mat3        _matrix_inv;
-        bool             _matrix_dirty = true;
+        // Note: the following members are for cache only and should not be used directly
+
+        mutable glm::mat3   _matrix;
+        mutable glm::mat3   _matrix_inv;
+        mutable bool        _matrices_are_dirty = true;
     };
+
+    void             transform2d_set_position(Transform_2D&, const Vec2&);
+    Vec2             transform2d_get_position(const Transform_2D&); //........ alias for transform.position, for API symmetry
+    void             transform2d_set_scale(Transform_2D&, const Vec2&);
+    Vec2             transform2d_get_scale(const Transform_2D&); //........... alias for transform.scale, for API symmetry
+    const glm::mat3& transform2d_get_matrix(const Transform_2D&); //.......... update the matrix if needed and returns it
+    const glm::mat3& transform2d_get_matrix_inv(const Transform_2D&); //...... update the matrix if needed and returns it
+    
+    void             _transform2d_update_matrices(const Transform_2D&);
 }

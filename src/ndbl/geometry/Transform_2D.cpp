@@ -6,50 +6,65 @@
 
 #include "../Asserts.h"
 
-using namespace ndbl;
-
-void Transform_2D::set_position(const Vec2& p)
+namespace ndbl
 {
-    NDBL_ASSERT(!std::isnan(p.x));
-    NDBL_ASSERT(!std::isnan(p.x));
-    _position     = p;
-    _matrix_dirty = true;
+
+void transform2d_set_position(Transform_2D& transform, const Vec2& position)
+{
+    NDBL_ASSERT(!std::isnan(position.x));
+    NDBL_ASSERT(!std::isnan(position.y));
+
+    transform.position            = position;
+    transform._matrices_are_dirty = true;
 }
 
-//void Transform2D::set_rotation_z(float angle)
-//{
-//    _rotation_z   = angle;
-//    _matrix_dirty = true;
-//}
-//
-//void Transform2D::set_scale(const Vec2& scale)
-//{
-//    _scale        = scale;
-//    _matrix_dirty = true;
-//}
-
-const glm::mat3 &Transform_2D::matrix() const
+Vec2 transform2d_get_position(const Transform_2D& transform)
 {
-    const_cast<Transform_2D*>(this)->_update_matrix();
-    return _matrix;
+    return transform.position;
 }
 
-const glm::mat3 &Transform_2D::matrix_inv() const
+void transform2d_set_scale(Transform_2D& transform, const Vec2& scale)
 {
-    const_cast<Transform_2D*>(this)->_update_matrix();
-    return _matrix_inv;
+    NDBL_ASSERT(!std::isnan(scale.x));
+    NDBL_ASSERT(!std::isnan(scale.x));
+    NDBL_ASSERT(scale.x > 0);
+    NDBL_ASSERT(scale.y > 0);
+
+    transform.scale               = scale;
+    transform._matrices_are_dirty = true;
 }
 
-void Transform_2D::_update_matrix()
+Vec2 transform2d_get_scale(const Transform_2D& transform)
 {
-    if ( !_matrix_dirty )
+    return transform.scale;
+}
+
+const glm::mat3& transform2d_get_matrix(const Transform_2D& transform)
+{
+    _transform2d_update_matrices(transform);
+    return transform._matrix;
+}
+
+const glm::mat3& transform2d_get_matrix_inv(const Transform_2D& transform)
+{
+    _transform2d_update_matrices(transform);
+    return transform._matrix_inv;
+}
+
+void _transform2d_update_matrices(const Transform_2D& transform)
+{
+    if ( !transform._matrices_are_dirty )
+    {
         return;
+    }
 
-    _matrix_dirty = false;
+    transform._matrices_are_dirty = false;
 
-    _matrix       = glm::translate(glm::identity<glm::mat3>(), glm::vec2{_position} )
-                  * glm::rotate(glm::identity<glm::mat3>(), glm::radians(_rotation_z))
-                  * glm::scale(glm::identity<glm::mat3>(), glm::vec2{_scale});
+    transform._matrix = glm::translate(glm::identity<glm::mat3>(), glm::vec2{transform.position} )
+                      * glm::rotate(glm::identity<glm::mat3>(), glm::radians(transform.rotation_z))
+                      * glm::scale(glm::identity<glm::mat3>(), glm::vec2{transform.scale});
 
-    _matrix_inv   = glm::inverse(_matrix);
+    transform._matrix_inv   = glm::inverse(transform._matrix);
+}
+
 }
