@@ -63,7 +63,7 @@ void fileview_update(File_View* file_view, float dt)
         {
             for(auto& glyph : line )
             {
-                while( colorize_char_count <= 0 && next_token_id < parser.tokens.size() )
+                while( colorize_char_count <= 0 && next_token_id < parser.tokens.size )
                 {
                     auto& tok = parser.tokens[next_token_id];
                     colorize_char_count = tok.size();

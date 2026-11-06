@@ -240,6 +240,9 @@ void parser_init(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
     ctx.langdef     = &langdef(); // langdef if unique for now...
     ctx.strict_mode = false;      // we want to get a graph even if the code does not compiles, like a text editor with some source code.
     parser_reset(ctx, out_graph, in_text);
+    array_init(ctx.pristine_tokens);
+    array_init(ctx.tokens);
+    array_init(ctx.transaction);
 }
 
 void parser_deinit(Parser_Context& ctx)
@@ -247,10 +250,9 @@ void parser_deinit(Parser_Context& ctx)
   array_release(ctx.flow_out);
   // array_release(ctx.in_text); in_text is not owned
   // graph_deinit(ctx.out_graph); out_graph is not owned
-  ctx.pristine_tokens.clear();
-  ctx.tokens.clear();
-  while(ctx.transaction.size())
-    ctx.transaction.pop();
+  array_release(ctx.pristine_tokens);
+  array_release(ctx.tokens);
+  array_release(ctx.transaction);
 }
 
 void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
@@ -258,13 +260,12 @@ void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
     ctx.in_text   = in_text; // in_text is not owned
     ctx.out_graph = out_graph; // out_graph is not owned
 
-    ctx.tokens.clear();
-    ctx.pristine_tokens.clear();
-    ctx.global_token.replace_buffer_readonly( ctx.in_text ); // global_token completely wraps in_text.
-
-    while(!ctx.transaction.empty())
-        ctx.transaction.pop();
+    array_clear(ctx.tokens);
+    array_clear(ctx.pristine_tokens);
+    array_clear(ctx.transaction);
     ctx.cursor = 0;
+
+    ctx.global_token.replace_buffer_readonly( ctx.in_text ); // global_token completely wraps in_text.
 
     if( ctx.out_graph ) // not all parse_xxx procedures requires it, but if it is set we must reset it
     {
@@ -289,9 +290,13 @@ bool parse_graph(Parser_Context& ctx)
     NDBL_ASSERT(ctx.in_text.data != nullptr);
 
     size_t ignored_chars_count = 0;
+    
     ctx.pristine_tokens = ctx.tokens;
-    ctx.tokens.clear();
-    for(size_t i = 0; i < ctx.pristine_tokens.size(); ++i )
+    
+    ctx.tokens = {};
+    array_init(ctx.tokens);
+
+    for(size_t i = 0; i < ctx.pristine_tokens.size; ++i )
     {
         Token& current_token = ctx.pristine_tokens[i];
 
@@ -304,7 +309,7 @@ bool parse_graph(Parser_Context& ctx)
             case Token_Type_comment:
             case Token_Type_multiline_comment:
             {
-                if ( ctx.tokens.empty() )
+                if ( ctx.tokens.size == 0 )
                 {
                     ctx.global_token.ltrim_word( current_token.size() );
                     continue;
@@ -317,7 +322,7 @@ bool parse_graph(Parser_Context& ctx)
 
         if ( i > 0 && ignored_chars_count > 0 )
         {
-            Token& previous_token = ctx.tokens.back();
+            Token& previous_token = array_back(ctx.tokens);
             switch (previous_token.type)
             {
                 case Token_Type_identifier:        // identifiers must stay clean because they are reused
@@ -340,7 +345,7 @@ bool parse_graph(Parser_Context& ctx)
             ignored_chars_count = 0;
         }
 
-        ctx.tokens.push_back(current_token);
+        array_append(ctx.tokens, current_token);
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", current_token.index, current_token.view().c_str() );
     }
 
@@ -385,7 +390,7 @@ bool parse_graph(Parser_Context& ctx)
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "token idx %i: %s\n", each_token.index, each_token.json().c_str());
         }
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon end").c_str());
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Failed to parse from token at index %llu (tokens.size: %llu) and above.\n", parser_peek(ctx).index, ctx.tokens.size());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Failed to parse from token at index %llu (tokens.size: %llu) and above.\n", parser_peek(ctx).index, ctx.tokens.size);
         NDBL_LOG(Verbosity_Error, "Parser", "Unable to parse all the tokens\n");
         
         return false;
@@ -956,7 +961,7 @@ bool parser_tokenize(Parser_Context& ctx)
             return false;
         }
 
-        ctx.tokens.push_back(new_token);
+        array_append(ctx.tokens, new_token);
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", new_token.index, new_token.view().c_str() );
     }
 
@@ -1173,9 +1178,9 @@ Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
 
 Token& parser_push(Parser_Context& ctx, Token& token)
 {
-    token.index = ctx.tokens.size();
-    ctx.tokens.push_back(token);
-    return ctx.tokens.back();
+    token.index = ctx.tokens.size;
+    array_append(ctx.tokens, token);
+    return array_back(ctx.tokens);
 }
 
 String parser_to_string(const Parser_Context& ctx)
@@ -1193,7 +1198,7 @@ String parser_to_string(const Parser_Context& ctx)
         {
             string_builder_append(sb, "B"); // begin
         }
-        else if ( token.index == ctx.tokens.back().index )
+        else if ( token.index == array_back(ctx.tokens).index )
         {
             string_builder_append(sb, "E"); // end
         }
@@ -1202,9 +1207,9 @@ String parser_to_string(const Parser_Context& ctx)
             string_builder_append(sb, "|"); // default
         }
 
-        if ( !ctx.transaction.empty()
-              && token.index >= ctx.transaction.top()
-              && token.index <= ctx.cursor )
+        if ( ctx.transaction.size > 0
+             && token.index >= array_back(ctx.transaction)
+             && token.index <= ctx.cursor )
         {
             string_builder_append(sb, "T"); // transaction
         }
@@ -1226,13 +1231,13 @@ String parser_to_string(const Parser_Context& ctx)
     return string_builder_build_tstring(sb);
 }
 
-String parser_to_string(Parser_Context& ctx, size_t begin, size_t end)
+String parser_to_string(Parser_Context& ctx, u32_t begin, u32_t end)
 {
     NDBL_ASSERT(begin <= end);
-    NDBL_ASSERT(end <= ctx.tokens.size() );
+    NDBL_ASSERT(end <= ctx.tokens.size );
 
     String_Builder sb;
-    for( size_t i = begin; i < end; ++i )
+    for( u32_t i = begin; i < end; ++i )
     {
         string_builder_append(sb, ctx.tokens[i].view() );
     }
@@ -1256,7 +1261,7 @@ const Token& parser_get_eaten(const Parser_Context& ctx)
 
 bool parser_peek(const Parser_Context& ctx, Token_Type t)
 {
-    return ctx.cursor < ctx.tokens.size() && ctx.tokens[ctx.cursor].type == t;
+    return ctx.cursor < ctx.tokens.size && ctx.tokens[ctx.cursor].type == t;
 }
 
 const Token& parser_peek(const Parser_Context& ctx)
@@ -1267,32 +1272,32 @@ const Token& parser_peek(const Parser_Context& ctx)
 Token parser_eat(Parser_Context& ctx)
 {
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Eat token (idx %i) %s \n", ctx.cursor, parser_peek(ctx).view().c_str() );
-    return ctx.tokens.at(ctx.cursor++);
+    return ctx.tokens[ctx.cursor++];
 }
 
 void parser_start_transaction(Parser_Context& ctx)
 {
-    ctx.transaction.push(ctx.cursor);
+    array_append(ctx.transaction, ctx.cursor);
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Start Transaction (idx %i)\n", ctx.cursor);
 }
 
 void parser_rollback(Parser_Context& ctx)
 {
-    ctx.cursor = ctx.transaction.top();
+    ctx.cursor = array_back(ctx.transaction);
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Rollback (idx %i)\n", ctx.cursor);
-    ctx.transaction.pop();
+    array_pop(ctx.transaction);
 }
 
 void parser_commit(Parser_Context& ctx)
 {
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Commit (idx %i)\n", ctx.cursor);
-    ctx.transaction.pop();
+    array_pop(ctx.transaction);
 }
 
 bool parser_can_eat(const Parser_Context& ctx, size_t token_count)
 {
     NDBL_ASSERT(token_count > 0);
-    return ctx.cursor + token_count <= ctx.tokens.size() ;
+    return ctx.cursor + token_count <= ctx.tokens.size ;
 }
 
 Node_Slot* parse_function_call(Parser_Context& ctx, Scope* parent_scope)

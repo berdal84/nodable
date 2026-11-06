@@ -13,6 +13,7 @@
 #include "Node.h"
 #include "Size.h"
 #include "texteditor/Text_Editor_ImGui_Renderer.h"
+#include "Log.h"
 
 namespace ndbl
 {

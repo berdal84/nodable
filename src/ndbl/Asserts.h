@@ -19,11 +19,10 @@
         }
 
     #ifdef NDBL_DEBUG
-        #define NDBL_ASSERT_DEBUG_ONLY(expression, ... ) \
-            NDBL_ASSERT(expression, __VA_ARGS__, "(debug only)")
+        #define NDBL_ASSERT_DEBUG_ONLY( ... ) \
+            NDBL_ASSERT(__VA_ARGS__, "(debug only)")
     #else
-        #define NDBL_ASSERT_DEBUG_ONLY(expression, ... ) \
-            // NDBL_ASSERT_DEBUG_ONLY was removed, NDBL_DEBUG is false.
+        #define NDBL_ASSERT_DEBUG_ONLY( ... ) // NDBL_ASSERT_DEBUG_ONLY was removed, NDBL_DEBUG is false.
     #endif
 
     #define NDBL_TODO( message ) \

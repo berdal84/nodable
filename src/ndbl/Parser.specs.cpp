@@ -166,7 +166,7 @@ TEST_F(Language_parse_function_call, dna_to_protein)
     auto& ctx = tokenize("dna_to_protein(\"GATACA\")");
 
     // check
-    EXPECT_EQ(ctx.tokens.size(), 4);
+    EXPECT_EQ(ctx.tokens.size, 4);
     EXPECT_EQ(ctx.tokens[0].type, Token_Type_identifier);
     EXPECT_EQ(ctx.tokens[1].type, Token_Type_parenthesis_open);
     EXPECT_EQ(ctx.tokens[2].type, Token_Type_literal_string);
@@ -186,7 +186,7 @@ TEST_F(Language_parse_function_call, operator_add)
     auto& ctx = tokenize("42+42");
 
     // check
-    EXPECT_EQ(ctx.tokens.size(), 3);
+    EXPECT_EQ(ctx.tokens.size, 3);
     EXPECT_EQ(ctx.tokens[0].type, Token_Type_literal_int);
     EXPECT_EQ(ctx.tokens[1].type, Token_Type_operator);
     EXPECT_EQ(ctx.tokens[2].type, Token_Type_literal_int);

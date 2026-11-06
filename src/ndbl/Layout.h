@@ -116,9 +116,9 @@ namespace ndbl
 
     struct Layout_State
     {
-        bool                         should_be_cleared = false;
-        Inlined_Array<Element, 4096> elements;
-        Inlined_Array<Element*, 32>  stack;
+        bool                                should_be_cleared = false;
+        bdc::Inlined_Array<Element, 4096>   elements;
+        bdc::Inlined_Array<Element*, 32>    stack;
     };
 
     static Layout_State layout_state;
@@ -217,7 +217,7 @@ namespace ndbl
         array_pop(layout()->stack);     
     };
 
-    inline Array<Element> layout_elements()
+    inline bdc::Array<Element> layout_elements()
     {
         return array_view(layout()->elements);
     }

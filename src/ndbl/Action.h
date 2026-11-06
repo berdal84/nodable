@@ -35,7 +35,7 @@ namespace ndbl
         bdc::String description;
     };
 
-    String shortcut_to_tstring(const Shortcut&); // Return a string including shortcut and description (ex: "Ctrl + Alt + M Do this")
+    bdc::String shortcut_to_tstring(const Shortcut&); // Return a string including shortcut and description (ex: "Ctrl + Alt + M Do this")
 
     struct Action 
     {

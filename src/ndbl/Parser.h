@@ -1,8 +1,5 @@
 #pragma once
 
-#include <stack>   // TODO: use bdc::Resizable_Array
-#include <vector>  // TODO: use bdc::Resizable_Array
-
 #include "bdc/String.hpp"
 #include "bdc/String_Builder.hpp"
 #include "bdc/Array.hpp"
@@ -85,11 +82,11 @@ namespace ndbl
         Graph*                              out_graph;
         bdc::String                         in_text;
         bdc::Resizable_Array<Node_Slot*>    flow_out;
-        size_t                              cursor; // current token index
-        Token                               global_token; // for any prefix/suffix that can't be attached to a Token.
-        std::vector<Token>                  tokens; // contains the strict minimum (extra tokens are prefix/suffixes)
-        std::vector<Token>                  pristine_tokens; // includes spaces, line returns, etc.
-        std::stack<size_t>                  transaction; // transaction start indexes
+        size_t                              cursor; //.............. current token index
+        Token                               global_token; //........ prefix/suffix that can't be attached to a Token.
+        bdc::Resizable_Array<Token>         tokens; //.............. contains the strict minimum (extra tokens are prefix/suffixes)
+        bdc::Resizable_Array<Token>         pristine_tokens; //..... includes spaces, line returns, etc.
+        bdc::Resizable_Array<size_t>        transaction; //......... transaction start indexes
     };
 
 
@@ -145,8 +142,8 @@ namespace ndbl
     void                            serializer_init(Serializer_Context&, Graph* /* in */ = nullptr );
     void                            serializer_deinit(Serializer_Context&);
     void                            serializer_reset(Serializer_Context&, Graph* /* in */ );
-    String                          serializer_build_tstring(Serializer_Context&);
-    String                          serializer_build_string(Serializer_Context&);
+    bdc::String                     serializer_build_tstring(Serializer_Context&);
+    bdc::String                     serializer_build_string(Serializer_Context&);
 
     void                            serialize_graph(Serializer_Context&);
     void                            serialize_function_call(Serializer_Context&, const Type_Descriptor*, const bdc::Array<Node_Slot*>& inputs);

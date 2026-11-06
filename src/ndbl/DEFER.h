@@ -5,7 +5,7 @@ struct At_Destruction_Caller
 {
     Function_Type func;
 
-    At_Destruction_Caller(Function_Type f)
+    At_Destruction_Caller(Function_Type&& f)
     : func(std::move(f))
     {}
 

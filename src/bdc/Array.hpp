@@ -245,6 +245,17 @@ namespace bdc
         array_resize(arr, 0);
     }
 
+    template<typename Elem_T>
+    Resizable_Array<Elem_T> array_copy(const Resizable_Array<Elem_T>& arr)
+    {
+        Resizable_Array<Elem_T> result;        
+        array_init(result, arr.size);
+
+        std::copy(arr.data.begin(), arr.data.end(), result.data);
+
+        return result;
+    }
+
     // Inlined_Array specific API
 
     template<typename Elem_T, u32_t CAPACITY>
