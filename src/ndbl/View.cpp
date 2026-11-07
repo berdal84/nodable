@@ -34,6 +34,8 @@ void viewselection_clear(View_Selection& selection)
         selection.signal_change.emit( View_Selection_Event_Type_REMOVE, elem );
     }
     
+    array_clear(selection.items);
+
     for(auto& each : selection.count_by_type)
     {
         each = 0;
@@ -63,15 +65,13 @@ void viewselection_add(View_Selection& selection, const Array<View>& views )
     }
 }
 
-bool viewselection_remove(View_Selection& selection, const View& elem)
+void viewselection_remove(View_Selection& selection, const View& elem)
 {
-    auto found = std::find( selection.items.begin(), selection.items.end(), elem) != selection.items.end();
-    if( found )
-    {
-        selection.count_by_type[elem.type]--;
-        selection.signal_change.emit( View_Selection_Event_Type_APPEND, elem );
-    }
-    return found;
+    auto found = array_find(selection.items, elem);
+    NDBL_ASSERT(found.ok);
+    selection.count_by_type[elem.type]--;
+    selection.signal_change.emit( View_Selection_Event_Type_APPEND, elem );
+    array_remove_ordered(selection.items, found.at_pos);
 }
 
 bool viewselection_contains(const View_Selection& selection, View_Type type) // O(1), read from cache.

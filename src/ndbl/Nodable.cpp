@@ -38,6 +38,8 @@
 namespace ndbl
 {
 
+using namespace bdc;
+
 static App_State* g_app = {}; // The main loop needs a static function pointer to run, we have to grab App_View_State* globaly.
 
 #define VERIFY_NODABLE_IS_INITIALIZED() NDBL_ASSERT(g_app != nullptr, "Nodable is not initialized, did you call nodable_init() ?")
@@ -57,7 +59,7 @@ App_State* app_state()
 
 App_State* app_init()
 {
-    bdc::memory_manager_init(1024 * 1024 * 10); // must be first
+    memory_manager_init(1024 * 1024 * 10); // must be first
     
     log_init();
 
@@ -70,7 +72,7 @@ App_State* app_init()
 
     // Expose a global pointer
     NDBL_ASSERT(g_app == nullptr);
-    g_app = bdc::memory_new<App_State>();
+    g_app = memory_new<App_State>();
 
     // Init manager(s)
     config_init();
@@ -101,7 +103,7 @@ void app_shutdown()
     {
         NDBL_LOG(Verbosity_Diagnostic, "App", "Delete file %s ...\n", each_file->path.c_str());
         file_deinit(each_file);
-        bdc::memory_delete(each_file);
+        memory_delete(each_file);
     }
 
     // Shutdown managers & co.
@@ -114,7 +116,7 @@ void app_shutdown()
     array_release(g_app->files);
     array_release(g_app->files_to_delete);
 
-    bdc::memory_delete(g_app);
+    memory_delete(g_app);
     g_app = nullptr;
 
     reflection_shutdown();
@@ -122,12 +124,12 @@ void app_shutdown()
     
     log_shutdown();   
 
-    bdc::memory_manager_shutdown(); // must be last
+    memory_manager_shutdown(); // must be last
 }
 
 void app_do_frame()
 {
-    bdc::memory_manager_reset_temp_allocator_buffer(); // the intend of a temporary allocator, is to use data quickly after allocation, we want to clear that buffer at the begining of each frame.
+    memory_manager_reset_temp_allocator_buffer(); // the intend of a temporary allocator, is to use data quickly after allocation, we want to clear that buffer at the begining of each frame.
     app_update();
     app_draw();
 }
@@ -156,7 +158,7 @@ void app_update()
     {
         NDBL_LOG(Verbosity_Diagnostic, "Nodable", "Delete files flagged to delete: %s\n", file->name.data );
         file_deinit(file);
-        bdc::memory_delete(file);
+        memory_delete(file);
     }
 
     array_clear(app->files_to_delete);
@@ -436,9 +438,9 @@ void app_update()
                     // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
                     if (node_is_instruction(out->node ) && out->type() == Node_Slot::Flag_TYPE_FLOW )
                     {
-                        if ( bdc::string_rfind( out->node->suffix.view(), '\n') == bdc::String::invalid_pos )
+                        if ( string_rfind( token_suffix_view(out->node->suffix), '\n') == String::invalid_pos )
                         {
-                            out->node->suffix.suffix_push_back("\n");
+                            token_suffix_push_back(out->node->suffix, "\n");
                         }
                     }
                 }
@@ -474,7 +476,7 @@ File* app_open_file(const Path& _path)
 {
     auto app = app_state();
 
-    File* file = bdc::memory_new<File>();
+    File* file = memory_new<File>();
     file_init(file);
     
     if ( file_read(file, _path ) )
@@ -483,7 +485,7 @@ File* app_open_file(const Path& _path)
     }
 
     file_deinit(file);
-    bdc::memory_delete(file);
+    memory_delete(file);
     NDBL_LOG(Verbosity_Error, "File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
     return nullptr;
 }
@@ -570,9 +572,9 @@ File* app_new_file()
 
     app->untitled_file_count++;
 
-    bdc::String name = bdc::string_printf( "Untitled_%i.cpp", app->untitled_file_count);
+    String name = string_printf( "Untitled_%i.cpp", app->untitled_file_count);
     
-    auto* file = bdc::memory_new<File>();
+    auto* file = memory_new<File>();
     file_init(file);
     file->path = name.c_str();
     file->name = name;

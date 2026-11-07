@@ -4,55 +4,48 @@
 #include "bdc/String_Builder.hpp"
 #include "bdc/Types.hpp"
 #include "ndbl/Asserts.h"
-#include <cassert>
 #include <cstddef>
 #include <cstring>
 
 namespace ndbl
 {
 using namespace bdc;
-using namespace ndbl;
 
-const Token Token::s_end_of_line        = { Token_Type_end_of_line       , "\n" };
-const Token Token::s_end_of_instruction = { Token_Type_end_of_instruction, ";"  };
-
-Token::Token(
-    Token_Type  _type,
-    String      _buffer
-)
-: type(_type)
-, data(_buffer.data)
-, prefix_size(0)
-, word_size(_buffer.size)
-, suffix_size(0)
-, owns_data(false)
-{}
-
-Token::~Token()
+void token_deinit(Token& token)
 {
-    if( owns_data )
+    if( token.owns_data )
     {
-        memory_free(data);
+        memory_free(token.data);
     }
 }
 
-String Token::json() const
+String token_serialize_json(const Token& token)
 {
     using namespace bdc;
 
     String_Builder sb;
 
     string_builder_append(sb, "{\n");
-    string_builder_append(sb, string_tprintf("\ttype: %i,\n", type));
-    string_builder_append(sb, string_tprintf("\tprefix_view: \"%s\",\n", prefix_view().c_str() ) );
-    string_builder_append(sb, string_tprintf("\tword_view: \"%s\",\n", word_view().c_str() ) );
-    string_builder_append(sb, string_tprintf("\tsuffix: \"%s\",\n", suffix_view().c_str() ) );
+    string_builder_append(sb, string_tprintf("\ttype: %i,\n", token.type));
+    string_builder_append(sb, string_tprintf("\tprefix_view: \"%s\",\n", token_prefix_view(token).c_str() ) );
+    string_builder_append(sb, string_tprintf("\tword_view: \"%s\",\n", token_word_view(token).c_str() ) );
+    string_builder_append(sb, string_tprintf("\tsuffix: \"%s\",\n", token_suffix_view(token).c_str() ) );
     string_builder_append(sb, " }");
 
     return string_builder_build_tstring(sb);
 }
 
-void Token::take_prefix_suffix_from(Token* source)
+void token_release_buffer_if_owned(Token& token)
+{
+    if( token.owns_data )
+    {
+        memory_free(token.data);
+        token.data      = nullptr;
+        token.owns_data = false;
+    }
+}
+
+void token_take_prefix_suffix_from(Token& token, Token& other)
 {
     // transfer prefix and suffix to this token, but keep the same word.
     // this operation requires the buffer to be owned
@@ -60,189 +53,160 @@ void Token::take_prefix_suffix_from(Token* source)
     String_Builder sb;
 
     // copy prefix from source
-    string_builder_append(sb, source->prefix_view() );
-    string_builder_append(sb, word_view() );
-    string_builder_append(sb, source->suffix_view() );
+    string_builder_append(sb, token_prefix_view(other) );
+    string_builder_append(sb, token_word_view(token) );
+    string_builder_append(sb, token_suffix_view(other) );
 
     i8_t* new_data = string_builder_build_string(sb).data;
 
-    if( owns_data )
-    {
-        memory_free(data);
-    }
+    token_release_buffer_if_owned(token);
 
-    data      = new_data;
-    owns_data = true;
+    token.data      = new_data;
+    token.owns_data = true;
 
-    prefix_size = source->prefix_size;
-    suffix_size = source->suffix_size;
+    token.prefix_size = other.prefix_size;
+    token.suffix_size = other.suffix_size;
 
-    source->remove_suffix_and_prefix();
+    token_remove_suffix_and_prefix(other);
 }
 
-void Token::remove_suffix_and_prefix()
+void token_remove_suffix_and_prefix(Token& token)
 {
-    NDBL_ASSERT(!owns_data, "Not possible when Token owns data, data ptr would be lost");
-    data        += suffix_size;
-    suffix_size  = 0;
-    prefix_size  = 0; 
+    NDBL_ASSERT(!token.owns_data, "Not possible when Token owns data, data ptr would be lost");
+    token.data        += token.suffix_size;
+    token.suffix_size  = 0;
+    token.prefix_size  = 0; 
 }
 
-void Token::clear()
+void token_clear(Token& token)
 {
-    index       = 0;
-    type        = 0;
-    prefix_size = 0;
-    word_size   = 0;
-    suffix_size = 0;
+    token.index       = 0;
+    token.type        = 0;
+    token.prefix_size = 0;
+    token.word_size   = 0;
+    token.suffix_size = 0;
+    
+    token_release_buffer_if_owned(token);
 }
 
-u32_t Token::char_position() const
+u32_t token_char_position(const Token& token)
 {
     NDBL_ASSERT(false, "This was previously returning the position of the token word on the global"
                   "parsed string, now it does not. We should change that.");
-    return suffix_size;
+    return token.suffix_size;
 }
 
-Token& Token::operator=(const Token& other)
-{
-    if( this == &other) return *this;
-
-    index       = other.index;
-    prefix_size = other.prefix_size;
-    word_size   = other.word_size;
-    suffix_size = other.suffix_size;
-    type        = other.type;
-    data        = other.data;
-    owns_data   = other.owns_data; // That is user's responsibility to release the data once
-
-    return *this;
-}
-
-void Token::replace_buffer_readonly(const String& _buffer)
+void token_replace_buffer_readonly(Token& token, const String& buffer)
 {
     // here, we consider that the whole buffer will be into the "word" part, no suffix/prefix.
 
-    if( owns_data )
-    {
-        memory_free(data);
-        owns_data = false;
-    }
+    token_release_buffer_if_owned(token);
 
-    this->data = _buffer.data;
-    prefix_size    = 0;
-    word_size      = _buffer.size;
-    suffix_size    = 0;
+    token.data           = buffer.data;
+    token.prefix_size    = 0;
+    token.word_size      = buffer.size;
+    token.suffix_size    = 0;
 }
 
-void Token::replace_buffer_readwrite(const String& _buffer )
+void token_replace_buffer_readwrite(Token& token, const String& buffer )
 {
     // here, we consider that the whole buffer will be into the "word" part, no suffix/prefix.
 
-    if( owns_data )
-    {
-        memory_free(data);
-        owns_data = false;
-    }
+    token_release_buffer_if_owned(token);
 
-    this->data = string_copy(_buffer).data;
-    owns_data = true;
-
-    prefix_size    = 0;
-    word_size      = _buffer.size;
-    suffix_size    = 0;
+    token.data          = string_copy(buffer).data;
+    token.owns_data     = true;
+    token.prefix_size   = 0;
+    token.word_size     = buffer.size;
+    token.suffix_size   = 0;
 }
 
-void Token::replace_word(const String& new_word)
+void token_replace_word(Token& token, const String& new_word)
 {
     // print a new buffer, and update the views
-    i8_t* new_data = string_printf("%s%s%s", prefix_view().c_str(), new_word.c_str(), suffix_view().c_str() ).data;
+    i8_t* new_data = string_printf("%s%s%s"
+                                  , token_prefix_view(token).c_str()
+                                  , new_word.c_str()
+                                  , token_suffix_view(token).c_str() ).data;
 
-    if( owns_data )
-    {
-        memory_free(data);
-    }
+    token_release_buffer_if_owned(token);
 
-    data            = new_data;
-    owns_data       = true;
-    // prefix_size  = (no change)
-    word_size       = new_word.size;
-    // suffix_size  = (no change)
+    token.data            = new_data;
+    token.owns_data       = true;
+    // token.prefix_size  = ... (no change)
+    token.word_size       = new_word.size;
+    // token.suffix_size  = ... (no change)
 }
 
-void Token::prefix_push_front(const String& str)
+void token_prefix_push_front(Token& token, const String& str)
 {
-    i8_t* new_data = string_printf("%s%s", str.c_str(), view().c_str() ).data;
-    if ( owns_data )
-    {
-        // Currently we do not allocate more that needed, so when we resize we must release our buffer
-        memory_free(data);
-    }
-    data            = new_data;
-    owns_data       = true;
-    prefix_size    += str.size;
-    // word_size    = (no change)
-    // suffix_size  = (no change)
+    i8_t* new_data = string_printf("%s%s", str.c_str(), token_view(token).c_str() ).data;
+    
+    token_release_buffer_if_owned(token);
+
+    token.data            = new_data;
+    token.owns_data       = true;
+    token.prefix_size    += str.size;
+    // token.word_size    = ... (no change)
+    // token.suffix_size  = ... (no change)
 }
 
-void Token::suffix_push_back(const String& str)
+void token_suffix_push_back(Token& token, const String& str)
 {
-    i8_t* new_data = string_printf("%s%s", view().c_str(), str.c_str() ).data;
-    if ( owns_data )
-    {
-        // Currently we do not allocate more that needed, so when we resize we must release our buffer
-        memory_free(data);
-    }
-    data            = new_data;
-    owns_data       = true;
-    // prefix_size  = (no change)
-    // word_size    = (no change)
-    suffix_size    += str.size;
+    i8_t* new_data = string_printf("%s%s", token_view(token).c_str(), str.c_str() ).data;
+    
+    token_release_buffer_if_owned(token);
+
+    token.data            = new_data;
+    token.owns_data       = true;
+    // token.prefix_size  = ... (no change)
+    // token.word_size    = ... (no change)
+    token.suffix_size    += str.size;
 }
 
-void Token::lextend_word(size_t amount)
+void token_lextend_word(Token& token, size_t amount)
 {
-    if( amount < 0) NDBL_ASSERT(prefix_size >= -amount);
-    prefix_size += amount;
-    word_size   -= amount;
+    NDBL_ASSERT(token.prefix_size >= amount);
+    token.prefix_size -= amount;
+    token.word_size   += amount;
 }
 
-void Token::rextend_word(size_t amount)
+void token_rextend_word(Token& token, size_t amount)
 {
-    if( amount > 0) NDBL_ASSERT(suffix_size >= amount);
-    word_size   += amount;
-    suffix_size -= amount;
+    NDBL_ASSERT(token.suffix_size >= amount);
+    token.word_size   += amount;
+    token.suffix_size -= amount;
 }
 
-void Token::set_offset(size_t pos)
+void token_set_offset(Token& token, size_t pos)
 {
     NDBL_TODO("Not implemented yet:");
     // TODO: update views
 }
 
-void Token::lextend_prefix(size_t l_amount)
+void token_lextend_prefix(Token& token, size_t l_amount)
 {
-    NDBL_ASSERT(!owns_data, "Only allowed when token does not owns the buffer");
-    data        -= l_amount;
-    prefix_size += l_amount;
+    NDBL_ASSERT(!token.owns_data, "Only allowed when token does not owns the buffer");
+    token.data        -= l_amount;
+    token.prefix_size += l_amount;
 }
 
-void Token::rextend_suffix(size_t r_amount)
+void token_rextend_suffix(Token& token, size_t r_amount)
 {
-    suffix_size += r_amount;
+    token.suffix_size += r_amount;
 }
 
-void Token::rtrim_word(size_t l_amount)
+void token_rtrim_word(Token& token, size_t l_amount)
 {
-    NDBL_ASSERT( word_size >= l_amount );
-    word_size   -= l_amount;
-    suffix_size += l_amount;
+    NDBL_ASSERT( token.word_size >= l_amount );
+    token.word_size   -= l_amount;
+    token.suffix_size += l_amount;
 }
 
-void Token::ltrim_word(size_t r_amount)
+void token_ltrim_word(Token& token, size_t r_amount)
 {
-    prefix_size += r_amount;
-    word_size    = word_size < r_amount ? 0 : word_size - r_amount;
+    token.prefix_size += r_amount;
+    token.word_size    = token.word_size < r_amount ? 0 : token.word_size - r_amount;
 }
 
 } // namespace ndbl

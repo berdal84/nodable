@@ -28,42 +28,51 @@ namespace ndbl
 
         Token(): Token(Token_Type_NULL) {}
         Token(Token_Type type): Token(type, "") {}
-        Token(Token_Type type, bdc::String buffer);
-        Token(const Token& other) { *this = other; };
+        Token(
+            Token_Type  type,
+            bdc::String buffer
+        )
+        : type(type)
+        , data(buffer.data)
+        , prefix_size(0)
+        , word_size(buffer.size)
+        , suffix_size(0)
+        , owns_data(false)
+        {}
 
-        ~Token();
-
-        explicit    operator bool () const { return type != Token_Type_NULL; }
-        Token&      operator=(const Token&);
-
-        bdc::String view() const            { return { data, size()}; }
-        bdc::String prefix_view() const     { return { data, prefix_size }; }
-        bdc::String word_view() const       { return { data + prefix_size, word_size }; }
-        bdc::String suffix_view() const     { return { data + prefix_size + word_size, suffix_size }; }
-        u32_t       size() const            { return prefix_size + word_size + suffix_size; }  
-        bool        empty() const           { return size() == 0; }
-        void        clear();
-        void        set_offset(size_t new_offset);
-        void        lextend_prefix(size_t l_amount);
-        void        rextend_suffix(size_t r_amount); 
-        void        lextend_word(size_t l_amount);
-        void        rextend_word(size_t r_amount);
-        void        ltrim_word(size_t r_amount);
-        void        rtrim_word(size_t l_amount);
-        bool        is_keyword_type() { return ndbl::is_a_type_keyword(type); } // Check if whether this token is a keyword type
-        void        take_prefix_suffix_from(Token *source); // Transfer the prefix and suffix of a given token to this token
-        void        remove_suffix_and_prefix();
-        void        suffix_push_back(const bdc::String&);
-        void        prefix_push_front(const bdc::String&);
-        void        replace_buffer_readonly(const bdc::String& buffer);
-        void        replace_buffer_readwrite(const bdc::String& buffer);
-        void        replace_word(const bdc::String&);
-        u32_t       char_position() const;
-        bdc::String json()const;
-
-        static const Token s_end_of_line;
-        static const Token s_end_of_instruction;
+        Token(const Token& other) = default;
     };
 
     static_assert( std::is_default_constructible_v<Token> );
+
+    void                token_deinit(Token&);
+    void                token_release_buffer_if_owned(Token& token);
+    inline u32_t        token_size(const Token& token)            { return token.prefix_size + token.word_size + token.suffix_size; }  
+    inline bdc::String  token_view(const Token& token)            { return { token.data, token_size(token) }; }
+    inline bdc::String  token_prefix_view(const Token& token)     { return { token.data, token.prefix_size }; }
+    inline bdc::String  token_word_view(const Token& token)       { return { token.data + token.prefix_size, token.word_size }; }
+    inline bdc::String  token_suffix_view(const Token& token)     { return { token.data + token.prefix_size + token.word_size, token.suffix_size }; }
+    inline bool         token_empty(const Token& token)           { return token_size(token) == 0; }
+    void                token_clear(Token&);
+    void                token_set_offset(Token&, size_t new_offset);
+    void                token_lextend_prefix(Token&, size_t l_amount);
+    void                token_rextend_suffix(Token&, size_t r_amount); 
+    void                token_lextend_word(Token&, size_t l_amount);
+    void                token_rextend_word(Token&, size_t r_amount);
+    void                token_ltrim_word(Token&, size_t r_amount);
+    void                token_rtrim_word(Token&, size_t l_amount);
+    void                token_take_prefix_suffix_from(Token&, Token& source); // Transfer the prefix and suffix of a given token to this token
+    void                token_remove_suffix_and_prefix(Token&);
+    void                token_suffix_push_back(Token&, const bdc::String&);
+    void                token_prefix_push_front(Token&, const bdc::String&);
+    void                token_replace_buffer_readonly(Token&, const bdc::String& buffer);
+    void                token_replace_buffer_readwrite(Token&, const bdc::String& buffer);
+    void                token_replace_word(Token&, const bdc::String&);
+    u32_t               token_char_position(const Token&);
+    bdc::String         token_serialize_json(const Token&);
+
+    static const Token token_end_of_line        = { Token_Type_end_of_line       , "\n" };
+    static const Token token_end_of_instruction = { Token_Type_end_of_instruction, ";"  };
+
+
 }

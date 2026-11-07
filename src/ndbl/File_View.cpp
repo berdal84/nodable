@@ -66,9 +66,8 @@ void fileview_update(File_View* file_view, float dt)
             {
                 while( colorize_char_count <= 0 && next_token_id < parser.tokens.size )
                 {
-                    auto& tok = parser.tokens[next_token_id];
-                    colorize_char_count = tok.size();
-                    switch ( tok.type)
+                    colorize_char_count = token_size( parser.tokens[next_token_id] );
+                    switch ( parser.tokens[next_token_id].type)
                     {
                         case Token_Type_keyword_if:                                
                         case Token_Type_keyword_else:                                

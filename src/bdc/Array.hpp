@@ -258,13 +258,11 @@ namespace bdc
         BDC_ASSERT( pos + count <= arr.size );
 
         // Move the trailing items to the left
-        for(u32_t i = pos; i < pos + count; ++i )
+        u32_t i = pos;
+        while( i + count < arr.size )
         {
-            if( i + count >= arr.size )
-            {
-                break;
-            }
             arr[i] = arr[i + count];
+            ++i;
         }
 
         array_resize(arr, arr.size-count);

@@ -83,16 +83,15 @@ bool graph_update(Graph* graph)
     // Iterate from the end to the beginning to safely update and delete nodes
     for(size_t i = graph->nodes.size; i > 0; --i)
     {
-        if ( HAS_FLAGS(graph->nodes[i-1].flags, Node_Flag_IS_DIRTY) )
-        {
-            changed |= node_update(&graph->nodes[i-1]);
-        }
-
         if ( HAS_FLAGS(graph->nodes[i-1].flags, Node_Flag_MARKED_FOR_DELETION) )
         {
             changed |= true;
             _graph_remove_node(graph, &graph->nodes[i-1]);
             array_remove_ordered(graph->nodes, i-1);
+        }
+        else if ( HAS_FLAGS(graph->nodes[i-1].flags, Node_Flag_IS_DIRTY) )
+        {
+            changed |= node_update(&graph->nodes[i-1]);
         }
     }
 
@@ -472,7 +471,7 @@ void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                     serializer_init(ctx);
                     Token& token = head->property->token;
                     bdc::String token_type_as_str = serialize_token_type(ctx, token.type); // TODO: simply handle literal token_type to string
-                    token.replace_word( token_type_as_str );
+                    token_replace_word( token, token_type_as_str );
                 }
                 break;
             }
@@ -616,12 +615,9 @@ Node* graph_create_variable_decl(Graph* graph, const Type_Descriptor* type, cons
     Node* var_node = graph_create_variable(graph, type, name, scope);
     SET_FLAGS(var_node->component.variable.flags, VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
 
-    Token token{
-        Token_Type_keyword_operator,
-        " = "
-    };
-    token.lextend_word(1);
-    token.rextend_word(-1);
+    Token token = { Token_Type_keyword_operator, " = " };
+    token.prefix_size = token.word_size = token.suffix_size = 1;
+    
     var_node->component.variable.operator_token = token;
 
     return var_node;

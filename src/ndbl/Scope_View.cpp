@@ -180,7 +180,7 @@ void TreeNode_Node(Node* node)
         }
         case Node_Type_VARIABLE:
         {
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, node->value->token.word_view().c_str(), node->name.c_str());
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, token_word_view(node->value->token).c_str(), node->name.c_str());
             break;
         }
         default:

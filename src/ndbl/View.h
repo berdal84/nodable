@@ -88,7 +88,7 @@ namespace ndbl
     bool                viewselection_contains(const View_Selection&, const View& );
     void                viewselection_add(View_Selection&, const View& );
     void                viewselection_add(View_Selection&, const bdc::Array<View>& );
-    bool                viewselection_remove(View_Selection&, const View&);
+    void                viewselection_remove(View_Selection&, const View&);
     bool                viewselection_contains(const View_Selection&, View_Type);
     size_t              viewselection_count(const View_Selection&, View_Type);
     View                viewselection_first_of(const View_Selection&, View_Type);

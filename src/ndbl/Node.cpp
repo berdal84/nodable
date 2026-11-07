@@ -419,8 +419,12 @@ const Node_Slot* Node::flow_in() const
 
 bool node_update(Node* node)
 {
-    node->flags = Node_Flag_IS_DIRTY;
-    return true;
+    UNSET_FLAGS(node->flags, Node_Flag_IS_DIRTY);
+    
+    // I needed this, but I ended up removing the code since Nodable does not execute any code.
+    // I keep it just in case ...
+
+    return false;
 }
 
 void node_init_internal_scope(Node* node)
@@ -605,7 +609,7 @@ void node_init_as_variable(Node* node, const Type_Descriptor* _type, const Strin
     // Init identifier property
     property_set_type(node->value, _type);
     node->value->token = Token{Token_Type_identifier};
-    node->value->token.replace_buffer_readonly(_identifier); // might come from String::c_str()
+    token_replace_buffer_readonly(node->value->token, _identifier); // might come from String::c_str()
 
     // Init Node_Slots
     node_add_slot(node, node->value, Node_Slot::Flag_INPUT, 1); // to connect an initialization expression
@@ -643,7 +647,7 @@ void node_variable_ref_set_variable(Node* node, Node* variable_node)
 
     property_set_type(node->value, node_variable_type(variable_node) );
     const String identifier = node_get_identifier(variable_node);
-    node->value->token.replace_word( identifier );
+    token_replace_word( node->value->token, identifier );
 
     // bind signals
     node->component.variableref.variable_node->signal_name_change.connect< &node_variable_ref_handle_name_change>(node);
@@ -664,7 +668,7 @@ void node_variable_ref_clear_variable(Node* node)
 
 void node_variable_ref_handle_name_change(Node* node, const String& name)
 {
-    node->value->token.replace_word( name );
+    token_replace_word( node->value->token, name );
 }
 
 void node_init_as_literal(Node* node, const Type_Descriptor* type_descriptor)

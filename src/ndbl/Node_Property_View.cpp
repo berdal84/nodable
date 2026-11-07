@@ -192,7 +192,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
                 case Node_Type_VARIABLE_REF:
                 {
                     const Token &connected_property_token = connected_slot->property->token;
-                    bdc::String buf = bdc::string_tcopy( connected_property_token.word_view());
+                    bdc::String buf = bdc::string_tcopy( token_word_view(connected_property_token) );
                     float w = nodepropertyview_calc_input_width(buf);
                     ImGui::PushItemWidth(w);
                     Node_View* nodeview = connected_slot->node->view;
@@ -216,7 +216,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
     if ( compact_mode )
     {
-        float w = nodepropertyview_calc_input_width( property_token.word_view().c_str() );
+        float w = nodepropertyview_calc_input_width( token_word_view(property_token).c_str() );
         ImGui::PushItemWidth(w);
     }
 
@@ -232,13 +232,13 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
         case Token_Type_literal_double:
         {
 
-            String word  = property_token.word_view();
+            String word  = token_word_view(property_token);
             double value = parse_double_or(parser, word, 0);
 
             if (ImGui::InputDouble(label.c_str(), &value, 0.0, 0.0, "%.6f", flags))
             {
                 bdc::String double_as_str = serialize_double(serializer, value);
-                property_token.replace_word( double_as_str );
+                token_replace_word( property_token, double_as_str );
                 changed = true;
             }
             break;
@@ -246,13 +246,13 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
         case Token_Type_literal_int:
         {
-            String word = property_token.word_view();
+            String word = token_word_view(property_token);
             i32_t value = parse_int_or( parser, word, 0);
 
             if (ImGui::InputInt(label.c_str(), &value, 0, 0, flags))
             {
                 bdc::String int_as_str = serialize_int(serializer, value);
-                property_token.replace_word( int_as_str );
+                token_replace_word( property_token, int_as_str );
                 changed = true;
             }
             break;
@@ -260,13 +260,13 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
         case Token_Type_literal_bool:
         {
-            bdc::String word = property_token.word_view();
+            bdc::String word = token_word_view(property_token);
             bool value = parse_bool_or(parser, word, false);
 
             if (ImGui::Checkbox(label.c_str(), &value))
             {
                 bdc::String new_word = serialize_bool(serializer, value);
-                property_token.replace_word( new_word );
+                token_replace_word( property_token, new_word );
                 changed = true;
             }
             break;
@@ -274,7 +274,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
         default:
         {
-            String word = property_token.word_view();
+            String word = token_word_view(property_token);
 
             const u32_t string_buffer_size = 512;
             char        string_buffer[string_buffer_size] = {0}; // Note: Should I implement a fixed-sized bdc::String ?
@@ -284,7 +284,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
             flags = 0; // ImGuiInputTextFlags_EnterReturnsTrue; // ReadOnly always OFF. ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
             if (ImGui::InputText(label.c_str(), string_buffer, string_buffer_size, flags))
             {
-                property_token.replace_word( (const char*)string_buffer );
+                token_replace_word( property_token, (const char*)string_buffer );
                 changed = true;
             }
             break;

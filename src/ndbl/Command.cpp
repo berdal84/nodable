@@ -150,12 +150,12 @@ void ndbl::command_new_node_do(Command* command)
             case Node_Type_WHILE_LOOP:
             case Node_Type_SCOPE:
             case Node_Type_ROOT:
-                new_node->suffix = Token::s_end_of_line;
+                new_node->suffix = token_end_of_line;
                 break;
             case Node_Type_VARIABLE:
             case Node_Type_RETURN:
             case Node_Type_EMPTY_INSTRUCTION:
-                new_node->suffix = Token::s_end_of_instruction;
+                new_node->suffix = token_end_of_instruction;
                 break;
             case Node_Type_LITERAL:
             case Node_Type_FUNCTION:

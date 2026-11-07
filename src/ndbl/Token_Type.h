@@ -54,7 +54,7 @@ namespace ndbl {
     };
 
     /** Check if a given keyword is a type (ex: bool, int, double,...)*/
-	static constexpr bool is_a_type_keyword(Token_Type _token_t)
+	static constexpr bool token_type_is_keyword(Token_Type _token_t)
     {
         return Token_Type_keyword_type_FIRST <= _token_t && _token_t <= Token_Type_keyword_type_LAST;
     }

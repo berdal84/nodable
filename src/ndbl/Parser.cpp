@@ -257,7 +257,7 @@ void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
     array_clear(ctx.transaction);
     ctx.cursor = 0;
 
-    ctx.global_token.replace_buffer_readonly( ctx.in_text ); // global_token completely wraps in_text.
+    token_replace_buffer_readonly( ctx.global_token, ctx.in_text ); // global_token completely wraps in_text.
 
     if( ctx.out_graph ) // not all parse_xxx procedures requires it, but if it is set we must reset it
     {
@@ -302,11 +302,11 @@ bool parse_graph(Parser_Context& ctx)
             {
                 if ( ctx.tokens.size == 0 )
                 {
-                    ctx.global_token.ltrim_word( current_token.size() );
+                    token_ltrim_word( ctx.global_token, token_size(current_token) );
                     continue;
                 }
 
-                ignored_chars_count += current_token.size();
+                ignored_chars_count += token_size(current_token);
                 continue;
             }
         }
@@ -320,16 +320,16 @@ bool parse_graph(Parser_Context& ctx)
                 case Token_Type_parenthesis_open:  // ")" are lost when creating AST
                 case Token_Type_parenthesis_close: // "("
                 {
-                    if ( current_token )
+                    if ( current_token.type )
                     {
-                        current_token.lextend_prefix(ignored_chars_count);
+                        token_lextend_prefix(current_token, ignored_chars_count);
                     }
                     break;
                 }
                 default:
                 {
-                    previous_token.rextend_suffix(ignored_chars_count);
-                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", previous_token.view().c_str() );
+                    token_rextend_suffix(previous_token, ignored_chars_count);
+                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", token_view(previous_token).c_str() );
                 }
             }
 
@@ -337,15 +337,14 @@ bool parse_graph(Parser_Context& ctx)
         }
 
         array_append(ctx.tokens, current_token);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", current_token.index, current_token.view().c_str() );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", current_token.index, token_view(current_token).c_str() );
     }
 
     // Append remaining ignored chars to the ribbon's suffix
     if ( ignored_chars_count )
     {
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Found ignored chars after tokenize, adding to the tokens suffix...\n");
-        Token& tok = ctx.global_token;
-        tok.rtrim_word( ignored_chars_count );
+        token_rtrim_word( ctx.global_token, ignored_chars_count );
     }
 
     NDBL_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Token_Ribbon optimized.\n%s\n", parser_to_string(ctx).c_str() );
@@ -363,10 +362,8 @@ bool parse_graph(Parser_Context& ctx)
 
     // To preserve any ignored characters stored in the global token
     // we put the prefix and suffix in resp. token_begin and end.
-    Token& tok = ctx.global_token;
-
-    if (tok.prefix_size) scope->token_begin.prefix_push_front( tok.prefix_view() );
-    if (tok.suffix_size) scope->token_end.suffix_push_back( tok.suffix_view() );
+    if (ctx.global_token.prefix_size) token_prefix_push_front( scope->token_begin, token_prefix_view(ctx.global_token) );
+    if (ctx.global_token.suffix_size) token_suffix_push_back( scope->token_end, token_suffix_view(ctx.global_token) );
 
     if ( parser_can_eat(ctx) )
     {
@@ -378,7 +375,7 @@ bool parse_graph(Parser_Context& ctx)
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon").c_str());
         for (const Token& each_token : ctx.tokens )
         {
-            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "token idx %i: %s\n", each_token.index, each_token.json().c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "token idx %i: %s\n", each_token.index, token_serialize_json(each_token).c_str());
         }
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon end").c_str());
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Failed to parse from token at index %llu (tokens.size: %llu) and above.\n", parser_peek(ctx).index, ctx.tokens.size);
@@ -403,8 +400,12 @@ bool parse_graph(Parser_Context& ctx)
 bool parse_bool_or(const Parser_Context& ctx, bdc::String& buffer, bool default_value)
 {
     Token token = parse_token( ctx, buffer);
+    
     if (token.type == Token_Type_literal_bool )
-        return token.word_view() == "true";
+    {
+        return token_word_view(token) == "true";
+    }
+
     return default_value;
 }
 
@@ -414,7 +415,7 @@ double parse_double_or(const Parser_Context& ctx, bdc::String& buffer, double de
 
     if (token.type == Token_Type_literal_double )
     {
-        return std::stod( token.word_view().c_str() );
+        return std::stod( token_word_view(token).c_str() );
     }
 
     return default_value;
@@ -426,7 +427,7 @@ int parse_int_or(const Parser_Context& ctx, bdc::String& buffer, int default_val
 
     if (token.type == Token_Type_literal_int )
     {
-        i64_t l = atoll(token.word_view().c_str());
+        i64_t l = atoll(token_word_view(token).c_str());
         int n = std::clamp(l, (i64_t)std::numeric_limits<int>::min() , (i64_t)std::numeric_limits<int>::max());
         if( n > (int)l )
         {
@@ -437,11 +438,11 @@ int parse_int_or(const Parser_Context& ctx, bdc::String& buffer, int default_val
     return default_value;
 }
 
-Node_Slot* parse_token(const Parser_Context& ctx, Scope* parent_scope, const Token& _token)
+Node_Slot* parse_token(const Parser_Context& ctx, Scope* parent_scope, const Token& token)
 {
-    if (_token.type == Token_Type_identifier)
+    if (token.type == Token_Type_identifier)
     {
-        bdc::String identifier = _token.word_view();
+        bdc::String identifier = token_word_view(token);
         if( Node* existing_node = scope_find_variable(parent_scope, identifier) )
         {
             return existing_node->component.variable.ref_out;
@@ -449,22 +450,22 @@ Node_Slot* parse_token(const Parser_Context& ctx, Scope* parent_scope, const Tok
 
         if ( ctx.strict_mode )
         {
-            NDBL_LOG(Verbosity_Error,  "Parser", "%s is not declared (strict mode) \n", _token.word_view().c_str() );
+            NDBL_LOG(Verbosity_Error,  "Parser", "%s is not declared (strict mode) \n", token_word_view(token).c_str() );
             return nullptr;
         }
 
         // Insert a variable reference Node pointing to nothing.
         NDBL_LOG(Verbosity_Warning,  "Parser", "%s is not declared, abstract graph can be generated but compilation will fail.\n",
-                    _token.word_view().c_str() );
+                    token_word_view(token).c_str() );
         Node* ref = graph_create_variable_ref( ctx.out_graph, parent_scope );
-        ref->value->token = _token;
+        ref->value->token = token;
         return ref->value_out();
         
     }
 
     Node* literal = nullptr;
 
-    switch (_token.type)
+    switch (token.type)
     {
         case Token_Type_literal_bool:   literal = graph_create_literal<bool>(ctx.out_graph, parent_scope );        break;
         case Token_Type_literal_int:    literal = graph_create_literal<i32_t>( ctx.out_graph, parent_scope );       break;
@@ -478,14 +479,14 @@ Node_Slot* parse_token(const Parser_Context& ctx, Scope* parent_scope, const Tok
     {
         NDBL_DEBUG_LOG(
             Verbosity_Diagnostic, "Parser", NDBL_OK " Token %s converted to a Literal %s\n",
-            _token.word_view().c_str(),
+            token_word_view(token).c_str(),
             literal->value->type->name.c_str()
         );
-        literal->value->token = _token;
+        literal->value->token = token;
         return literal->value_out();
     }
 
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Unable to run token_to_slot with token %s!\n", _token.word_view().c_str());
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Unable to run token_to_slot with token %s!\n", token_word_view(token).c_str());
     return nullptr;
 }
 
@@ -515,10 +516,10 @@ Node_Slot* parse_binary_operation_expression(Parser_Context& ctx, Scope* parent_
         return nullptr;
     }
 
-    const Operator *ope = langdef_find_operator(*ctx.langdef, Operator{ operator_token.word_view(), Operator_Type::Binary} );
+    const Operator *ope = langdef_find_operator(*ctx.langdef, { .identifier = token_word_view(operator_token), .type = Operator_Type::Binary} );
     if (ope == nullptr)
     {
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Operator %s not found\n", operator_token.word_view().c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Operator %s not found\n", token_word_view(operator_token).c_str());
         parser_rollback(ctx);
         return nullptr;
     }
@@ -601,7 +602,7 @@ Node_Slot* parse_unary_operation_expression(Parser_Context& ctx, Scope* parent_s
     // Create a function signature
     Type_Descriptor type;
     type_init<any(any)>(&type);
-    type.name = operator_token.word_view();
+    type.name = token_word_view(operator_token);
     type.function.args[0].type = out_atomic->property->type;
 
     Node* node = graph_create_operator(ctx.out_graph, &type, parent_scope );
@@ -671,11 +672,11 @@ Node_Slot* parse_parenthesis_expression(Parser_Context& ctx, Scope* parent_scope
     Node_Slot* result = parse_expression(ctx, parent_scope);
     if ( result )
     {
-        if ( !parser_eat_if(ctx, Token_Type_parenthesis_close) )
+        if ( parser_eat_if(ctx, Token_Type_parenthesis_close).type == Token_Type_NULL )
         {
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s \n", parser_to_string(ctx).c_str());
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Parenthesis close expected after \n",
-                parser_get_eaten(ctx).view().c_str());
+                token_view( parser_get_eaten(ctx) ).c_str());
             parser_rollback(ctx);
         }
         else
@@ -763,9 +764,10 @@ Node* parse_expression_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot
     }
 
     // Add an end_of_instruction token as suffix when needed
-    if (Token tok = parser_eat_if(ctx, Token_Type_end_of_instruction))
+    Token token = parser_eat_if(ctx, Token_Type_end_of_instruction);
+    if ( token.type )
     {
-        value_out->node->suffix = tok;
+        value_out->node->suffix = token;
     }
 
     // Connects expression flow_in with the provided flow_out
@@ -798,7 +800,7 @@ Node* parse_scoped_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* fl
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing scoped block ...\n");
 
     Token token_begin = parser_eat_if(ctx, Token_Type_scope_begin);
-    if ( !token_begin )
+    if ( token_begin.type == Token_Type_NULL )
     {
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Expecting root_scope begin token\n");
         return nullptr;
@@ -813,9 +815,10 @@ Node* parse_scoped_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* fl
 
 
     parse_code_block(ctx, node->internal_scope, node->flow_enter()); // no return check, allows empty scope
+    
     Token token_end = parser_eat_if(ctx, Token_Type_scope_end);
 
-    if ( token_end )
+    if ( token_end.type )
     {
         node->internal_scope->token_begin = token_begin;
         node->internal_scope->token_end = token_end;
@@ -953,7 +956,7 @@ bool parser_tokenize(Parser_Context& ctx)
         }
 
         array_append(ctx.tokens, new_token);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", new_token.index, new_token.view().c_str() );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", new_token.index, token_view(new_token).c_str() );
     }
 
     NDBL_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Tokenization.\n%s\n", parser_to_string(ctx).c_str() );
@@ -1208,7 +1211,7 @@ String parser_to_string(const Parser_Context& ctx)
             string_builder_append(sb, "."); // no transaction
         }
 
-        string_builder_appendf(sb, "%5zu) \"%s\"", token.index, token.word_view().c_str() );
+        string_builder_appendf(sb, "%5zu) \"%s\"", token.index, token_word_view(token).c_str() );
       
         if ( token.index == ctx.cursor )
         {
@@ -1229,7 +1232,7 @@ String parser_to_string(Parser_Context& ctx, u32_t begin, u32_t end)
     String_Builder sb;
     for( u32_t i = begin; i < end; ++i )
     {
-        string_builder_append(sb, ctx.tokens[i].view() );
+        string_builder_append(sb, token_view(ctx.tokens[i]) );
     }
     return string_builder_build_tstring(sb);
 }
@@ -1261,7 +1264,7 @@ const Token& parser_peek(const Parser_Context& ctx)
 
 Token parser_eat(Parser_Context& ctx)
 {
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Eat token (idx %i) %s \n", ctx.cursor, parser_peek(ctx).view().c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Eat token (idx %i) %s \n", ctx.cursor, token_view( parser_peek(ctx) ).c_str() );
     return ctx.tokens[ctx.cursor++];
 }
 
@@ -1310,7 +1313,7 @@ Node_Slot* parse_function_call(Parser_Context& ctx, Scope* parent_scope)
     if (token_0.type == Token_Type_identifier &&
         token_1.type == Token_Type_parenthesis_open)
     {
-        function_identifier = token_0.word_view();
+        function_identifier = token_view( token_0 );
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Regular function pattern detected.\n");
     }
     else // Try to parse operator like (ex: operator==(..,..))
@@ -1319,7 +1322,7 @@ Node_Slot* parse_function_call(Parser_Context& ctx, Scope* parent_scope)
 
         if (token_0.type == Token_Type_keyword_operator && token_1.type == Token_Type_operator && token_2.type == Token_Type_parenthesis_open)
         {
-            function_identifier = token_1.word_view();// operator
+            function_identifier = token_view( token_1 );// operator
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Operator function-like pattern detected.\n");
         }
         else
@@ -1354,7 +1357,7 @@ Node_Slot* parse_function_call(Parser_Context& ctx, Scope* parent_scope)
     }
 
     // eat "close bracket supposed" token
-    if ( !parser_eat_if(ctx, Token_Type_parenthesis_close) )
+    if ( parser_eat_if(ctx, Token_Type_parenthesis_close).type == Token_Type_NULL )
     {
         NDBL_LOG(Verbosity_Warning, "Parser", NDBL_KO " Expecting parenthesis close\n");
         parser_rollback(ctx);
@@ -1394,9 +1397,10 @@ Node* parse_atomic_code_block(Parser_Context& ctx, Scope* parent_scope, Node_Slo
 
     if ( block )
     {
-        if ( Token tok = parser_eat_if(ctx, Token_Type_end_of_instruction) )
+        Token token = parser_eat_if(ctx, Token_Type_end_of_instruction);
+        if ( token.type )
         {
-            block->suffix = tok;
+            block->suffix = token;
         }
 
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Block found (class \"%s\")\n", block->get_class()->name.c_str() );
@@ -1412,7 +1416,7 @@ Node* parse_if_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_o
     parser_start_transaction(ctx);
 
     Token if_token = parser_eat_if(ctx, Token_Type_keyword_if);
-    if ( !if_token )
+    if ( if_token.type == Token_Type_NULL )
     {
         return nullptr;
     }
@@ -1425,7 +1429,7 @@ Node* parse_if_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_o
 
     graph_connect(flow_out, if_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
-    if ( !parser_eat_if(ctx, Token_Type_parenthesis_open) )
+    if ( parser_eat_if(ctx, Token_Type_parenthesis_open).type == Token_Type_NULL )
     {
         graph_find_and_destroy_node(ctx.out_graph, if_node);
         parser_rollback(ctx);
@@ -1437,7 +1441,7 @@ Node* parse_if_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_o
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing if block's condition...\n");
     parse_expression_block( ctx, if_node->internal_scope, nullptr, if_node->component.branching.condition_in());
 
-    if ( !parser_eat_if(ctx, Token_Type_parenthesis_close) )
+    if ( parser_eat_if(ctx, Token_Type_parenthesis_close).type == Token_Type_NULL )
     {
         graph_find_and_destroy_node(ctx.out_graph, if_node);
         parser_rollback(ctx);
@@ -1453,7 +1457,7 @@ Node* parse_if_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_o
     }
 
     // else (optionnal)
-    if ( parser_eat_if(ctx, Token_Type_keyword_else) )
+    if ( parser_eat_if(ctx, Token_Type_keyword_else).type )
     {
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing else statement ...\n");
         if_node->component.branching.branch_suffix = parser_get_eaten(ctx);
@@ -1482,7 +1486,8 @@ Node* parse_for_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_
 
     parser_start_transaction(ctx);
 
-    if ( Token token_for = parser_eat_if(ctx, Token_Type_keyword_for) )
+    Token token_for = parser_eat_if(ctx, Token_Type_keyword_for);
+    if ( token_for.type )
     {
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing for loop ...\n");
 
@@ -1492,7 +1497,7 @@ Node* parse_for_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_
         graph_connect( flow_out, for_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
         Token open_bracket = parser_eat_if(ctx, Token_Type_parenthesis_open);
-        if ( open_bracket)
+        if ( open_bracket.type )
         {
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing for set_name/condition/iter instructions ...\n");
 
@@ -1504,7 +1509,8 @@ Node* parse_for_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_
             && parse_expression_block(ctx, for_node->internal_scope, nullptr, for_node->component.branching.iteration_slot);
 
             // parse parenthesis close
-            if ( Token parenthesis_close = parser_eat_if(ctx, Token_Type_parenthesis_close) )
+            Token parenthesis_close = parser_eat_if(ctx, Token_Type_parenthesis_close);
+            if ( parenthesis_close.type )
             {
                 Node* block = parse_atomic_code_block( ctx,  for_node->internal_scope, for_node->component.branching.branch_out(Branch_TRUE) ) ;
 
@@ -1554,7 +1560,8 @@ Node* parse_while_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flo
 
     parser_start_transaction(ctx);
 
-    if ( Token token_while = parser_eat_if(ctx, Token_Type_keyword_while) )
+    Token token_while = parser_eat_if(ctx, Token_Type_keyword_while);
+    if ( token_while.type )
     {
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while ...\n");
 
@@ -1563,14 +1570,15 @@ Node* parse_while_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flo
 
         graph_connect( flow_out, while_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
-        if ( Token open_bracket = parser_eat_if(ctx, Token_Type_parenthesis_open) )
+        Token open_bracket = parser_eat_if(ctx, Token_Type_parenthesis_open);
+        if ( open_bracket.type )
         {
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while condition ... \n");
 
             // Parse an optional condition
             parse_expression_block( ctx, while_node->internal_scope, nullptr, while_node->component.branching.condition_in());
 
-            if (parser_eat_if(ctx, Token_Type_parenthesis_close) )
+            if ( parser_eat_if(ctx, Token_Type_parenthesis_close).type )
             {
                 block = parse_atomic_code_block( ctx,  while_node->internal_scope, while_node->component.branching.branch_out(Branch_TRUE) );
                 if ( block )
@@ -1617,7 +1625,8 @@ Node* parse_return(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_out
 
     parser_start_transaction(ctx);
 
-    if ( Token return_token = parser_eat_if(ctx, Token_Type_keyword_return) )
+    Token return_token = parser_eat_if(ctx, Token_Type_keyword_return);
+    if ( return_token.type )
     {
         // Parse the expression at the right side of the return
         if ( Node_Slot* expression_out = parse_expression(ctx, parent_scope) )
@@ -1655,10 +1664,10 @@ Node_Slot* parse_variable_declaration(Parser_Context& ctx, Scope* parent_scope)
     Token type_token       = parser_eat(ctx);
     Token identifier_token = parser_eat(ctx);
 
-    if (type_token.is_keyword_type() && identifier_token.type == Token_Type_identifier)
+    if ( token_type_is_keyword(type_token.type) && identifier_token.type == Token_Type_identifier)
     {
         const Type_Descriptor* type = langdef_get_type_descriptor_from_token_type(*ctx.langdef, type_token.type);
-        Node* variable_node = graph_create_variable( ctx.out_graph, type, identifier_token.word_view(), parent_scope );
+        Node* variable_node = graph_create_variable( ctx.out_graph, type, token_word_view(identifier_token), parent_scope );
 
         SET_FLAGS(variable_node->component.variable.flags, VariableFlag_DECLARED);
         variable_node->component.variable.type_token = type_token;
@@ -1666,7 +1675,7 @@ Node_Slot* parse_variable_declaration(Parser_Context& ctx, Scope* parent_scope)
 
         // declaration with assignment ?
         Token operator_token = parser_eat_if(ctx, Token_Type_operator);
-        if (operator_token && operator_token.word_view() == "=")
+        if ( operator_token.type && token_word_view(operator_token) == "=")
         {
             // an expression is expected
             if ( Node_Slot* expression_out = parse_expression(ctx, parent_scope) )
@@ -1681,7 +1690,7 @@ Node_Slot* parse_variable_declaration(Parser_Context& ctx, Scope* parent_scope)
             {
                 NDBL_DEBUG_LOG(
                     Verbosity_Diagnostic, "Parser", 
-                    NDBL_KO "  Initialization expression expected for %s\n", identifier_token.word_view().c_str());
+                    NDBL_KO "  Initialization expression expected for %s\n", token_word_view(identifier_token).c_str());
             }
         }
             // Declaration without assignment
@@ -1694,14 +1703,14 @@ Node_Slot* parse_variable_declaration(Parser_Context& ctx, Scope* parent_scope)
         {
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Variable declaration: %s %s\n",
                         variable_node->value->type->name.c_str(),
-                        identifier_token.word_view().c_str());
+                        token_word_view(identifier_token).c_str());
             parser_commit(ctx);
             return variable_node->value_out();
         }
 
         NDBL_DEBUG_LOG(
             Verbosity_Diagnostic, "Parser", 
-            NDBL_KO "  Initialization expression expected for %s\n", identifier_token.word_view().c_str());
+            NDBL_KO "  Initialization expression expected for %s\n", token_word_view(identifier_token).c_str());
         graph_find_and_destroy_node(ctx.out_graph, variable_node);
     }
 
@@ -1755,7 +1764,7 @@ const Node_Slot* serialize_invokable(Serializer_Context& ctx, const Node* _node)
                 }
 
                 // Operator
-                NDBL_ASSERT( _node->component.invokable.identifier_token, "identifier token should have been assigned in parse_function_call");
+                NDBL_ASSERT( _node->component.invokable.identifier_token.type, "identifier token should have been assigned in parse_function_call");
                 string_builder_append( ctx.out_sb, serialize_token( ctx, _node->component.invokable.identifier_token ));
 
                 // Right part of the expression
@@ -1773,7 +1782,7 @@ const Node_Slot* serialize_invokable(Serializer_Context& ctx, const Node* _node)
             {
                 // operator ( ... innerOperator ... )   ex:   -(a+b)
 
-                NDBL_ASSERT( _node->component.invokable.identifier_token );
+                NDBL_ASSERT( _node->component.invokable.identifier_token.type );
                 string_builder_append( ctx.out_sb, serialize_token( ctx, _node->component.invokable.identifier_token) );
 
                 bool needs_braces    = node_get_connected_function_type(_node, LEFT_VALUE_PROPERTY) != nullptr;
@@ -1845,7 +1854,7 @@ void serialize_variable(Serializer_Context& ctx, const Node *_node)
     // 1. Serialize variable's type
 
     // If parsed
-    if ( _node->component.variable.type_token )
+    if ( _node->component.variable.type_token.type )
     {
         string_builder_append(ctx.out_sb, serialize_token( ctx, _node->component.variable.type_token) );
     }
@@ -1864,8 +1873,8 @@ void serialize_variable(Serializer_Context& ctx, const Node *_node)
     const Node_Slot* slot = _node->value_in();
     if ( slot->adjacent.size != 0 )
     {
-        if ( _node->component.variable.operator_token )
-            string_builder_append(ctx.out_sb, _node->component.variable.operator_token.view());
+        if ( _node->component.variable.operator_token.type )
+            string_builder_append(ctx.out_sb, token_view(_node->component.variable.operator_token));
         else
             string_builder_append(ctx.out_sb, " = ");
 
@@ -1877,7 +1886,7 @@ void serialize_return(Serializer_Context& ctx, const Node* node)
 {
     NDBL_ASSERT(node->type == Node_Type_RETURN);
 
-    if( node->value->token )
+    if( node->value->token.type )
     {
         string_builder_append(ctx.out_sb, serialize_token( ctx, node->value->token ));
     }
@@ -1913,20 +1922,26 @@ void serialize_input(Serializer_Context& ctx, const Node_Slot* slot, Serializati
     {
         NDBL_ASSERT( _flags & Serialization_Flag_RECURSE, "Why would you call serialize_input without RECURSE flag?");
         // Append token prefix?
-        if (adjacent_property->token)
-            string_builder_append(ctx.out_sb, adjacent_property->token.prefix_view());
+        if (adjacent_property->token.type)
+        {
+            string_builder_append(ctx.out_sb, token_prefix_view(adjacent_property->token) );
+        }
 
         // Serialize adjacent slot
         serialize_node_value_out(ctx, adjacent_slot, Serialization_Flag_RECURSE);
 
         // Append token suffix?
-        if (adjacent_property->token )
-                string_builder_append(ctx.out_sb, adjacent_property->token.suffix_view());
+        if ( adjacent_property->token.type )
+        {
+            string_builder_append(ctx.out_sb, token_suffix_view(adjacent_property->token));
+        }
     }
 
     // Append close brace?
     if ( _flags & Serialization_Flag_WRAP_WITH_BRACES )
+    {
         string_builder_append( ctx.out_sb, serialize_token_type(ctx, Token_Type_parenthesis_close));
+    }
 }
 
 void serialize_node_value_out(Serializer_Context& ctx, const Node_Slot* slot, Serialization_Flags _flags)
@@ -2001,7 +2016,7 @@ bdc::String serialize_double(const Serializer_Context& ctx, double d)
 
 bdc::String serialize_token(const Serializer_Context& ctx, const Token& token)
 {
-    return token.view();
+    return token_view(token);
 }
 
 bdc::String serialize_token_type(const Serializer_Context& ctx, Token_Type token_type)

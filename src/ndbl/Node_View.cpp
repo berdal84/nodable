@@ -582,7 +582,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
         ImGui::Text("(?)");
         if ( ImGuiEx::BeginTooltip() )
         {
-            ImGui::Text("Source token:\n %s\n", property->token.json().c_str());
+            ImGui::Text("Source token:\n %s\n", token_serialize_json(property->token).c_str());
             ImGuiEx::EndTooltip();
         }
         // input
@@ -698,7 +698,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
             ImGui::TableNextColumn();
             ImGui::Text("suffix token");
             ImGui::TableNextColumn();
-            ImGui::Text("%s", node->suffix.json().c_str());
+            ImGui::Text("%s", token_serialize_json(node->suffix).c_str());
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();

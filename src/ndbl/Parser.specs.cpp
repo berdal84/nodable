@@ -50,7 +50,7 @@ TEST_F(Language_parse_token, atomic_expression_if)
     bdc::String buffer{"if"};
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_keyword_if);
-    EXPECT_EQ(token.view(), "if");
+    EXPECT_EQ(token_view(token), "if");
 }
 
 TEST_F(Language_parse_token, atomic_expression_else)
@@ -58,7 +58,7 @@ TEST_F(Language_parse_token, atomic_expression_else)
     bdc::String buffer{"else"};
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_keyword_else);
-    EXPECT_EQ(token.view(), "else");
+    EXPECT_EQ(token_view(token), "else");
 }
 
 TEST_F(Language_parse_token, atomic_expression_for)
@@ -66,7 +66,7 @@ TEST_F(Language_parse_token, atomic_expression_for)
     bdc::String buffer{"for"};
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_keyword_for);
-    EXPECT_EQ(token.view(), "for");
+    EXPECT_EQ(token_view(token), "for");
 }
 
 TEST_F(Language_parse_token, atomic_expression_bool_true)
@@ -74,7 +74,7 @@ TEST_F(Language_parse_token, atomic_expression_bool_true)
     bdc::String buffer{"true"};
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_bool);
-    EXPECT_EQ(token.view(), "true");
+    EXPECT_EQ(token_view(token), "true");
 }
 
 TEST_F(Language_parse_token, atomic_expression_bool_false)
@@ -82,7 +82,7 @@ TEST_F(Language_parse_token, atomic_expression_bool_false)
     bdc::String buffer{"false"};
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_bool);
-    EXPECT_EQ(token.view(), "false");
+    EXPECT_EQ(token_view(token), "false");
 }
 
 TEST_F(Language_parse_token, atomic_expression_int_5)
@@ -97,7 +97,7 @@ TEST_F(Language_parse_token, atomic_expression_double_5_0)
     bdc::String buffer{"5.0"};
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_double);
-    EXPECT_EQ(token.view(), "5.0");
+    EXPECT_EQ(token_view(token), "5.0");
 }
 
 TEST_F(Language_parse_token, atomic_expression_double_5_0001)
@@ -105,7 +105,7 @@ TEST_F(Language_parse_token, atomic_expression_double_5_0001)
     bdc::String buffer{"5.0001"};
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_double);
-    EXPECT_EQ(token.view(), "5.0001");
+    EXPECT_EQ(token_view(token), "5.0001");
 }
 
 TEST_F(Language_parse_token, atomic_expression_string)
@@ -113,14 +113,14 @@ TEST_F(Language_parse_token, atomic_expression_string)
     bdc::String buffer{"\"Hello\""};
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_string);
-    EXPECT_EQ(token.view(), "\"Hello\"");
+    EXPECT_EQ(token_view(token), "\"Hello\"");
 }
 
 TEST_F(Language_tokenize, identifiers_can_start_by_a_keyword)
 {
     auto& ctx = tokenize("int if_myvar_includes_a_keyword;");
     log_tokens();
-    EXPECT_EQ(ctx.tokens[2].word_view(), "if_myvar_includes_a_keyword");
+    EXPECT_EQ(token_word_view(ctx.tokens[2]), "if_myvar_includes_a_keyword");
     EXPECT_EQ(ctx.tokens[2].type, Token_Type_identifier);
 }
 
@@ -128,36 +128,36 @@ TEST_F(Language_tokenize, int_variable_declaration)
 {
     auto& ctx = tokenize("int my_var ;");
     log_tokens();
-    EXPECT_EQ(ctx.tokens[0].view(), "int");
-    EXPECT_EQ(ctx.tokens[1].view(), " ");
-    EXPECT_EQ(ctx.tokens[2].view(), "my_var");
-    EXPECT_EQ(ctx.tokens[3].view(), " ");
-    EXPECT_EQ(ctx.tokens[4].view(), ";");
+    EXPECT_EQ(token_view(ctx.tokens[0]), "int");
+    EXPECT_EQ(token_view(ctx.tokens[1]), " ");
+    EXPECT_EQ(token_view(ctx.tokens[2]), "my_var");
+    EXPECT_EQ(token_view(ctx.tokens[3]), " ");
+    EXPECT_EQ(token_view(ctx.tokens[4]), ";");
 }
 
 TEST_F(Language_tokenize, add_pow2of2_and_integer )
 {
     auto& ctx = tokenize("pow(2,2) + 1");
     log_tokens();
-    EXPECT_EQ(ctx.tokens[0].view(), "pow");
-    EXPECT_EQ(ctx.tokens[1].view(), "(");
-    EXPECT_EQ(ctx.tokens[2].view(), "2");
-    EXPECT_EQ(ctx.tokens[3].view(), ",");
-    EXPECT_EQ(ctx.tokens[4].view(), "2");
-    EXPECT_EQ(ctx.tokens[5].view(), ")"); // parser should not add a " " prefix after ")"
-    EXPECT_EQ(ctx.tokens[6].view(), " ");
-    EXPECT_EQ(ctx.tokens[7].view(), "+");
-    EXPECT_EQ(ctx.tokens[8].view(), " ");
-    EXPECT_EQ(ctx.tokens[9].view(), "1");
+    EXPECT_EQ(token_view(ctx.tokens[0]), "pow");
+    EXPECT_EQ(token_view(ctx.tokens[1]), "(");
+    EXPECT_EQ(token_view(ctx.tokens[2]), "2");
+    EXPECT_EQ(token_view(ctx.tokens[3]), ",");
+    EXPECT_EQ(token_view(ctx.tokens[4]), "2");
+    EXPECT_EQ(token_view(ctx.tokens[5]), ")"); // parser should not add a " " prefix after ")"
+    EXPECT_EQ(token_view(ctx.tokens[6]), " ");
+    EXPECT_EQ(token_view(ctx.tokens[7]), "+");
+    EXPECT_EQ(token_view(ctx.tokens[8]), " ");
+    EXPECT_EQ(token_view(ctx.tokens[9]), "1");
 
 }
 
 TEST_F(Language_tokenize, return_integer )
 {
     auto& ctx = tokenize("return 42");
-    EXPECT_EQ(ctx.tokens[0].view(), "return");
-    EXPECT_EQ(ctx.tokens[1].view(), " ");
-    EXPECT_EQ(ctx.tokens[2].view(), "42");
+    EXPECT_EQ(token_view(ctx.tokens[0]), "return");
+    EXPECT_EQ(token_view(ctx.tokens[1]), " ");
+    EXPECT_EQ(token_view(ctx.tokens[2]), "42");
 }
 
 TEST_F(Language_parse_function_call, dna_to_protein)
