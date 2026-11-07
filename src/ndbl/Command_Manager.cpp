@@ -18,7 +18,6 @@ ndbl::Command_Manager* ndbl::command_manager_init()
 {
     NDBL_ASSERT(g_command_manager == nullptr, "Cannot call init twice!");
     g_command_manager = bdc::memory_new<Command_Manager>();
-    array_init(g_command_manager->commands);
     return g_command_manager;
 }
 

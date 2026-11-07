@@ -11,8 +11,6 @@ TEST_F(Spatial_Node_, add_child)
 {
     // prepare
     Spatial_Node child, root;
-    spatialnode_init(child);
-    spatialnode_init(root);
 
     // act
     spatialnode_add_child(root, child );
@@ -31,8 +29,6 @@ TEST_F(Spatial_Node_, remove_child)
 
     // prepare
     Spatial_Node child, root;
-    spatialnode_init(child);
-    spatialnode_init(root);
     spatialnode_add_child( root, child );
 
     // act
@@ -48,8 +44,6 @@ TEST_F(Spatial_Node_, add_child__with_offset)
 {
     // prepare
     Spatial_Node child, root;
-    spatialnode_init(child);
-    spatialnode_init(root);
 
     // act
     spatialnode_translate(child, { 10.f, 15.f});
@@ -71,8 +65,6 @@ TEST_F(Spatial_Node_, set_pos__LOCAL_SPACE)
 
     // prepare
     Spatial_Node child, root;
-    spatialnode_init(child);
-    spatialnode_init(root);
 
     spatialnode_add_child( root, child );
 
@@ -93,8 +85,6 @@ TEST_F(Spatial_Node_, set_pos__PARENT_SPACE)
 
     // prepare
     Spatial_Node child, root;
-    spatialnode_init(child);
-    spatialnode_init(root);
     spatialnode_translate( child, {10.f, 10.f});
     spatialnode_add_child( root, child );
 
@@ -118,9 +108,6 @@ TEST_F(Spatial_Node_, get_pos__GLOBAL_SPACE)
 
     // prepare
     Spatial_Node level1, level0, root;
-    spatialnode_init(level1);
-    spatialnode_init(level0);
-    spatialnode_init(root);
 
     spatialnode_add_child(root, level0);
     spatialnode_add_child(level0, level1);
@@ -146,8 +133,6 @@ TEST_F(Spatial_Node_, set_pos__GLOBAL_SPACE)
 
     // prepare
     Spatial_Node child, root;
-    spatialnode_init(child);
-    spatialnode_init(root);
     spatialnode_add_child(root, child);
     spatialnode_translate(root, {10.f, 10.f});
     spatialnode_translate(child, {10.f, 10.f});

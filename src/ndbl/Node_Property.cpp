@@ -22,8 +22,6 @@ namespace ndbl
         property->node  = node;
         property->flags = flags;
         property->name  = string_copy(name);
-        
-        array_init(property->slots);
 
         property_set_type(property, type);
     }

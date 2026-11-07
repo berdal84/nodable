@@ -32,7 +32,6 @@ void nodeslotview_init(
     view->shape             = {};
     view->flags             = 0;
 
-    box2d_init(view->shape);
     nodeslotview_update_direction_from_alignment(view);
 
     // Update size from shape

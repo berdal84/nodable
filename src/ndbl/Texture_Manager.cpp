@@ -20,7 +20,6 @@ Texture_Manager* texture_manager_init()
 {
     NDBL_ASSERT( g_texture_manager == nullptr, "g_texture_manager is already initialized, did you forgot to call texture_manager_shutdown() ?");
     g_texture_manager = bdc::memory_new<Texture_Manager>();
-    hashmap_init(g_texture_manager->texture_by_absolute_path);
     return g_texture_manager;
 }
 

@@ -11,10 +11,13 @@ using namespace ndbl;
 void ndbl::nodable_init(App_Headless_State* state)
 {
     // init managers
+    memory_manager_init(); // must be first
+    log_init();
     reflection_init();
-    memory_manager_init();
     task_manager_init();
     langdef_init();
+
+    *state = {}; // we need the managers
 
     // configure
     state->graph = bdc::memory_new<Graph>();
@@ -33,8 +36,9 @@ void ndbl::nodable_deinit(App_Headless_State* state)
     bdc::memory_delete(state->graph);
     task_manager_shutdown();
     langdef_shutdown();
-    memory_manager_shutdown();
     reflection_shutdown();
+    log_shutdown();
+    memory_manager_shutdown(); // must be last
 }
 
 bdc::String ndbl::nodable_serialize( App_Headless_State* state )

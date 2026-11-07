@@ -15,11 +15,6 @@ Spatial_Node::~Spatial_Node()
     assert( this->children.size == 0 ); // should have removed all children first
 }
 
-void spatialnode_init(Spatial_Node& node)
-{
-    array_init(node.children);
-}
-
 void spatialnode_release(Spatial_Node& node)
 {
     array_release(node.children);

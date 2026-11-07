@@ -125,7 +125,7 @@ void DrawWire(
     // Line
     // Generate curve
     Resizable_Array<Vec2> fill_path;
-    array_init(fill_path, &temp_allocator);
+    fill_path.allocator = &temp_allocator;
     beziercurve_tesselate(fill_path, curve);
 
     if (fill_path.size == 1)
@@ -141,7 +141,7 @@ void DrawWire(
 
     // Generate curve
     Resizable_Array<Vec2> shadow_path;
-    array_init(shadow_path, &temp_allocator);
+    shadow_path.allocator = &temp_allocator;
     beziercurve_tesselate(shadow_path, shadow_curve);
 
     // 2) draw the shadow

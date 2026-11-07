@@ -37,17 +37,6 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
 
     Config* cfg = config();
 
-    // init containers
-
-    box2d_init(nodeview->shape);
-    
-    hashmap_init( nodeview->view_by_property );
-    for(u32_t i = 0; i < Property_Category_COUNT; ++i)
-    {
-        array_init(nodeview->view_by_property_category[i]);
-    }
-    array_init(nodeview->slot_views);
-
     // 1. Create Property views
     //-------------------------
 
@@ -844,10 +833,12 @@ Node_View* ndbl::nodeview_substitute_with_parent_if_not_visible(Node_View* _view
 bdc::Array<Node_View*> ndbl::nodeview_get_adjacent(const Node_View* nodeview, Node_Slot::Flags flags)
 {
     bdc::Resizable_Array<Node_View*> result;
-    array_init(result, &temp_allocator);
+    result.allocator = &temp_allocator;
+
     for(auto adjacent_node : node_get_adjacent_nodes( nodeview->node, flags ) )
         if( adjacent_node->view )
             array_append(result, adjacent_node->view );
+            
     return result;
 }
 

@@ -7,8 +7,7 @@ namespace ndbl
 
 void viewselection_init(View_Selection& selection, Allocator* _allocator)
 {
-    array_init(selection.items, _allocator);
-    memset(&selection.count_by_type, 0, sizeof(selection.count_by_type));
+    array_resize(selection.count_by_type, selection.count_by_type.capacity);
 }
 
 void viewselection_release(View_Selection& selection)
@@ -34,8 +33,11 @@ void viewselection_clear(View_Selection& selection)
     {
         selection.signal_change.emit( View_Selection_Event_Type_REMOVE, elem );
     }
-    array_clear(selection.items);
-    memset(&selection.count_by_type, 0, sizeof(selection.count_by_type));
+    
+    for(auto& each : selection.count_by_type)
+    {
+        each = 0;
+    }
 }
 
 bool viewselection_contains(const View_Selection& selection, const View& elem )

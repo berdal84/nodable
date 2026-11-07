@@ -181,11 +181,12 @@ namespace ndbl
 {
     inline void command_selection_change_release(Command *command)
     {
-       array_release( *command->selection_change.old_selection );
-       array_release( *command->selection_change.new_selection );
+       memory_delete( command->selection_change.old_selection->data );
+       memory_delete( command->selection_change.new_selection->data );
        memory_delete( command->selection_change.old_selection );
        memory_delete( command->selection_change.new_selection );
-       memset(command, 0, sizeof(Command));
+       
+       *command = {};
     }
 }
 

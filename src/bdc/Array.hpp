@@ -67,9 +67,15 @@ namespace bdc
         static_assert( N < (u32_t)-1, "array size must fit in u32_t");
     }
 
-    // Simply declare array_join, user must implement it. Only array_join for String is implement in String.hpp.
-    template<typename Elem_T>
-    Elem_T array_join(const Array<Elem_T>& array, const Elem_T& separator );
+    template<typename T>
+    Array<T> new_array(u32_t size, Allocator* _allocator = nullptr)
+    {
+        Resizable_Array<T> result{};
+        result.allocator = _allocator ? _allocator : allocator;
+        array_resize(result, size);
+        return result;
+    }
+
 
     //
     // Resizable_Array<T> is like a Array<T> memory wise, but is aware of its buffer capacity and allocator.
@@ -83,10 +89,10 @@ namespace bdc
         Elem_T*     data        = 0;
 
         u32_t       capacity    = 0; // Can't put this close to 'size', because size and data must be together to match Inlined_Array<N> layout.
-        Allocator*  allocator   = 0;
+        Allocator*  allocator;
             
-        Resizable_Array() = default;
-        Resizable_Array(const Resizable_Array& ) = default;
+        Resizable_Array(): allocator(bdc::allocator) {}
+        Resizable_Array(const Resizable_Array& ): allocator(bdc::allocator) {}
         ~Resizable_Array() = default;
 
         inline operator Array<Elem_T>() const               { return { size, data }; }
@@ -160,12 +166,6 @@ namespace bdc
     // {
     //     return Array<Elem_T>( arr.size, (Elem_T*)arr.data );
     // }
-
-    template<typename Elem_T>
-    inline void array_release(Array<Elem_T>& arr)
-    {
-        memory_free(arr.data);
-    }
 
 
     template<Is_Array T>
@@ -276,33 +276,21 @@ namespace bdc
         array_resize(arr, 0);
     }
 
-    template<Is_Array T>
-    T array_copy(const T& arr)
+    template<typename T>
+    T array_copy(const T& arr, Allocator* _allocator = bdc::allocator)
     {
-        Resizable_Array<typename T::Elem_T> result;        
-        array_init(result, arr.size);
-
+        T result = new_array<typename T::Elem_T>(arr.size, _allocator);
         std::copy(arr.begin(), arr.end(), result.data);
-
         return result;
     }
 
     template<Is_Array T>
     T array_tcopy(const T& arr)
     {
-        push_allocator(&temp_allocator);
-        DEFER( pop_allocator(); )
-
-        return array_copy(arr);
+        return array_copy(arr, &temp_allocator);
     }
 
     // Inlined_Array specific API
-
-    template<typename Elem_T, u32_t CAPACITY>
-    void array_init(Inlined_Array<Elem_T, CAPACITY>& arr, u32_t initial_size = 0)
-    {
-        array_resize(arr, initial_size);
-    }
 
     template<typename Elem_T, u32_t CAPACITY>
     void array_resize(Inlined_Array<Elem_T, CAPACITY>& arr, u32_t new_size)
@@ -335,26 +323,6 @@ namespace bdc
     }
 
     // Resizable_Array specific API
-
-    template<typename Elem_T>
-    void array_init(Resizable_Array<Elem_T>& arr, Allocator* _allocator)
-    {
-        return array_init(arr, 0, _allocator);
-    }
-
-    template<typename Elem_T>
-    void array_init(Resizable_Array<Elem_T>& arr, u32_t initial_size = 0, Allocator* _allocator = nullptr)
-    {
-        arr.size        = 0;
-        arr.data        = nullptr;
-        arr.capacity    = 0;
-        arr.allocator   = _allocator ? _allocator : allocator;
-
-        if( initial_size )
-        {
-            array_resize(arr, initial_size);
-        }
-    }
 
     template<typename Elem_T>
     void array_release(Resizable_Array<Elem_T>& arr)
@@ -457,7 +425,7 @@ namespace bdc
     Array<Elem_T> array_tconcat(const A& a, const B& b)
     {
         Resizable_Array<Elem_T> result{};
-        array_init(result, &temp_allocator);        
+        result.allocator = &temp_allocator;
         return array_concat(result, a, b);
     }
 

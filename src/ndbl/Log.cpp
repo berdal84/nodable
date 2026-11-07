@@ -4,43 +4,61 @@
 namespace ndbl
 {
 
-static Log_State g_log = {};
+static Log_State* g_log = nullptr;
+
+void log_init()
+{
+    NDBL_ASSERT(g_log == nullptr, "log_init() has been called twice?");
+    g_log = memory_new<Log_State>();
+}
+
+void log_shutdown()
+{
+    NDBL_ASSERT(g_log != nullptr, "log_shutdown() has been called twice?");
+    memory_free(g_log);
+    g_log = nullptr;
+}
 
 Log_State& log_manager()
 {
-    return g_log;
+    NDBL_ASSERT(g_log != nullptr, "Did you forgot to call log_init() ?");
+    return *g_log;
 }
 
 void log_set_verbosity(const bdc::String& category, Verbosity level)
 {
-    hashmap_add( g_log.verbosity_by_category, category, level );
+    auto& log = log_manager();
+    hashmap_add( log.verbosity_by_category, category, level );
 }
 
 void log_set_verbosity(Verbosity level)
 {
-    g_log.verbosity = level;
-    hashmap_clear( g_log.verbosity_by_category ); // ensure no overrides remains
+    auto& log = log_manager();
+    log.verbosity = level;
+    hashmap_clear( log.verbosity_by_category ); // ensure no overrides remains
 }
 
 Verbosity log_get_verbosity()
 {
-    return g_log.verbosity;
+    return log_manager().verbosity;
 }
 
 Verbosity log_get_verbosity(const bdc::String& category)
 {
-    auto found = hashmap_find( g_log.verbosity_by_category, category );
+    auto& log = log_manager();
+    auto found = hashmap_find( log.verbosity_by_category, category );
     if ( found.ok )
     {
         return *found.data;
     }
-    return g_log.verbosity;
+    return log.verbosity;
 }
 
 Log_Entry& log_get_message_at(u32_t pos)
 {
-    u32_t ring_index = (g_log.ring_buffer_cursor + pos) % g_log.ring_buffer_size;
-    return g_log.ring_buffer[ring_index];
+    auto& log = log_manager();
+    u32_t ring_index = (log.ring_buffer_cursor + pos) % log.ring_buffer_size;
+    return log.ring_buffer[ring_index];
 }
 
 void flush()

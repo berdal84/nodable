@@ -102,6 +102,8 @@ namespace ndbl
         Log_Entry                        ring_buffer[ring_buffer_size]= {0};
     };
 
+    void             log_init();
+    void             log_shutdown();
     Log_State&       log_manager();
     void             log_set_verbosity(Verbosity); // reset verbosity globally (clear any category override)
     void             log_set_verbosity(const String& category, Verbosity); // override for a given category
@@ -141,7 +143,6 @@ namespace ndbl
 
         // message
         String_Builder sb{};
-        string_builder_init(sb);
         string_builder_appendf(sb, "[%s|%s|%s] ", Format::tprint_time_point(msg.date).c_str(), verbosity_info[verbosity].label, category);
         string_builder_appendf(sb, fmt, args...);
 

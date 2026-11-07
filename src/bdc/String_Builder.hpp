@@ -10,9 +10,14 @@ namespace bdc
     {
         Resizable_Array<String> buffer;
         Allocator*              allocator; // will be used for data.allocator and any append / appendf
+
+        String_Builder()
+        {
+            allocator = &temp_allocator;
+            buffer.allocator = allocator;
+        }
     };
 
-    void            string_builder_init(String_Builder&);
     void            string_builder_release(String_Builder&);
     void            string_builder_reset(String_Builder&);
     String_Builder& string_builder_append(String_Builder&, const String& str);
@@ -34,12 +39,6 @@ namespace bdc
             const String formatted_str = string_tprintf(fmt, args...);
             return string_builder_append(sb, formatted_str);
         }
-    }
-
-    inline void string_builder_init(String_Builder& sb)
-    {
-        sb.allocator = &temp_allocator;
-        array_init(sb.buffer, sb.allocator);
     }
 
     inline void string_builder_release(String_Builder& sb)

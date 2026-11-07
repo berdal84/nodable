@@ -15,7 +15,7 @@ Event_Manager* event_manager_init()
     NDBL_ASSERT(g_event_manager == nullptr, "Cannot be called twice"); // singleton
 
     g_event_manager = bdc::memory_new<Event_Manager>();
-    array_init(g_event_manager->event_queue_ring, 128);
+    array_resize(g_event_manager->event_queue_ring, 128);
     g_event_manager->event_queue_front = 0;
     g_event_manager->event_queue_back  = 0;
 

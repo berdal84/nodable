@@ -13,7 +13,6 @@ namespace ndbl
         Box_2D(Vec2 initial_size): size(initial_size), spatial_node() {}
     };
 
-    void box2d_init(Box_2D&);
     void box2d_release(Box_2D&);
     Vec2 box2d_pivot_position(const Box_2D&, const Vec2& pivot, Space = PARENT_SPACE);
     Vec2 box2d_position(const Box_2D&, Space = PARENT_SPACE);

@@ -15,7 +15,7 @@
 
 #if BDC_ASSERTIONS_ENABLE
 
-    #include "bdc/Stacktrace.hpp"
+    #include "Stacktrace.hpp"
     #include <cassert>
     #include <iostream> // for std::flush, std::cout
 

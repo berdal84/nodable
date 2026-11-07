@@ -75,7 +75,6 @@ namespace ndbl
         padding.size = (width - title.size - pre.size - post.size) / 2;
 
         String_Builder sb{};
-        string_builder_init(sb);
         string_builder_appendf(sb, "%s%s%s%s%s", padding.c_str(), pre.c_str(), title.c_str(), post.c_str(), padding.c_str() );
         
         String result = string_builder_build_tstring(sb);

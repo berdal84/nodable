@@ -59,6 +59,8 @@ App_State* app_init()
 {
     bdc::memory_manager_init(1024 * 1024 * 10); // must be first
     
+    log_init();
+
     NDBL_LOG(Verbosity_Diagnostic, "Nodable", "app_init() ...\n");
 
     reflection_init();
@@ -69,9 +71,6 @@ App_State* app_init()
     // Expose a global pointer
     NDBL_ASSERT(g_app == nullptr);
     g_app = bdc::memory_new<App_State>();
-
-    array_init(g_app->files);
-    array_init(g_app->files_to_delete);
 
     // Init manager(s)
     config_init();
@@ -120,6 +119,8 @@ void app_shutdown()
 
     reflection_shutdown();
     NDBL_LOG(Verbosity_Diagnostic, "Nodable", "_handle_deinit " NDBL_OK "\n");
+    
+    log_shutdown();   
 
     bdc::memory_manager_shutdown(); // must be last
 }

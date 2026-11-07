@@ -33,7 +33,6 @@ namespace ndbl
         ~Spatial_Node();
     };
 
-    void                spatialnode_init(Spatial_Node&);
     void                spatialnode_release(Spatial_Node&);
     const glm::mat3&    spatialnode_world_matrix(const Spatial_Node&);
     const glm::mat3&    spatialnode_world_matrix_inv(const Spatial_Node&);

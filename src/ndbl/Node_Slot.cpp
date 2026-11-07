@@ -19,8 +19,6 @@ void node_slot_init(
 {
     NDBL_ASSERT( !HAS_FLAGS(flags, Node_Slot::Flag_IS_FULL), "Node_Slot::Flag_IS_FULL is for readonly use" );
 
-    array_init(slot->adjacent);
-    
     if (capacity == 0)
     {
         capacity = slot->adjacent.capacity;

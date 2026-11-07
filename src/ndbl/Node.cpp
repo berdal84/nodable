@@ -74,9 +74,6 @@ void node_init(Node* node, Node_Type type, const String& label)
     NDBL_ASSERT( node != nullptr );
     NDBL_ASSERT( !HAS_FLAGS(node->flags, Node_Flag_IS_INITIALIZED), "You cannot initialize twice");
 
-    array_init(node->props);
-    array_init(node->slots);
-    hashmap_init(node->props_by_name);
     node->flags = Node_Flag_IS_DIRTY;
     node->type  = type;
     node->value = node_add_prop<any>(node, DEFAULT_PROPERTY, Node_Property::Flag_IS_NODE_VALUE );
@@ -284,7 +281,8 @@ Node_Slot* node_add_slot(Node* node, Node_Property* property, Node_Slot::Flags f
 Array<Node_Slot*> node_filter_adjacent_slots(const Node* node, Node_Slot::Flags flags )
 {
     Resizable_Array<Node_Slot*> result;
-    array_init(result, &temp_allocator);
+    result.allocator = &temp_allocator;
+
     for(Node_Slot* slot : node_filter_slots(node, flags))
         for( Node_Slot* slot : slot->adjacent )
             array_append( result, slot );
@@ -347,7 +345,7 @@ Array<Node_Slot*> node_filter_slots(const Node* node, Node_Slot::Flags flags)
 Array<Node_Slot*> node_filter_slots(const Node* node, const std::function<bool(const Node_Slot*)>& predicate)
 {
     Resizable_Array<Node_Slot*> result;
-    array_init(result, &temp_allocator);
+    result.allocator = &temp_allocator;
     
     for(Node_Slot* slot : node->slots)
         if( predicate(slot) )
@@ -794,7 +792,8 @@ void node_init_as_empty_instruction(Node* node)
 Array<Node*> node_get_adjacent_nodes(const Node* node, Node_Slot::Flags flags)
 {
     Resizable_Array<Node*> result;
-    array_init(result, &temp_allocator);
+    result.allocator = &temp_allocator;
+    
     for ( Node_Slot* slot : node_filter_slots(node, flags ) )
     {
         for( const Node_Slot* adjacent : slot->adjacent )

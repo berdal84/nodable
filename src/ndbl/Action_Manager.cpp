@@ -23,8 +23,6 @@ namespace ndbl
         NDBL_ASSERT(g_action_manager == nullptr, "Only works once, you can't call init when a current action manager is set.");
 
         g_action_manager = bdc::memory_new<Action_Manager>();
-        hashmap_init(g_action_manager->actions_by_event_type);
-        
         return g_action_manager;
     }
 

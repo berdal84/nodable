@@ -19,7 +19,7 @@ using namespace bdc;
 class Nodable_Headless_Test : public Test
 {
 public:
-    App_Headless_State app;
+    App_Headless_State app = {};
     Nodable_Headless_Test() {}
     
     void SetUp() override

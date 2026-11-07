@@ -78,7 +78,7 @@ namespace ndbl
     struct View_Selection
     {
         bdc::Resizable_Array<View>                    items;
-        size_t                                        count_by_type[View_Type_COUNT] = {0};
+        bdc::Inlined_Array<u32_t, View_Type_COUNT>    count_by_type = {0,0,0,0,0};
         Signal<void(View_Selection_Event_Type, View)> signal_change;       
     };
 

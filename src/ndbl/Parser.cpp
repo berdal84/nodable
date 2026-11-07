@@ -39,8 +39,6 @@ Language_Definition& langdef_init()
 
     // A.1. Define the ctx
     //-------------------------
-    array_init(langdef->chars);
-
     array_append(langdef->chars, {
         { '(',  Token_Type_parenthesis_open},
         { ')',  Token_Type_parenthesis_close},
@@ -53,7 +51,6 @@ Language_Definition& langdef_init()
         { ',',  Token_Type_list_separator}
     });
 
-    array_init(langdef->keywords);
     array_append(langdef->keywords, {
         { "if",       Token_Type_keyword_if },
         { "for",      Token_Type_keyword_for },
@@ -65,7 +62,6 @@ Language_Definition& langdef_init()
         { "return",   Token_Type_keyword_return }
     });
 
-    array_init(langdef->types);
     array_append(langdef->types, {
         // TODO: instead of using type_get<T>(), I should use a more datadriven option,
         //       I should be able to do type_get(Token_Type_keyword_bool) for example,
@@ -80,7 +76,6 @@ Language_Definition& langdef_init()
         // { "unknown",Token_t::keyword_unknown,type_get<unknown>()},
     });
 
-    array_init(langdef->operators);
     array_append(langdef->operators, {
         {"-",   Operator_Type::Unary,   5},
         {"!",   Operator_Type::Unary,   5},
@@ -240,9 +235,6 @@ void parser_init(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
     ctx.langdef     = &langdef(); // langdef if unique for now...
     ctx.strict_mode = false;      // we want to get a graph even if the code does not compiles, like a text editor with some source code.
     parser_reset(ctx, out_graph, in_text);
-    array_init(ctx.pristine_tokens);
-    array_init(ctx.tokens);
-    array_init(ctx.transaction);
 }
 
 void parser_deinit(Parser_Context& ctx)
@@ -294,7 +286,6 @@ bool parse_graph(Parser_Context& ctx)
     ctx.pristine_tokens = ctx.tokens;
     
     ctx.tokens = {};
-    array_init(ctx.tokens);
 
     for(size_t i = 0; i < ctx.pristine_tokens.size; ++i )
     {
@@ -1186,7 +1177,6 @@ Token& parser_push(Parser_Context& ctx, Token& token)
 String parser_to_string(const Parser_Context& ctx)
 {
     String_Builder sb;
-    string_builder_init(sb);
     string_builder_append(sb, NDBL_COLOR_DEFAULT);
 
     string_builder_append(sb, "Logging token ribbon state:\n");
@@ -1729,7 +1719,6 @@ void serializer_init(Serializer_Context& ctx, Graph* in_graph )
 {
     ctx.langdef  = &langdef();
     ctx.in_graph = in_graph;
-    string_builder_init(ctx.out_sb);
 
     serializer_reset(ctx, in_graph);
 }

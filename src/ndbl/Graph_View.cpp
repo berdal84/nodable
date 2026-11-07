@@ -82,7 +82,6 @@ using namespace ndbl;
 
 void ndbl::graphview_init(Graph_View* graphview, Graph* graph)
 {
-    nodesearchinput_init(graphview->node_search_input);
     viewselection_init(graphview->selection);
 
     graphview->graph = graph;
@@ -742,7 +741,7 @@ void ndbl::graphview_update(Graph_View* graphview, float dt)
     if( graphview->flags & Graph_View_Flag_NEEDS_TO_FRAME_CONTENT)
     {
         bdc::Resizable_Array<View> selected_views{};
-        array_init(selected_views, &temp_allocator);
+        selected_views.allocator = &temp_allocator;
         viewselection_collect(selected_views, graphview->selection, View_Type_NODE);
         bool user_has_selection = graphview->selection.items.size > 0;
 
@@ -1277,7 +1276,7 @@ void ndbl::_graphview_roi_state_tick(Graph_View* graphview)
         // Get the views included in the ROI
         // Note: this might be expensive with a lots of nodes, we will need some sort of space partitionning in the future.
         bdc::Resizable_Array<View> nodeviews_inside_roi;
-        array_init(nodeviews_inside_roi, &temp_allocator);
+        nodeviews_inside_roi.allocator = &temp_allocator;
         for ( Node& node : graphview->graph->nodes )
             if ( node.view )
                 if ( rect_contains(roi, nodeview_get_rect(node.view, WORLD_SPACE)) )

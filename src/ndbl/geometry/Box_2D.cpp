@@ -11,11 +11,6 @@
 namespace ndbl
 {
 
-void box2d_init(Box_2D& box)
-{
-    spatialnode_init(box.spatial_node);
-}
-
 void box2d_release(Box_2D& box)
 {
     spatialnode_release(box.spatial_node);

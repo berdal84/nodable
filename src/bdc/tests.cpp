@@ -130,10 +130,14 @@ int main()
 
     TEST_SUITE_BEGIN( Array<int> )
     {
-        TEST_BEGIN( is_zero_initialized )
+        TEST_BEGIN( initialization )
         {
             Resizable_Array<int> arr{};
-            TEST_EXPECTS( is_zero_initialized(arr) );
+
+            TEST_EXPECTS( arr.size == 0 );
+            TEST_EXPECTS( arr.data == nullptr );
+            TEST_EXPECTS( arr.capacity == 0 );
+            TEST_EXPECTS( arr.allocator == allocator );
         }
         TEST_END;
 
@@ -142,7 +146,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, &temp_allocator);
+            arr.allocator = &temp_allocator;
 
             for(int i = 0; i < 10; ++i) array_append(arr, i+1);
             for(int i = 0; i < 10; ++i) TEST_EXPECTS( arr[i] == i+1);
@@ -156,7 +160,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, &temp_allocator);
+            arr.allocator = &temp_allocator;
 
             for(int i = 0; i < 129; ++i)
             {
@@ -173,7 +177,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, &temp_allocator);
+            arr.allocator = &temp_allocator;
 
             array_append(arr, 10);
             array_append(arr, 42);
@@ -192,7 +196,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, &temp_allocator);
+            arr.allocator = &temp_allocator;
 
             array_append(arr, 0);
             array_append(arr, 1);
@@ -211,7 +215,7 @@ int main()
             memory_manager_init();
 
             Resizable_Array<int> arr;
-            array_init(arr, &temp_allocator);
+            arr.allocator = &temp_allocator;
 
             array_resize(arr, 16);
             for(u32_t i = 0; i < arr.size; ++i)
@@ -437,9 +441,6 @@ int main()
             memory_manager_init();
 
             String_Builder sb{};
-            TEST_EXPECTS(is_zero_initialized(sb));
-
-            string_builder_init(sb);
             TEST_EXPECTS(sb.allocator == &temp_allocator); // a String_Builder is designed too be used in short period of time, to build a string. By default it is allocated on temp memory.
 
             memory_manager_shutdown();
@@ -451,7 +452,6 @@ int main()
             memory_manager_init();
 
             String_Builder sb;
-            string_builder_init(sb);
             string_builder_append(sb, "Bonjour");
             string_builder_append(sb,  "je m'appelle René.");
             String str = string_builder_build_tstring(sb, ", " ); // uses temp_allocator() by default.
@@ -470,7 +470,6 @@ int main()
             memory_manager_init();
 
             String_Builder sb;
-            string_builder_init(sb);
             string_builder_appendf(sb, "%s", "Bonjour");
             string_builder_appendf(sb, "%s", "je m'appelle Josiane.");
             String str = string_builder_build_tstring(sb, ", " ); // uses temp_allocator() by default.
@@ -496,25 +495,11 @@ int main()
 
         memory_manager_init(1024*1024);
 
-        TEST_BEGIN( "Hash_Map<String, ...> init/release" )
-        {
-            Hash_Map<String, Data> hashmap{};
-            hashmap_init(hashmap, 16, &temp_allocator );
-
-            TEST_EXPECTS(hashmap.capacity > 0);
-            TEST_EXPECTS(hashmap.size == 0);
-
-            hashmap_release(hashmap);
-
-            TEST_EXPECTS(!hashmap.entries.size);
-        }
-        TEST_END
 
         TEST_BEGIN( "Hash_Map<String, ...> adding same key twice must add once" )
         {
             Hash_Map<String, String> hashmap;
-
-            hashmap_init(hashmap, 16, &temp_allocator );
+            hashmap.allocator = &temp_allocator;
 
             TEST_EXPECTS( hashmap_add(hashmap, "bzh", "Merlin") );
             hashmap_print(hashmap);
@@ -531,8 +516,8 @@ int main()
         TEST_BEGIN( "Hash_Map<String, ...> hashmap_add" )
         {
             Hash_Map<String, String> hashmap;
+            hashmap.allocator = &temp_allocator;
 
-            hashmap_init(hashmap, 16, &temp_allocator );
             hashmap_add(hashmap, "bzh", "Merlin");
 
             TEST_EXPECTS( hashmap_find(hashmap, "bzh") );
@@ -546,8 +531,8 @@ int main()
         TEST_BEGIN( "Hash_Map<String, ...> hashmap_remove" )
         {
             Hash_Map<String, String> hashmap;
+            hashmap.allocator = &temp_allocator;
 
-            hashmap_init(hashmap, 16, &temp_allocator );
             hashmap_add(hashmap, "bzh", "Merlin");
             hashmap_print(hashmap);
             
@@ -575,7 +560,8 @@ int main()
             };
 
             Hash_Map<String, String> hashmap;
-            hashmap_init(hashmap, 16, &temp_allocator, Stupid_Hash::hash );
+            hashmap.allocator = &temp_allocator;
+            hashmap.hash_proc = Stupid_Hash::hash;
 
             hashmap_add(hashmap, "georges-brassens", "Georges Brassens");
             hashmap_add(hashmap, "jean-ferrat", "Jean Ferrat");
@@ -587,7 +573,7 @@ int main()
             hashmap_print(hashmap);
             hashmap_release(hashmap);
 
-            TEST_EXPECTS(!hashmap.entries.size);
+            TEST_EXPECTS(hashmap.entries.size == 0);
         }
         TEST_END
 
@@ -595,15 +581,16 @@ int main()
         {
             const u32_t initial_capacity = 16;
             Hash_Map<String, String> hashmap;
-            hashmap_init(hashmap, initial_capacity, &temp_allocator );
-            TEST_EXPECTS(hashmap.entries.capacity == initial_capacity);
+            hashmap.allocator = &temp_allocator;
+            hashmap_init(hashmap, initial_capacity);
+            TEST_EXPECTS(hashmap.capacity == initial_capacity);
 
             for(int i = 0; i < initial_capacity; ++i)
             {
                 hashmap_add(hashmap, string_tprintf("elem-%i", i) , string_tprintf("Valeur de l'élément %i", i) );
             }
 
-            TEST_EXPECTS(hashmap.entries.capacity > initial_capacity);
+            TEST_EXPECTS(hashmap.capacity > initial_capacity);
 
             hashmap_print(hashmap);
             hashmap_release(hashmap);
@@ -615,8 +602,9 @@ int main()
         TEST_BEGIN( "Hash_Map should copy data to appropriate slots when increase capacity" )
         {
             Hash_Map<String, String> hashmap;
-            hashmap_init(hashmap, 16, &temp_allocator );
-            TEST_EXPECTS(hashmap.entries.capacity == 16);
+            hashmap.allocator = &temp_allocator;
+            hashmap_init(hashmap, 16);
+            TEST_EXPECTS(hashmap.capacity == 16);
 
             const u32_t initial_capacity = hashmap.capacity;
             for(int i = 0; i < initial_capacity; ++i)
@@ -629,7 +617,7 @@ int main()
                 hashmap_add(hashmap, string_tprintf("elem-%i", i) , string_tprintf("Valeur de l'élément %i (boucle #2)", i) );
             }
 
-            TEST_EXPECTS(hashmap.entries.capacity > 16);
+            TEST_EXPECTS(hashmap.capacity > 16);
             TEST_EXPECTS(hashmap_find(hashmap, "elem-0").ok);
 
             hashmap_print(hashmap);
@@ -642,7 +630,7 @@ int main()
         TEST_BEGIN( "Hash_Map should re-hash if live_size > 66% capacity but capacity should not change if contains many tombstones" )
         {
             Hash_Map<String, String> hashmap;
-            hashmap_init(hashmap, 0, &temp_allocator );
+            hashmap.allocator = &temp_allocator;
 
             for(int i = 0; i <= 10 /* 66% of 16 */; ++i)
             {
@@ -671,6 +659,19 @@ int main()
             hashmap_release(hashmap);
 
             TEST_EXPECTS(hashmap.entries.size == 0);
+        }
+        TEST_END
+
+        TEST_BEGIN( "Hash_Map<String, ...> release" )
+        {
+            Hash_Map<String, Data> hashmap{};
+            hashmap.allocator = &temp_allocator;
+
+            hashmap_add(hashmap, "Test", {});
+            TEST_EXPECTS(hashmap.size == 1);
+            hashmap_release(hashmap);
+
+            TEST_EXPECTS(hashmap.size == 0);
         }
         TEST_END
 

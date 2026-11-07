@@ -96,12 +96,12 @@ namespace bdc
             Value_Type value;
         };
 
-        u32_t                           size      = 0;      // occupied
-        u32_t                           live_size = 0; // occupied + tombstones
+        u32_t                           size      = 0;  // occupied
+        u32_t                           live_size = 0;  // occupied + tombstones
         u32_t                           capacity  = 0;  // occupied + tombstones + never used
-        Resizable_Array<Entry_Type>     entries   = {};
-        Allocator*                      allocator = nullptr;
-        Hash_Proc_Type                  hash_proc = nullptr;
+        Array<Entry_Type>               entries   = {};
+        Allocator*                      allocator = bdc::allocator;
+        Hash_Proc_Type                  hash_proc = &hash<Key_Type, Hash_Type>;
     };
 
     // Some templates to deduce if a type is an Hash_Map and get its sub types
@@ -120,40 +120,38 @@ namespace bdc
     
     template<Is_Hash_Map T>
     void hashmap_init(
-        T&         hashmap,
-        u32_t      initial_capacity  = 16,
-        Allocator* _allocator        = nullptr,
-        typename T::Hash_Proc_Type hash_proc = &hash<typename T::Key_Type, typename T::Hash_Type>)
+        T&    hashmap,
+        u32_t initial_capacity
+    )
     {
-        hashmap.allocator = _allocator ? _allocator : allocator;
-        hashmap.size      = 0;        
-        hashmap.live_size = 0;
-        hashmap.hash_proc = hash_proc;
-        hashmap.capacity  = initial_capacity;
-
-        array_init(hashmap.entries, initial_capacity, hashmap.allocator);
+        hashmap_resize_entries_to_optimal_size(hashmap, initial_capacity);
     };
 
     template<Is_Hash_Map T>
     void hashmap_release(T& hashmap )
     {
         hashmap_clear(hashmap);
-        array_release(hashmap.entries);
+        memory_free(hashmap.entries.data, hashmap.allocator);
+        hashmap.entries.data = nullptr;
+        hashmap.entries.size = 0;
     };
 
     template<Is_Hash_Map T>
     void hashmap_clear(T& hashmap )
     {
         using Entry_Type = typename T::Entry_Type;
-        FOR_EACH_HASHMAP_ENTRY(entry, hashmap)
-        {
-            entry.~Entry_Type();
-        }
+
         hashmap.size      = 0;
         hashmap.live_size = 0;
-        hashmap.capacity  = 0;
 
-        array_resize(hashmap.entries, 0);
+        for(auto& entry : hashmap.entries)
+        {
+            if( entry.hash >= Hash_Map_Hash_OCCUPIED_RANGE_START )
+            {
+                entry.~Entry_Type();
+            }
+            entry.hash = Hash_Map_Hash_FREE;
+        }
     };
 
     template<typename T>
@@ -297,8 +295,8 @@ namespace bdc
         return { .ok = false, .data = nullptr };
     };
 
-    template<Is_Hash_Map Hash_Map_Type>
-    void hashmap_resize_entries_to_optimal_size(Hash_Map_Type& hashmap, u32_t capacity_min)
+    template<Is_Hash_Map T>
+    void hashmap_resize_entries_to_optimal_size(T& hashmap, u32_t capacity_min)
     {
         const u32_t critical_size = hashmap.capacity / 3 * 2;
 
@@ -331,20 +329,26 @@ namespace bdc
             //
 
             // Create a new and larger (if needed) Hash_Map to re-hash the current one
-            Hash_Map_Type new_hashmap{};
-            hashmap_init(new_hashmap, new_capacity, hashmap.allocator);
+            Array<typename T::Entry_Type> old_entries = hashmap.entries;
+            Array<typename T::Entry_Type> new_entries = new_array<typename T::Entry_Type>(new_capacity, hashmap.allocator);
 
-            // Rehash current hashmap entries into the new one
-            FOR_EACH_HASHMAP_ENTRY(entry, hashmap)
+            hashmap.entries   = new_entries;
+            hashmap.size      = 0;
+            hashmap.live_size = 0;
+            hashmap.capacity  = new_capacity;
+
+            // Rehash old entries
+            for(auto& each : old_entries)
             {
-                hashmap_add(new_hashmap, entry.key, entry.value);
+                if( each.hash >= Hash_Map_Hash_OCCUPIED_RANGE_START )
+                {
+                    hashmap_add(hashmap, each.key, each.value);
+                }
             }
 
-            assert( new_hashmap.size == new_hashmap.live_size && "New Hash_Map should have no tombstone!");
+            assert( hashmap.size == hashmap.live_size && "New Hash_Map should have no tombstone!");
 
-            // Release old hashmap memory and replace with the new one
-            hashmap_release(hashmap);
-            hashmap = new_hashmap;
+            memory_free(old_entries.data, hashmap.allocator);
         }
     };
 }

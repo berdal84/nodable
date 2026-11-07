@@ -30,8 +30,6 @@ void graph_init(Graph* graph)
     NDBL_LOG(Verbosity_Diagnostic, "Graph", "Initializing ...\n");
     NDBL_ASSERT( graph->nodes.size == 0 ); // Did you call graph_init multiple times? Did you forgot to call graph_deinit() after each graph_init() ?
 
-    hashmap_init(graph->node_index_by_id);
-
     graph_reset(graph);
 
     NDBL_LOG(Verbosity_Diagnostic, "Graph", "Initialized " NDBL_OK "\n");
@@ -640,7 +638,8 @@ Node* graph_create_empty_instruction(Graph* graph, Scope* scope)
 Array<Scope*> graph_collect_root_scopes(const Graph* graph)
 {
     Resizable_Array<Scope *> result;
-    array_init(result, &temp_allocator);
+    result.allocator = &temp_allocator;
+
     for (const Node& node : graph->nodes )
         if ( node.internal_scope != nullptr )
             if ( scope_get_depth(node.internal_scope) == 0 )
@@ -651,7 +650,8 @@ Array<Scope*> graph_collect_root_scopes(const Graph* graph)
 Array<Scope*> graph_collect_scopes(const Graph* graph)
 {
     Resizable_Array<Scope *> result;
-    array_init(result, &temp_allocator);
+    result.allocator = &temp_allocator;
+    
     for(const Node& node : graph->nodes)
         if ( node.scope )
             array_append( result, node.scope );

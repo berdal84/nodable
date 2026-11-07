@@ -16,7 +16,6 @@ namespace ndbl
         bdc::Resizable_Array<u32_t>     items_matching_search;                  // Only the indices of the items having a compatible signature AND matching the search_input.
     };
 
-    void    nodesearchinput_init(Node_Search_Input&);
     void    nodesearchinput_release(Node_Search_Input&);
     Action* nodesearchinput_draw(Node_Search_Input&, Node_Slot_View* dragged_slotview, size_t result_max_count ); // Return the triggered action, user has to deal with the Action.
 }

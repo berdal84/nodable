@@ -41,7 +41,7 @@ String Token::json() const
     using namespace bdc;
 
     String_Builder sb;
-    string_builder_init(sb);
+
     string_builder_append(sb, "{\n");
     string_builder_append(sb, string_tprintf("\ttype: %i,\n", type));
     string_builder_append(sb, string_tprintf("\tprefix_view: \"%s\",\n", prefix_view().c_str() ) );
@@ -58,7 +58,6 @@ void Token::take_prefix_suffix_from(Token* source)
     // this operation requires the buffer to be owned
 
     String_Builder sb;
-    string_builder_init(sb);
 
     // copy prefix from source
     string_builder_append(sb, source->prefix_view() );

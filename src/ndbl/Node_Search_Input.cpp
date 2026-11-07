@@ -14,13 +14,6 @@ namespace ndbl
 void _nodesearchinput_update_cache_based_on_signature(Node_Search_Input&, Node_Slot_View* dragged_slot);;
 void _nodesearchinput_update_cache_based_on_user_input(Node_Search_Input&, Node_Slot_View* dragged_slot, size_t limit );
 
-void nodesearchinput_init(Node_Search_Input& input)
-{
-    array_init(input.items);
-    array_init(input.items_matching_search);
-    array_init(input.items_with_compatible_signature);
-}
-
 void nodesearchinput_release(Node_Search_Input& input)
 {
     array_release(input.items);
