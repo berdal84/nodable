@@ -116,8 +116,9 @@ namespace bdc
     template<typename T>
     concept Is_Hash_Map = Is_Hash_Map_Implem<T>::value;
 
-    void  hashmap_resize_entries_to_optimal_size(Is_Hash_Map auto& hashmap, u32_t capacity_min = 16);
-    
+    template<Is_Hash_Map T>
+    void hashmap_resize_entries_to_optimal_size(T& hashmap, u32_t capacity_min = 16);
+
     template<Is_Hash_Map T>
     void hashmap_init(
         T&    hashmap,

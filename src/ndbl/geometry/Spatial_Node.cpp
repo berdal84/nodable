@@ -11,24 +11,16 @@
 namespace ndbl 
 {
 
-Spatial_Node::~Spatial_Node()
-{
-    NDBL_ASSERT(this->parent == nullptr);
-    NDBL_ASSERT(this->next   == nullptr);
-    NDBL_ASSERT(this->first  == nullptr);
-    NDBL_ASSERT(this->last   == nullptr);
-}
-
 const glm::mat3& spatialnode_world_matrix(const Spatial_Node& node)
 {
     spatialnode_update_world_matrix(const_cast<Spatial_Node&>(node));
-    return node.cached_world_matrix;
+    return node._cached_world_matrix;
 }
 
 const glm::mat3& spatialnode_world_matrix_inv(const Spatial_Node& node)
 {
     spatialnode_update_world_matrix(const_cast<Spatial_Node&>(node));
-    return node.cached_world_matrix_inv;
+    return node._cached_world_matrix_inv;
 }
 
 void spatialnode_clear(Spatial_Node& spatial_node)
@@ -69,7 +61,7 @@ void spatialnode_set_position(Spatial_Node& spatial_node, const Vec2& desired_po
 
 void spatialnode_set_world_transform_dirty(Spatial_Node& spatial_node)
 {
-    spatial_node.cached_world_matrix_are_dirty = true;
+    spatial_node._cached_world_matrix_are_dirty = true;
     Spatial_Node* child = spatial_node.first;
     while( child )
     {
@@ -80,16 +72,16 @@ void spatialnode_set_world_transform_dirty(Spatial_Node& spatial_node)
 
 void spatialnode_update_world_matrix(Spatial_Node& spatial_node)
 {
-    if ( !spatial_node.cached_world_matrix_are_dirty )
+    if ( !spatial_node._cached_world_matrix_are_dirty )
         return;
 
     if ( spatial_node.parent )
-        spatial_node.cached_world_matrix = transform2d_get_matrix(spatial_node.transform) * spatialnode_world_matrix(*spatial_node.parent);
+        spatial_node._cached_world_matrix = transform2d_get_matrix(spatial_node.transform) * spatialnode_world_matrix(*spatial_node.parent);
     else
-        spatial_node.cached_world_matrix = transform2d_get_matrix(spatial_node.transform);
+        spatial_node._cached_world_matrix = transform2d_get_matrix(spatial_node.transform);
 
-    spatial_node.cached_world_matrix_inv   = glm::inverse( spatial_node.cached_world_matrix );
-    spatial_node.cached_world_matrix_are_dirty = false;
+    spatial_node._cached_world_matrix_inv   = glm::inverse( spatial_node._cached_world_matrix );
+    spatial_node._cached_world_matrix_are_dirty = false;
 }
 
 Vec2 spatialnode_position(const Spatial_Node& spatial_node)

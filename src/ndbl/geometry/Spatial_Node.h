@@ -26,13 +26,10 @@ namespace ndbl
         Spatial_Node*   last                            = nullptr; // intrusive linked-list
         Spatial_Node*   prev                            = nullptr; // intrusive linked-list
         Spatial_Node*   next                            = nullptr; // intrusive linked-list
-        Transform_2D    transform                       = {}; // local transform, relative to the parent
-        glm::mat3       cached_world_matrix             = {1.f}; // use world_matrix() if you want to update the matrix before to get it.
-        glm::mat3       cached_world_matrix_inv         = {1.f}; // use world_matrix_inv() if you want to update the matrix before to get it.
-        bool            cached_world_matrix_are_dirty   = true; // when true, this force _world_matrix and _word_matrix_inv to be updated.
-        
-        Spatial_Node() = default;
-        ~Spatial_Node();
+        Transform_2D    transform                       = {}; //..... relative to the parent, if any.
+        glm::mat3       _cached_world_matrix            = {1.f}; //.. use world_matrix() if you want to update the matrix before to get it.
+        glm::mat3       _cached_world_matrix_inv        = {1.f}; //.. use world_matrix_inv() if you want to update the matrix before to get it.
+        bool            _cached_world_matrix_are_dirty  = true; //... when true, this force _world_matrix and _word_matrix_inv to be updated.
     };
 
     const glm::mat3&    spatialnode_world_matrix(const Spatial_Node&);
