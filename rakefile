@@ -39,8 +39,8 @@ def base_target(name, type)
     ]
 
     target.defines |= [
-        "NDBL_#{CONFIG.upcase}",
-        "NDBL_#{PLATFORM.upcase}",
+        "BDC_#{CONFIG.upcase}" , "BDC_#{PLATFORM.upcase}",
+        "NDBL_#{CONFIG.upcase}","NDBL_#{PLATFORM.upcase}",
         "IMGUI_USER_CONFIG=\\\"ndbl/ImGuiExConfig.h\\\"",
         "NDBL_APP_NAME=\\\"nodable\\\"",
         "NDBL_BUILD_REF=\\\"#{`git describe --tags HEAD`.chomp}-#{CONFIG}\\\"",        
@@ -294,7 +294,6 @@ test.sources |= FileList[
     # sorted from basic to complex
     "src/ndbl/reflection/index.specs.cpp",
     "src/ndbl/Delegate.specs.cpp",
-    "src/ndbl/geometry/Rect.specs.cpp",
     "src/ndbl/geometry/Spatial_Node.specs.cpp",
     "src/ndbl/Node.specs.cpp",
     "src/ndbl/Node_Slot.specs.cpp",

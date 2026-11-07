@@ -83,11 +83,12 @@ using namespace ndbl;
 void ndbl::graphview_init(Graph_View* graphview, Graph* graph)
 {
     nodesearchinput_init(graphview->node_search_input);
+    viewselection_init(graphview->selection);
 
     graphview->graph = graph;
 
     graphview->state_machine.init(graphview);
-    graphview->shape = Vec2{100.f,100.f}; // non null area
+    graphview->shape.size = { 100.f, 100.f }; // non null area
 
     graphview->state_machine.create_state(CURSOR_STATE);
     graphview->state_machine.bind<&_graphview_cursor_state_tick>(CURSOR_STATE, When::OnTick);
@@ -142,6 +143,7 @@ void ndbl::graphview_deinit(Graph_View* graphview)
             _graphview_handle_remove_node(graphview, &each_node);
 
     nodesearchinput_release(graphview->node_search_input);
+    viewselection_release(graphview->selection);
 }
 
 void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
@@ -149,7 +151,7 @@ void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
     // create a Node_View fo the new node
     node->view = bdc::memory_new<Node_View>();
     nodeview_init(node->view, node);
-    node->view->shape.set_size({80.f, 35.f});
+    node->view->shape.size = { 80.f, 35.f };
 
     if (Scope* scope = node->internal_scope )
     {
@@ -157,7 +159,7 @@ void ndbl::_graphview_handle_add_node(Graph_View* graphview, Node* node)
     }
 
     // All Node_Views are parented to the Graph_View
-    spatialnode_add_child(&graphview->shape.spatial_node, &node->view->shape.spatial_node );
+    spatialnode_add_child(graphview->shape.spatial_node, node->view->shape.spatial_node );
 }
 
 void ndbl::_graphview_handle_remove_node(Graph_View* graphview, Node* node)
@@ -174,7 +176,7 @@ void ndbl::_graphview_handle_remove_node(Graph_View* graphview, Node* node)
 
     if( node->view->shape.spatial_node.parent )
     {
-        spatialnode_remove_child(node->view->shape.spatial_node.parent, &node->view->shape.spatial_node );
+        spatialnode_remove_child(*node->view->shape.spatial_node.parent, node->view->shape.spatial_node );
     }
 
     nodeview_deinit(node->view);
@@ -227,7 +229,7 @@ void ndbl::_graphview_draw_wire_from_slot_to_pos(Graph_View*, Node_Slot_View *fr
 
     // Draw
 
-    Vec2 start_pos = from->shape.pivot_position(CENTER, WORLD_SPACE);
+    Vec2 start_pos = box2d_pivot_position(from->shape, CENTER, WORLD_SPACE);
 
     Bezier_Curve_Segment_2D segment{
             start_pos, start_pos,
@@ -244,9 +246,9 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
     // Ensure view state fit with content region
     // (n.b. we could also implement a struct RootView_State wrapping View_State)
     Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE);
-    graphview->shape.set_size( region.size() );
-    graphview->shape.set_position(region.top_left()); // children will be relative to the center
-    box2d_draw_debug_info(&graphview->shape);
+    graphview->shape.size = rect_size(region);
+    box2d_set_position(graphview->shape, rect_top_left(region)); // children will be relative to the center
+    box2d_draw_debug_info(graphview->shape);
 
     Node_Slot_Link_View lastframe_hovered_linkview;
     if(graphview->hovered.type == View_Type_LINK)
@@ -314,8 +316,8 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
                 Node_Slot_View* tail = slot->view;
                 Node_Slot_View* head = adjacent_slot->view;
 
-                Vec2 tail_pos = tail->shape.pivot_position(CENTER, WORLD_SPACE);
-                Vec2 head_pos = head->shape.pivot_position(CENTER,  WORLD_SPACE);
+                Vec2 tail_pos = box2d_pivot_position(tail->shape, CENTER, WORLD_SPACE);
+                Vec2 head_pos = box2d_pivot_position(head->shape, CENTER, WORLD_SPACE);
                 Bezier_Curve_Segment_2D segment{
                         tail_pos,
                         tail_pos, 
@@ -368,17 +370,16 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
 
                 Node_Slot_Link_View linkview{slot_out->view, slot_in->view};
 
-                p1 = linkview.tail->shape.pivot_position(CENTER, WORLD_SPACE);
-                p2 = linkview.head->shape.pivot_position(CENTER, WORLD_SPACE);
+                p1 = box2d_pivot_position(linkview.tail->shape, CENTER, WORLD_SPACE);
+                p2 = box2d_pivot_position(linkview.head->shape, CENTER, WORLD_SPACE);
 
-                const Vec2  signed_dist = Vec2::distance(p1, p2);
-                const float lensqr_dist = signed_dist.lensqr();
+                const float lensqr_dist = vec2_sqrlen( vec2_distance(p1, p2) );
 
                 // Animate style
                 ImGuiEx::WireStyle style = default_wire_style;
                 if ( (lastframe_hovered_linkview == linkview)
-                || view_selection_contains(&graphview->selection, node_view_out )
-                || view_selection_contains(&graphview->selection, node_view_in ) )
+                || viewselection_contains(graphview->selection, node_view_out )
+                || viewselection_contains(graphview->selection, node_view_in ) )
                 {
                     style.color.w *= wave(0.5f, 1.f, time, 10.f);
 
@@ -391,8 +392,8 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
                     // transparent depending on wire length
                     float factor = (lensqr_dist - cfg->ui_wire_bezier_fade_lensqr_range.x) /
                                    (cfg->ui_wire_bezier_fade_lensqr_range.y - cfg->ui_wire_bezier_fade_lensqr_range.x);
-                    style.color        = Vec4::lerp(style.color,        Vec4(0, 0, 0, 0), factor);
-                    style.shadow_color = Vec4::lerp(style.shadow_color, Vec4(0, 0, 0, 0), factor);
+                    style.color        = vec4_lerp(style.color,        Vec4(0, 0, 0, 0), factor);
+                    style.shadow_color = vec4_lerp(style.shadow_color, Vec4(0, 0, 0, 0), factor);
                 }
 
                 // Draw transparent some "variable--->ref" wires in certain cases
@@ -481,8 +482,8 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
     // debug layout
     if( HAS_FLAGS(cfg->debug_flags, Debug_Flags_DRAW_LAYOUT_DEBUG_LINES) )
     {
-        auto list = ImGui::GetForegroundDrawList();
-        Vec2 origin = graphview->shape.position();
+        auto list   = ImGui::GetForegroundDrawList();
+        Vec2 origin = box2d_position(graphview->shape);
         for(Element& el : layout_elements())
         {
             Rect    rect       = element_rect(&el);
@@ -514,8 +515,8 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
             
             // Translate to align with origin
             // We do not use the layout system for the whole UI yet, that's why it's origin is not (0,0)
-            rect.translate(origin);
-            inner_rect.translate(origin);
+            rect_translate(rect, origin);
+            rect_translate(inner_rect, origin);
 
             // block fill
             ImColor fill_color = color;
@@ -540,11 +541,11 @@ void ndbl::_graphview_do_layout_element(Graph_View* graphview, Node_View* nodevi
     Config* cfg  = config();
     Rect    rect = nodeview_get_rect(nodeview, PARENT_SPACE);
 
-    layout_append_element(rect.width(), rect.height(), nodeview);
+    layout_append_element( rect_width(rect), rect_height(rect), nodeview);
 
     if( HAS_FLAGS(nodeview->flags, View_Flag_PINNED) )
     {
-        layout_set_floating_at_position(rect.top_left());
+        layout_set_floating_at_position( rect_top_left(rect) );
     }
 }
 
@@ -641,7 +642,7 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graphview, Node_View* no
 
         if( nodeview->node == graph_root( graphview->graph ) )
         {
-            layout_set_floating_at_position(nodeview->shape.position() - Vec2{cfg->ui_scope_padding.left, cfg->ui_scope_padding.top} );
+            layout_set_floating_at_position( box2d_position(nodeview->shape) - Vec2{cfg->ui_scope_padding.left, cfg->ui_scope_padding.top} );
         }
 
         _graphview_do_layout_recursively_on_expressions_only(graphview, nodeview);
@@ -724,7 +725,7 @@ void ndbl::graphview_update(Graph_View* graphview, float dt)
             continue;
         }
         
-        spatialnode_set_position(&nodeview->spatial_node(), graphview->shape.position() + elem.position, WORLD_SPACE);
+        spatialnode_set_position(nodeview->spatial_node(), box2d_position(graphview->shape) + elem.position, WORLD_SPACE);
     }
     
     // Update Node_Views
@@ -740,16 +741,16 @@ void ndbl::graphview_update(Graph_View* graphview, float dt)
     // Frame Content or Selection    
     if( graphview->flags & Graph_View_Flag_NEEDS_TO_FRAME_CONTENT)
     {
-        std::vector<View> selected_views{};
-        view_selection_collect(&selected_views, &graphview->selection, View_Type_NODE);
-
-        bool has_selection = !selected_views.empty();
+        bdc::Resizable_Array<View> selected_views{};
+        array_init(selected_views, &temp_allocator);
+        viewselection_collect(selected_views, graphview->selection, View_Type_NODE);
+        bool user_has_selection = graphview->selection.items.size > 0;
 
         // Select all in case selection is empty
-        if ( !has_selection )
+        if ( !user_has_selection )
             for (Node& node : graphview->graph->nodes )
                 if ( node.view )
-                    selected_views.push_back(node.view);
+                    array_append(selected_views, node.view);
 
         // Get selected node views rectangle
         const Rect selected_rect = view_bounding_rect( selected_views, WORLD_SPACE);
@@ -758,20 +759,20 @@ void ndbl::graphview_update(Graph_View* graphview, float dt)
         // We have two different targets depending on if something is selected or not.
         Vec2 delta;
 
-        if( has_selection )
+        if( user_has_selection )
         {
-            delta =  graphview->shape.pivot_position( CENTER, WORLD_SPACE) - selected_rect.center();
+            delta = box2d_pivot_position(graphview->shape, CENTER, WORLD_SPACE) - rect_center(selected_rect);
         }
         else
         {
             Vec2 offset = config()->ui_textview_padding + Vec2{ config()->ui_scope_padding.left, config()->ui_scope_padding.top };
-            delta =  graphview->shape.pivot_position( TOP_LEFT, WORLD_SPACE) - selected_rect.top_left() + offset;
+            delta = box2d_pivot_position(graphview->shape, TOP_LEFT, WORLD_SPACE) - rect_top_left(selected_rect) + offset;
         }
 
         // Apply the delta to all node views
         for (Node& node : graphview->graph->nodes )
             if ( node.view )
-                spatialnode_translate( &node.view->shape.spatial_node, delta );
+                spatialnode_translate( node.view->shape.spatial_node, delta );
 
         graphview->flags &= ~Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
     }    
@@ -864,7 +865,7 @@ void ndbl::_graphview_draw_context_menu(Graph_View* graphview, Node_Slot_View* d
 
 void ndbl::_graphview_drag_state_enter(Graph_View* graphview)
 {
-    for( const View& selected_view : graphview->selection )
+    for( const View& selected_view : graphview->selection.items )
     {
         switch (selected_view.type)
         {
@@ -879,18 +880,18 @@ void ndbl::_graphview_drag_state_tick(Graph_View* graphview)
     const Vec2 delta = ImGui::GetMouseDragDelta();
     ImGui::ResetMouseDragDelta();
 
-    for ( const View& selected_view : graphview->selection )
+    for ( const View& selected_view : graphview->selection.items )
     {
          switch (selected_view.type)
         {
             case View_Type_NODE:
             {
-                spatialnode_translate(&selected_view.nodeview->shape.spatial_node, delta);
+                spatialnode_translate(selected_view.nodeview->shape.spatial_node, delta);
                 break;
             }
             case View_Type_SCOPE:
             {
-                spatialnode_translate(&selected_view.scopeview->scope->node->view->shape.spatial_node, delta);
+                spatialnode_translate(selected_view.scopeview->scope->node->view->shape.spatial_node, delta);
                 break;
             }
         }
@@ -913,7 +914,7 @@ void ndbl::_graphview_view_pan_state_tick(Graph_View* graphview)
     Vec2 delta = ImGui::GetMouseDragDelta();
     for( Scope* scope : graph_collect_root_scopes(graphview->graph) )
         if ( Node_View* nodeview = scope->node->view )
-            spatialnode_translate(&nodeview->shape.spatial_node, delta);
+            spatialnode_translate(nodeview->shape.spatial_node, delta);
 
     ImGui::ResetMouseDragDelta();
 
@@ -935,20 +936,21 @@ void ndbl::_graphview_select_scope(Graph_View* graphview, Scope_View* scopeview)
 
     // Extract node views from each descendent
     View_Selection new_selection;
+    viewselection_init(new_selection, &temp_allocator);
     for(Scope* each_scope : scopes)
     {
         // Include scope owner's view too
         if ( each_scope->node->view )
-            view_selection_add(&new_selection, each_scope->node->view );
+            viewselection_add(new_selection, each_scope->node->view);
 
         // and every other child's
         for( Node* child_node : each_scope->children )
             if ( child_node->view )
-                view_selection_add(&new_selection, child_node->view );
+                viewselection_add(new_selection, child_node->view );
     }
 
     // 2) Replace selection
-    Command cmd = command_selection_change(&new_selection);
+    Command cmd = command_selection_change(new_selection.items);
     command_manager_push_command(cmd);
 }
 
@@ -985,8 +987,8 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
                 if ( ImGui::MenuItem("Delete") )
                 {
                     // TODO: we should probably handle the selection when we perform a right click on something (slot, node.view, linkview, etc..)
-                    view_selection_clear(&graphview->selection);
-                    view_selection_add(&graphview->selection, scopeview);
+                    viewselection_clear(graphview->selection);
+                    viewselection_add(graphview->selection, scopeview);
 
                     event_manager_push_event({ Event_Type_DELETE });
                 }
@@ -1051,8 +1053,8 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
 
                 if ( ImGui::MenuItem("Delete") )
                 {
-                    view_selection_clear(&graphview->selection);
-                    view_selection_add(&graphview->selection, nodeview);
+                    viewselection_clear(graphview->selection);
+                    viewselection_add(graphview->selection, nodeview);
 
                     event_manager_push_event({ Event_Type_DELETE });
                 }
@@ -1121,20 +1123,20 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
             {
                 if ( ctrl_pressed )
                 {
-                    if ( !view_selection_contains(&graphview->selection, graphview->hovered ) )
+                    if ( !viewselection_contains(graphview->selection, graphview->hovered ) )
                     {
-                        view_selection_add( &graphview->selection, graphview->hovered );
+                        viewselection_add(graphview->selection, graphview->hovered );
                         graphview->focused = graphview->hovered;
                     }
                     else
                     {
-                        view_selection_remove( &graphview->selection, graphview->hovered );
+                        viewselection_remove(graphview->selection, graphview->hovered );
                     }
                 }
                 else
                 {
-                    view_selection_clear( &graphview->selection );
-                    view_selection_add( &graphview->selection, graphview->hovered );
+                    viewselection_clear(graphview->selection );
+                    viewselection_add(graphview->selection, graphview->hovered );
                     graphview->focused = graphview->hovered;
                 }
             }
@@ -1145,11 +1147,11 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
             }
             else if ( ImGui::IsMouseClicked(0) )
             {
-                if ( !view_selection_contains( &graphview->selection, graphview->hovered) )
+                if ( !viewselection_contains(graphview->selection, graphview->hovered) )
                 {
                     if ( !ctrl_pressed )
-                        view_selection_clear( &graphview->selection );
-                    view_selection_add(&graphview->selection, graphview->hovered );
+                        viewselection_clear(graphview->selection );
+                    viewselection_add(graphview->selection, graphview->hovered );
                 }
                 graphview->state_machine.change_state(DRAG_STATE);
             }
@@ -1161,7 +1163,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
             if ( ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
             {
                 if (ImGui::IsMouseClicked(0))
-                    view_selection_clear(&graphview->selection); // Deselect All (Click on the background)
+                    viewselection_clear(graphview->selection); // Deselect All (Click on the background)
                 else if (ImGui::IsMouseReleased(0))
                     graphview->focused = {};
                 else if (ImGui::IsMouseClicked(1))
@@ -1195,7 +1197,7 @@ void ndbl::_graphview_line_state_tick(Graph_View* graphview)
     Vec2 mouse_pos_snapped = Vec2{ImGui::GetMousePos()};
     if ( graphview->hovered.type == View_Type_SLOT )
     {
-        mouse_pos_snapped = spatialnode_position(&graphview->hovered.slotview->shape.spatial_node, WORLD_SPACE);
+        mouse_pos_snapped = spatialnode_position(graphview->hovered.slotview->shape.spatial_node, WORLD_SPACE);
     }
 
     // Contextual menu
@@ -1258,11 +1260,11 @@ void ndbl::_graphview_roi_state_tick(Graph_View* graphview)
     graphview->state_roi_end_pos = ImGui::GetMousePos();
 
     // Get normalized ROI rectangle
-    Rect roi = Rect::normalize({graphview->state_roi_start_pos, graphview->state_roi_end_pos});
+    Rect roi = rect_normalize({graphview->state_roi_start_pos, graphview->state_roi_end_pos});
 
     // Expand to avoid null area
     const int roi_border_width = 1;
-    roi.expand(roi_border_width);
+    rect_expand(roi, roi_border_width);
 
     // Draw the ROI rectangle
     float time = ImGui::GetTime();
@@ -1274,17 +1276,18 @@ void ndbl::_graphview_roi_state_tick(Graph_View* graphview)
     {
         // Get the views included in the ROI
         // Note: this might be expensive with a lots of nodes, we will need some sort of space partitionning in the future.
-        std::vector<View> nodeviews_inside_roi;
+        bdc::Resizable_Array<View> nodeviews_inside_roi;
+        array_init(nodeviews_inside_roi, &temp_allocator);
         for ( Node& node : graphview->graph->nodes )
             if ( node.view )
-                if ( Rect::contains(roi, nodeview_get_rect(node.view, WORLD_SPACE)) )
-                    nodeviews_inside_roi.push_back( node.view );
+                if ( rect_contains(roi, nodeview_get_rect(node.view, WORLD_SPACE)) )
+                    array_append(nodeviews_inside_roi, node.view );
 
         // Select them
         const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
         if ( !ctrl_pressed )
-            view_selection_clear(&graphview->selection);
-        view_selection_add(&graphview->selection, nodeviews_inside_roi );
+            viewselection_clear(graphview->selection);
+        viewselection_add(graphview->selection, nodeviews_inside_roi );
 
         graphview->state_machine.exit_state();
     }

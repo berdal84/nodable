@@ -231,8 +231,8 @@ int main()
         {
             memory_manager_init();
 
-            constexpr Inlined_Array<u32_t, 5> a = { 0, 1, 2, 3, 4 };
-            constexpr Inlined_Array<u32_t, 5> b = { 5, 6, 7, 8, 9 };
+            const Inlined_Array<u32_t, 5> a = { 0, 1, 2, 3, 4 };
+            const Inlined_Array<u32_t, 5> b = { 5, 6, 7, 8, 9 };
 
             Array<u32_t> result = array_tconcat(a, b);
 

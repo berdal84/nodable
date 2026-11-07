@@ -1,17 +1,22 @@
 #pragma once
 
-#include <cassert>
 #include <cstring>
 #include <initializer_list>
 #include <algorithm> // for std::copy
-
+#include "MACROS.hpp"
 #include "Allocators.hpp"
 #include "Types.hpp"
 #include "Type_Traits.hpp"
 #include "Math.hpp"
 
 namespace bdc
-{
+{   
+    template<typename _Elem_T>
+    struct Resizable_Array;
+
+    template<typename _Elem_T, u32_t CAPACITY>
+    struct Inlined_Array;
+
     template<typename _Elem_T>
     struct Array
     {
@@ -22,15 +27,25 @@ namespace bdc
 
         constexpr Array()             = default;
         constexpr Array(const Array&) = default;
-        ~Array() = default;
-
         constexpr inline Array(u32_t /* size */, Elem_T* /* data */);
-
         template<size_t N>
         constexpr inline Array(Elem_T (&/* array_literal */)[N] );
 
-        inline const Elem_T& operator[](u32_t pos) const    { assert(pos < size && "out of bounds"); return data[pos]; }
-        inline Elem_T&       operator[](u32_t pos)          { assert(pos < size && "out of bounds"); return data[pos]; }
+        // Array(const Resizable_Array<Elem_T>& arr)
+        // : size(arr.size)
+        // , data(const_cast<Elem_T*>(arr.data) )
+        // {}
+
+        // template<u32_t CAPACITY>
+        // Array(const Inlined_Array<Elem_T, CAPACITY>& arr)
+        // : size(CAPACITY)
+        // , data(const_cast<Elem_T*>(arr.data) )
+        // {}
+
+        ~Array() = default;
+
+        inline const Elem_T& operator[](u32_t pos) const    { BDC_ASSERT(pos < size, "out of bounds"); return data[pos]; }
+        inline Elem_T&       operator[](u32_t pos)          { BDC_ASSERT(pos < size, "out of bounds"); return data[pos]; }
         inline Elem_T*       begin()                        { return data; }
         inline Elem_T*       end()                          { return data + size; }
         inline const Elem_T* begin() const                  { return data; }
@@ -49,7 +64,7 @@ namespace bdc
     : size(N)
     , data(reinterpret_cast<Elem_T*>(&array_literal))
     {
-        static_assert( N < (u32_t)-1, "Statically allocated array size must fit in u32_t");
+        static_assert( N < (u32_t)-1, "array size must fit in u32_t");
     }
 
     // Simply declare array_join, user must implement it. Only array_join for String is implement in String.hpp.
@@ -74,8 +89,9 @@ namespace bdc
         Resizable_Array(const Resizable_Array& ) = default;
         ~Resizable_Array() = default;
 
-        inline const Elem_T& operator[](u32_t pos) const    { assert(pos < size && "out of bounds"); return data[pos]; }
-        inline Elem_T&       operator[](u32_t pos)          { assert(pos < size && "out of bounds"); return data[pos]; }
+        inline operator Array<Elem_T>() const               { return { size, data }; }
+        inline const Elem_T& operator[](u32_t pos) const    { BDC_ASSERT(pos < size, "out of bounds"); return data[pos]; }
+        inline Elem_T&       operator[](u32_t pos)          { BDC_ASSERT(pos < size, "out of bounds"); return data[pos]; }
         inline Elem_T*       begin()                        { return data; }
         inline Elem_T*       end()                          { return data + size; }
         inline const Elem_T* begin() const                  { return data; }
@@ -100,8 +116,9 @@ namespace bdc
         template<size_t N>
         constexpr inline Inlined_Array(Elem_T (&/* array_literal */)[N] );
 
-        inline const Elem_T& operator[](u32_t pos) const    { assert(pos < size && "out of bounds"); return data[pos]; }
-        inline Elem_T&       operator[](u32_t pos)          { assert(pos < size && "out of bounds"); return data[pos]; }
+        inline operator Array<Elem_T>() const               { return { size, (Elem_T*)data }; }
+        inline const Elem_T& operator[](u32_t pos) const    { BDC_ASSERT(pos < size, "out of bounds"); return data[pos]; }
+        inline Elem_T&       operator[](u32_t pos)          { BDC_ASSERT(pos < size, "out of bounds"); return data[pos]; }
         inline Elem_T*       begin()                        { return data; }
         inline Elem_T*       end()                          { return data + size; }
         inline const Elem_T* begin() const                  { return data; }
@@ -114,7 +131,7 @@ namespace bdc
     : size(list.size())
     , data()
     {
-        assert( list.size() <= CAPACITY && "Statically allocated array size must fit CAPACITY");
+        BDC_ASSERT(list.size() <= CAPACITY, "Statically allocated array size must fit CAPACITY");
         std::copy( list.begin(), list.end(), data );
     }
 
@@ -138,30 +155,37 @@ namespace bdc
     
     // Generic Array API (works on Array, Inline_Array and Resizable_Array)
 
-    template<Is_Array Array_Type, typename Elem_T = Array_Type::Elem_T>
-    inline Array<Elem_T> array_view(const Array_Type& arr)
+    // template<Is_Array Array_Type, typename Elem_T = Array_Type::Elem_T>
+    // inline Array<Elem_T> array_view(const Array_Type& arr)
+    // {
+    //     return Array<Elem_T>( arr.size, (Elem_T*)arr.data );
+    // }
+
+    template<typename Elem_T>
+    inline void array_release(Array<Elem_T>& arr)
     {
-        return Array<Elem_T>( arr.size, (Elem_T*)arr.data );
+        memory_free(arr.data);
     }
+
 
     template<Is_Array T>
     inline T::Elem_T& array_front(T& arr)
     {
-        assert(arr.size);
+        BDC_ASSERT(arr.size);
         return arr[0];
     }
 
     template<Is_Array T>
     inline T::Elem_T& array_back(T& arr)
     {
-        assert(arr.size);
+        BDC_ASSERT(arr.size);
         return arr[arr.size-1];
     }
 
     template<Is_Array T>
     inline const T::Elem_T& array_back(const T& arr)
     {
-        assert(arr.size);
+        BDC_ASSERT(arr.size);
         return arr[arr.size-1];
     }
 
@@ -211,20 +235,27 @@ namespace bdc
     template<Is_Array T>
     void array_pop(T& arr)
     {
-        assert( arr.size != 0 );
+        BDC_ASSERT( arr.size != 0 );
         array_resize(arr, arr.size-1);
     }
 
     template<Is_Array T>
     void array_remove_unordered(T& arr, u32_t pos)
     {
-        static_assert(false, "array_remove_unordered is not implemented yet");
+        BDC_ASSERT( pos < arr.size );
+
+        if( pos != arr.size -1)
+        {
+            std::swap(arr[pos], array_back(arr));
+        }        
+        
+        array_resize(arr, arr.size-1);
     }
 
     template<Is_Array T>
     void array_remove_range_ordered(T& arr, u32_t pos, u32_t count)
     {
-        assert( pos + count <= arr.size );
+        BDC_ASSERT( pos + count <= arr.size );
 
         // Move the trailing items to the left
         for(u32_t i = pos; i < pos + count; ++i )
@@ -245,15 +276,24 @@ namespace bdc
         array_resize(arr, 0);
     }
 
-    template<typename Elem_T>
-    Resizable_Array<Elem_T> array_copy(const Resizable_Array<Elem_T>& arr)
+    template<Is_Array T>
+    T array_copy(const T& arr)
     {
-        Resizable_Array<Elem_T> result;        
+        Resizable_Array<typename T::Elem_T> result;        
         array_init(result, arr.size);
 
-        std::copy(arr.data.begin(), arr.data.end(), result.data);
+        std::copy(arr.begin(), arr.end(), result.data);
 
         return result;
+    }
+
+    template<Is_Array T>
+    T array_tcopy(const T& arr)
+    {
+        push_allocator(&temp_allocator);
+        DEFER( pop_allocator(); )
+
+        return array_copy(arr);
     }
 
     // Inlined_Array specific API
@@ -267,7 +307,7 @@ namespace bdc
     template<typename Elem_T, u32_t CAPACITY>
     void array_resize(Inlined_Array<Elem_T, CAPACITY>& arr, u32_t new_size)
     {
-        assert( new_size <= arr.capacity );
+        BDC_ASSERT( new_size <= arr.capacity );
         if( new_size == arr.size )
         {
             return;
@@ -388,7 +428,7 @@ namespace bdc
             return;
         }
 
-        assert(arr.allocator != nullptr && "arr.allocator is required to reserve memory");
+        BDC_ASSERT(arr.allocator != nullptr, "arr.allocator is required to reserve memory");
 
         if( arr.data == nullptr )
         {
@@ -398,7 +438,7 @@ namespace bdc
         {
             arr.data = memory_realloc_array<Elem_T>(arr.data, capacity, arr.allocator);
         }
-        assert(arr.data != nullptr);
+        BDC_ASSERT(arr.data != nullptr);
         memset( (void*)(arr.data + arr.capacity), 0, (capacity - arr.capacity) * sizeof(Elem_T)); // new elements are zero-initialized
         arr.capacity = capacity;
     }
@@ -418,7 +458,7 @@ namespace bdc
     {
         Resizable_Array<Elem_T> result{};
         array_init(result, &temp_allocator);        
-        return array_view( array_concat(result, a, b) );
+        return array_concat(result, a, b);
     }
 
     template<Is_Array A, Is_Array B, typename Elem_T = A::Elem_T>

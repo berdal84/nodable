@@ -4,86 +4,91 @@
 
 namespace ndbl
 {
-Rect view_bounding_rect( const std::vector<View>& views, Space space )
-{        
-    using namespace ndbl;
 
-    // collect rectangles
-    // note: we could save 1 allocation by computing the bbox of each rectangle instead of building this vector,
-    //       but I prefer to keep responsibilities separated.
-    std::vector<Rect> rect;
-    rect.reserve(views.size());
+void viewselection_init(View_Selection& selection, Allocator* _allocator)
+{
+    array_init(selection.items, _allocator);
+    memset(&selection.count_by_type, 0, sizeof(selection.count_by_type));
+}
+
+void viewselection_release(View_Selection& selection)
+{
+    array_release(selection.items);
+}
+
+Rect view_bounding_rect( const bdc::Array<View>& views, Space space )
+{        
+    Rect result;
     for (const View& view : views)
     {
         NDBL_ASSERT( view.type == View_Type_NODE, "Must contain only Node_Views!");
-        rect.emplace_back( nodeview_get_rect(view.nodeview, space) ) ;
+        result = rect_bounding_rect(result, nodeview_get_rect(view.nodeview, space) ) ;
     }
-    // compute bbox
-    return Rect::bounding_rect(rect);
+
+    return result;
 }
 
-void view_selection_clear(View_Selection* selection)
+void viewselection_clear(View_Selection& selection)
 {
-    for(const View& elem : selection->items )
+    for(const View& elem : selection.items )
     {
-        selection->signal_change.emit( View_Selection_Event_Type_REMOVE, elem );
+        selection.signal_change.emit( View_Selection_Event_Type_REMOVE, elem );
     }
-    selection->items.clear();
-    selection->count_by_type.clear();
+    array_clear(selection.items);
+    memset(&selection.count_by_type, 0, sizeof(selection.count_by_type));
 }
 
-bool view_selection_contains(const View_Selection* selection, const View& elem )
+bool viewselection_contains(const View_Selection& selection, const View& elem )
 {
-    for(auto& each : selection->items)
+    for(auto& each : selection.items)
         if( each == elem)
             return true;
     return false;
 }
 
-void view_selection_add(View_Selection* selection, const View& elem )
+void viewselection_add(View_Selection& selection, const View& elem )
 {
-    selection->items.push_back(elem);
-    selection->count_by_type[elem.type]++;
-    selection->signal_change.emit( View_Selection_Event_Type_APPEND, elem );
+    array_append(selection.items, elem);
+    selection.count_by_type[elem.type]++;
+    selection.signal_change.emit( View_Selection_Event_Type_APPEND, elem );
 }
 
-void view_selection_add(View_Selection* selection, const std::vector<View>& views)
+void viewselection_add(View_Selection& selection, const Array<View>& views )
 {
-    view_selection_add(selection, views.begin(), views.end());
+    for(auto& view : views )
+    {
+        viewselection_add( selection, view );
+    }
 }
 
-bool view_selection_remove(View_Selection* selection, const View& elem)
+bool viewselection_remove(View_Selection& selection, const View& elem)
 {
-    auto found = std::find( selection->items.cbegin(), selection->items.cend(), elem) != selection->items.cend();
+    auto found = std::find( selection.items.begin(), selection.items.end(), elem) != selection.items.end();
     if( found )
     {
-        selection->count_by_type[elem.type]--;
-        selection->signal_change.emit( View_Selection_Event_Type_APPEND, elem );
+        selection.count_by_type[elem.type]--;
+        selection.signal_change.emit( View_Selection_Event_Type_APPEND, elem );
     }
     return found;
 }
 
-bool view_selection_contains(const View_Selection* selection, View_Type type) // O(1), read from cache.
+bool viewselection_contains(const View_Selection& selection, View_Type type) // O(1), read from cache.
 {
-    return selection->count_by_type.contains(type);
+    return viewselection_count(selection, type) > 0;
 }
 
-size_t view_selection_count(const View_Selection* selection, View_Type type) // O(1), read from cache.
+size_t viewselection_count(const View_Selection& selection, View_Type type) // O(1), read from cache.
 {
-    if ( selection->count_by_type.contains(type ) )
-    {
-        return selection->count_by_type.at(type );
-    }
-    return 0;
+    return selection.count_by_type[type];
 }
 
-View view_selection_first_of(const View_Selection* selection, View_Type type) // O(n), I suggest you to use contains() once first
+View viewselection_first_of(const View_Selection& selection, View_Type type) // O(n), I suggest you to use contains() once first
 {
-    const size_t _count = view_selection_count(selection, type);
+    const size_t _count = viewselection_count(selection, type);
     if ( _count == 0 )
         return {};
 
-    for ( const View& elem : selection->items )
+    for ( const View& elem : selection.items )
         if ( elem.type == type )
             return elem;
 
@@ -91,18 +96,20 @@ View view_selection_first_of(const View_Selection* selection, View_Type type) //
     return {};
 }
 
-std::vector<View>* view_selection_collect(std::vector<View>* out, const View_Selection* selection, View_Type type) // O(n), do only a single allocation when necessary
+bdc::Resizable_Array<View>& viewselection_collect(bdc::Resizable_Array<View>& out, const View_Selection& selection, View_Type type) // O(n), do only a single allocation when necessary
 {
-    const size_t _count = view_selection_count(selection, type);
+    const size_t _count = viewselection_count(selection, type);
     if ( _count == 0 )
-        return {};
+    {
+        return out;
+    }
 
-    out->reserve( _count ); // 1 allocation max :)
+    array_ensure_has_capacity(out, out.size + _count ); // 1 allocation max :)
 
     // OPTIM: we could use a cache per type_index if necessary ( type_index => list<T*> )
-    for ( const View& elem : selection->items )
+    for ( const View& elem : selection.items )
         if ( elem.type == type )
-            out->push_back( elem );
+            array_append(out, elem );
 
     return out;
 }

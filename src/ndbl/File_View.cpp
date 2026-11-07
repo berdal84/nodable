@@ -143,7 +143,7 @@ void fileview_update(File_View* file_view, float dt)
 Action_Flags fileview_calc_condition_flags(File_View* file_view)
 {
     Action_Flags result = 0;
-    result |= Action_Flags_ENABLE_IF_HAS_SELECTION * !file_view->graph_view->selection.empty();
+    result |= Action_Flags_ENABLE_IF_HAS_SELECTION * file_view->graph_view->selection.items.size;
     return result;
 }
 
@@ -248,7 +248,7 @@ void fileview_draw(File_View* file_view, float dt)
             ImGui::GetCursorScreenPos(),
             (Vec2)ImGui::GetCursorScreenPos() + Vec2(4.0f, region_available.y)
         };
-        splitter_rect.translate_x( file_view->text_child_size + 2.0f );
+        rect_translate_x(splitter_rect, file_view->text_child_size + 2.0f );
         ImGui::SplitterBehavior(toImGui(splitter_rect), ImGui::GetID("file_splitter"), ImGuiAxis_X, &file_view->text_child_size, &file_view->graph_child_size, 20.0f, 20.0f);
 
          // TEXT EDITOR
@@ -293,7 +293,7 @@ void fileview_draw(File_View* file_view, float dt)
 
             // overlay
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
-            overlay_rect.expand( -cfg->ui_textview_padding );
+            rect_expand(overlay_rect, -cfg->ui_textview_padding );
             fileview_draw_overlay(file_view->text_overlay_window_name.data, file_view->overlay_data[File_View_Overlay_Type_TEXT], overlay_rect, Vec2(0, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
@@ -331,7 +331,7 @@ void fileview_draw(File_View* file_view, float dt)
 
             // Draw overlay: shortcuts
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
-            overlay_rect.expand( -cfg->ui_textview_padding );
+            rect_expand(overlay_rect, -cfg->ui_textview_padding );
             fileview_draw_overlay(file_view->graph_overlay_window_name.data, file_view->overlay_data[File_View_Overlay_Type_GRAPH], overlay_rect, Vec2(1, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
@@ -447,9 +447,9 @@ void fileview_draw_overlay(const bdc::String& title, const std::vector<File_View
     ImGui::PushStyleColor(ImGuiCol_WindowBg, cfg->ui_overlay_window_bg_golor);
     ImGui::PushStyleColor(ImGuiCol_Border, cfg->ui_overlay_border_color);
     ImGui::PushStyleColor(ImGuiCol_Text, cfg->ui_overlay_text_color);
-    Vec2 win_position = rect.top_left() + rect.size() * position;
+    Vec2 win_position = rect_top_left(rect) + rect_size(rect) * position;
     ImGui::SetNextWindowPos( win_position, ImGuiCond_Always, position);
-    ImGui::SetNextWindowSize( rect.size(), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize( rect_size(rect), ImGuiCond_Appearing);
     bool show = true;
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
                                    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMouseInputs;

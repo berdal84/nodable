@@ -4,8 +4,9 @@
 #include <imgui/imgui_internal.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
+#include "bdc/String.hpp"
+#include "bdc/Array.hpp"
 #include "Event.h"
-#include "texteditor/Text_Editor.h"
 #include "geometry/Rect.h"
 #include "geometry/Vec2.h"
 #include "geometry/Vec4.h"
@@ -71,9 +72,9 @@ namespace ndbl
         extern void     DebugCircle(const Vec2& center, float radius, ImU32 col, int num_segments = 0, float thickness = 1.0f);
         extern void     DebugLine(const Vec2& p1, const Vec2& p2, ImU32 col, float thickness = 1.0f);
         extern void     Image(Texture*);
-        void            MultiSegmentLineBehavior(const std::vector<Vec2>* path, Rect bbox, float thickness, bool* hovered);
+        void            MultiSegmentLineBehavior(const bdc::Array<Vec2>& path, Rect bbox, float thickness, bool* hovered);
         float           CalcSegmentHoverMinDist( float line_thickness );
-        void            DrawPath(ImDrawList* draw_list, const std::vector<Vec2>* path, const Vec4& color, float thickness);
+        void            DrawPath(ImDrawList* draw_list, const bdc::Array<Vec2>& path, const Vec4& color, float thickness);
         void            Grid(const Rect& screen_space_region, float grid_size, int subdiv_count, ImU32 major_color, ImU32 minor_color);
         const Action*   MenuItem_for_event_type(Event_Type, bool selected = false, bool enable = true); // Shorthand to get a given action from the manager and draw a MenuItem from it.
 

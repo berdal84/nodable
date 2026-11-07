@@ -77,46 +77,54 @@ namespace ndbl
         constexpr Vec2 operator *( float f ) const
         { return *this * Vec2(f); }
 
-        constexpr  float lensqr() const
-        { return Vec2::lensqr(*this); }
-
-        void round()
-        { *this = Vec2::round(*this); }
-
-        constexpr static float lensqr(const Vec2& v)
-        { return v.x*v.x+v.y*v.y; }
-
-        constexpr static Vec2 scale(const Vec2& v, float magnitude )
-        { return v * Vec2(magnitude); }
-
         bool operator==(const Vec2& other) const
         { return this->x == other.x && this->y == other.y; }
-
-        static Vec2 round(const Vec2& v )
-        { return glm::round( (glm::vec2) v ); }
-
-        static Vec2 lerp( const Vec2& _source, const Vec2& _target, float _factor)
-        { return glm::mix((glm::vec2)_source, (glm::vec2)_target, glm::clamp(_factor, 0.0f, 1.0f)); }
-
-        static Vec2 transform(const Vec2& v, const glm::mat3& m)
-        {
-            auto result = m * glm::vec3(v.x, v.y, 1.f);
-            return {result.x, result.y};
-        }
-
-        static float distance( const Vec2& a, const Vec2&  b )
-        { return glm::distance((glm::vec2)a, (glm::vec2)b); }
-
-        static float dot( const Vec2& a, const Vec2&  b )
-        { return glm::dot((glm::vec2)a, (glm::vec2)b); }
-
-        static Vec2 normalize(const Vec2& v)
-        { return glm::normalize( (glm::vec2)v ); }
     };
-
+    
     static_assert(std::is_constructible_v<Vec2>);
     static_assert(std::is_copy_constructible_v<Vec2>);
     static_assert(std::is_copy_assignable_v<Vec2>);
     static_assert(std::is_default_constructible_v<Vec2>);
     static_assert(std::is_trivially_copyable_v<Vec2>);
+
+    inline constexpr float vec2_sqrlen(const Vec2& v)
+    {
+        return v.x*v.x + v.y*v.y;
+    }
+
+    inline constexpr Vec2 vec2_scale(const Vec2& v, float magnitude )
+    {
+        return v * Vec2(magnitude);
+    }
+
+    inline Vec2 vec2_round(const Vec2& v )
+    {
+        return glm::round( (glm::vec2) v );
+    }
+
+    inline Vec2 vec2_lerp( const Vec2& src, const Vec2& dest, float _factor)
+    {
+        return glm::mix((glm::vec2)src, (glm::vec2)dest, glm::clamp(_factor, 0.0f, 1.0f));
+    }
+
+    inline Vec2 vec2_transform(const Vec2& v, const glm::mat3& m)
+    {
+        glm::vec3 result = m * glm::vec3(v.x, v.y, 1.f);
+        return {result.x, result.y};
+    }
+
+    inline float vec2_distance(const Vec2& p0, const Vec2&  p1) // distance p0-p1
+    {
+        return glm::distance((glm::vec2)p0, (glm::vec2)p1);
+    }
+
+    inline float vec2_dot(const Vec2& a, const Vec2&  b)
+    {
+        return glm::dot((glm::vec2)a, (glm::vec2)b);
+    }
+
+    inline Vec2 vec2_normalize(const Vec2& v)
+    {
+        return glm::normalize( (glm::vec2)v );
+    }
 }

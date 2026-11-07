@@ -47,8 +47,8 @@ void scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags flags)
         if ( HAS_FLAGS(nodeview->flags, View_Flag_HIDDEN) )
             return;
 
-        const Rect r = nodeview_get_rect(nodeview, WORLD_SPACE);
-        scope_view->content_rect = Rect::bounding_rect(scope_view->content_rect, r);
+        const Rect rect = nodeview_get_rect(nodeview, WORLD_SPACE);
+        scope_view->content_rect = rect_bounding_rect(scope_view->content_rect, rect);
         scope_view->wrapped_node_view.push_back(nodeview);
     };
 
@@ -64,9 +64,8 @@ void scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags flags)
     {
         if ( child_node->internal_scope )
         {
-            Scope_View* child_node_scope_view = child_node->internal_scope->view;
-            scopeview_update(child_node_scope_view, dt, flags);
-            scope_view->content_rect = Rect::bounding_rect(scope_view->content_rect, child_node_scope_view->content_rect);
+            scopeview_update(child_node->internal_scope->view, dt, flags);
+            scope_view->content_rect = rect_bounding_rect(scope_view->content_rect, child_node->internal_scope->view->content_rect);
         }
     }
 
@@ -74,11 +73,11 @@ void scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags flags)
     {
         // Add padding to clearly see nested scopes
         const Padding& pad = config()->ui_scope_padding;
-        scope_view->content_rect.expand( pad.left, pad.top, pad.right, pad.bottom );
+        rect_expand(scope_view->content_rect, pad.left, pad.top, pad.right, pad.bottom );
 
         // pixel perfect
-        scope_view->content_rect.min.round();
-        scope_view->content_rect.max.round();
+        scope_view->content_rect.min = vec2_round(scope_view->content_rect.min);
+        scope_view->content_rect.max = vec2_round(scope_view->content_rect.max);
     }
 
 
@@ -98,8 +97,10 @@ void scopeview_update(Scope_View* scope_view, float dt, Scope_View_Flags flags)
 
 bool scopeview_must_be_draw(const Scope_View* scope_view)
 {
-    if (!scope_view->content_rect.has_area())
+    if ( rect_has_null_area(scope_view->content_rect) )
+    {
         return false;
+    }
 
     switch ( scope_view->scope->children.size() )
     {

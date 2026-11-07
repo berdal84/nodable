@@ -181,13 +181,15 @@ namespace ndbl
 {
     inline void command_selection_change_release(Command *command)
     {
-       bdc::memory_delete( command->selection_change.old_selection );
-       bdc::memory_delete( command->selection_change.new_selection );
+       array_release( *command->selection_change.old_selection );
+       array_release( *command->selection_change.new_selection );
+       memory_delete( command->selection_change.old_selection );
+       memory_delete( command->selection_change.new_selection );
        memset(command, 0, sizeof(Command));
     }
 }
 
-ndbl::Command ndbl::command_selection_change(const View_Selection* _selection)
+ndbl::Command ndbl::command_selection_change(const Array<View>& _selection) // TODO: we should not take a View_Selection as input arg, a const Array<View>& is enough
 {
     Command cmd{};
 
@@ -197,11 +199,11 @@ ndbl::Command ndbl::command_selection_change(const View_Selection* _selection)
     cmd.proc_undo       = command_selection_change_undo;
     cmd.proc_release    = command_selection_change_release;
 
-    auto old_selection = bdc::memory_new<View_Selection>();
-    view_selection_add(old_selection, app_state()->current_file->view.graph_view->selection.items);
+    Array<View>* old_selection = memory_new<Array<View>>();
+    *old_selection = array_copy( (Array<View>)app_state()->current_file->view.graph_view->selection.items );
 
-    auto new_selection = bdc::memory_new<View_Selection>();
-    view_selection_add(new_selection, _selection->items);
+    Array<View>* new_selection = memory_new<Array<View>>();
+    *new_selection = array_copy( _selection );
 
     cmd.selection_change = {
         old_selection,
@@ -212,16 +214,16 @@ ndbl::Command ndbl::command_selection_change(const View_Selection* _selection)
 
 void ndbl::command_selection_change_do(Command *command)
 {
-    auto selection = &app_state()->current_file->view.graph_view->selection;
-    view_selection_clear( selection );
-    view_selection_add( selection, command->selection_change.new_selection->items);
+    auto& selection = app_state()->current_file->view.graph_view->selection;
+    viewselection_clear( selection );
+    viewselection_add( selection, *command->selection_change.new_selection);
 }
 
 void ndbl::command_selection_change_undo(Command *command)
 {
-    auto selection = &app_state()->current_file->view.graph_view->selection;
-    view_selection_clear( selection );
-    view_selection_add( selection, command->selection_change.old_selection->items);
+    auto& selection = app_state()->current_file->view.graph_view->selection;
+    viewselection_clear( selection );
+    viewselection_add( selection, *command->selection_change.old_selection);
 }
 
 //-----------------------------------------------------------------------------

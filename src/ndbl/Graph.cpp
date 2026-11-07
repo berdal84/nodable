@@ -645,7 +645,7 @@ Array<Scope*> graph_collect_root_scopes(const Graph* graph)
         if ( node.internal_scope != nullptr )
             if ( scope_get_depth(node.internal_scope) == 0 )
                 array_append( result, node.internal_scope );
-    return array_view(result);
+    return result;
 }
 
 Array<Scope*> graph_collect_scopes(const Graph* graph)
@@ -655,7 +655,7 @@ Array<Scope*> graph_collect_scopes(const Graph* graph)
     for(const Node& node : graph->nodes)
         if ( node.scope )
             array_append( result, node.scope );
-    return array_view(result);
+    return result;
 }
 
 void graph_flag_node_to_delete(Node *node, Graph_Flags flags)

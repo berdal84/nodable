@@ -1,5 +1,6 @@
 #include "ImGuiEx.h"
 
+#include "bdc/Array.hpp"
 #include "Action_Manager.h"
 #include "Action.h"
 #include "Asserts.h"
@@ -15,6 +16,8 @@
 
 namespace ndbl::ImGuiEx
 {
+
+using namespace bdc;
 
 struct Context
 {
@@ -113,40 +116,51 @@ void DrawWire(
      )
 {
     if ( style.color.z == 0)
+    {
         return;
+    }
 
     // 1) determine curves for fill and shadow
 
     // Line
     // Generate curve
-    std::vector<Vec2> fill_path;
-    beziercurve_tesselate(&fill_path, &curve);
+    Resizable_Array<Vec2> fill_path;
+    array_init(fill_path, &temp_allocator);
+    beziercurve_tesselate(fill_path, curve);
 
-    if ( fill_path.size() == 1) return;
+    if (fill_path.size == 1)
+    {
+        return;
+    }
 
     // Shadow
     Bezier_Curve_Segment_2D shadow_curve = curve;
-    beziercurve_translate(&shadow_curve, { 1.f, 1.f });
+    beziercurve_translate(shadow_curve, { 1.f, 1.f });
     shadow_curve.p2 = curve.p2 + Vec2(0.f, 10.f);
     shadow_curve.p3 = curve.p3 + Vec2(0.f, 10.f);
 
     // Generate curve
-    std::vector<Vec2> shadow_path;
-    beziercurve_tesselate(&shadow_path, &shadow_curve);
+    Resizable_Array<Vec2> shadow_path;
+    array_init(shadow_path, &temp_allocator);
+    beziercurve_tesselate(shadow_path, shadow_curve);
 
     // 2) draw the shadow
 
-    if ( shadow_path.size() > 1)
-        DrawPath(draw_list, &shadow_path, style.shadow_color, style.thickness);
+    if ( shadow_path.size > 1)
+    {
+        DrawPath(draw_list, shadow_path, style.shadow_color, style.thickness);
+    }
 
     // 3) draw the curve
 
     // Mouse behavior
     if( hovered != nullptr)
-        MultiSegmentLineBehavior(&fill_path, beziercurve_bbox(&curve), style.thickness + 6.f, hovered );
+    {
+        MultiSegmentLineBehavior(fill_path, beziercurve_bbox(curve), style.thickness + 6.f, hovered );
+    }
 
     // Draw the path
-    DrawPath(draw_list, &fill_path, style.color, style.thickness);
+    DrawPath(draw_list, fill_path, style.color, style.thickness);
 }
 
 bool BeginTooltip(float _delay, float _duration)
@@ -226,11 +240,13 @@ void Image(Texture* _texture)
     );
 }
 
-void DrawPath(ImDrawList* draw_list, const std::vector<Vec2>* path, const Vec4& color, float thickness)
+void DrawPath(ImDrawList* draw_list, const Array<Vec2>& path, const Vec4& color, float thickness)
 {
     // Push segments to ImGui's current path
-    for(auto& p : *path)
-        draw_list->PathLineTo(p + Vec2(0.5f, 0.5f));
+    for(const Vec2& p : path)
+    {
+        draw_list->PathLineTo(p + Vec2(0.5f, 0.5f)); // Note: I can't remember why I do add 0.5f... Perhaps for pixel perfect lines?
+    }        
 
     // Draw the path
     draw_list->PathStroke( ImColor(color), 0, thickness);
@@ -243,28 +259,35 @@ float CalcSegmentHoverMinDist(float line_thickness )
 }
 
 void MultiSegmentLineBehavior(
-    const std::vector<Vec2>* path,
+    const bdc::Array<Vec2>& path,
     Rect bbox,
     float thickness,
     bool* hovered)
 {
-    if ( path->size() == 1) return;
+    if ( path.size == 1)
+    {
+        return;
+    }
 
     const float hover_min_distance = CalcSegmentHoverMinDist(thickness);
-    bbox.expand(hover_min_distance);
+    rect_expand(bbox, hover_min_distance);
     const Vec2 mouse_pos = ImGui::GetMousePos();
 
 #if DEBUG_BEZIER_ENABLE
     DebugRect(bbox.min, bbox.max, ImColor(0,255,127));
 #endif
+
     // bbox vs point
-    if ( !Rect::contains( bbox, mouse_pos ) ) return;
+    if ( !rect_contains_point( bbox, mouse_pos ) )
+    {
+        return;
+    }
 
     // test each segment
     int i = 0;
-    while( !*hovered && i < path->size() - 1 )
+    while( !*hovered && i < path.size - 1 )
     {
-        const float mouse_distance = Line_Segment_2D::point_minimum_distance(Line_Segment_2D{(*path)[i], (*path)[i + 1]}, mouse_pos );
+        const float mouse_distance = line_point_distance_min(Line_Segment_2D{path[i], path[i + 1]}, mouse_pos );
         *hovered = mouse_distance < hover_min_distance;
         ++i;
     }
@@ -292,17 +315,17 @@ void Grid(const Rect& region, float grid_size, int subdiv_count, ImU32 major_col
     {
         if ( axis == AXIS_HORIZONTAL )
         {
-            line_len         = region.width();
+            line_len         = rect_width(region);
             line_dir         = Vec2(1.f, 0.f);
             line_distrib_dir = Vec2(0.f, 1.f);
-            line_count       = (int)(region.height() / subdiv_size);
+            line_count       = (int)(rect_height(region) / subdiv_size);
         }
         else
         {
-            line_len         = region.height();
+            line_len         = rect_height(region);
             line_dir         = Vec2(0.f, 1.f);
             line_distrib_dir = Vec2(1.f, 0.f);
-            line_count       = (int) (region.width() / subdiv_size);
+            line_count       = (int)(rect_width(region) / subdiv_size);
         }
 
         for (int line_index = 0; line_index < line_count; ++line_index)

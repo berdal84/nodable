@@ -109,7 +109,7 @@ namespace ndbl
         result.min = Vec2{ el->padding.left, el->padding.top };
         result.max = el->dimension.as_vec2 - Vec2{ el->padding.right, el->padding.bottom } ;
 
-        result.translate(el->position);
+        rect_translate(result, el->position);
         
         return result;
     }
@@ -219,7 +219,7 @@ namespace ndbl
 
     inline bdc::Array<Element> layout_elements()
     {
-        return array_view(layout()->elements);
+        return layout()->elements;
     }
     
     inline Element* layout_current_element()

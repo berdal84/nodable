@@ -1,14 +1,12 @@
 #pragma once
 
-#include <vector> // TODO: replace this by bdc::Array
-
+#include "../Asserts.h"
 #include "Vec2.h"
 
 namespace ndbl
 {
-    class Rect
+    struct Rect
     {
-    public:
         Vec2 min;
         Vec2 max;
 
@@ -37,110 +35,138 @@ namespace ndbl
         template<typename RectT>
         Rect& operator=(const RectT& _rect)
         { *this = Rect{_rect}; return *this; }
-
-        float height() const
-        { return max.y - min.y; }
-
-        float width() const
-        { return max.x - min.x; }
-
-        Vec2 center() const
-        { return min + size() / 2.f; }
-
-        Vec2 top_left() const
-        { return min; }
-
-        Vec2 bottom_left() const
-        { return { min.x, max.y }; }
-
-        Vec2 bottom_right() const
-        { return max; }
-
-        Vec2 top_right() const
-        { return { max.x, min.y }; }
-
-        Vec2 left() const
-        { return { min.x, center().y }; }
-
-        Vec2 right() const
-        { return { max.x, center().y }; }
-
-        Vec2 size() const
-        { return { width(), height()}; }
-
-        Rect&  translate_x( float d )
-        {
-            min.x += d;
-            max.x += d;
-            return *this;
-        }
-
-        Rect&  translate_y( float d )
-        {
-            min.y += d;
-            max.y += d;
-            return *this;
-        }
-
-        Rect& translate(const Vec2& _delta )
-        {
-            min += _delta;
-            max += _delta;
-            return *this;
-        }
-
-        Rect& expand(float  offset)
-        {
-            min.x -= offset;
-            min.y -= offset;
-            max.x += offset;
-            max.y += offset;
-
-            return *this;
-        }
-
-        Rect& expand(float x_offset, float y_offset)
-        {
-            min.x -= x_offset;
-            min.y -= y_offset;
-            max.x += x_offset;
-            max.y += y_offset;
-
-            return *this;
-        }
-
-        Rect& expand(float left, float top, float right, float bottom)
-        {
-            min.x -= left;
-            min.y -= top;
-            max.x += right;
-            max.y += bottom;
-
-            return *this;
-        }
-
-        bool is_inverted() const
-        { return min.x > max.x || min.y > max.y; }
-
-        bool has_area() const
-        { return width() != 0.f && height() != 0.f; }
-
-        static Rect normalize(const Rect& _rect)
-        {
-            Rect result = _rect;
-            if (result.min.x > result.max.x ) std::swap(result.min.x, result.max.x);
-            if (result.min.y > result.max.y ) std::swap(result.min.y, result.max.y);
-            return result;
-        }
-        
-        static bool contains(const Rect& a, const Rect& b );
-        static bool contains(const Rect& rect, const Vec2& point );
-        static Rect bounding_rect(const Rect& a, const Rect& b );
-        static Rect bounding_rect(const std::vector<Rect>& rect );
-        static Rect bounding_rect(const std::vector<Vec2>* points );
-        static std::vector<Rect>& make_row( std::vector<Rect> &out, float gap = 0.0f );
-        static std::vector<Rect>& align_top(std::vector<Rect>& out, float y);
-        static std::vector<Rect>& center(std::vector<Rect>& out, float x);
     };
 
+    inline float rect_height(const Rect& rect)
+    {
+        return rect.max.y - rect.min.y;
+    }
+
+    inline float rect_width(const Rect& rect)
+    {
+        return rect.max.x - rect.min.x;
+    }
+
+    inline Vec2 rect_size(const Rect& rect)
+    {
+        return { rect_width(rect), rect_height(rect) };
+    }
+
+    inline Vec2 rect_center(const Rect& rect)
+    {
+        return rect.min + (rect.max - rect.min) / 2.f;
+    }
+
+    inline Vec2 rect_top_left(const Rect& rect)
+    {
+        return rect.min;
+    }
+
+    inline Vec2 rect_bottom_left(const Rect& rect)
+    {
+        return { rect.min.x, rect.max.y };
+    }
+
+    inline Vec2 rect_bottom_right(const Rect& rect)
+    {
+        return rect.max;
+    }
+
+    inline Vec2 rect_top_right(const Rect& rect)
+    {
+        return { rect.max.x, rect.min.y };
+    }
+
+    inline Vec2 rect_left(const Rect& rect)
+    {
+        return { rect.min.x, rect.min.y + (rect.max.y - rect.min.y) / 2.f };
+    }
+
+    inline Vec2 rect_right(const Rect& rect)
+    {
+        return { rect.max.x, rect.min.y + (rect.max.y - rect.min.y) / 2.f };
+    }
+
+
+    inline Rect& rect_translate_x(Rect& rect, float dx)
+    {
+        rect.min.x += dx;
+        rect.max.x += dx;
+        return rect;
+    }
+
+    inline Rect& rect_translate_y(Rect& rect, float dy)
+    {
+        rect.min.y += dy;
+        rect.max.y += dy;
+        return rect;
+    }
+
+    inline Rect& rect_translate(Rect& rect, const Vec2& delta )
+    {
+        rect.min += delta;
+        rect.max += delta;
+        return rect;
+    }
+
+    inline Rect& rect_expand(Rect& rect, float offset)
+    {
+        rect.min.x -= offset;
+        rect.min.y -= offset;
+        rect.max.x += offset;
+        rect.max.y += offset;
+
+        return rect;
+    }
+
+    inline Rect& rect_expand(Rect& rect, float x_offset, float y_offset)
+    {
+        rect.min.x -= x_offset;
+        rect.min.y -= y_offset;
+        rect.max.x += x_offset;
+        rect.max.y += y_offset;
+
+        return rect;
+    }
+
+    inline Rect& rect_expand(Rect& rect, float left, float top, float right, float bottom)
+    {
+        rect.min.x -= left;
+        rect.min.y -= top;
+        rect.max.x += right;
+        rect.max.y += bottom;
+
+        return rect;
+    }
+
+    inline bool rect_is_normalized(const Rect& rect)
+    {
+        return rect.min.x <= rect.max.x
+            && rect.min.y <= rect.max.y;
+    }
+
+    inline bool rect_has_null_area(const Rect& rect)
+    {
+        return rect_width(rect)  == 0.f
+            || rect_height(rect) == 0.f;
+    }
+
+    inline Rect rect_normalize(const Rect& rect) // swaps min and max if necessary to make sure min is actually the min for both axis
+    {
+        if(rect_is_normalized(rect))
+        {
+            return rect;
+        }
+
+        Rect result = rect;
+        if (result.min.x > result.max.x ) std::swap(result.min.x, result.max.x);
+        if (result.min.y > result.max.y ) std::swap(result.min.y, result.max.y);
+        return result;
+    }
+    
+    bool                 rect_contains(const Rect& a, const Rect& b );
+    bool                 rect_contains_point(const Rect& rect, const Vec2& point );
+    Rect                 rect_bounding_rect(const Rect& a, const Rect& b ); //...... returns the bbox of the two rectangles. If one of the rectangles has a null area the function simply returns the other rect.
+    Rect                 rect_bounding_rect(const bdc::Array<Rect>& rect );
+    Rect                 rect_bounding_rect(const bdc::Array<Vec2>& points );
 }

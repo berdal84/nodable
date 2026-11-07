@@ -135,7 +135,7 @@ File_Read_Result file_read(const Path& path)
             if ( stream.eof() )
             {
                 stream.clear();
-                return { .ok = true, .content = bdc::array_view(bytes) }; 
+                return { .ok = true, .content = (Array<i8_t>)bytes }; 
             }
             return { .ok = false, .error = "Line exceeded buffer size!" };
         }

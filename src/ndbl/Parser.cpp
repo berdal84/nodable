@@ -1749,7 +1749,7 @@ const Node_Slot* serialize_invokable(Serializer_Context& ctx, const Node* _node)
 {
     if (_node->type == Node_Type_OPERATOR )
     {
-        Array<Node_Slot*> args = array_view( _node->component.invokable.argument_slots );
+        const Array<Node_Slot*> args = _node->component.invokable.argument_slots;
         int precedence = langdef_get_precedence(*ctx.langdef, &_node->component.invokable.type);
 
         switch ( _node->component.invokable.type.function.args.size )
@@ -1797,7 +1797,7 @@ const Node_Slot* serialize_invokable(Serializer_Context& ctx, const Node* _node)
     }
     else
     {
-        serialize_function_call(ctx, &_node->component.invokable.type, array_view(_node->component.invokable.argument_slots) );
+        serialize_function_call(ctx, &_node->component.invokable.type, _node->component.invokable.argument_slots);
     }
 
     return _node->value_out();

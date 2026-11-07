@@ -38,6 +38,8 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
     Config* cfg = config();
 
     // init containers
+
+    box2d_init(nodeview->shape);
     
     hashmap_init( nodeview->view_by_property );
     for(u32_t i = 0; i < Property_Category_COUNT; ++i)
@@ -57,8 +59,8 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
         auto propertyview = bdc::memory_new<Node_Property_View>();
         nodepropertyview_init(propertyview, property);
         assert(propertyview->property);
-        spatialnode_add_child(&nodeview->shape.spatial_node, &propertyview->shape.spatial_node);
-        spatialnode_set_position(&propertyview->shape.spatial_node, {}, PARENT_SPACE);
+        spatialnode_add_child(nodeview->shape.spatial_node, propertyview->shape.spatial_node);
+        spatialnode_set_position(propertyview->shape.spatial_node, {}, PARENT_SPACE);
 
         switch ( nodeview->node->type )
         {
@@ -155,8 +157,8 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
         const u8_t index = count_per_type.at(slot->type_and_order())++;
         auto* view = bdc::memory_new<Node_Slot_View>();
         nodeslotview_init(view, slot, get_pivot(slot), get_shapetype(slot), index, &nodeview->shape);
-        spatialnode_add_child( &nodeview->shape.spatial_node, &view->shape.spatial_node );
-        spatialnode_set_position(&view->shape.spatial_node, {}, PARENT_SPACE);
+        spatialnode_add_child(nodeview->shape.spatial_node, view->shape.spatial_node );
+        spatialnode_set_position(view->shape.spatial_node, {}, PARENT_SPACE);
         
         array_append(nodeview->slot_views, view);
     }
@@ -223,7 +225,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
 
 void ndbl::nodeview_deinit(Node_View* nodeview)
 {
-    spatialnode_clear(&nodeview->shape.spatial_node);
+    spatialnode_clear(nodeview->shape.spatial_node);
 
     FOR_EACH_HASHMAP_VALUE(each, nodeview->view_by_property)
     {
@@ -239,6 +241,7 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
 
     for(auto* each : nodeview->slot_views )
     {
+        nodeslotview_release(each);
         bdc::memory_delete(each);
     }
     array_release(nodeview->slot_views);
@@ -246,12 +249,14 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
     if( const Scope* internal_scope = nodeview->node->internal_scope )
     {
         scopeview_deinit(internal_scope->view);
-        bdc::memory_delete<Scope_View>(internal_scope->view);
+        bdc::memory_delete(internal_scope->view);
     }
     nodeview->hovered_slotview = nullptr;
 
     nodeview->node  = nullptr;
     nodeview->flags = 0;
+
+    box2d_release(nodeview->shape);
 }
 
 bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)
@@ -353,7 +358,7 @@ void ndbl::nodeview_update(Node_View* nodeview, float dt)
 
 bool ndbl::nodeview_draw(Node_View* nodeview)
 {
-    box2d_draw_debug_info(&nodeview->shape);
+    box2d_draw_debug_info(nodeview->shape);
 
     if ( HAS_FLAGS(nodeview->flags, View_Flag_HIDDEN) )
     {
@@ -375,14 +380,14 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
 	// Begin the window
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, nodeview->opacity);
-    Rect screen_rect = nodeview->shape.rect(WORLD_SPACE);
+    Rect screen_rect = box2d_to_rect(nodeview->shape, WORLD_SPACE);
 
 #if PIXEL_PERFECT
-        screen_rect.min.round();
-        screen_rect.max.round();
+        screen_rect.min = vec2_round(screen_rect.min);
+        screen_rect.max = vec2_round(screen_rect.max);
 #endif
 
-    ImGui::SetCursorScreenPos( screen_rect.top_left() ); // start from th top left corner
+    ImGui::SetCursorScreenPos( rect_top_left(screen_rect) ); // start from th top left corner
 	ImGui::PushID(nodeview);
 
 
@@ -432,7 +437,7 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
 	// Draw the window content
 	//------------------------
 
-    ImGui::SetCursorScreenPos( screen_rect.top_left() );
+    ImGui::SetCursorScreenPos( rect_top_left(screen_rect) );
     ImGui::BeginGroup();
     ImGui::SetCursorPosX( ImGui::GetCursorPosX() + cfg->ui_node_padding.x );
     ImGui::SetCursorPosY( ImGui::GetCursorPosY() + cfg->ui_node_padding.y );
@@ -484,8 +489,8 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
                 if (Node_Slot_View *slot_view_out = slot_out->view)
                 {
                     const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
-                    const float y = nodeview->shape.pivot_position(BOTTOM, WORLD_SPACE).y;
-                    spatialnode_set_position(&slot_view_out->shape.spatial_node, {x, y}, WORLD_SPACE);
+                    const float y = box2d_pivot_position( nodeview->shape, BOTTOM, WORLD_SPACE).y;
+                    spatialnode_set_position(slot_view_out->shape.spatial_node, {x, y}, WORLD_SPACE);
                     slot_view_out->direction = BOTTOM;
                 }
     }
@@ -493,9 +498,9 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
     // Draw the properties depending on node type
     if (nodeview->node->type != Node_Type_OPERATOR )
     {
-        changed |= nodepropertyview_draw_all( array_view(nodeview->view_by_property_category[Property_Category_IN_STRICTLY])    , cfg->ui_node_detail);
-        changed |= nodepropertyview_draw_all( array_view(nodeview->view_by_property_category[Property_Category_INOUT_STRICTLY]) , cfg->ui_node_detail);
-        changed |= nodepropertyview_draw_all( array_view(nodeview->view_by_property_category[Property_Category_OUT_STRICTLY])   , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all( nodeview->view_by_property_category[Property_Category_IN_STRICTLY]    , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all( nodeview->view_by_property_category[Property_Category_INOUT_STRICTLY] , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all( nodeview->view_by_property_category[Property_Category_OUT_STRICTLY]   , cfg->ui_node_detail);
     }
     else
     {
@@ -532,7 +537,7 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
     new_size.x = std::max( 1.0f, new_size.x );
     new_size.y = std::max( 1.0f, new_size.y );
 
-    nodeview->shape.set_size(Vec2::round(new_size));
+    nodeview->shape.size = vec2_round(new_size);
 
     // Draw foreground slots (circles)
     for( Node_Slot_View* slot_view: nodeview->slot_views )
@@ -628,10 +633,10 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
     };
 
     ImGui::Separator();
-    changed |= draw_properties("Inputs(s)", array_view( nodeview->view_by_property_category[Property_Category_IN_STRICTLY] ));
-    changed |= draw_properties("In/Out(s)", array_view( nodeview->view_by_property_category[Property_Category_INOUT_STRICTLY] ));
+    changed |= draw_properties("Inputs(s)", nodeview->view_by_property_category[Property_Category_IN_STRICTLY] );
+    changed |= draw_properties("In/Out(s)", nodeview->view_by_property_category[Property_Category_INOUT_STRICTLY] );
     ImGui::Separator();
-    changed |= draw_properties("Output(s)", array_view( nodeview->view_by_property_category[Property_Category_OUT_STRICTLY] ));
+    changed |= draw_properties("Output(s)", nodeview->view_by_property_category[Property_Category_OUT_STRICTLY] );
 
 #ifdef NDBL_DEBUG
 
@@ -688,8 +693,8 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
                 if ( ImGui::Button(label.c_str()) )
                 {
                     NDBL_ASSERT(node->graph->view);
-                    view_selection_clear(&node->graph->view->selection);
-                    view_selection_add(&node->graph->view->selection, scope->node->view );
+                    viewselection_clear(node->graph->view->selection);
+                    viewselection_add(node->graph->view->selection, scope->node->view );
                 }
             }
             else
@@ -732,13 +737,13 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
 Rect ndbl::nodeview_get_rect_ex(const Node_View* nodeview, Space space, Node_View_Flags flags)
 {
     if( (flags & Node_View_Flag_WITH_RECURSION) == 0 )
-        return nodeview->shape.rect(space);
+        return box2d_to_rect(nodeview->shape, space);
 
     Rect result;
 
     if ( !HAS_FLAGS(nodeview->flags, View_Flag_HIDDEN) )
     {
-        result = nodeview->shape.rect(space);
+        result = box2d_to_rect(nodeview->shape, space);
     }
 
     // TEMPORARILY DISABLED: we need a flag here to disable this type of "INNER_RECURSION"
@@ -759,7 +764,8 @@ Rect ndbl::nodeview_get_rect_ex(const Node_View* nodeview, Space space, Node_Vie
             continue;
         if( node_is_output_node_in_expression( input_node, nodeview->node ) )
         {
-            result = result.bounding_rect(result,  nodeview_get_rect_ex( input_node->view, space, flags) );
+            const Rect input_node_rect = nodeview_get_rect_ex( input_node->view, space, flags);
+            result = rect_bounding_rect(result, input_node_rect );
         }
     }
 
@@ -842,7 +848,7 @@ bdc::Array<Node_View*> ndbl::nodeview_get_adjacent(const Node_View* nodeview, No
     for(auto adjacent_node : node_get_adjacent_nodes( nodeview->node, flags ) )
         if( adjacent_node->view )
             array_append(result, adjacent_node->view );
-    return array_view(result);
+    return result;
 }
 
 void ndbl::nodeview_draw_slot(Node_View* nodeview, Node_Slot_View* slot_view)

@@ -8,7 +8,7 @@
 #include <nfd.h>
 #endif
 
-#include "DEFER.h"
+#include "bdc/MACROS.hpp" // for DEFER(...)
 #include "Action_Manager_View.h"
 #include "Action_Manager.h"
 #include "Asserts.h"
@@ -537,7 +537,7 @@ void appview_draw()
 
     if (ImGui::BeginMenuBar())
     {
-        View_Selection selection;
+        View_Selection selection = {};
         
         if ( current_file != nullptr )
         {
@@ -590,7 +590,7 @@ void appview_draw()
 
             ImGui::Separator();
             
-            if (ImGui::MenuItem("Delete", "Del.", false, !selection.empty() ))
+            if (ImGui::MenuItem("Delete", "Del.", false, selection.items.size ))
             {
                 event_manager_push_event({ Event_Type_DELETE });
             }
@@ -659,19 +659,19 @@ void appview_draw()
                 event_manager_push_event( action->event);
             }
 
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_RESET_LAYOUT,false, !selection.empty() ) )
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_RESET_LAYOUT,false, selection.items.size ) )
             {
                 event_manager_push_event(action->event);
             }
 
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_FOLDING, false, !selection.empty() ) )
+            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_FOLDING, false, selection.items.size ) )
             {
                 event_manager_push_event(action->event);
             }
 
-            if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, !selection.empty() ))
+            if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, selection.items.size ))
             {
-                if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_FOLDING,false, !selection.empty() ))
+                if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_FOLDING,false, selection.items.size ))
                 {
                     event_manager_push_event(action->event);
                 }
@@ -1043,14 +1043,14 @@ void appview_draw()
             {
                 bool node_properties_changed = false;
                 const Graph_View* graph_view = app_state()->current_file->graph->view; // Graph can't be null
-                switch ( view_selection_count(&graph_view->selection, View_Type_NODE) )
+                switch ( viewselection_count(graph_view->selection, View_Type_NODE) )
                 {
                     case 0:
                         break;
                     case 1:
                     {
                         ImGui::Indent(10.0f);
-                        View first = view_selection_first_of(&graph_view->selection, View_Type_NODE);
+                        View first = viewselection_first_of(graph_view->selection, View_Type_NODE);
                         node_properties_changed |= nodeview_draw_as_properties_panel(first.nodeview, &view->show_advanced_node_properties);
                         break;
                     }

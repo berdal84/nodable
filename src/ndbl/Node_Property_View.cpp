@@ -25,8 +25,8 @@ constexpr float PROPERTY_INPUT_SIZE_MIN  = 12.0f;
 void ndbl::nodepropertyview_init(Node_Property_View* view, Node_Property* property)
 {
     NDBL_ASSERT(property);
-    view->shape    = Vec2{10.f, 10.f}; // can't be 0,0
-    view->property = property;
+    view->shape.size = { 10.f, 10.f }; // can't be 0,0
+    view->property   = property;
 }
 
 void ndbl::nodepropertyview_deinit(Node_Property_View* view)
@@ -38,7 +38,7 @@ void ndbl::nodepropertyview_deinit(Node_Property_View* view)
 
 bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 {
-    box2d_draw_debug_info(&view->shape);
+    box2d_draw_debug_info(view->shape);
 
     if ( HAS_FLAGS(view->flags, View_Flag_HIDDEN) )
     {
@@ -140,12 +140,12 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
     // We want the rectangle to fit the Node_View in height,
     // but we resize it to fit the property input field in width.
     NDBL_ASSERT(node->view);
-    Rect new_rect  = node->view->shape.rect(WORLD_SPACE);
+    Rect new_rect  = box2d_to_rect(node->view->shape, WORLD_SPACE);
     new_rect.min.x = ImGui::GetItemRectMin().x;
     new_rect.max.x = ImGui::GetItemRectMax().x;
 
-    view->shape.set_position(new_rect.top_left(), WORLD_SPACE);
-    view->shape.set_size(new_rect.size());
+    box2d_set_position(view->shape, rect_top_left(new_rect), WORLD_SPACE);
+    view->shape.size = rect_size(new_rect);
 
 #if DEBUG_DRAW
     ImGuiEx::DebugCircle( spatial_node()->position(), 2.5f, ImColor(0,0,0));

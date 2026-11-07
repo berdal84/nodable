@@ -31,16 +31,26 @@ void nodeslotview_init(
     view->direction         = {};
     view->shape             = {};
     view->flags             = 0;
-    
+
+    box2d_init(view->shape);
     nodeslotview_update_direction_from_alignment(view);
 
     // Update size from shape
-    Vec2 size = shape_type == Shape_Type_CIRCLE
-            ? Vec2{ config()->ui_slot_circle_radius() * 2.f}
-            : config()->ui_slot_rectangle_size;
-    view->shape.set_size( size );
+    if( shape_type == Shape_Type_CIRCLE )
+    {
+        view->shape.size = Vec2{ config()->ui_slot_circle_radius() * 2.f };
+    }
+    else
+    {
+        view->shape.size = config()->ui_slot_rectangle_size;
+    }
 
     slot->view = view;
+}
+
+void nodeslotview_release(Node_Slot_View* view)
+{
+    box2d_release(view->shape);
 }
 
 bdc::String nodeslotview_compute_tooltip(const Node_Slot_View* view)
@@ -64,7 +74,7 @@ bdc::String nodeslotview_compute_tooltip(const Node_Slot_View* view)
 
 bool nodeslotview_draw(Node_Slot_View* view)
 {
-    box2d_draw_debug_info(&view->shape);
+    box2d_draw_debug_info(view->shape);
 
     if ( HAS_FLAGS(view->flags, View_Flag_HIDDEN) )
     {
@@ -78,15 +88,17 @@ bool nodeslotview_draw(Node_Slot_View* view)
     Vec4  border_color   = cfg->ui_slot_border_color;
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
-    Rect rect            = view->shape.rect(WORLD_SPACE);
+    Rect rect            = box2d_to_rect(view->shape, WORLD_SPACE);
 
-    if ( !rect.has_area() )
+    if ( rect_has_null_area(rect) )
+    {
         return false;
+    }
 
     // draw an invisible button (for easy mouse interaction)
-    ImGui::SetCursorScreenPos(rect.top_left());
+    ImGui::SetCursorScreenPos( rect_top_left(rect));
     ImGui::PushID(view->slot);
-    ImGui::InvisibleButton("###", rect.size() + cfg->ui_slot_invisible_btn_expand_size);
+    ImGui::InvisibleButton("###", rect_size(rect) + cfg->ui_slot_invisible_btn_expand_size);
     ImGui::PopID();
     const bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
     SET_FLAGS_VALUE(view->flags, View_Flag_HOVERED, hovered);
@@ -98,8 +110,9 @@ bool nodeslotview_draw(Node_Slot_View* view)
         case Shape_Type_CIRCLE:
         {
             const float radius = view->shape.size.x / 2.f;
-            draw_list->AddCircleFilled( rect.center(), radius, ImColor(fill_color));
-            draw_list->AddCircle( rect.center(), radius, ImColor(border_color) );
+            const Vec2  pos    = rect_center(rect);
+            draw_list->AddCircleFilled(pos, radius, ImColor(fill_color));
+            draw_list->AddCircle(pos, radius, ImColor(border_color) );
             break;
         }
         case Shape_Type_RECTANGLE:
@@ -163,20 +176,20 @@ void nodeslotview_update(Node_Slot_View* view, float dt)
         const float gap   = cfg->ui_slot_gap;
         const float dir_x = 1.f;
 
-        const Vec2 pos = view->alignment_ref->pivot_position(view->alignment_pivot, WORLD_SPACE )
+        const Vec2 pos = box2d_pivot_position(*view->alignment_ref, view->alignment_pivot, WORLD_SPACE )
                        + Vec2( dir_x * gap * float(view->index + 2), 0.f) // horizontal gaps (2 initial, then 1 per slot)
                        + Vec2( dir_x * size.x * float(view->index), 0.f) // jump to index
                        + Vec2(0.f, view->alignment_pivot.y * size.y * 0.5f) // align edge vertically
                        - size / 2.0f;
 
-        spatialnode_set_position(&view->shape.spatial_node, pos, WORLD_SPACE); // relative to Node_View's
+        spatialnode_set_position(view->shape.spatial_node, pos, WORLD_SPACE); // relative to Node_View's
     }
     else if (view->alignment_ref != nullptr )
     {
         const float radius = view->shape.size.x / 2.0f;
-        const Vec2 pos  = view->alignment_ref->pivot_position( view->alignment_pivot, WORLD_SPACE)
+        const Vec2 pos  = box2d_pivot_position(*view->alignment_ref, view->alignment_pivot, WORLD_SPACE)
                         - Vec2(radius);
-        spatialnode_set_position(&view->shape.spatial_node, pos, WORLD_SPACE);
+        spatialnode_set_position(view->shape.spatial_node, pos, WORLD_SPACE);
     }
     else
     {
@@ -186,7 +199,7 @@ void nodeslotview_update(Node_Slot_View* view, float dt)
 
 void nodeslotview_update_direction_from_alignment(Node_Slot_View* view)
 {
-    view->direction = Vec2::normalize( view->alignment_pivot - 0.5f );
+    view->direction = vec2_normalize( view->alignment_pivot - 0.5f );
 }
 
 } // namespace ndbl

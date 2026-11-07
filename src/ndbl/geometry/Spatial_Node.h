@@ -1,7 +1,6 @@
 #pragma once
 
-#include <unordered_set>
-
+#include "bdc/Array.hpp"
 #include "Transform_2D.h"
 #include "Space.h"
 #include "Vec2.h"
@@ -23,30 +22,30 @@ namespace ndbl
      */
     struct Spatial_Node
     {
+        bdc::Resizable_Array<Spatial_Node*> children                        = {};
+        Spatial_Node*                       parent                          = nullptr;
+        Transform_2D                        transform                       = {}; // local transform, relative to the parent
+        glm::mat3                           cached_world_matrix             = {1.f}; // use world_matrix() if you want to update the matrix before to get it.
+        glm::mat3                           cached_world_matrix_inv         = {1.f}; // use world_matrix_inv() if you want to update the matrix before to get it.
+        bool                                cached_world_matrix_are_dirty   = true; // when true, this force _world_matrix and _word_matrix_inv to be updated.
+        
         Spatial_Node() = default;
         ~Spatial_Node();
-
-        std::unordered_set<
-            Spatial_Node*>      children                        = {};
-        Transform_2D            transform                       = {}; // local transform, relative to the parent
-        glm::mat3               cached_world_matrix             = {1.f}; // use world_matrix() if you want to update the matrix before to get it.
-        glm::mat3               cached_world_matrix_inv         = {1.f}; // use world_matrix_inv() if you want to update the matrix before to get it.
-        Spatial_Node*           parent                          = nullptr;
-        bool                    cached_world_matrix_are_dirty   = true; // when true, this force _world_matrix and _word_matrix_inv to be updated.
-
-        const glm::mat3&        world_matrix() const;
-        const glm::mat3&        world_matrix_inv() const;
     };
 
-    void    spatialnode_set_position(Spatial_Node*, const Vec2&);
-    void    spatialnode_set_position(Spatial_Node*, const Vec2&, Space);
-    Vec2    spatialnode_position(const Spatial_Node*);
-    Vec2    spatialnode_position(const Spatial_Node*, Space);
-    void    spatialnode_translate(Spatial_Node*, const Vec2& delta);
-    void    spatialnode_set_world_transform_dirty(Spatial_Node*);
-    bool    spatialnode_add_child(Spatial_Node* /* parent */, Spatial_Node* /* new_child */, Spatial_Node_Flags = Spatial_Node_Flag_PRESERVE_WORLD_POSITION);
-    bool    spatialnode_remove_child(Spatial_Node* /* parent */, Spatial_Node* /* new_child */, Spatial_Node_Flags = Spatial_Node_Flag_PRESERVE_WORLD_POSITION);
-    void    spatialnode_update_world_matrix(Spatial_Node*);
-    void    spatialnode_clear(Spatial_Node*);
+    void                spatialnode_init(Spatial_Node&);
+    void                spatialnode_release(Spatial_Node&);
+    const glm::mat3&    spatialnode_world_matrix(const Spatial_Node&);
+    const glm::mat3&    spatialnode_world_matrix_inv(const Spatial_Node&);
+    void                spatialnode_set_position(Spatial_Node&, const Vec2&);
+    void                spatialnode_set_position(Spatial_Node&, const Vec2&, Space);
+    Vec2                spatialnode_position(const Spatial_Node&);
+    Vec2                spatialnode_position(const Spatial_Node&, Space);
+    void                spatialnode_translate(Spatial_Node&, const Vec2& delta);
+    void                spatialnode_set_world_transform_dirty(Spatial_Node&);
+    void                spatialnode_add_child(Spatial_Node& /* parent */, Spatial_Node& /* new_child */, Spatial_Node_Flags = Spatial_Node_Flag_PRESERVE_WORLD_POSITION);
+    void                spatialnode_remove_child(Spatial_Node& /* parent */, Spatial_Node& /* existing_child */, Spatial_Node_Flags = Spatial_Node_Flag_PRESERVE_WORLD_POSITION);
+    void                spatialnode_update_world_matrix(Spatial_Node&);
+    void                spatialnode_clear(Spatial_Node&);
 
 }

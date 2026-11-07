@@ -73,7 +73,7 @@ namespace ndbl
     void                    nodeview_update(Node_View*, float);
     void                    nodeview_arrange_recursively(Node_View*, bool smoothly = true);
     bdc::String             nodeview_get_label(const Node_View*);
-    inline Rect             nodeview_get_rect(const Node_View* node_view, Space space = WORLD_SPACE) { return node_view->shape.rect(space); }
+    inline Rect             nodeview_get_rect(const Node_View* node_view, Space space = WORLD_SPACE) { return box2d_to_rect(node_view->shape, space); }
     Rect                    nodeview_get_rect_ex(const Node_View*, Space, Node_View_Flags);
     void                    nodeview_set_visible_recursively(Node_View*, bool);
     void                    nodeview_toggle_expandcollapse(Node_View*);

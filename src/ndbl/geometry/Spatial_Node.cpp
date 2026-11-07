@@ -12,34 +12,46 @@ namespace ndbl
 Spatial_Node::~Spatial_Node()
 {
     assert( parent == nullptr ); // should have removed this node from its parent
-    assert( this->children.empty() ); // should have removed all children first
+    assert( this->children.size == 0 ); // should have removed all children first
 }
 
-const glm::mat3& Spatial_Node::world_matrix() const
+void spatialnode_init(Spatial_Node& node)
 {
-    spatialnode_update_world_matrix(const_cast<Spatial_Node*>(this)); return cached_world_matrix;
+    array_init(node.children);
 }
 
-const glm::mat3& Spatial_Node::world_matrix_inv() const
+void spatialnode_release(Spatial_Node& node)
 {
-    spatialnode_update_world_matrix(const_cast<Spatial_Node*>(this)); return cached_world_matrix_inv;
+    array_release(node.children);
 }
 
-void spatialnode_clear(Spatial_Node* spatial_node)
+const glm::mat3& spatialnode_world_matrix(const Spatial_Node& node)
 {
-    while ( !spatial_node->children.empty() )
+    spatialnode_update_world_matrix(const_cast<Spatial_Node&>(node));
+    return node.cached_world_matrix;
+}
+
+const glm::mat3& spatialnode_world_matrix_inv(const Spatial_Node& node)
+{
+    spatialnode_update_world_matrix(const_cast<Spatial_Node&>(node));
+    return node.cached_world_matrix_inv;
+}
+
+void spatialnode_clear(Spatial_Node& spatial_node)
+{
+    while ( spatial_node.children.size != 0 )
     {
-        spatialnode_remove_child(spatial_node, *spatial_node->children.begin() );
+        spatialnode_remove_child(spatial_node, *spatial_node.children[0] );
     }
 }
 
-void spatialnode_set_position(Spatial_Node* spatial_node, const Vec2& _pos)
+void spatialnode_set_position(Spatial_Node& spatial_node, const Vec2& _pos)
 {
-    transform2d_set_position(spatial_node->transform, _pos ); // PARENT_SPACE
+    transform2d_set_position(spatial_node.transform, _pos ); // PARENT_SPACE
     spatialnode_set_world_transform_dirty(spatial_node);
 }
 
-void spatialnode_set_position(Spatial_Node* spatial_node, const Vec2& desired_position, Space desired_space )
+void spatialnode_set_position(Spatial_Node& spatial_node, const Vec2& desired_position, Space desired_space )
 {
     switch ( desired_space )
     {
@@ -49,10 +61,10 @@ void spatialnode_set_position(Spatial_Node* spatial_node, const Vec2& desired_po
 
         case WORLD_SPACE:
         {
-            if ( spatial_node->parent == nullptr)
+            if ( spatial_node.parent == nullptr)
                return spatialnode_set_position(spatial_node, desired_position, PARENT_SPACE); // the world is also the parent space in that case
 
-            glm::vec2 new_pos = spatial_node->parent->world_matrix_inv() * glm::vec3(desired_position.x, desired_position.y, 1.f);
+            glm::vec2 new_pos = spatialnode_world_matrix_inv(*spatial_node.parent) * glm::vec3(desired_position.x, desired_position.y, 1.f);
             spatialnode_set_position(spatial_node, new_pos);
             break;
         }
@@ -61,35 +73,35 @@ void spatialnode_set_position(Spatial_Node* spatial_node, const Vec2& desired_po
     }
 }
 
-void spatialnode_set_world_transform_dirty(Spatial_Node* spatial_node)
+void spatialnode_set_world_transform_dirty(Spatial_Node& spatial_node)
 {
-    spatial_node->cached_world_matrix_are_dirty = true;
-    for (Spatial_Node* child : spatial_node->children)
+    spatial_node.cached_world_matrix_are_dirty = true;
+    for (Spatial_Node* child : spatial_node.children)
     {
-        spatialnode_set_world_transform_dirty(child);
+        spatialnode_set_world_transform_dirty(*child);
     }
 }
 
-void spatialnode_update_world_matrix(Spatial_Node* spatial_node)
+void spatialnode_update_world_matrix(Spatial_Node& spatial_node)
 {
-    if ( !spatial_node->cached_world_matrix_are_dirty )
+    if ( !spatial_node.cached_world_matrix_are_dirty )
         return;
 
-    if ( spatial_node->parent )
-        spatial_node->cached_world_matrix = transform2d_get_matrix(spatial_node->transform) * spatial_node->parent->world_matrix();
+    if ( spatial_node.parent )
+        spatial_node.cached_world_matrix = transform2d_get_matrix(spatial_node.transform) * spatialnode_world_matrix(*spatial_node.parent);
     else
-        spatial_node->cached_world_matrix = transform2d_get_matrix(spatial_node->transform);
+        spatial_node.cached_world_matrix = transform2d_get_matrix(spatial_node.transform);
 
-    spatial_node->cached_world_matrix_inv   = glm::inverse( spatial_node->cached_world_matrix );
-    spatial_node->cached_world_matrix_are_dirty = false;
+    spatial_node.cached_world_matrix_inv   = glm::inverse( spatial_node.cached_world_matrix );
+    spatial_node.cached_world_matrix_are_dirty = false;
 }
 
-Vec2 spatialnode_position(const Spatial_Node* spatial_node)
+Vec2 spatialnode_position(const Spatial_Node& spatial_node)
 {
-    return transform2d_get_position(spatial_node->transform);
+    return transform2d_get_position(spatial_node.transform);
 }
 
-Vec2 spatialnode_position(const Spatial_Node* spatial_node, Space space) 
+Vec2 spatialnode_position(const Spatial_Node& spatial_node, Space space) 
 {
     switch ( space )
     {
@@ -103,65 +115,57 @@ Vec2 spatialnode_position(const Spatial_Node* spatial_node, Space space)
             return spatialnode_position(spatial_node); // is default
 
         case WORLD_SPACE:
-            if ( spatial_node->parent == nullptr )
+            if ( spatial_node.parent == nullptr )
                 return spatialnode_position(spatial_node);
 
             Vec2 position = spatialnode_position(spatial_node);
-            glm::vec2 result = spatial_node->parent->world_matrix()
+            glm::vec2 result = spatialnode_world_matrix(*spatial_node.parent)
                              * glm::vec3{ position.x, position.y, 1.0f};
             return result;
     }
 }
 
-bool spatialnode_add_child(Spatial_Node* parent, Spatial_Node* new_child, Spatial_Node_Flags flags)
+void spatialnode_add_child(Spatial_Node& parent, Spatial_Node& new_child, Spatial_Node_Flags flags)
 {
-    NDBL_ASSERT( new_child != nullptr );
-    NDBL_ASSERT( new_child->parent == nullptr, "Child already has a parent, remove it first from parent" );
-    NDBL_ASSERT( new_child != parent, "Adding itself as primary_child" );
+    NDBL_ASSERT( new_child.parent == nullptr, "Child already has a parent, remove it first from parent" );
+    NDBL_ASSERT( &new_child != &parent      , "Adding itself as child" );
 
-    auto [it, inserted] = parent->children.insert(new_child);
-
-    if ( !inserted )
-        return false;
+    array_append(parent.children, &new_child);
 
     if ( flags & Spatial_Node_Flag_PRESERVE_WORLD_POSITION )
     {
         const Vec2 world_position = spatialnode_position(new_child, WORLD_SPACE);
-        new_child->parent = parent;
+        new_child.parent = &parent;
         spatialnode_set_position(new_child, world_position, WORLD_SPACE);
     }
     else
     {
-        new_child->parent = parent;
+        new_child.parent = &parent;
     }
-    return true;
 }
 
-bool spatialnode_remove_child(Spatial_Node* spatial_node, Spatial_Node* child, Spatial_Node_Flags flags)
+void spatialnode_remove_child(Spatial_Node& spatial_node, Spatial_Node& child, Spatial_Node_Flags flags)
 {
-    assert(spatial_node);
-    assert(child);
-
-    assert( spatial_node->children.erase(child) );
+    auto found = array_find(spatial_node.children, &child);
+    NDBL_ASSERT(found.ok, "Unable to find this child in spatial_node.children");
+    array_remove_unordered(spatial_node.children, found.at_pos);
 
     if ( flags & Spatial_Node_Flag_PRESERVE_WORLD_POSITION )
     {
         const Vec2 pos = spatialnode_position(child, WORLD_SPACE);
-        child->parent = nullptr;
+        child.parent = nullptr;
         spatialnode_set_position(child, pos, WORLD_SPACE);
     }
     else
     {
-        child->parent = nullptr;
+        child.parent = nullptr;
     }
-
-    return true;
 }
 
-void spatialnode_translate(Spatial_Node* spatial_node, const Vec2& delta)
+void spatialnode_translate(Spatial_Node& spatial_node, const Vec2& delta)
 {
     // Since Transform2D cannot be rotated yet, we can apply the translation in parent space
-    transform2d_set_position(spatial_node->transform, spatial_node->transform.position + delta );
+    transform2d_set_position(spatial_node.transform, spatial_node.transform.position + delta );
     spatialnode_set_world_transform_dirty(spatial_node);
 }
 

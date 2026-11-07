@@ -2,8 +2,8 @@
 
 #include <algorithm>
 #include <functional>
-#include <vector>
 
+#include "bdc/Array.hpp"
 #include "bdc/Types.hpp"
 #include "Asserts.h"
 #include "geometry/Rect.h"
@@ -31,7 +31,9 @@ namespace ndbl
         View_Type_NODE,
         View_Type_SCOPE,
         View_Type_SLOT,
-        View_Type_LINK
+        View_Type_LINK,
+
+        View_Type_COUNT
     };
 
     struct View
@@ -64,7 +66,7 @@ namespace ndbl
         return a.type == b.type && a.data1 == b.data1 && a.data2 == b.data2;
     }
 
-    Rect view_bounding_rect(const std::vector<View>&, Space space = WORLD_SPACE);
+    Rect view_bounding_rect(const bdc::Array<View>&, Space space = WORLD_SPACE);
 
     typedef u8_t View_Selection_Event_Type;
     enum View_Selection_Event_Type_
@@ -75,49 +77,23 @@ namespace ndbl
 
     struct View_Selection
     {
-        using Iterator       = std::vector<View>::iterator;
-        using Const_Iterator = std::vector<View>::const_iterator;
-
-
-        std::vector<View>                     items;
-        std::unordered_map<View_Type, size_t> count_by_type;
-        Signal<void(View_Selection_Event_Type, View)> signal_change;
-
-
-        Iterator        begin()        { return items.begin(); }
-        Iterator        end()          { return items.end(); }
-        Const_Iterator  cbegin() const { return items.cbegin(); }
-        Const_Iterator  cend() const   { return items.cend(); }
-        View&           front()        { return items.front(); }
-        View&           back()         { return items.back(); }
-        bool            empty() const  { return items.empty(); }        
+        bdc::Resizable_Array<View>                    items;
+        size_t                                        count_by_type[View_Type_COUNT] = {0};
+        Signal<void(View_Selection_Event_Type, View)> signal_change;       
     };
 
-    void                view_selection_clear(View_Selection*);
-    bool                view_selection_contains(const View_Selection*, const View& );
-    void                view_selection_add(View_Selection*, const View& );
-    void                view_selection_add(View_Selection*, const std::vector<View>&);
-    bool                view_selection_remove(View_Selection*, const View&);
-    bool                view_selection_contains(const View_Selection*, View_Type);
-    size_t              view_selection_count(const View_Selection*, View_Type);
-    View                view_selection_first_of(const View_Selection*, View_Type);
-    std::vector<View>*  view_selection_collect(std::vector<View>* out, const View_Selection* in, View_Type type);
-    
-    template<class Iterator>
-    size_t view_selection_add(View_Selection* selection, Iterator begin, Iterator end )
-    {
-        size_t count = 0;
+    void                viewselection_init(View_Selection&, bdc::Allocator* = bdc::allocator);
+    void                viewselection_release(View_Selection&);
+    void                viewselection_clear(View_Selection&);
+    bool                viewselection_contains(const View_Selection&, const View& );
+    void                viewselection_add(View_Selection&, const View& );
+    void                viewselection_add(View_Selection&, const bdc::Array<View>& );
+    bool                viewselection_remove(View_Selection&, const View&);
+    bool                viewselection_contains(const View_Selection&, View_Type);
+    size_t              viewselection_count(const View_Selection&, View_Type);
+    View                viewselection_first_of(const View_Selection&, View_Type);
+    bdc::Resizable_Array<View>& viewselection_collect(bdc::Resizable_Array<View>& out, const View_Selection& in, View_Type type);
 
-        auto it = begin;
-        while( it != end)
-        {
-            view_selection_add( selection, *it );
-            ++count;
-            ++it;
-        }
-
-        return count;
-    }
 }
 
 inline bool operator==(const ndbl::Node_Slot_Link_View& a, const ndbl::Node_Slot_Link_View& b) 

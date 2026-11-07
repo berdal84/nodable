@@ -11,16 +11,18 @@ TEST_F(Spatial_Node_, add_child)
 {
     // prepare
     Spatial_Node child, root;
+    spatialnode_init(child);
+    spatialnode_init(root);
 
     // act
-    spatialnode_add_child(&root, &child );
+    spatialnode_add_child(root, child );
 
     // verify
     EXPECT_TRUE(child.parent == &root );
-    EXPECT_TRUE(*root.children.begin() == &child );
+    EXPECT_TRUE(root.children[0] == &child );
 
     // clean
-    spatialnode_remove_child(&root, &child);
+    spatialnode_remove_child(root, child);
 }
 
 TEST_F(Spatial_Node_, remove_child)
@@ -29,14 +31,16 @@ TEST_F(Spatial_Node_, remove_child)
 
     // prepare
     Spatial_Node child, root;
-    spatialnode_add_child( &root, &child );
+    spatialnode_init(child);
+    spatialnode_init(root);
+    spatialnode_add_child( root, child );
 
     // act
-    spatialnode_remove_child( &root, &child );
+    spatialnode_remove_child( root, child );
 
     // verify
     EXPECT_TRUE(child.parent == nullptr );
-    EXPECT_TRUE(root.children.size() == 0 );
+    EXPECT_TRUE(root.children.size == 0 );
 }
 
 
@@ -44,19 +48,21 @@ TEST_F(Spatial_Node_, add_child__with_offset)
 {
     // prepare
     Spatial_Node child, root;
+    spatialnode_init(child);
+    spatialnode_init(root);
 
     // act
-    spatialnode_translate(&child, { 10.f, 15.f});
-    spatialnode_add_child(&root, &child);
+    spatialnode_translate(child, { 10.f, 15.f});
+    spatialnode_add_child(root, child);
 
     // verify
     EXPECT_TRUE(child.parent == &root );
-    EXPECT_TRUE(*root.children.begin() == &child );
-    EXPECT_FLOAT_EQ( spatialnode_position(&child).x, 10.f );
-    EXPECT_FLOAT_EQ( spatialnode_position(&child).y, 15.f );
+    EXPECT_TRUE(root.children[0] == &child );
+    EXPECT_FLOAT_EQ( spatialnode_position(child).x, 10.f );
+    EXPECT_FLOAT_EQ( spatialnode_position(child).y, 15.f );
 
     // clean
-    spatialnode_remove_child(&root, &child);
+    spatialnode_remove_child(root, child);
 }
 
 TEST_F(Spatial_Node_, set_pos__LOCAL_SPACE)
@@ -65,17 +71,20 @@ TEST_F(Spatial_Node_, set_pos__LOCAL_SPACE)
 
     // prepare
     Spatial_Node child, root;
-    spatialnode_add_child( &root, &child );
+    spatialnode_init(child);
+    spatialnode_init(root);
+
+    spatialnode_add_child( root, child );
 
     // act
-    spatialnode_translate( &child, {-10.f, -10.f});
+    spatialnode_translate( child, {-10.f, -10.f});
 
     // verify
-    EXPECT_FLOAT_EQ(spatialnode_position(&child).x, -10.f );
-    EXPECT_FLOAT_EQ(spatialnode_position(&child).y, -10.f );
+    EXPECT_FLOAT_EQ(spatialnode_position(child).x, -10.f );
+    EXPECT_FLOAT_EQ(spatialnode_position(child).y, -10.f );
 
     // clean
-    spatialnode_remove_child(&root, &child);
+    spatialnode_remove_child(root, child);
 }
 
 TEST_F(Spatial_Node_, set_pos__PARENT_SPACE)
@@ -84,21 +93,23 @@ TEST_F(Spatial_Node_, set_pos__PARENT_SPACE)
 
     // prepare
     Spatial_Node child, root;
-    spatialnode_translate( &child, {10.f, 10.f});
-    spatialnode_add_child( &root, &child );
+    spatialnode_init(child);
+    spatialnode_init(root);
+    spatialnode_translate( child, {10.f, 10.f});
+    spatialnode_add_child( root, child );
 
-    EXPECT_FLOAT_EQ(spatialnode_position(&child).x, 10.f );
-    EXPECT_FLOAT_EQ(spatialnode_position(&child).y, 10.f );
+    EXPECT_FLOAT_EQ(spatialnode_position(child).x, 10.f );
+    EXPECT_FLOAT_EQ(spatialnode_position(child).y, 10.f );
 
     // act
-    spatialnode_set_position( &child, {0.f, 0.f}, PARENT_SPACE);
+    spatialnode_set_position( child, {0.f, 0.f}, PARENT_SPACE);
 
     // verify
-    EXPECT_FLOAT_EQ(spatialnode_position(&child).x, spatialnode_position(&root).x );
-    EXPECT_FLOAT_EQ(spatialnode_position(&child).y, spatialnode_position(&root).y );
+    EXPECT_FLOAT_EQ(spatialnode_position(child).x, spatialnode_position(root).x );
+    EXPECT_FLOAT_EQ(spatialnode_position(child).y, spatialnode_position(root).y );
 
     // clean
-    spatialnode_remove_child(&root, &child);
+    spatialnode_remove_child(root, child);
 }
 
 TEST_F(Spatial_Node_, get_pos__GLOBAL_SPACE)
@@ -107,23 +118,26 @@ TEST_F(Spatial_Node_, get_pos__GLOBAL_SPACE)
 
     // prepare
     Spatial_Node level1, level0, root;
+    spatialnode_init(level1);
+    spatialnode_init(level0);
+    spatialnode_init(root);
 
-    spatialnode_add_child(&root, &level0);
-    spatialnode_add_child(&level0, &level1);
+    spatialnode_add_child(root, level0);
+    spatialnode_add_child(level0, level1);
 
-    spatialnode_translate(&root, {10.f, 10.f});
-    spatialnode_translate(&level0, {10.f, 10.f});
-    spatialnode_translate(&level1, {10.f, 10.f});
+    spatialnode_translate(root, {10.f, 10.f});
+    spatialnode_translate(level0, {10.f, 10.f});
+    spatialnode_translate(level1, {10.f, 10.f});
 
     // pre check
-    EXPECT_FLOAT_EQ(spatialnode_position( &level1 ).x, 10.f );
-    EXPECT_FLOAT_EQ(spatialnode_position( &level1 ).y, 10.f );
-    EXPECT_FLOAT_EQ(spatialnode_position( &level1, WORLD_SPACE).x, 30.f );
-    EXPECT_FLOAT_EQ(spatialnode_position( &level1, WORLD_SPACE).y, 30.f );
+    EXPECT_FLOAT_EQ(spatialnode_position( level1 ).x, 10.f );
+    EXPECT_FLOAT_EQ(spatialnode_position( level1 ).y, 10.f );
+    EXPECT_FLOAT_EQ(spatialnode_position( level1, WORLD_SPACE).x, 30.f );
+    EXPECT_FLOAT_EQ(spatialnode_position( level1, WORLD_SPACE).y, 30.f );
 
     // clean
-    spatialnode_remove_child(&root, &level0);
-    spatialnode_remove_child(&level0, &level1);
+    spatialnode_remove_child(root, level0);
+    spatialnode_remove_child(level0, level1);
 }
 
 TEST_F(Spatial_Node_, set_pos__GLOBAL_SPACE)
@@ -132,23 +146,25 @@ TEST_F(Spatial_Node_, set_pos__GLOBAL_SPACE)
 
     // prepare
     Spatial_Node child, root;
-    spatialnode_add_child(&root, &child);
-    spatialnode_translate(&root, {10.f, 10.f});
-    spatialnode_translate(&child, {10.f, 10.f});
+    spatialnode_init(child);
+    spatialnode_init(root);
+    spatialnode_add_child(root, child);
+    spatialnode_translate(root, {10.f, 10.f});
+    spatialnode_translate(child, {10.f, 10.f});
 
     // pre check
-    EXPECT_FLOAT_EQ(spatialnode_position( &child, PARENT_SPACE).x, 10.f );
-    EXPECT_FLOAT_EQ(spatialnode_position( &child, PARENT_SPACE).y, 10.f );
+    EXPECT_FLOAT_EQ(spatialnode_position( child, PARENT_SPACE).x, 10.f );
+    EXPECT_FLOAT_EQ(spatialnode_position( child, PARENT_SPACE).y, 10.f );
 
     // act
-    spatialnode_set_position(&child, {0.f, 0.f}, WORLD_SPACE);
+    spatialnode_set_position(child, {0.f, 0.f}, WORLD_SPACE);
 
     // check
-    EXPECT_FLOAT_EQ(spatialnode_position( &child, PARENT_SPACE).x, -10.f );
-    EXPECT_FLOAT_EQ(spatialnode_position( &child, PARENT_SPACE).y, -10.f );
-    EXPECT_FLOAT_EQ(spatialnode_position( &child, WORLD_SPACE).x, 0.f );
-    EXPECT_FLOAT_EQ(spatialnode_position( &child, WORLD_SPACE).y, 0.f );
+    EXPECT_FLOAT_EQ(spatialnode_position( child, PARENT_SPACE).x, -10.f );
+    EXPECT_FLOAT_EQ(spatialnode_position( child, PARENT_SPACE).y, -10.f );
+    EXPECT_FLOAT_EQ(spatialnode_position( child, WORLD_SPACE).x, 0.f );
+    EXPECT_FLOAT_EQ(spatialnode_position( child, WORLD_SPACE).y, 0.f );
 
     // clean
-    spatialnode_remove_child(&root, &child);
+    spatialnode_remove_child(root, child);
 }

@@ -289,7 +289,7 @@ Array<Node_Slot*> node_filter_adjacent_slots(const Node* node, Node_Slot::Flags 
         for( Node_Slot* slot : slot->adjacent )
             array_append( result, slot );
 
-    return array_view(result);
+    return result;
 }
 
 bool node_has_input_connected(const Node* node, const Node_Property* property )
@@ -353,7 +353,7 @@ Array<Node_Slot*> node_filter_slots(const Node* node, const std::function<bool(c
         if( predicate(slot) )
             array_append(result, slot);
 
-    return array_view(result);
+    return result;
 }
 
 Node_Slot* Node::value_out()
@@ -802,7 +802,7 @@ Array<Node*> node_get_adjacent_nodes(const Node* node, Node_Slot::Flags flags)
             array_append(result, adjacent->node );
         }
     }
-    return array_view(result);
+    return result;
 }
 
 Node* node_adjacent_node_at(const Node* node, Node_Slot::Flags flags, u8_t pos)

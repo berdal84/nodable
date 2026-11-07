@@ -1,19 +1,20 @@
 #include "Bezier_Curve_Segment_2D.h"
 
 #include "../Asserts.h"
+#include "bdc/Array.hpp"
 
 namespace ndbl
 {
 
-void beziercurve_translate(Bezier_Curve_Segment_2D* curve, const Vec2& offset)
+void beziercurve_translate(Bezier_Curve_Segment_2D& curve, const Vec2& offset)
 {
-    curve->p1 += offset;
-    curve->p2 += offset;
-    curve->p3 += offset;
-    curve->p4 += offset;
+    curve.p1 += offset;
+    curve.p2 += offset;
+    curve.p3 += offset;
+    curve.p4 += offset;
 }
 
-static void PathBezierCubicCurveToCasteljau(std::vector<Vec2>* path, const Bezier_Curve_Segment_2D& curv, float tess_tol, int level )
+static void PathBezierCubicCurveToCasteljau(bdc::Resizable_Array<Vec2>& path, const Bezier_Curve_Segment_2D& curv, float tess_tol, int level )
 {
     float dx = curv.p4.x - curv.p1.x;
     float dy = curv.p4.y - curv.p1.y;
@@ -23,7 +24,7 @@ static void PathBezierCubicCurveToCasteljau(std::vector<Vec2>* path, const Bezie
     d3 = (d3 >= 0) ? d3 : -d3;
     if ((d2 + d3) * (d2 + d3) < tess_tol * (dx * dx + dy * dy))
     {
-        path->emplace_back(curv.p4.x, curv.p4.y);
+        array_append(path, Vec2{curv.p4.x, curv.p4.y});
     }
     else if (level < 10)
     {
@@ -33,45 +34,48 @@ static void PathBezierCubicCurveToCasteljau(std::vector<Vec2>* path, const Bezie
         float x123 = (x12 + x23) * 0.5f, y123 = (y12 + y23) * 0.5f;
         float x234 = (x23 + x34) * 0.5f, y234 = (y23 + y34) * 0.5f;
         float x1234 = (x123 + x234) * 0.5f, y1234 = (y123 + y234) * 0.5f;
-        PathBezierCubicCurveToCasteljau(path, Bezier_Curve_Segment_2D{curv.p1.x, curv.p1.y, x12, y12, x123, y123, x1234, y1234}, tess_tol, level + 1);
-        PathBezierCubicCurveToCasteljau(path, Bezier_Curve_Segment_2D{x1234, y1234, x234, y234, x34, y34, curv.p4.x, curv.p4.y}, tess_tol, level + 1);
+        PathBezierCubicCurveToCasteljau(path, Bezier_Curve_Segment_2D{ .p1 = curv.p1         , .p2 = { x12 , y12 } , .p3 = { x123, y123 }, .p4 = { x1234, y1234 }}, tess_tol, level + 1);
+        PathBezierCubicCurveToCasteljau(path, Bezier_Curve_Segment_2D{ .p1 = { x1234, y1234 }, .p2 = { x234, y234 }, .p3 = { x34 , y34  }, .p4 = curv.p4         }, tess_tol, level + 1);
     }
 }
 
 static Vec2 BezierCubicCalc(const Bezier_Curve_Segment_2D& curve, float t )
 {
-    float u = 1.0f - t;
-    float w1 = u * u * u;
-    float w2 = 3 * u * u * t;
-    float w3 = 3 * u * t * t;
-    float w4 = t * t * t;
+    const float u = 1.0f - t;
+    const float w1 = u * u * u;
+    const float w2 = 3 * u * u * t;
+    const float w3 = 3 * u * t * t;
+    const float w4 = t * t * t;
     return {
-            w1 * curve.p1.x + w2 * curve.p2.x + w3 * curve.p3.x + w4 * curve.p4.x,
-            w1 * curve.p1.y + w2 * curve.p2.y + w3 * curve.p3.y + w4 * curve.p4.y
+        w1 * curve.p1.x + w2 * curve.p2.x + w3 * curve.p3.x + w4 * curve.p4.x,
+        w1 * curve.p1.y + w2 * curve.p2.y + w3 * curve.p3.y + w4 * curve.p4.y
     };
 }
 
-std::vector<Vec2>* beziercurve_tesselate(std::vector<Vec2>* path, const Bezier_Curve_Segment_2D* curve, int num_segments, float curve_tesselation_tol )
+bdc::Resizable_Array<Vec2>& beziercurve_tesselate(bdc::Resizable_Array<Vec2>& path, const Bezier_Curve_Segment_2D& curve, int num_segments, float curve_tesselation_tol )
 {
-    path->push_back(curve->p1);
+    array_append(path, curve.p1);
     if (num_segments == 0)
     {
         NDBL_ASSERT(curve_tesselation_tol > 0.0f);
-        PathBezierCubicCurveToCasteljau(path, *curve, curve_tesselation_tol, 0); // Auto-tessellated
+        PathBezierCubicCurveToCasteljau(path, curve, curve_tesselation_tol, 0); // 0 means Auto-tessellated
     }
     else
     {
-        float t_step = 1.0f / (float)num_segments;
+        const float t_step = 1.0f / (float)num_segments;
         for (int i_step = 1; i_step <= num_segments; i_step++)
-            path->push_back(BezierCubicCalc(*curve, t_step * (float)i_step));
+        {
+            array_append(path, BezierCubicCalc(curve, t_step * (float)i_step));
+        }
     }
     return path;
 }
 
-Rect beziercurve_bbox(const Bezier_Curve_Segment_2D* curve )
+Rect beziercurve_bbox(const Bezier_Curve_Segment_2D& curve )
 {
-    const std::vector<Vec2> points{ curve->p1, curve->p2, curve->p3, curve->p4};
-    return Rect::bounding_rect(&points);
+    bdc::Inlined_Array<Vec2, 4> points = { curve.p1, curve.p2, curve.p3, curve.p4 };
+    Rect result = rect_bounding_rect(points);
+    return result;
 }
 
 } // namespace ndbl

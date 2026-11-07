@@ -1,100 +1,105 @@
 #include "Box_2D.h"
 
-#include "../Asserts.h"
 #include "../ImGuiEx.h"
 #include "Spatial_Node.h"
 
 #ifdef NDBL_DEBUG
-#define DEBUG_draw_debug_info 1
-#define DEBUG_diff            0
+#define NDBL_DEBUG_draw_debug_info 1
+#define NDBL_DEBUG_box2d_distance  0
 #endif
 
 namespace ndbl
 {
 
-Box_2D::Box_2D(const Vec2& _size)
+void box2d_init(Box_2D& box)
 {
-    set_size(_size);
+    spatialnode_init(box.spatial_node);
 }
 
-Box_2D::Box_2D(const Rect& rect)
+void box2d_release(Box_2D& box)
 {
-    set_size(rect.size());
-    spatialnode_set_position(&spatial_node, rect.min);
+    spatialnode_release(box.spatial_node);
 }
 
-Vec2 Box_2D::pivot_position(const Vec2& pivot, Space space) const
+Vec2 box2d_pivot_position(const Box_2D& box, const Vec2& pivot, Space space)
 {
     if ( space == LOCAL_SPACE )
-        return size * pivot;
-    return position(space) + size * pivot;
+    {
+        return box.size * pivot;
+    }
+    return box2d_position(box, space) + box.size * pivot;
 }
 
-Vec2 Box_2D::position(Space space) const
+Vec2 box2d_position(const Box_2D& box, Space space)
 {
-    return spatialnode_position(&spatial_node, space);
+    return spatialnode_position(box.spatial_node, space);
 }
 
-Rect Box_2D::rect(Space space) const
+void box2d_set_position(Box_2D& box, Vec2 p, Space space )
 {
-    Vec2 pos = spatialnode_position(&spatial_node, space);
+    spatialnode_set_position(box.spatial_node, p, space);
+}
+
+Rect box2d_to_rect(const Box_2D& box, Space space)
+{
+    Vec2 pos = spatialnode_position(box.spatial_node, space);
 
     Rect r;
     r.min = pos;
-    r.max = pos + size;
+    r.max = pos + box.size;
     return r;
 }
 
-void Box_2D::set_size(const Vec2& _size)
-{
-    NDBL_ASSERT(_size.x >= 0); // Area cannot be zero
-    NDBL_ASSERT(_size.y >= 0); //
-    size = _size;
-}
-
 Vec2 box2d_distance(
-    const Box_2D&   leader,
-    const Vec2&     leader_pivot,
-    const Box_2D&   follower,
-    const Vec2&     follower_pivot,
+    const Box_2D&   dest,
+    const Vec2&     dest_pivot,
+    const Box_2D&   src,
+    const Vec2&     src_pivot,
     const Vec2&     axis_mask
     )
 {
-    Vec2 follower_pos = follower.pivot_position(follower_pivot, WORLD_SPACE);
-    Vec2 leader_pos   = leader.pivot_position(leader_pivot, WORLD_SPACE);
-    Vec2 delta        = (leader_pos - follower_pos) * axis_mask;
+    const Vec2 src_pos  = box2d_pivot_position(src , src_pivot , WORLD_SPACE);
+    const Vec2 dest_pos = box2d_pivot_position(dest, dest_pivot, WORLD_SPACE);
+    const Vec2 delta    = (dest_pos - src_pos) * axis_mask;
 
-#if DEBUG_diff
+#if NDBL_DEBUG_box2d_distance
     ImColor color = ImColor(255, 0, 0, 127); // red to symbolize the constraint
     // Draw the constraint as a line
-    ImGuiEx::DebugLine(follower_pos, follower_pos + delta, color, 2.f);
+    ImGuiEx::DebugLine(src_pos, src_pos + delta, color, 2.f);
     // dot at the destination
-    ImGuiEx::DebugCircle(leader_pos, 2.f, color, 0, 4.f);
+    ImGuiEx::DebugCircle(dest_pos, 2.f, color, 0, 4.f);
     // Boxes
-    ImGuiEx::DebugRect(leader.get_rect().min, leader.get_rect().max, ImColor(255,0,0, 127) );
-    ImGuiEx::DebugRect(follower.get_rect().min, follower.get_rect().max, ImColor(0,255,0, 127) );
+    Rect dest_box = box2d_rect(dest);
+    ImGuiEx::DebugRect(dest_box.min, dest_box.max, ImColor(255,0,0, 127) );
+    Rect src_box = box2d_rect(src);
+    ImGuiEx::DebugRect(src_box.min, src_box.max, ImColor(0,255,0, 127) );
 #endif
 
     return delta;
 }
 
 
-void box2d_draw_debug_info(const Box_2D* box)
+void box2d_draw_debug_info(const Box_2D& box)
 {
-#if DEBUG_draw_debug_info
-    Rect r = box->rect(WORLD_SPACE);
-    if ( r.size().lensqr() < 0.1f )
+#if NDBL_DEBUG_draw_debug_info
+    Rect r = box2d_to_rect(box, WORLD_SPACE);
+
+    if ( vec2_sqrlen( rect_size(r) ) < 0.1f )
+    {
         return;
+    }
 
     ImGuiEx::DebugRect(r.min, r.max, ImColor(255, 0, 0));     // box
-    ImGuiEx::DebugLine(r.top_left(), r.bottom_right(), ImColor(255, 0, 0, 127));  // diagonal 1
-    ImGuiEx::DebugLine(r.bottom_left(), r.top_right(), ImColor(255, 0, 0, 127 )); // diagonal 2
-    ImGuiEx::DebugCircle(r.center(), 2.f, ImColor(255, 0,0)); // center
+    ImGuiEx::DebugLine(rect_top_left(r), rect_bottom_right(r), ImColor(255, 0, 0, 127));  // diagonal 1
+    ImGuiEx::DebugLine(rect_bottom_left(r), rect_top_right(r), ImColor(255, 0, 0, 127 )); // diagonal 2
+    ImGuiEx::DebugCircle(rect_center(r), 2.f, ImColor(255, 0,0)); // center
 
     // center to parent center
-    if ( box->spatial_node.parent != nullptr)
+    if ( box.spatial_node.parent != nullptr)
     {
-        ImGuiEx::DebugLine(spatialnode_position(box->spatial_node.parent, WORLD_SPACE), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
+        Vec2 p0 = spatialnode_position(*box.spatial_node.parent, WORLD_SPACE);
+        Vec2 p1 = rect_center(r);
+        ImGuiEx::DebugLine( p0, p1, ImColor(255, 0, 255, 127 ), 4.f);
     }
 #endif
 }

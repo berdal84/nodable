@@ -89,8 +89,8 @@ namespace ndbl
 
     struct Command_Data__Selection_Change
     {
-        View_Selection* old_selection;
-        View_Selection* new_selection;
+        Array<View>* old_selection;
+        Array<View>* new_selection;
     };
 
     typedef int Command_Flags;
@@ -134,7 +134,7 @@ namespace ndbl
     COMMAND_DECLARE_WITH_ARGS(replace_text      , Command_Data__Text_Replace)
     COMMAND_DECLARE_WITH_ARGS(text_undo_record  , Command_Data__Text_Undo_Record)
     COMMAND_DECLARE_WITH_ARGS(new_node          , Command_Data)
-    COMMAND_DECLARE_WITH_ARGS(selection_change  , const View_Selection* new_selection)
+    COMMAND_DECLARE_WITH_ARGS(selection_change  , const Array<View>& new_selection)
 }
 
 

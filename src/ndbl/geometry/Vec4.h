@@ -21,8 +21,11 @@ namespace ndbl
 
         operator glm::vec4() const
         { return {x, y, z, w}; }
-
-        static Vec4 lerp(Vec4 _source, Vec4 _target, float _factor)
-        { return glm::mix((glm::vec4)_source, (glm::vec4)_target, glm::clamp(_factor, 0.0f, 1.0f)); }
     };
+
+
+    static Vec4 vec4_lerp(Vec4 src, Vec4 dest, float factor)
+    {
+        return glm::mix((glm::vec4)src, (glm::vec4)dest, glm::clamp(factor, 0.0f, 1.0f));
+    }
 }

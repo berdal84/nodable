@@ -296,7 +296,7 @@ void app_update()
 
             case Event_Type_DELETE:
             {
-                for( const View& selected_item : graph_view->selection )
+                for( const View& selected_item : graph_view->selection.items )
                 {
                     switch ( selected_item.type )
                     {
@@ -309,7 +309,7 @@ void app_update()
 
             case Event_Type_RESET_LAYOUT:
             {
-                for( const View& selected_item : graph_view->selection )
+                for( const View& selected_item : graph_view->selection.items )
                 {
                     switch ( selected_item.type )
                     {
@@ -327,20 +327,20 @@ void app_update()
                     break;
                 }
 
-                view_selection_clear(&graph_view->selection);
+                viewselection_clear(graph_view->selection);
 
                 // Append all the successors to the selection
-                for(View& selected_item : graph_view->selection )
+                for(View& selected_item : graph_view->selection.items )
                     if (selected_item.type == View_Type_NODE)
                         for (Node* successor_node : selected_item.nodeview->node->flow_outputs() )
                             if ( successor_node->view )
-                                view_selection_add( &graph_view->selection, successor_node->view );
+                                viewselection_add(graph_view->selection, successor_node->view );
                 break;
             }
 
             case Event_Type_TOGGLE_FOLDING:
             {
-                for(View& selected_item : graph_view->selection)
+                for(View& selected_item : graph_view->selection.items )
                     if (selected_item.type == View_Type_NODE)
                         nodeview_toggle_expandcollapse( selected_item.nodeview );
                 break;
@@ -405,14 +405,12 @@ void app_update()
                 //    TODO: replace selection (from current to the new_node's view)
                 if ( new_node->view )
                 {
-                    View_Selection new_selection;
-                    view_selection_add(&new_selection, new_node->view);
-
-                    Command cmd_selection_change = command_selection_change(&new_selection);
+                    Inlined_Array<View, 1> views = { new_node->view };
+                    command_selection_change(views);
                 }
 
                 // 3) Set Node_View position
-                spatialnode_set_position(&new_node->view->shape.spatial_node, event_data->desired_screen_pos, WORLD_SPACE);
+                spatialnode_set_position(new_node->view->shape.spatial_node, event_data->desired_screen_pos, WORLD_SPACE);
 
                 // 4) Connect the new node to the code flow if a slot is being dragged
                 if ( Node_Slot_View* slot_view = event_data->active_slotview )
