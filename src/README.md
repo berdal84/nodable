@@ -2,14 +2,14 @@
 
 # Projects
 
-### [`./framework`](tools/README.md)
+### [`./bdc`](bdc/README.md)
 
-Framework libraries to develop applications (headless or gui) including an example.
+Reusable structs and procedures (`Allocator`, `String`, `String_Builder`, `Array<T>`, `Hash_Map<K, V>`, etc.)
 
-### [`./nodable`](ndbl/README.md)
+### [`./ndbl`](ndbl/README.md)
 
 Nodable application and libraries.
 
-### [`./tests`](./tests)
+### [`./tess`](./test)
 
-Various tests against nodable libraries (core and gui).
+Unit and integration tests using google test.
