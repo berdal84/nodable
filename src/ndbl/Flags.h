@@ -1,6 +1,7 @@
 #pragma once
 
 #define HAS_FLAGS(current_flags, flags)     ((current_flags & (flags)) == (flags))
+#define HAS_ANY_FLAGS(current_flags, flags)((current_flags & (flags)) != 0)
 #define UNSET_FLAGS(current_flags, flags)   current_flags &= ~flags
 #define SET_FLAGS(current_flags, flags)     current_flags |= flags
 #define TOGGLE_FLAGS(current_flags, flags)  current_flags ^= flags

@@ -11,20 +11,23 @@ namespace ndbl
     enum Action_Flags_ : u16_t
     {
         Action_Flags_DISABLE                             = 0,
-        Action_Flags_ENABLE_IF_HAS_SELECTION             = 1 << 0,
-        Action_Flags_ENABLE_IF_HAS_NO_SELECTION          = 1 << 1,
-        Action_Flags_ENABLE_IF_HAS_GRAPH                 = 1 << 3,
-        Action_Flags_DISABLE_IF_DRAGGING_THIS_SLOT       = 1 << 4,
-        Action_Flags_DISABLE_IF_DRAGGING_NON_THIS_SLOT   = 1 << 5,
-        Action_Flags_ONLY_FROM_GRAPH_EDITOR_CONTEXTUAL   = 1 << 6,
-        Action_Flags_ENABLE                              = Action_Flags_ENABLE_IF_HAS_SELECTION
+
+        Action_Flags_DISABLE_IF_DRAGGING_THIS_SLOT       = 1 << 1,
+        Action_Flags_DISABLE_IF_DRAGGING_NON_THIS_SLOT   = 1 << 2,
+
+        Action_Flags_ENABLE_IF_HAS_SELECTION             = 1 << 3,
+        Action_Flags_ENABLE_IF_HAS_NO_SELECTION          = 1 << 4,
+        Action_Flags_ENABLE_IF_HAS_GRAPH                 = 1 << 5,
+        Action_Flags_ALWAYS_ENABLE                       = Action_Flags_ENABLE_IF_HAS_SELECTION
                                                          | Action_Flags_ENABLE_IF_HAS_NO_SELECTION
                                                          | Action_Flags_ENABLE_IF_HAS_GRAPH,
-        Action_Flags_HIGHLIGHTED_IN_GRAPH_EDITOR         = 1 << 10,
-        Action_Flags_HIGHLIGHTED_IN_TEXT_EDITOR          = 1 << 11,
-        Action_Flags_HIGHLIGHTED                         = Action_Flags_HIGHLIGHTED_IN_GRAPH_EDITOR
-                                                         | Action_Flags_HIGHLIGHTED_IN_TEXT_EDITOR,
-        Action_Flags_DISABLE_INDEXING                    = 1 << 12,
+
+        Action_Flags_SHOW_IN_GRAPH_EDITOR_CTX_MENU_ONLY  = 1 << 6,
+        Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI            = 1 << 7,
+        Action_Flags_SHOW_ON_TEXT_EDITOR_GUI             = 1 << 8,
+        Action_Flags_SHOW_ON_GUI                         = Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI
+                                                         | Action_Flags_SHOW_ON_TEXT_EDITOR_GUI,
+        Action_Flags_DISABLE_INDEXING                    = 1 << 9, // when ON, action cannot be triggered automatically when pressing keyboard
     };
 
     /** Data describing a shortcut (ex: "Reset": Ctrl + Alt + R) */

@@ -1282,12 +1282,11 @@ void appview_save_screenshot(const bdc::String relative_path)
 
 void appview_update()
 {
-    // Some actions can only be triggered if some conditions are met
-    // We get those conditions
-    Action_Flags flags{0};
+    Action_Flags any_condition = 0;
     if( File* file = app_state()->current_file )
     {
-        flags = fileview_calc_condition_flags( &file->view );
+        any_condition |= Action_Flags_ENABLE_IF_HAS_SELECTION    * (file->view.graph_view->selection.items.size > 0);
+        any_condition |= Action_Flags_ENABLE_IF_HAS_NO_SELECTION * (file->view.graph_view->selection.items.size == 0);
     }
 
     SDL_Event event;
@@ -1307,13 +1306,17 @@ void appview_update()
                 {
                     NDBL_ASSERT( action.event.type, "Unexpected event.type" );
 
-                    if( HAS_FLAGS(flags, action.flags) &&
-                        HAS_FLAGS(event.key.keysym.mod, action.shortcut.mod) && // same mod
-                        action.shortcut.key == event.key.keysym.sym ) // same key
-                    {
-                        event_manager_push_event( action.event );
-                        break;
-                    }
+                    if( !HAS_ANY_FLAGS(action.flags, any_condition) ) // TODO: instead of doing this, we should have a flag enable/disable that the system updates, that would be simpler to read and maintain.
+                        continue;
+                        
+                    if( !HAS_FLAGS(event.key.keysym.mod, action.shortcut.mod))
+                        continue;
+                    
+                    if( action.shortcut.key != event.key.keysym.sym ) // same key
+                        continue;
+
+                    event_manager_push_event( action.event );
+                    break;
                 }
                 break;
         }

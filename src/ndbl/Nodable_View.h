@@ -72,4 +72,5 @@ namespace ndbl
     void            appview_set_title(const bdc::String& string );
     Image           appview_capture_screen();
     bool            appview_pick_file_path(Path& _out_path, Dialog_Type); // pick a file and store its path in _out_path
+    Action_Flags    appview_calc_action_flags();
 }

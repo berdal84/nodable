@@ -139,13 +139,6 @@ void fileview_update(File_View* file_view, float dt)
     }
 }
 
-Action_Flags fileview_calc_condition_flags(File_View* file_view)
-{
-    Action_Flags result = 0;
-    result |= Action_Flags_ENABLE_IF_HAS_SELECTION * file_view->graph_view->selection.items.size;
-    return result;
-}
-
 void fileview_draw(File_View* file_view, float dt)
 {
     // Summary
@@ -484,22 +477,30 @@ size_t fileview_size(const File_View* file_view)
 
 void fileview_refresh_overlay(File_View* file_view )
 {
-    Action_Flags flags = fileview_calc_condition_flags(file_view);
+    Action_Flags any_condition = 0;
+    any_condition |= Action_Flags_ENABLE_IF_HAS_SELECTION    * (file_view->graph_view->selection.items.size > 0);
+    any_condition |= Action_Flags_ENABLE_IF_HAS_NO_SELECTION * (file_view->graph_view->selection.items.size == 0);
+
     for (const Action& action: action_manager()->actions )
     {
-        if( ( action.flags & flags) == flags && (action.flags & Action_Flags_HIGHLIGHTED) )
+        if( !HAS_ANY_FLAGS(action.flags, any_condition) )
         {
-            bdc::String label = action.label;
-            label.size = min(label.size, 12u);
-
-            File_View_Overlay_Type overlay_type = File_View_Overlay_Type_GRAPH;            
-            if (action.flags & Action_Flags_HIGHLIGHTED_IN_TEXT_EDITOR)
-            {
-                overlay_type = File_View_Overlay_Type_TEXT;
-            }
-
-            fileview_push_overlay(file_view, {label, shortcut_to_tstring(action.shortcut)}, overlay_type);
+            continue;
         }
+
+        if( !HAS_FLAGS(action.flags, Action_Flags_SHOW_ON_GUI) )
+        {
+            continue;
+        }
+
+        bdc::String label = action.label;
+        label.size = min(label.size, 12u);
+
+        File_View_Overlay_Type overlay_type = HAS_FLAGS(action.flags, Action_Flags_SHOW_ON_TEXT_EDITOR_GUI)
+                                            ? File_View_Overlay_Type_GRAPH            
+                                            : File_View_Overlay_Type_TEXT;
+
+        fileview_push_overlay(file_view, {label, shortcut_to_tstring(action.shortcut)}, overlay_type);
     }
 }
 
