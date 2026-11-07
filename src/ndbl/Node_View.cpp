@@ -230,7 +230,6 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
 
     for(auto* each : nodeview->slot_views )
     {
-        nodeslotview_release(each);
         bdc::memory_delete(each);
     }
     array_release(nodeview->slot_views);
@@ -244,8 +243,6 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
 
     nodeview->node  = nullptr;
     nodeview->flags = 0;
-
-    box2d_release(nodeview->shape);
 }
 
 bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)

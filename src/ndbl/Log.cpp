@@ -15,6 +15,10 @@ void log_init()
 void log_shutdown()
 {
     NDBL_ASSERT(g_log != nullptr, "log_shutdown() has been called twice?");
+    for(auto& each : g_log->ring_buffer)
+    {
+        string_release(each.text);
+    }
     memory_free(g_log);
     g_log = nullptr;
 }

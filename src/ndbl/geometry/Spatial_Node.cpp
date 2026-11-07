@@ -1,5 +1,7 @@
 #include "Spatial_Node.h"
 
+#include "../Asserts.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/matrix_transform_2d.hpp"
 #undef GLM_ENABLE_EXPERIMENTAL
@@ -11,13 +13,10 @@ namespace ndbl
 
 Spatial_Node::~Spatial_Node()
 {
-    assert( parent == nullptr ); // should have removed this node from its parent
-    assert( this->children.size == 0 ); // should have removed all children first
-}
-
-void spatialnode_release(Spatial_Node& node)
-{
-    array_release(node.children);
+    NDBL_ASSERT(this->parent == nullptr);
+    NDBL_ASSERT(this->next   == nullptr);
+    NDBL_ASSERT(this->first  == nullptr);
+    NDBL_ASSERT(this->last   == nullptr);
 }
 
 const glm::mat3& spatialnode_world_matrix(const Spatial_Node& node)
@@ -34,9 +33,9 @@ const glm::mat3& spatialnode_world_matrix_inv(const Spatial_Node& node)
 
 void spatialnode_clear(Spatial_Node& spatial_node)
 {
-    while ( spatial_node.children.size != 0 )
+    while ( spatial_node.first != nullptr )
     {
-        spatialnode_remove_child(spatial_node, *spatial_node.children[0] );
+        spatialnode_remove_child(spatial_node, *spatial_node.first);
     }
 }
 
@@ -71,9 +70,11 @@ void spatialnode_set_position(Spatial_Node& spatial_node, const Vec2& desired_po
 void spatialnode_set_world_transform_dirty(Spatial_Node& spatial_node)
 {
     spatial_node.cached_world_matrix_are_dirty = true;
-    for (Spatial_Node* child : spatial_node.children)
+    Spatial_Node* child = spatial_node.first;
+    while( child )
     {
         spatialnode_set_world_transform_dirty(*child);
+        child = child->next;
     }
 }
 
@@ -125,7 +126,20 @@ void spatialnode_add_child(Spatial_Node& parent, Spatial_Node& new_child, Spatia
     NDBL_ASSERT( new_child.parent == nullptr, "Child already has a parent, remove it first from parent" );
     NDBL_ASSERT( &new_child != &parent      , "Adding itself as child" );
 
-    array_append(parent.children, &new_child);
+    if( parent.last == nullptr )
+    {
+        parent.last  = &new_child;
+        parent.first = &new_child;
+        new_child.prev = nullptr;
+        new_child.next = nullptr;
+    }
+    else
+    {
+        parent.last->next = &new_child;
+        new_child.prev    = parent.last;
+        new_child.next    = nullptr;
+        parent.last       = &new_child;
+    }
 
     if ( flags & Spatial_Node_Flag_PRESERVE_WORLD_POSITION )
     {
@@ -139,11 +153,36 @@ void spatialnode_add_child(Spatial_Node& parent, Spatial_Node& new_child, Spatia
     }
 }
 
-void spatialnode_remove_child(Spatial_Node& spatial_node, Spatial_Node& child, Spatial_Node_Flags flags)
+void spatialnode_remove_child(Spatial_Node& parent, Spatial_Node& child, Spatial_Node_Flags flags)
 {
-    auto found = array_find(spatial_node.children, &child);
-    NDBL_ASSERT(found.ok, "Unable to find this child in spatial_node.children");
-    array_remove_unordered(spatial_node.children, found.at_pos);
+    NDBL_ASSERT(child.parent == &parent, "Unable to find this child in parent.children");
+
+    // handle parent.first/last
+    
+    if( parent.first == &child )
+    {
+        parent.first = parent.first->next ;
+    }
+
+    if( parent.last == &child )
+    {
+        parent.last = parent.last->prev;
+    }
+
+    // handle next/prev
+
+    if( child.prev )
+    {
+        child.prev->next = child.next;
+    }
+
+    if (child.next)
+    {
+        child.next->prev = child.prev;
+    }
+
+    child.next       = nullptr;
+    child.prev       = nullptr;
 
     if ( flags & Spatial_Node_Flag_PRESERVE_WORLD_POSITION )
     {

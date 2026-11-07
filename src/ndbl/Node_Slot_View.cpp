@@ -47,11 +47,6 @@ void nodeslotview_init(
     slot->view = view;
 }
 
-void nodeslotview_release(Node_Slot_View* view)
-{
-    box2d_release(view->shape);
-}
-
 bdc::String nodeslotview_compute_tooltip(const Node_Slot_View* view)
 {
     switch (view->slot->type_and_order())

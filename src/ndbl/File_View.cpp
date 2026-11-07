@@ -57,6 +57,7 @@ void fileview_update(File_View* file_view, float dt)
         
         Parser_Context parser;
         parser_init(parser, nullptr, fileview_get_text(file_view,/* isolation = */ false )); // we parse the whole text even if isolation mode is on
+        DEFER( parser_deinit(parser); )
         parser_tokenize(parser);
 
         for(auto& line : file_view->text_editor.mLines )
@@ -135,8 +136,6 @@ void fileview_update(File_View* file_view, float dt)
                 colorize_char_count -= 1;                
             }
         }
-        
-        parser_deinit(parser);
     }
 }
 

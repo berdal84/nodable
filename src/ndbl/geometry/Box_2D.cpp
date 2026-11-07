@@ -11,11 +11,6 @@
 namespace ndbl
 {
 
-void box2d_release(Box_2D& box)
-{
-    spatialnode_release(box.spatial_node);
-}
-
 Vec2 box2d_pivot_position(const Box_2D& box, const Vec2& pivot, Space space)
 {
     if ( space == LOCAL_SPACE )

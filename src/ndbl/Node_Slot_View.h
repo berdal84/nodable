@@ -37,7 +37,6 @@ namespace ndbl
 
     void        nodeslotview_init(Node_Slot_View*, Node_Slot*, const Vec2& /* alignment */,
                                   Shape_Type, u32_t /* index */, const Box_2D* /* alignment_ref */);
-    void        nodeslotview_release(Node_Slot_View*);
     void        nodeslotview_update(Node_Slot_View*, float dt);
     bool        nodeslotview_draw(Node_Slot_View*);
     bdc::String nodeslotview_compute_tooltip(const Node_Slot_View*);

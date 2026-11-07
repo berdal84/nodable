@@ -1,6 +1,5 @@
 #pragma once
 
-#include "bdc/Array.hpp"
 #include "Transform_2D.h"
 #include "Space.h"
 #include "Vec2.h"
@@ -22,18 +21,20 @@ namespace ndbl
      */
     struct Spatial_Node
     {
-        bdc::Resizable_Array<Spatial_Node*> children                        = {};
-        Spatial_Node*                       parent                          = nullptr;
-        Transform_2D                        transform                       = {}; // local transform, relative to the parent
-        glm::mat3                           cached_world_matrix             = {1.f}; // use world_matrix() if you want to update the matrix before to get it.
-        glm::mat3                           cached_world_matrix_inv         = {1.f}; // use world_matrix_inv() if you want to update the matrix before to get it.
-        bool                                cached_world_matrix_are_dirty   = true; // when true, this force _world_matrix and _word_matrix_inv to be updated.
+        Spatial_Node*   parent                          = nullptr;
+        Spatial_Node*   first                           = nullptr; // intrusive linked-list
+        Spatial_Node*   last                            = nullptr; // intrusive linked-list
+        Spatial_Node*   prev                            = nullptr; // intrusive linked-list
+        Spatial_Node*   next                            = nullptr; // intrusive linked-list
+        Transform_2D    transform                       = {}; // local transform, relative to the parent
+        glm::mat3       cached_world_matrix             = {1.f}; // use world_matrix() if you want to update the matrix before to get it.
+        glm::mat3       cached_world_matrix_inv         = {1.f}; // use world_matrix_inv() if you want to update the matrix before to get it.
+        bool            cached_world_matrix_are_dirty   = true; // when true, this force _world_matrix and _word_matrix_inv to be updated.
         
         Spatial_Node() = default;
         ~Spatial_Node();
     };
 
-    void                spatialnode_release(Spatial_Node&);
     const glm::mat3&    spatialnode_world_matrix(const Spatial_Node&);
     const glm::mat3&    spatialnode_world_matrix_inv(const Spatial_Node&);
     void                spatialnode_set_position(Spatial_Node&, const Vec2&);
