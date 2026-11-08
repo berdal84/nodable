@@ -239,9 +239,12 @@ void parser_init(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
 
 void parser_deinit(Parser_Context& ctx)
 {
+  parser_reset(ctx, nullptr, "");
+
   array_release(ctx.flow_out);
   // array_release(ctx.in_text); in_text is not owned
   // graph_deinit(ctx.out_graph); out_graph is not owned
+  
   array_release(ctx.pristine_tokens);
   array_release(ctx.tokens);
   array_release(ctx.transaction);
@@ -252,9 +255,14 @@ void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
     ctx.in_text   = in_text; // in_text is not owned
     ctx.out_graph = out_graph; // out_graph is not owned
 
+    for(auto& t : ctx.pristine_tokens) token_deinit(t);
+    for(auto& t : ctx.tokens)          token_deinit(t);
+    token_deinit(ctx.global_token); // just in case, for now this one is a view.
+
     array_clear(ctx.tokens);
     array_clear(ctx.pristine_tokens);
     array_clear(ctx.transaction);
+
     ctx.cursor = 0;
 
     token_replace_buffer_readonly( ctx.global_token, ctx.in_text ); // global_token completely wraps in_text.
