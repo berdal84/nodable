@@ -23,7 +23,7 @@ String token_serialize_json(const Token& token)
 {
     using namespace bdc;
 
-    String_Builder sb;
+    String_Builder sb{};
 
     string_builder_append(sb, "{\n");
     string_builder_append(sb, string_tprintf("\ttype: %i,\n", token.type));
@@ -50,7 +50,7 @@ void token_take_prefix_suffix_from(Token& token, Token& other)
     // transfer prefix and suffix to this token, but keep the same word.
     // this operation requires the buffer to be owned
 
-    String_Builder sb;
+    String_Builder sb{};
 
     // copy prefix from source
     string_builder_append(sb, token_prefix_view(other) );
@@ -80,7 +80,6 @@ void token_remove_suffix_and_prefix(Token& token)
 
 void token_clear(Token& token)
 {
-    token.index       = 0;
     token.type        = 0;
     token.prefix_size = 0;
     token.word_size   = 0;

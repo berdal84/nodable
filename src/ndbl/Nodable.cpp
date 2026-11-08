@@ -59,7 +59,7 @@ App_State* app_state()
 
 App_State* app_init()
 {
-    memory_manager_init(1024 * 1024 * 10); // must be first
+    memory_manager_init(1024 * 1024 * 100); // must be first
     
     log_init();
 

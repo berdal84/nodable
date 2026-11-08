@@ -60,9 +60,9 @@ namespace bdc
         
         constexpr       ~String() = default;
  
-        inline i8_t     operator[](u32_t pos) const { assert(pos < size && "String_View::operator[]() const - out of bounds position!"); return data[pos]; };
-        inline i8_t&    operator[](u32_t pos) { assert(pos < size && "String_View::operator[]() - out of bounds position!"); return data[pos]; };       
-        inline          operator Array<i8_t>& () { return *reinterpret_cast<Array<i8_t>*>(this); }
+        inline i8_t     operator[](u32_t pos) const          { BDC_ASSERT(pos < size, "pos is out of bounds"); return data[pos]; };
+        inline i8_t&    operator[](u32_t pos)                { BDC_ASSERT(pos < size, "pos is out of bounds"); return data[pos]; };       
+        inline          operator Array<i8_t>& ()             { return *reinterpret_cast<Array<i8_t>*>(this); }
         inline          operator const Array<i8_t>& () const { return *reinterpret_cast<const Array<i8_t>*>(this); }
         String&         operator=(const String&) = default;
         
@@ -94,7 +94,23 @@ namespace bdc
     bool            operator==(const String& a, const String& b);
     bool            operator!=(const String& a, const String& b);
 
-    // note: constexpr stuff must be declared in the header
+    inline String new_string(u32_t size, bool zero_init = true)
+    {
+        String result{};
+
+        result.data = memory_malloc_array<i8_t>( size );
+        BDC_ASSERT(result.data, "Unable to allocate memory for result!");
+        result.size = size;
+
+        if( zero_init )
+        {
+            memset(result.data, 0, result.size);
+        }
+
+        return result;
+    }
+
+    // note: constexpr stuff must be declared in the header too
 
     constexpr u32_t constexpr_strlen(const i8_t* cstr)
     {
@@ -108,7 +124,7 @@ namespace bdc
         {
             ++len;
         }
-        assert(len < String::invalid_pos);
+        BDC_ASSERT(len < String::invalid_pos, "cstr is too long for String's buffer");
         return (u32_t)len;
     }
 
@@ -172,15 +188,19 @@ namespace bdc
         }
 
         // allocate
-        assert(required_alloc_size < String::invalid_pos);
-        i8_t* string_data = memory_malloc_array<i8_t>(required_alloc_size);
-        assert(string_data && "Unable to allocate memory for string_printf!");
+        BDC_ASSERT(required_alloc_size < String::invalid_pos);
+        String result = new_string((u32_t)required_alloc_size);
 
         // print
-        u32_t string_len = (u32_t)required_alloc_size;
-        snprintf( string_data, string_len, fmt, std::forward<decltype(args)>(args)...);
+        snprintf( result.data, result.size, fmt, std::forward<decltype(args)>(args)...);
 
-        return String{ string_data, string_len-1, String_Flags_IS_NULL_TERMINATED };
+        // hide the '\0' char
+        result.size  -= 1;
+
+        // make the string aware of it
+        result.flags |= String_Flags_IS_NULL_TERMINATED;
+
+        return result;
     }
 
     inline const i8_t* String::c_str() const
@@ -190,21 +210,14 @@ namespace bdc
 
     inline String string_concat(const String& a, const String& b )
     {
-        //printf( "a: '%s' (size: %i)\n", a.c_str(), a.size );
-        //printf( "b: '%s' (size: %i)\n", b.c_str(), b.size );
+        String result = new_string(a.size + b.size + 1); // +1 for null termination
 
-        u32_t alloc_size = a.size + b.size + 1 ; // I am unsure this is a good idea, but I prefer to allocate 1 byte extra for null-termination
-        i8_t* alloc_data = memory_malloc_array<i8_t>( alloc_size ); 
+        memcpy(result.data          , a.data, a.size );
+        memcpy(result.data + a.size , b.data, b.size);
 
-        String result;
-        result.data = alloc_data;
-        result.size = alloc_size - 1;          
-
-        //printf( "result: '%s'\n", result.c_str());
-        memcpy(result.data          , a.data, a.size ); //printf( "result: '%s'\n", result.c_str());
-        memcpy(result.data + a.size , b.data, b.size);  //printf( "result: '%s'\n", result.c_str());
-
-        alloc_data[alloc_size-1] = '\0';
+        result[result.size-1] = '\0';
+        result.size  -= 1;
+        result.flags |= String_Flags_IS_NULL_TERMINATED;
 
         return result;
     }
@@ -234,7 +247,7 @@ namespace bdc
 
     inline String string_lsplit(const String& str, u32_t index)
     {
-        assert(index <= str.size && "Out of bounds");
+        BDC_ASSERT(index <= str.size, "Out of bounds");
 
         if( index == str.size)
         {
@@ -250,7 +263,7 @@ namespace bdc
 
     inline String string_rsplit(const String& str, u32_t index)
     {
-        assert(index <= str.size && "Out of bounds");
+        BDC_ASSERT(index <= str.size, "Out of bounds");
 
         if( index == 0 )
         {
@@ -312,23 +325,17 @@ namespace bdc
     }
 
     inline String string_copy(const String& source )
-    {            
-        String result{};
-        string_copy( result, source);
-        return result;
-    }
-
-    inline String& string_copy(String& target, const String& source )
     {
-        size_t alloc_size = source.size + 1; // null terminated
-        target.data = memory_malloc_array<i8_t>(alloc_size, allocator);
-        target.size = source.size;
+        String result{};
 
-        std::memcpy(target.data, source.data, source.size); 
+        result.data = memory_malloc_array<i8_t>(source.size + 1, allocator); // +1 for null terminator
+        result.size = source.size;
 
-        target.data[source.size] = '\0';
+        std::memcpy(result.data, source.data, source.size); 
 
-        return target;
+        result.data[source.size] = '\0';
+
+        return result;
     }
 
     inline int string_compare(const String& a, const String& b)
@@ -378,9 +385,9 @@ namespace bdc
 
     inline String string_unquote(const String& str)
     {
-        assert(str.size >= 2);
-        assert(str[0] == '\"');
-        assert(str[str.size-1]  == '\"');
+        BDC_ASSERT(str.size >= 2);
+        BDC_ASSERT(str[0] == '\"');
+        BDC_ASSERT(str[str.size-1]  == '\"');
 
         return String{ str.data + 1, str.size -2};
     }
@@ -392,7 +399,7 @@ namespace bdc
 
     inline String& string_advance(String& str, u32_t amount)
     {
-        assert(str.size >= amount && "String is too short to advance that amount");
+        BDC_ASSERT(str.size >= amount, "String is too short to advance that amount");
         str.data += amount;
         str.size -= amount;
 

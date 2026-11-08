@@ -92,6 +92,7 @@ namespace bdc
         Allocator*  allocator;
             
         Resizable_Array(): allocator(bdc::allocator) {}
+        Resizable_Array(Allocator* _allocator): allocator(_allocator) {}
         Resizable_Array(const Resizable_Array& ): allocator(bdc::allocator) {}
         ~Resizable_Array() = default;
 

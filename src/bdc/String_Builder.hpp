@@ -8,20 +8,13 @@ namespace bdc
 {
     struct String_Builder
     {
-        Resizable_Array<String> buffer;
-        Allocator*              allocator; // will be used for data.allocator and any append / appendf
-
-        String_Builder()
-        {
-            allocator = &temp_allocator;
-            buffer.allocator = allocator;
-        }
+        Resizable_Array<String> buffer = { &temp_allocator };
     };
 
     void            string_builder_release(String_Builder&);
     void            string_builder_reset(String_Builder&);
     String_Builder& string_builder_append(String_Builder&, const String& str);
-    String_Builder& string_builder_append(String_Builder&, const Resizable_Array<String>& arr);
+    String_Builder& string_builder_append(String_Builder&, const Array<String>& arr);
     String_Builder& string_builder_appendf(String_Builder& sb, const char* fmt, auto...args);
     String          string_builder_build_string(String_Builder& sb, String separator = "");
     String          string_builder_build_tstring(String_Builder&, String separator = "");
@@ -43,45 +36,30 @@ namespace bdc
 
     inline void string_builder_release(String_Builder& sb)
     {
-        push_allocator(sb.allocator);
-        for(auto& str : sb.buffer )
-        {
-            string_release(str);
-        }
-        pop_allocator();
-        array_release(sb.buffer);
-
+        // sb.buffer is temporary
         sb.buffer.data = nullptr;
         sb.buffer.size = 0;
     }
 
     inline void string_builder_reset(String_Builder& sb)
     {
-        push_allocator(sb.allocator);
-        for(auto& str : sb.buffer )
-        {
-            string_release(str);
-        }
-        pop_allocator();
         array_resize(sb.buffer, 0);
     }
 
     inline String_Builder& string_builder_append(String_Builder& sb, const String& str)
     {
-        // String_Builder must own the strings,
-        push_allocator(sb.allocator);
-        String str_copy = string_copy(str);
-        pop_allocator();
+        // str could be destroyed before user call build_string
+        String str_copy = string_tcopy(str);
 
         array_append(sb.buffer, str_copy );
         return sb;
     }
 
-    inline String_Builder& string_builder_append(String_Builder& sb, const Resizable_Array<String>& arr)
+    inline String_Builder& string_builder_append(String_Builder& sb, const Array<String>& arr)
     {
-        for(size_t i = 0; i < arr.size; ++i)
+        for(auto& each : arr)
         {
-            array_append(sb.buffer, arr[i] );
+            string_builder_append(sb, each );
         }
         return sb;
     }

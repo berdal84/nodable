@@ -39,7 +39,7 @@ def base_target(name, type)
     ]
 
     target.defines |= [
-        "BDC_#{CONFIG.upcase}" , "BDC_#{PLATFORM.upcase}",
+        "BDC_#{CONFIG.upcase}" , "BDC_#{PLATFORM.upcase}", "BDC_TEMP_BUFFER_SIZE=\"1024*1024*1024\"",
         "NDBL_#{CONFIG.upcase}","NDBL_#{PLATFORM.upcase}",
         "IMGUI_USER_CONFIG=\\\"ndbl/ImGuiExConfig.h\\\"",
         "NDBL_APP_NAME=\\\"nodable\\\"",

@@ -451,7 +451,7 @@ int main()
         {
             memory_manager_init();
 
-            String_Builder sb;
+            String_Builder sb{};
             string_builder_append(sb, "Bonjour");
             string_builder_append(sb,  "je m'appelle René.");
             String str = string_builder_build_tstring(sb, ", " ); // uses temp_allocator() by default.
@@ -469,7 +469,7 @@ int main()
         {
             memory_manager_init();
 
-            String_Builder sb;
+            String_Builder sb{};
             string_builder_appendf(sb, "%s", "Bonjour");
             string_builder_appendf(sb, "%s", "je m'appelle Josiane.");
             String str = string_builder_build_tstring(sb, ", " ); // uses temp_allocator() by default.

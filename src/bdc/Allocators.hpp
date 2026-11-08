@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <cstring> // for memset
 
+#include "MACROS.hpp"
+
 #include "Types.hpp"
 #include "Stacktrace.hpp"
 
@@ -13,6 +15,8 @@
 #else
     #define BDC_LOG_STACKTRACE_WITH_REASON( fmt, ... ) /* BDC_LOG_STACKTRACE_WITH_REASON is disabled */
 #endif // BDC_ENABLE_LOGS
+
+#define BDC_DEFAULT_TEMP_BUFFER_SIZE 5 * 1024 * 1024
 
 namespace bdc
 {
@@ -67,7 +71,7 @@ namespace bdc
     extern Ring_Buffer                  temp_allocator_buffer;
     extern Allocator                    heap_allocator;
 
-    void                                memory_manager_init(size_t temp_buffer_size = 5 * 1024 * 1024 /* 5M*/);
+    void                                memory_manager_init(size_t temp_buffer_size = BDC_DEFAULT_TEMP_BUFFER_SIZE );
     void                                memory_manager_clear_trackers();
     void                                memory_manager_shutdown();
     Memory_Manager_Report*              memory_manager_generate_report(Memory_Manager_Report* report = nullptr);
@@ -79,6 +83,7 @@ namespace bdc
     [[nodiscard]] inline void* memory_malloc(size_t size, Allocator* _allocator = allocator )
     {
         void* ptr = _allocator->proc_malloc( size );
+        BDC_ASSERT(ptr != nullptr, "proc_malloc was unable to return memory address");
         BDC_LOG_STACKTRACE_WITH_REASON( "Allocated address %p", ptr );
         return ptr;
     }
@@ -91,8 +96,11 @@ namespace bdc
 
     [[nodiscard]] inline void* memory_realloc(void* ptr, size_t size, Allocator* _allocator = allocator )
     {
+        BDC_ASSERT(ptr != nullptr, "Cannot reallocate a nullptr!");
         BDC_LOG_STACKTRACE_WITH_REASON( "Reallocating address %p", ptr );
-        return _allocator->proc_realloc(ptr, size);
+        auto new_ptr = _allocator->proc_realloc(ptr, size);
+        BDC_ASSERT(new_ptr != nullptr, "Unable to allocate!");
+        return new_ptr;
     }
 
     template<typename Type>

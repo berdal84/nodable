@@ -433,7 +433,6 @@ void node_init_internal_scope(Node* node)
     NDBL_ASSERT( node->scope == nullptr, "Must be initialized prior to reset_parent()");
 
     auto* scope = memory_new<Scope>();
-    scope_init(scope);
     scope->name = "Internal Scope";
     scope->node = node;
 

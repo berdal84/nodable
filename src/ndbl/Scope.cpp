@@ -15,14 +15,10 @@ void    _scope_update_backbone_cache(const Scope*);
 void    _scope_update_depth_cache(const Scope*);
 void    _scope_set_depth_cache_dirty(const Scope*);
 
-void scope_init(Scope* scope)
-{
-    scope->token_begin = { Token_Type_NULL, "" };
-    scope->token_end   = { Token_Type_NULL, "" };
-}
-
 void scope_deinit(Scope* scope)
 {
+    token_deinit(scope->token_begin);
+    token_deinit(scope->token_end);
     NDBL_ASSERT(scope->parent == nullptr, "Remove this scope from parent first");
     NDBL_ASSERT(scope->children.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
     scope_reset_head(scope);

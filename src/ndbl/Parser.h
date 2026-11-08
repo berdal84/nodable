@@ -76,19 +76,18 @@ namespace ndbl
  
 	struct Parser_Context
     {
-        bool                                success;
-        const Language_Definition*          langdef;
-        bool                                strict_mode;
-        Graph*                              out_graph;
-        bdc::String                         in_text;
-        bdc::Resizable_Array<Node_Slot*>    flow_out;
-        size_t                              cursor; //.............. current token index
-        Token                               global_token; //........ prefix/suffix that can't be attached to a Token.
-        bdc::Resizable_Array<Token>         tokens; //.............. contains the strict minimum (extra tokens are prefix/suffixes)
-        bdc::Resizable_Array<Token>         pristine_tokens; //..... includes spaces, line returns, etc.
-        bdc::Resizable_Array<size_t>        transaction; //......... transaction start indexes
+        bool                                success          = false;
+        const Language_Definition*          langdef          = nullptr;
+        bool                                strict_mode      = false;
+        Graph*                              out_graph        = nullptr;
+        bdc::String                         in_text          = {};
+        bdc::Resizable_Array<Node_Slot*>    flow_out         = {};
+        u32_t                               cursor           = 0; //............... current token index
+        Token                               global_token     = {}; //.............. prefix/suffix that can't be attached to a Token.
+        bdc::Resizable_Array<Token>         tokens           = {}; //.............. contains the strict minimum (extra tokens are prefix/suffixes)
+        bdc::Resizable_Array<Token>         pristine_tokens  = {}; //.............. includes spaces, line returns, etc.
+        bdc::Resizable_Array<size_t>        transaction      = {}; //.............. transaction start indexes
     };
-
 
     void                            parser_init(Parser_Context&, Graph* /* out */ = nullptr, bdc::String /* in */ = "");
     void                            parser_deinit(Parser_Context&);

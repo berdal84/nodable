@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Try_Catch.h" // for main.cpp's try/catch
 #include "File_System.h"
 #include "bdc/Array.hpp"
 

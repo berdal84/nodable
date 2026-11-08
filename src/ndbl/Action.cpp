@@ -10,7 +10,7 @@ using namespace bdc;
 
 String shortcut_to_tstring(const Shortcut& shortcut)
 {
-    String_Builder sb;
+    String_Builder sb{};
 
     if( shortcut.mod & KMOD_CTRL )       string_builder_append( sb, "Ctrl +");
     if( shortcut.mod & KMOD_ALT )        string_builder_append( sb, "Alt +");

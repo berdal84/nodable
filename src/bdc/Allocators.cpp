@@ -67,13 +67,7 @@ namespace bdc
         size_t allocation_size = sizeof(Allocation_Header) + size;
         size_t size_used = (size_t)temp_allocator_buffer.head - (size_t)temp_allocator_buffer.data;
 
-        if ( allocation_size > temp_allocator_buffer.size - size_used )
-        {
-            BDC_LOG("temp_allocator_acquire() - WARNING: temp_allocator_buffer has not enough space left"
-                    " (usage %zu/%zu Bytes) or is too small to allocate %zu Bytes.\n",
-                    size_used, temp_allocator_buffer.size, size );
-            return nullptr;
-        }
+        BDC_ASSERT( allocation_size <= temp_allocator_buffer.size - size_used, "temp_allocator_buffer is full!");
 
         auto ptr = (Allocation_Header*)temp_allocator_buffer.head;
         ptr->size = size;

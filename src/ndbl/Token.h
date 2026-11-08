@@ -18,19 +18,20 @@ namespace ndbl
      */
 	struct Token
 	{
-        size_t      index; // in parent Token_Ribbon
-        Token_Type  type;
-        i8_t*       data; // might be owned or not, check owns_data flag.
-        bool        owns_data;        
-        u32_t       prefix_size;
-        u32_t       word_size;
-        u32_t       suffix_size;
+        Token_Type  type        = 0;
+        i8_t*       data        = nullptr; // might be owned or not, check owns_data flag.
+        bool        owns_data   = false;        
+        u32_t       prefix_size = 0;
+        u32_t       word_size   = 0;
+        u32_t       suffix_size = 0;
 
-        Token(): Token(Token_Type_NULL) {}
-        Token(Token_Type type): Token(type, "") {}
-        Token(
-            Token_Type  type,
-            bdc::String buffer
+        Token() = default;
+
+        Token(Token_Type type)
+        : Token(type, "")
+        {}
+
+        Token(Token_Type type, bdc::String buffer
         )
         : type(type)
         , data(buffer.data)

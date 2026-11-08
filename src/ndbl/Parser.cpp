@@ -245,6 +245,9 @@ void parser_deinit(Parser_Context& ctx)
   // array_release(ctx.in_text); in_text is not owned
   // graph_deinit(ctx.out_graph); out_graph is not owned
   
+  for(auto& token : ctx.tokens)          token_deinit(token);
+  for(auto& token : ctx.pristine_tokens) token_deinit(token);
+
   array_release(ctx.pristine_tokens);
   array_release(ctx.tokens);
   array_release(ctx.transaction);
@@ -295,12 +298,12 @@ bool parse_graph(Parser_Context& ctx)
     
     ctx.tokens = {};
 
-    for(size_t i = 0; i < ctx.pristine_tokens.size; ++i )
+    for(u32_t i = 0; i < ctx.pristine_tokens.size; ++i)
     {
-        Token& current_token = ctx.pristine_tokens[i];
+        Token token = ctx.pristine_tokens[i];
 
         // If the token is not important in terms of semantic, we'll put in as prefix/suffix on a an other Token.
-        switch(current_token.type)
+        switch(token.type)
         {
             case Token_Type_space:
             case Token_Type_tab:
@@ -310,16 +313,16 @@ bool parse_graph(Parser_Context& ctx)
             {
                 if ( ctx.tokens.size == 0 )
                 {
-                    token_ltrim_word( ctx.global_token, token_size(current_token) );
+                    token_ltrim_word( ctx.global_token, token_size(token) );
                     continue;
                 }
 
-                ignored_chars_count += token_size(current_token);
+                ignored_chars_count += token_size(token);
                 continue;
             }
         }
 
-        if ( i > 0 && ignored_chars_count > 0 )
+        if ( ctx.tokens.size > 0 && ignored_chars_count > 0 )
         {
             Token& previous_token = array_back(ctx.tokens);
             switch (previous_token.type)
@@ -328,9 +331,9 @@ bool parse_graph(Parser_Context& ctx)
                 case Token_Type_parenthesis_open:  // ")" are lost when creating AST
                 case Token_Type_parenthesis_close: // "("
                 {
-                    if ( current_token.type )
+                    if ( token.type )
                     {
-                        token_lextend_prefix(current_token, ignored_chars_count);
+                        token_lextend_prefix(token, ignored_chars_count);
                     }
                     break;
                 }
@@ -344,8 +347,8 @@ bool parse_graph(Parser_Context& ctx)
             ignored_chars_count = 0;
         }
 
-        array_append(ctx.tokens, current_token);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", current_token.index, token_view(current_token).c_str() );
+        array_append(ctx.tokens, token);
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4u) \"%s\" \n", i, token_view(token).c_str() );
     }
 
     // Append remaining ignored chars to the ribbon's suffix
@@ -381,12 +384,12 @@ bool parse_graph(Parser_Context& ctx)
         NDBL_LOG(Verbosity_Warning, "Parser", "Some token remains after getting an empty code block\n");
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " End of token ribbon expected\n");
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon").c_str());
-        for (const Token& each_token : ctx.tokens )
+        for( u32_t i = 0; i < ctx.tokens.size; ++i )
         {
-            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "token idx %i: %s\n", each_token.index, token_serialize_json(each_token).c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "token %4u: %s\n", i, token_serialize_json(ctx.tokens[i]).c_str());
         }
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon end").c_str());
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Failed to parse from token at index %llu (tokens.size: %llu) and above.\n", parser_peek(ctx).index, ctx.tokens.size);
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Failed to parse from token at index %llu (tokens.size: %llu) and above.\n", ctx.cursor, ctx.tokens.size);
         NDBL_LOG(Verbosity_Error, "Parser", "Unable to parse all the tokens\n");
         
         return false;
@@ -653,7 +656,7 @@ Node_Slot* parse_atomic_expression(Parser_Context& ctx, Scope* parent_scope)
     }
 
     parser_rollback(ctx);
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic,  "Parser", NDBL_KO " Unable to parse token (%llu)\n", token.index );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic,  "Parser", NDBL_KO " Unable to parse token (%u)\n", ctx.cursor );
 
     return nullptr;
 }
@@ -964,7 +967,7 @@ bool parser_tokenize(Parser_Context& ctx)
         }
 
         array_append(ctx.tokens, new_token);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4llu) \"%s\" \n", new_token.index, token_view(new_token).c_str() );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4u) \"%s\" \n", ctx.cursor, token_view(new_token).c_str() );
     }
 
     NDBL_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Tokenization.\n%s\n", parser_to_string(ctx).c_str() );
@@ -1180,26 +1183,24 @@ Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
 
 Token& parser_push(Parser_Context& ctx, Token& token)
 {
-    token.index = ctx.tokens.size;
-    array_append(ctx.tokens, token);
-    return array_back(ctx.tokens);
+    return array_append(ctx.tokens, token);
 }
 
 String parser_to_string(const Parser_Context& ctx)
 {
-    String_Builder sb;
+    String_Builder sb{ &temp_allocator };
     string_builder_append(sb, NDBL_COLOR_DEFAULT);
 
     string_builder_append(sb, "Logging token ribbon state:\n");
     string_builder_append(sb, "___________[TOKEN RIBBON]_________\n");
 
-    for (const Token& token : ctx.tokens)
+    for( u32_t token_index = 0; token_index < ctx.tokens.size; ++token_index )
     {
-        if ( token.index == 0 )
+        if ( token_index == 0 )
         {
             string_builder_append(sb, "B"); // begin
         }
-        else if ( token.index == array_back(ctx.tokens).index )
+        else if ( token_index == ctx.tokens.size - 1 )
         {
             string_builder_append(sb, "E"); // end
         }
@@ -1209,8 +1210,8 @@ String parser_to_string(const Parser_Context& ctx)
         }
 
         if ( ctx.transaction.size > 0
-             && token.index >= array_back(ctx.transaction)
-             && token.index <= ctx.cursor )
+             && token_index >= array_back(ctx.transaction)
+             && token_index <= ctx.cursor )
         {
             string_builder_append(sb, "T"); // transaction
         }
@@ -1219,9 +1220,9 @@ String parser_to_string(const Parser_Context& ctx)
             string_builder_append(sb, "."); // no transaction
         }
 
-        string_builder_appendf(sb, "%5zu) \"%s\"", token.index, token_word_view(token).c_str() );
+        string_builder_appendf(sb, "%5zu) \"%s\"", token_index, token_word_view(ctx.tokens[token_index]).c_str() );
       
-        if ( token.index == ctx.cursor )
+        if ( token_index == ctx.cursor )
         {
             string_builder_append(sb, " [c]"); // current
         }
