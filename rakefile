@@ -103,8 +103,15 @@ def base_target(name, type)
     else
 
         target.defines |= [
-            "NDBL_DESKTOP"
+            "NDBL_DESKTOP",
+            "BDC_ENABLE_LOGS"
         ]
+
+        if DEBUG
+            target.defines |= [
+                "BDC_DEBUG_ALLOCATORS" # this will generate a lot of BDC_LOG_DEBUG, including stack an allocated/freed/reallocated memory addresses
+            ]
+        end
 
         target.compiler_flags |= [
             "-g", # required by <stacktrace> to print a human readable stack, generates a larger binary (~ +50%)

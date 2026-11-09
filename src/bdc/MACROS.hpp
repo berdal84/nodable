@@ -1,30 +1,21 @@
 #pragma once
 
+#ifndef BDC_LOG_OUTPUT_PATH
+#define BDC_LOG_OUTPUT_PATH "bdc.logs.txt"
+#endif
+
 #ifdef BDC_ENABLE_LOGS
     #include <print>
+    #include <fstream>
+
     namespace bdc 
     {
-        struct Static_File
-        {
-            FILE* file;
-
-            Static_File(const char* path)
-            {
-                file = std::fopen(path, "w");
-            }
-
-            ~Static_File()
-            {
-                std::fclose(file);
-            }
-        };
-
-        static Static_File log_output_file{"bdc.logs.txt"};
+        static std::ofstream log_output_file{ BDC_LOG_OUTPUT_PATH };
     }
 
-    #define BDC_LOG(...)       do { std::print(bdc::log_output_file.file, __VA_ARGS__); std::print(std::cout, __VA_ARGS__); } while (0)
-    #define BDC_LOG_DEBUG(...) do { std::print(bdc::log_output_file.file, __VA_ARGS__); } while (0)
-    #define BDC_LOG_FLUSH()    do { std::fflush(bdc::log_output_file.file); std::cout << std::flush; } while (0)
+    #define BDC_LOG(...)       do { std::print(bdc::log_output_file, __VA_ARGS__); std::print(std::cout, __VA_ARGS__); } while (0)
+    #define BDC_LOG_DEBUG(...) do { std::print(bdc::log_output_file, __VA_ARGS__); } while (0)
+    #define BDC_LOG_FLUSH()    do { bdc::log_output_file << std::flush; std::cout << std::flush; } while (0)
 #else
     #define BDC_LOG(...)
     #define BDC_LOG_DEBUG(...)

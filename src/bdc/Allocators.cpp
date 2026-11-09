@@ -276,7 +276,7 @@ namespace bdc
             return report;
         #else
 
-        BDC_LOG_DEBUG(" -- Storing report about {} ...\n", heap_allocator_tracker.allocator->name);
+        BDC_LOG_DEBUG(" -- Generating memory manager report about allocator '{}' ...\n", heap_allocator_tracker.allocator->name);
 
         if( report == nullptr)
         {
@@ -291,6 +291,11 @@ namespace bdc
         report->allocations.data    = heap_allocator_tracker.allocations.data();
         report->allocations.size    = heap_allocator_tracker.allocations.size();        
         #endif
+
+        if( report->has_leaked )
+            BDC_LOG_DEBUG(" -- Report shows {} leak(s), check {}\n", report->allocations.size, BDC_LOG_OUTPUT_PATH );
+        else
+            BDC_LOG_DEBUG(" -- Report shows NO leaks\n");
 
         return report;
     }
