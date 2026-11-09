@@ -44,7 +44,7 @@ void command_undo(Command* command)
 
 //-----------------------------------------------------------------------------
 
-Command command_connect(const Command_Data__Link& link)
+Command new_command_connect(const Command_Data__Link& link)
 {
     Command command;
     command.type        = Command_Type_CONNECT;
@@ -52,6 +52,18 @@ Command command_connect(const Command_Data__Link& link)
     command.proc_undo   = command_connect_undo;
     command.link        = link;
     command.description = "Connect two slots";
+
+    NDBL_ASSERT(command.link.head != command.link.tail);
+    if ( command.link.tail->order() == Node_Slot::Flag_ORDER_2ND )
+    {
+        if ( command.link.head->order() == Node_Slot::Flag_ORDER_2ND )
+        {
+            NDBL_LOG( NDBL_ERROR, "command_connect", "Unable to connect incompatible edges\n");
+            return {};
+        }
+        NDBL_DEBUG_LOG( NDBL_DIAG, "command_connect", "Swapping edges to try to connect them\n");
+        std::swap(command.link.tail, command.link.head);
+    }
 
     return command;
 }
@@ -68,7 +80,7 @@ void command_connect_undo(Command* command)
 
 //-----------------------------------------------------------------------------
 
-Command command_disconnect(const Command_Data__Link& link)
+Command new_command_disconnect(const Command_Data__Link& link)
 {
     Command command;
     command.type        = Command_Type_DISCONNECT;
@@ -92,7 +104,7 @@ void command_disconnect_undo(Command* command)
 
 //-----------------------------------------------------------------------------
 
-Command command_text_undo_record(const Command_Data__Text_Undo_Record& text_undo_record)
+Command new_command_text_undo_record(const Command_Data__Text_Undo_Record& text_undo_record)
 {
     Command command;
     command.type                = Command_Type_TEXT_UNDO_RECORD;
@@ -125,7 +137,7 @@ void command_text_undo_record_release(Command* command)
 
 //-----------------------------------------------------------------------------
 
-Command command_new_node(const Command_Data& data)
+Command new_command_new_node(const Command_Data& data)
 {
     Command command;
     command.type        = Command_Type_CONNECT;
@@ -187,7 +199,7 @@ void command_new_node_undo(Command* command)
 
 //-----------------------------------------------------------------------------
 
-Command command_selection_change(const Array<View>& _selection) // TODO: we should not take a View_Selection as input arg, a const Array<View>& is enough
+Command new_command_selection_change(const Array<View>& _selection) // TODO: we should not take a View_Selection as input arg, a const Array<View>& is enough
 {
     Command cmd;
 

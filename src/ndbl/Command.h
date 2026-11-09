@@ -10,34 +10,34 @@
 //
 // MACROS to help declare new commands
 //
-#define COMMAND( command_name, Command_Data_Type ) \
-ndbl::Command command_##command_name(Command_Data_Type)
+#define NDBL_COMMAND( NAME, TYPE ) \
+ndbl::Command new_command_##NAME(TYPE)
 
-#define COMMAND_RELEASE( command_name ) \
-void command_##command_name##_release(ndbl::Command*)
+#define NDBL_COMMAND_RELEASE( NAME ) \
+void command_##NAME##_release(ndbl::Command*)
 
-#define COMMAND_DO( command_name ) \
-void command_##command_name##_do(ndbl::Command* command)
+#define NDBL_COMMAND_DO( NAME ) \
+void command_##NAME##_do(ndbl::Command* command)
 
-#define COMMAND_UNDO( command_name ) \
-void command_##command_name##_undo(ndbl::Command* command)
+#define NDBL_COMMAND_UNDO( NAME ) \
+void command_##NAME##_undo(ndbl::Command* command)
 
-#define COMMAND_REDO( command_name ) \
-void command_##command_name##_redo(ndbl::Command* command)
+#define NDBL_COMMAND_REDO( NAME ) \
+void command_##NAME##_redo(ndbl::Command* command)
 
-#define COMMAND_DECLARE_WITH_ARGS( command_name, Command_Data_Type ) \
-COMMAND( command_name, Command_Data_Type ); \
-COMMAND_RELEASE( command_name ); \
-COMMAND_DO( command_name ); \
-COMMAND_UNDO( command_name ); \
-COMMAND_REDO( command_name );
+#define NDBL_COMMAND_DECLARE_WITH_ARGS( NAME, TYPE ) \
+NDBL_COMMAND( NAME, TYPE ); \
+NDBL_COMMAND_RELEASE( NAME ); \
+NDBL_COMMAND_DO( NAME ); \
+NDBL_COMMAND_UNDO( NAME ); \
+NDBL_COMMAND_REDO( NAME );
 
-#define COMMAND_DECLARE( command_name ) \
-Command command_##command_name(); \
-COMMAND_RELEASE( command_name ); \
-COMMAND_DO( command_name ); \
-COMMAND_UNDO( command_name ); \
-COMMAND_REDO( command_name );
+#define NDBL_COMMAND_DECLARE( NAME ) \
+ndbl::Command new_command_##NAME(); \
+NDBL_COMMAND_RELEASE( NAME ); \
+NDBL_COMMAND_DO( NAME ); \
+NDBL_COMMAND_UNDO( NAME ); \
+NDBL_COMMAND_REDO( NAME );
 
 namespace ndbl
 {
@@ -111,9 +111,9 @@ namespace ndbl
         typedef void(Contextual_Procedure_Type)(Command*);
         typedef void(Procedure_Type)(Command*);
 
-        Command_Type    type;
-        Command_Flags   flags;
-        bdc::String     description;
+        Command_Type    type           = Command_Type_NULL;
+        Command_Flags   flags          = Command_Flags_NONE;
+        bdc::String     description    = "";
         
         union {
             Command_Data                    data;
@@ -131,12 +131,12 @@ namespace ndbl
 
 
 
-    COMMAND_DECLARE_WITH_ARGS(connect           , const Command_Data__Link&)
-    COMMAND_DECLARE_WITH_ARGS(disconnect        , const Command_Data__Link&)
-    COMMAND_DECLARE_WITH_ARGS(replace_text      , const Command_Data__Text_Replace&)
-    COMMAND_DECLARE_WITH_ARGS(text_undo_record  , const Command_Data__Text_Undo_Record&)
-    COMMAND_DECLARE_WITH_ARGS(new_node          , const Command_Data&)
-    COMMAND_DECLARE_WITH_ARGS(selection_change  , const Array<View>& new_selection)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(connect           , const Command_Data__Link&)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(disconnect        , const Command_Data__Link&)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(replace_text      , const Command_Data__Text_Replace&)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(text_undo_record  , const Command_Data__Text_Undo_Record&)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(new_node          , const Command_Data&)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(selection_change  , const Array<View>& new_selection)
 }
 
 

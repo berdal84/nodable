@@ -178,7 +178,7 @@ void command_manager_AddUndoHandler(Text_Editor& editor, Text_Editor::UndoRecord
 
     if ( manager->push_text_editor_AddUndoRecord )
     {
-	    Command cmd = command_text_undo_record({ undo_record, &editor});
+	    Command cmd = new_command_text_undo_record({ undo_record, &editor});
         command_manager_push_command(cmd, true);
     }
 }

@@ -949,7 +949,7 @@ void ndbl::_graphview_select_scope(Graph_View* graphview, Scope_View* scopeview)
     }
 
     // 2) Replace selection
-    Command cmd = command_selection_change(new_selection.items);
+    Command cmd = new_command_selection_change(new_selection.items);
     command_manager_push_command(cmd);
 }
 

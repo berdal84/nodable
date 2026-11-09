@@ -353,20 +353,8 @@ void app_update()
             {
                 auto tail = static_cast<Node_Slot*>(event.data1);
                 auto head = static_cast<Node_Slot*>(event.data2);
-                NDBL_ASSERT(head != tail);
-                if ( tail->order() == Node_Slot::Flag_ORDER_2ND )
-                {
-                    if ( head->order() == Node_Slot::Flag_ORDER_2ND )
-                    {
-                        NDBL_LOG(Verbosity_Error, "Nodable", "Unable to connect incompatible edges\n");
-                        break; // but if it still the case, that's because edges are incompatible
-                    }
-                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Nodable", "Swapping edges to try to connect them\n");
-                    std::swap(tail, head);
-                }
-                Command cmd = command_connect({tail, head});
+                Command cmd = new_command_connect({tail, head});
                 command_manager_push_command(cmd);
-
                 break;
             }
 
@@ -374,7 +362,7 @@ void app_update()
             {
                 auto tail = static_cast<Node_Slot*>(event.data1);
                 auto head = static_cast<Node_Slot*>(event.data2);
-                Command cmd = command_disconnect({tail, head});
+                Command cmd = new_command_disconnect({tail, head});
                 command_manager_push_command(cmd);
                 break;
             }
@@ -386,7 +374,7 @@ void app_update()
                 command_manager_begin_transaction();
                 for(Node_Slot* adjacent_slot : slot->adjacent )
                 {
-                    Command disconnect_cmd = command_disconnect({slot, adjacent_slot});
+                    Command disconnect_cmd = new_command_disconnect({slot, adjacent_slot});
                     command_manager_push_command( disconnect_cmd );
                 }
                 command_manager_end_transaction();
@@ -400,7 +388,7 @@ void app_update()
                 auto event_data = static_cast<Event_Data__Create_Node*>(event.data1);
 
                 // 1) Create Node
-                Command cmd_new_node = command_new_node({ &event_data->node_state });
+                Command cmd_new_node = new_command_new_node({ &event_data->node_state });
                 command_manager_push_command(cmd_new_node);                        
                 Node* new_node = graph_get_latest_created_node(app->current_file->graph);
 
@@ -409,7 +397,8 @@ void app_update()
                 if ( new_node->view )
                 {
                     Inlined_Array<View, 1> views = { new_node->view };
-                    command_selection_change(views);
+                    Command cmd_selection_change = new_command_selection_change(views);
+                    // command_manager_push_command(cmd_selection_change); // <--- Note: why this command is not grouped with the new_node command?
                 }
 
                 // 3) Set Node_View position
@@ -432,7 +421,7 @@ void app_update()
                         std::swap( out, in );
                     }
 
-                    Command cmd_connect = command_connect({ out, in});
+                    Command cmd_connect = new_command_connect({ out, in});
                     command_manager_push_command(cmd_connect);
 
                     // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
