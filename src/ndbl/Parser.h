@@ -84,14 +84,13 @@ namespace ndbl
         bdc::Resizable_Array<Node_Slot*>    flow_out         = {};
         u32_t                               cursor           = 0; //............... current token index
         Token                               global_token     = {}; //.............. prefix/suffix that can't be attached to a Token.
-        bdc::Resizable_Array<Token>         tokens           = {}; //.............. contains the strict minimum (extra tokens are prefix/suffixes)
-        bdc::Resizable_Array<Token>         pristine_tokens  = {}; //.............. includes spaces, line returns, etc.
-        bdc::Resizable_Array<size_t>        transaction      = {}; //.............. transaction start indexes
+        bdc::Resizable_Array<Token>         tokens           = {}; //.............. intermediate result from the tokenize() procedure.
+        bdc::Resizable_Array<size_t>        transaction      = {}; //.............. transaction start indexes.
     };
 
     void                            parser_init(Parser_Context&, Graph* /* out */ = nullptr, bdc::String /* in */ = "");
     void                            parser_deinit(Parser_Context&);
-    void                            parser_reset(Parser_Context&, Graph* /* out */, bdc::String /* in */);
+    void                            parser_reset(Parser_Context&, Graph* = nullptr /* out */, bdc::String = "" /* in */);
     bool                            parser_tokenize(Parser_Context&);
     bool                            parser_can_eat(const Parser_Context&, size_t token_count = 1);
     Token                           parser_eat(Parser_Context&); // Return the next token and increment cursor

@@ -83,7 +83,7 @@ namespace bdc
             
         Resizable_Array(): allocator(bdc::allocator) {}
         Resizable_Array(Allocator* _allocator): allocator(_allocator) {}
-        Resizable_Array(const Resizable_Array& ): allocator(bdc::allocator) {}
+        Resizable_Array(const Resizable_Array& ) = default;
         ~Resizable_Array() = default;
 
         inline operator Array<Elem_T>() const               { return { size, data }; }

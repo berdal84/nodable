@@ -5,6 +5,7 @@
 
 #include "bdc/String.hpp"
 #include "bdc/String_Builder.hpp"
+#include "bdc/MACROS.hpp"
 #include "bdc/Types.hpp"
 #include "Asserts.h"
 #include "Constants.h"
@@ -245,10 +246,8 @@ void parser_deinit(Parser_Context& ctx)
   // array_release(ctx.in_text); in_text is not owned
   // graph_deinit(ctx.out_graph); out_graph is not owned
   
-  for(auto& token : ctx.tokens)          token_deinit(token);
-  for(auto& token : ctx.pristine_tokens) token_deinit(token);
+  for(auto& token : ctx.tokens) token_deinit(token);
 
-  array_release(ctx.pristine_tokens);
   array_release(ctx.tokens);
   array_release(ctx.transaction);
 }
@@ -258,12 +257,10 @@ void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
     ctx.in_text   = in_text; // in_text is not owned
     ctx.out_graph = out_graph; // out_graph is not owned
 
-    for(auto& t : ctx.pristine_tokens) token_deinit(t);
-    for(auto& t : ctx.tokens)          token_deinit(t);
+    for(auto& t : ctx.tokens) token_deinit(t);
     token_deinit(ctx.global_token); // just in case, for now this one is a view.
 
     array_clear(ctx.tokens);
-    array_clear(ctx.pristine_tokens);
     array_clear(ctx.transaction);
 
     ctx.cursor = 0;
@@ -294,16 +291,18 @@ bool parse_graph(Parser_Context& ctx)
 
     size_t ignored_chars_count = 0;
     
-    ctx.pristine_tokens = ctx.tokens;
-    
-    ctx.tokens = {};
+    NDBL_ASSERT(ctx.in_text.data != nullptr);
 
-    for(u32_t i = 0; i < ctx.pristine_tokens.size; ++i)
+    // Reserve space for a new clean token array:
+    Resizable_Array<Token> new_tokens{};
+    array_ensure_has_capacity(new_tokens, ctx.tokens.size); // 1 alloc, I choose the worse case scenario
+
+    for(u32_t i = 0; i < ctx.tokens.size; ++i)
     {
-        Token token = ctx.pristine_tokens[i];
+        Token token_copy = ctx.tokens[i];
 
         // If the token is not important in terms of semantic, we'll put in as prefix/suffix on a an other Token.
-        switch(token.type)
+        switch(token_copy.type)
         {
             case Token_Type_space:
             case Token_Type_tab:
@@ -311,29 +310,29 @@ bool parse_graph(Parser_Context& ctx)
             case Token_Type_comment:
             case Token_Type_multiline_comment:
             {
-                if ( ctx.tokens.size == 0 )
+                if ( new_tokens.size == 0 )
                 {
-                    token_ltrim_word( ctx.global_token, token_size(token) );
+                    token_ltrim_word( ctx.global_token, token_size(token_copy) );
                     continue;
                 }
 
-                ignored_chars_count += token_size(token);
+                ignored_chars_count += token_size(token_copy);
                 continue;
             }
         }
 
-        if ( ctx.tokens.size > 0 && ignored_chars_count > 0 )
+        if ( new_tokens.size > 0 && ignored_chars_count > 0 )
         {
-            Token& previous_token = array_back(ctx.tokens);
+            Token& previous_token = array_back(new_tokens);
             switch (previous_token.type)
             {
                 case Token_Type_identifier:        // identifiers must stay clean because they are reused
                 case Token_Type_parenthesis_open:  // ")" are lost when creating AST
                 case Token_Type_parenthesis_close: // "("
                 {
-                    if ( token.type )
+                    if ( token_copy.type )
                     {
-                        token_lextend_prefix(token, ignored_chars_count);
+                        token_lextend_prefix(token_copy, ignored_chars_count);
                     }
                     break;
                 }
@@ -347,8 +346,8 @@ bool parse_graph(Parser_Context& ctx)
             ignored_chars_count = 0;
         }
 
-        array_append(ctx.tokens, token);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4u) \"%s\" \n", i, token_view(token).c_str() );
+        array_append(new_tokens, token_copy);
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4u) \"%s\" \n", i, token_view(token_copy).c_str() );
     }
 
     // Append remaining ignored chars to the ribbon's suffix
@@ -359,6 +358,18 @@ bool parse_graph(Parser_Context& ctx)
     }
 
     NDBL_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Token_Ribbon optimized.\n%s\n", parser_to_string(ctx).c_str() );
+
+    // At this stage, ctx.tokens shoulw only include tokens that are pure views
+    // but just in case, we check this.
+    // It case asserts fail, I should find where I do allocate memory for the Token's buffer,
+    // and determine if this worth it.
+    // I see today no reason for it.
+    for(auto& token : ctx.tokens)
+    {
+        NDBL_ASSERT(token.owns_data == false, "No token should own their memory at this stage!");
+    }
+    array_release(ctx.tokens);
+    ctx.tokens = new_tokens;
 
     //
     // Build the graph
@@ -950,12 +961,13 @@ bool parser_tokenize(Parser_Context& ctx)
         return true;
     }
 
+    NDBL_ASSERT(ctx.tokens.size == 0, "You should have cleared it");
+
     bdc::String remainder = ctx.in_text;
-    size_t ignored_chars_count = 0;
 
     while ( !remainder.empty() )
     {
-        Token  new_token = parse_token( ctx,  remainder );
+        Token new_token = parse_token( ctx,  remainder );
 
         if ( new_token.type == Token_Type_NULL )
         {

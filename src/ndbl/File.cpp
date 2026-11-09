@@ -137,6 +137,7 @@ void file_parse_text(File* file, bool isolation_on)
 {
     // Parse source code
     String text = string_copy( fileview_get_text(&file->view, isolation_on ) );
+
     parser_reset(file->parser, file->graph, text);
     parser_tokenize(file->parser);
     parse_graph(file->parser);
