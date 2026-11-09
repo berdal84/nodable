@@ -101,6 +101,11 @@ namespace ndbl
         Command_Flags_TRANSACTION_END   = 1 << 1
     };
 
+    void        command_release(Command*);
+    void        command_do(Command*);
+    void        command_redo(Command*);
+    void        command_undo(Command*);
+
     struct Command
     {
         typedef void(Contextual_Procedure_Type)(Command*);
@@ -124,10 +129,7 @@ namespace ndbl
         Procedure_Type*             proc_release = nullptr;
     };
 
-    void        command_release(Command*);
-    void        command_do(Command*);
-    void        command_redo(Command*);
-    void        command_undo(Command*);
+
 
     COMMAND_DECLARE_WITH_ARGS(connect           , Command_Data__Link)
     COMMAND_DECLARE_WITH_ARGS(disconnect        , Command_Data__Link)
