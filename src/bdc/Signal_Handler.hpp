@@ -3,8 +3,12 @@
 #include "Stacktrace.hpp"
 #include <csignal>
 
+//
+// Add this macro at the beginning of your main()
+// Any signal will be caught and a stacktrace will be printed out before the program crashes/abort/exit...
+//
 #define BDC_INSTALL_SIGNAL_HANDLER() \
-static bdc::Signal_Handler_Initializer bdc_signal_handler_initializer{ bdc::signal_handler }
+bdc::install_signal_handler( bdc::signal_handler )
 
 namespace bdc
 {
@@ -40,27 +44,24 @@ namespace bdc
         raise(sig);
     }
 
-    struct Signal_Handler_Initializer
+    static void install_signal_handler(auto _signal_handler)
     {
-        constexpr Signal_Handler_Initializer(auto _signal_handler)
-        {
-        #ifdef _WIN32
-            signal(SIGSEGV, _signal_handler);
-            signal(SIGFPE,  _signal_handler);
-            signal(SIGABRT, _signal_handler);
-        #else
-            struct sigaction sa{};
-            sa.sa_handler = _signal_handler;
-            sigemptyset(&sa.sa_mask);
-            sa.sa_flags = 0;
-            sigaction(SIGSEGV, &sa, nullptr);
-            sigaction(SIGFPE,  &sa, nullptr);
-            sigaction(SIGILL,  &sa, nullptr);
-            sigaction(SIGABRT, &sa, nullptr);
-            sigaction(SIGBUS,  &sa, nullptr);
-            sigaction(SIGTERM, &sa, nullptr);
-        #endif
-        }
-    };
+    #ifdef _WIN32
+        signal(SIGSEGV, _signal_handler);
+        signal(SIGFPE,  _signal_handler);
+        signal(SIGABRT, _signal_handler);
+    #else
+        struct sigaction sa{};
+        sa.sa_handler = _signal_handler;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = 0;
+        sigaction(SIGSEGV, &sa, nullptr);
+        sigaction(SIGFPE,  &sa, nullptr);
+        sigaction(SIGILL,  &sa, nullptr);
+        sigaction(SIGABRT, &sa, nullptr);
+        sigaction(SIGBUS,  &sa, nullptr);
+        sigaction(SIGTERM, &sa, nullptr);
+    #endif
+    }
 
 } // namespace bdc
