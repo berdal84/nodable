@@ -24,32 +24,36 @@ namespace ndbl
     {
         Event_Type_NULL = 0,
 
-        // basic events (no data)
-        Event_Type_FILE_SAVE,
-        Event_Type_FILE_SAVE_AS,
-        Event_Type_FILE_NEW,
-        Event_Type_FILE_CLOSE,
-        Event_Type_FILE_BROWSE,
-        Event_Type_FILE_OPENED,
-        Event_Type_UNDO,
-        Event_Type_REDO,
-        Event_Type_REQUEST_EXIT,
-        Event_Type_TOGGLE_HELP,
+        // file-related event types
+        Event_Type_FILE_SAVE                    = 1,
+        Event_Type_FILE_SAVE_AS                 = 2,
+        Event_Type_FILE_NEW                     = 3,
+        Event_Type_FILE_CLOSE                   = 4,
+        Event_Type_FILE_BROWSE                  = 5,
+        Event_Type_FILE_OPENED                  = 6,
 
-        // nodable specifics
-        Event_Type_RESET_LAYOUT,
-        Event_Type_DELETE_ALL_LINKS,
-        Event_Type_DELETE_LINK,
-        Event_Type_DELETE,
-        Event_Type_MOVE,
-        Event_Type_NEW_NODE,
-        Event_Type_FRAME_SELECTION,
-        Event_Type_RESET_GRAPH_VIEW,
-        Event_Type_SELECT_NEXT,
-        Event_Type_SELECTION_CHANGE,
-        Event_Type_SLOT_DROPPED_ONTO_ANOTHER,
-        Event_Type_TOGGLE_FOLDING,
-        Event_Type_TOGGLE_ISOLATION_FLAGS,
+        // history-related events
+        Event_Type_UNDO                         = 100,
+        Event_Type_REDO                         = 101,                        
+
+        // common events
+        Event_Type_REQUEST_EXIT                 = 200,
+        Event_Type_TOGGLE_HELP                  = 201,
+        
+        // nodable-specific events
+        Event_Type_RESET_LAYOUT                 = 300, 
+        Event_Type_DELETE_ALL_LINKS             = 301,
+        Event_Type_DELETE_LINK                  = 302,
+        Event_Type_DELETE                       = 303,
+        Event_Type_MOVE                         = 304,
+        Event_Type_NEW_NODE                     = 305,
+        Event_Type_FRAME_SELECTION              = 306,
+        Event_Type_RESET_GRAPH_VIEW             = 307,
+        Event_Type_SELECT_NEXT                  = 308,
+        Event_Type_SELECTION_CHANGE             = 309,
+        Event_Type_SLOT_DROPPED_ONTO_ANOTHER    = 310,
+        Event_Type_TOGGLE_FOLDING               = 311,
+        Event_Type_TOGGLE_ISOLATION_FLAGS       = 312,
     };
 
     struct Event_Data__Window
