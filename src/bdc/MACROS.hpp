@@ -22,7 +22,7 @@
     #define BDC_ASSERT(expression, ... ) \
         if( !(expression) ) \
         { \
-            printf("BDC_ASSERT( %s " __VA_OPT__(", \"" __VA_ARGS__ "\" ) failed.\n\n"), #expression ); \
+            printf("BDC_ASSERT( %s " __VA_OPT__(", \"" __VA_ARGS__ "\"") ") failed at " __FILE__ ":%i\n\n", #expression, __LINE__ ); \
             std::cout << std::flush; \
             std::abort(); \
         }
