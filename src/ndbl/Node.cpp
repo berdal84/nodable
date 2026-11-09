@@ -543,22 +543,7 @@ void node_init_as_invokable(Node* node, const Type_Descriptor* function_desc, No
     array_resize( node->component.invokable.argument_slots, function_desc->function.args.size);
     array_resize( node->component.invokable.argument_props, function_desc->function.args.size);
 
-    switch ( node->type )
-    {
-        case Node_Type_OPERATOR:
-            node_set_name(node, function_desc->name);
-            break;
-        case Node_Type_FUNCTION:
-        {
-            const String& id   = function_desc->name;
-            String label       = id; // We add dynamically the brackets (see Node_View)
-            String short_label = string_printf("%.2s..", id.c_str());
-            node_set_name(node, label);
-            break;
-        }
-        default:
-            NDBL_ASSERT(false, "Type not allowed");
-    }
+    node_set_name(node, function_desc->name);
 
     // Create a result/value
     property_set_type(node->value, function_desc->function.return_type );
