@@ -4,29 +4,27 @@
 namespace ndbl
 {
 
-static Log_State* g_log = nullptr;
+static Log_State g_log{};
 
 void log_init()
 {
-    NDBL_ASSERT(g_log == nullptr, "log_init() has been called twice?");
-    g_log = memory_new<Log_State>();
+    NDBL_ASSERT(!g_log.initialized, "log_init() has been called twice?");
+    g_log = { .initialized = true };
 }
 
 void log_shutdown()
 {
-    NDBL_ASSERT(g_log != nullptr, "log_shutdown() has been called twice?");
-    for(auto& each : g_log->ring_buffer)
+    NDBL_ASSERT(g_log.initialized, "log_shutdown() has been called twice?");
+    for(auto& each : g_log.ring_buffer)
     {
         string_release(each.text);
     }
-    memory_free(g_log);
-    g_log = nullptr;
+    g_log = {};
 }
 
 Log_State& log_manager()
 {
-    NDBL_ASSERT(g_log != nullptr, "Did you forgot to call log_init() ?");
-    return *g_log;
+    return g_log;
 }
 
 void log_set_verbosity(const bdc::String& category, Verbosity level)

@@ -95,6 +95,7 @@ namespace ndbl
 
     struct Log_State
     {
+        bool                             initialized            = false;
         Verbosity                        verbosity              = NDBL_LOG_VERBOSITY_DEFAULT;
         Hash_Map<bdc::String, Verbosity> verbosity_by_category  = {};
         static constexpr u32_t           ring_buffer_size       = 1024*16; // max line count that can be hold in memory
@@ -119,8 +120,6 @@ namespace ndbl
         {
             return;
         }
-
-        Log_State& state = log_manager();
 
         struct VerbosityInfo
         {
@@ -149,14 +148,18 @@ namespace ndbl
         msg.text = string_builder_build_string(sb);
 
         // print to stdout
-        printf("%s%s%s",
+        std::print("{}{}{}",
             verbosity_info[verbosity].color,
             msg.text.c_str(),
             NDBL_COLOR_DEFAULT);
 
-        // store in message ring and advance cursor
-        string_release(state.ring_buffer[state.ring_buffer_cursor].text); // release old message
-        state.ring_buffer[state.ring_buffer_cursor] = msg;
-        state.ring_buffer_cursor = (state.ring_buffer_cursor+1) % state.ring_buffer_size;
+        Log_State& state = log_manager();
+        if( state.initialized ) // when using log API while log manager is not initialized, we might have this false.
+        {
+            // store in message ring and advance cursor
+            string_release(state.ring_buffer[state.ring_buffer_cursor].text); // release old message
+            state.ring_buffer[state.ring_buffer_cursor] = msg;
+            state.ring_buffer_cursor = (state.ring_buffer_cursor+1) % state.ring_buffer_size;
+        }
     }
 }

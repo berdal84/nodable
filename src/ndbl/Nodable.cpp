@@ -122,7 +122,23 @@ void app_shutdown()
     reflection_shutdown();
     NDBL_LOG(Verbosity_Diagnostic, "Nodable", "_handle_deinit " NDBL_OK "\n");
     
-    log_shutdown();   
+    log_shutdown(); // After that point, we can still use NDBL_LOG(), however messages won't be stored in memory.  
+
+    #ifdef BDC_DEBUG_ALLOCATORS
+
+        bdc::Memory_Manager_Report report;
+        memory_manager_generate_report(&report);
+        if( report.has_leaked )
+        {
+            NDBL_LOG( NDBL_WARNING, "Nodable.cpp", "Memory leaks detected. Printing report ...\n"); 
+            memory_manager_report_print(&report, { .asserts_no_leaks = true });
+        }
+        else
+        {
+            NDBL_LOG( NDBL_MESSAGE, "Nodable.cpp", "No memory leaks detected\n");
+        }
+
+    #endif
 
     memory_manager_shutdown(); // must be last
 }
