@@ -451,7 +451,8 @@ void app_update()
 
             default:
             {
-                NDBL_UNREACHABLE("Unexpected Event_Type");
+                NDBL_DEBUG_LOG( NDBL_WARNING, "Nodable.cpp","Event ignored (type= %u)\n", event.type );
+                break;
             }
         }
     }

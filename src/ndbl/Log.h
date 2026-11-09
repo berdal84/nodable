@@ -30,10 +30,10 @@
 #define NDBL_KO   NDBL_COLOR_BOLDRED "[KO]" NDBL_COLOR_DEFAULT // red   colored "[KO]" string.
 #define NDBL_OK NDBL_COLOR_BOLDGREEN "[OK]" NDBL_COLOR_DEFAULT // green colored "[OK]" string.
 
-#define NDBL_LOG(...) log( __VA_ARGS__ )
+#define NDBL_LOG(verbosity, category, ...) log( verbosity, category, __VA_ARGS__ )
 
 #ifdef NDBL_DEBUG
-#   define NDBL_DEBUG_LOG(...)         NDBL_LOG( __VA_ARGS__ )
+#   define NDBL_DEBUG_LOG(verbosity, category, ...) NDBL_LOG( verbosity, category, __VA_ARGS__ )
 #   define NDBL_LOG_VERBOSITY_DEFAULT  Verbosity_Diagnostic
 #else
 #   define NDBL_DEBUG_LOG(...)         /* NDBL_DEBUG_LOG disabled when NDBL_DEBUG is false */
