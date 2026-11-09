@@ -2,7 +2,9 @@
 
 // since our tests are testing a fatal function, we want to disable this behavior to actually check whether it would be fatal without actually crashing the program
 #define BDC_TEMP_ALLOCATOR_BUFFER_AQUIRE_FAIL_IS_NOT_FATAL
-#define BDC_ENABLE_LOGS
+#ifndef BDC_ENABLE_LOGS
+    #define BDC_ENABLE_LOGS
+#endif
 #define BDC_DEBUG_ALLOCATORS
 
 #include "MACROS.hpp"
