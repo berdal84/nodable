@@ -106,6 +106,11 @@ def base_target(name, type)
             "NDBL_DESKTOP"
         ]
 
+        target.compiler_flags |= [
+            "-g", # required by <stacktrace> to print a human readable stack, generates a larger binary (~ +50%)
+                  # by default, build-tools.rb does not set this flag in release. But we always want a nice stack when the program crashes. 
+        ]
+
         if LINUX
 
             target.linker_flags |= [
