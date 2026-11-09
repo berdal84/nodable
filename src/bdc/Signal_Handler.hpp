@@ -29,11 +29,7 @@ namespace bdc
         }
     }
 
-    #ifdef _WIN32
-    static void signal_handler(int sig, int) // MSVC expects int (*)(int, int), but void(*)(int, int) should be accepted.
-    #else
     static void signal_handler(int sig)
-    #endif
     {
         BDC_LOG_STACKTRACE();
         BDC_LOG("Caught signal {} ({}). For more info see stacktrace above.\n\n", my_strsignal(sig), sig);
