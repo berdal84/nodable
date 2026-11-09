@@ -134,6 +134,7 @@ end
     :build_dir,
     :platform,
     :headless_tests,
+    :valgrind,
     keyword_init: true
 ).new(
                     # We read from environment, it is sometimes more convenient to define them once rather than setting flags multiple times for each command.
@@ -142,6 +143,7 @@ end
     config:         _get_environment_variable_or('CONFIG'           , default=CONFIG_DEFAULT    , allowed_values=BUILD_CONFIGS ),
     platform:       _get_environment_variable_or('PLATFORM'         , default=PLATFORM_DEFAULT  , allowed_values=PLATFORMS),
     headless_tests: _get_environment_variable_or('HEADLESS_TESTS'   , default=false),
+    valgrind:       _get_environment_variable_or('VALGRIND'         , default=false),
 )
 
 
@@ -163,6 +165,10 @@ end
 
 @OPTIONS_PARSER.on("--headless-tests", "Skip tests requiring a GUI") {
     @OPTIONS.headless_tests = true
+}
+
+@OPTIONS_PARSER.on("--valgrind", "Run executable with valgrind (memcheck)") {
+    @OPTIONS.valgrind = true
 }
 
 # Extract flags (after `--`)
@@ -746,20 +752,26 @@ def target_define_tasks(target)
             log(target, "Running ...")
             case PLATFORM
             when PLATFORM_WEB
+
+                if @OPTIONS.valgrind
+                    echo "--valgrind is not compatible with PLATFORM_WEB, ignoring."
+                end
+
                 system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{target.binary}", exception: true)
             else
-                system(target.binary, exception: true)
-            end
-            log(target, "Running DONE")
-        end
 
-        desc "Run '#{target.name}' (with valgrind)"
-        task :valgrind => :build do
-            if PLATFORM == PLATFORM_WEB
-                raise "Unable to run valgrind on platform '#{PLATFORM}'. Rerun with PLATFORM=#{PLATFORM_WINDOWS}|#{PLATFORM_LINUX}" 
+                command = target.binary
+
+                if @OPTIONS.valgrind
+                    if not LINUX
+                        echo "--valgrind is only supported with #{PLATFORM_LINUX} platform."
+                    else
+                        command = "valgrind --leak-check=full --track-origins=yes #{command}"
+                    end
+                end 
+
+                system(command, exception: true)               
             end
-            log(target, "Running ...")
-            system("valgrind --leak-check=full --track-origins=yes #{target.binary}", exception: true)
             log(target, "Running DONE")
         end
 
