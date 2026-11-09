@@ -10,7 +10,7 @@
         BDC_LOG_STACKTRACE(); \
         BDC_LOG_DEBUG( fmt " (see stacktrace above).\n\n", __VA_ARGS__ );
 #else
-    #define BDC_LOG_STACKTRACE_WITH_REASON( fmt, ... ) /* BDC_LOG_STACKTRACE_WITH_REASON is disabled */
+    #define BDC_LOG_DEBUG_STACKTRACE_WITH_REASON( fmt, ... ) /* BDC_LOG_DEBUG_STACKTRACE_WITH_REASON is disabled */
 #endif // BDC_ENABLE_LOGS
 
 #define BDC_DEFAULT_TEMP_BUFFER_SIZE 5 * 1024 * 1024

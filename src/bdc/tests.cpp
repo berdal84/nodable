@@ -2,10 +2,14 @@
 
 // since our tests are testing a fatal function, we want to disable this behavior to actually check whether it would be fatal without actually crashing the program
 #define BDC_TEMP_ALLOCATOR_BUFFER_AQUIRE_FAIL_IS_NOT_FATAL
+
 #ifndef BDC_ENABLE_LOGS
     #define BDC_ENABLE_LOGS
 #endif
-#define BDC_DEBUG_ALLOCATORS
+
+#ifndef BDC_DEBUG_ALLOCATORS
+    #define BDC_DEBUG_ALLOCATORS
+#endif
 
 #include "MACROS.hpp"
 #include "Allocators.hpp"
@@ -71,7 +75,7 @@ int main(int argc, char *argv[])
 
             Memory_Manager_Report report{};
             memory_manager_generate_report(&report);
-            memory_manager_report_print(&report, false);
+            memory_manager_report_print(&report, { .asserts_no_leaks = false });
 
             memory_manager_shutdown();
 
@@ -88,7 +92,7 @@ int main(int argc, char *argv[])
 
             Memory_Manager_Report report{};
             memory_manager_generate_report(&report);
-            memory_manager_report_print(&report, false);
+            memory_manager_report_print(&report, { .asserts_no_leaks = false });
             
             memory_manager_shutdown();
 
@@ -104,7 +108,7 @@ int main(int argc, char *argv[])
 
             Memory_Manager_Report report{};
             memory_manager_generate_report(&report);
-            memory_manager_report_print(&report, false);
+            memory_manager_report_print(&report, { .asserts_no_leaks = false });
 
             memory_manager_shutdown();
 
@@ -127,7 +131,7 @@ int main(int argc, char *argv[])
 
             Memory_Manager_Report report{};
             memory_manager_generate_report(&report);
-            memory_manager_report_print(&report, false);
+            memory_manager_report_print(&report, { .asserts_no_leaks = false });
 
             memory_manager_shutdown();
 

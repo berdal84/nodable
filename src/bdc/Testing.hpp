@@ -1,8 +1,6 @@
 #pragma once
 
-#include <stdexcept>
-#include <exception>
-#include <cstddef>
+#include "MACROS.hpp" // for BDC_LOG, etc.
 
 static const char*  g_suite_name = "invalid";
 static size_t       g_suite_test_failures;
