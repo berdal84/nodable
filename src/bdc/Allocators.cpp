@@ -68,7 +68,7 @@ namespace bdc
         size_t size_used = (size_t)temp_allocator_buffer.head - (size_t)temp_allocator_buffer.data;
 
         size_t size_available = temp_allocator_buffer.size - size_used;
-        #ifndef BDC_TEMP_ALLOCATOR_BUFFER_AQUIRE_FAIL_IS_ALLOWED
+        #ifndef BDC_TEMP_ALLOCATOR_BUFFER_AQUIRE_FAIL_IS_NOT_FATAL
             BDC_ASSERT( allocation_size <= size_available, "temp_allocator_buffer is full!");
         #else
             if( allocation_size > size_available )
