@@ -1,10 +1,11 @@
 #include <cstdio>
 
-#define BDC_DEBUG_ALLOCATORS
 // since our tests are testing a fatal function, we want to disable this behavior to actually check whether it would be fatal without actually crashing the program
 #define BDC_TEMP_ALLOCATOR_BUFFER_AQUIRE_FAIL_IS_NOT_FATAL
+#define BDC_ENABLE_LOGS
+#define BDC_DEBUG_ALLOCATORS
 
-// #define BDC_ENABLE_LOGS
+#include "MACROS.hpp"
 #include "Allocators.hpp"
 #include "Array.hpp"
 #include "String.hpp"
@@ -24,16 +25,16 @@ using namespace bdc;
 template<Is_Hash_Map Hash_Map_Type>
 void hashmap_print(const Hash_Map_Type& hashmap)
 {
-    printf("Printing Hash_Map entries (size = %u, live_size = %u, capacity = %u):\n",
+    BDC_LOG("Printing Hash_Map entries (size = %u, live_size = %u, capacity = %u):\n",
            hashmap.size, hashmap.live_size, hashmap.capacity );
 
     if( hashmap.size == 0 )
-        printf("    (empty)\n");
+        BDC_LOG("    (empty)\n");
 
     FOR_EACH_HASHMAP_INDEXED_ENTRY(index, entry, hashmap)
-        printf("    #%i | hash: %#010x | key: \"%s\" | value: \"%s\" \n", index, entry.hash, entry.key.c_str(), entry.value.c_str() );
+        BDC_LOG("    #%i | hash: %#010x | key: \"%s\" | value: \"%s\" \n", index, entry.hash, entry.key.c_str(), entry.value.c_str() );
 
-    printf(" --- \n");
+    BDC_LOG(" --- \n");
 }
 
 
@@ -462,7 +463,7 @@ int main(int argc, char *argv[])
             string_builder_append(sb, "Bonjour");
             string_builder_append(sb,  "je m'appelle René.");
             String str = string_builder_build_tstring(sb, ", " ); // uses temp_allocator() by default.
-            printf("\"%s\"\n", str.c_str());
+            BDC_LOG("\"%s\"\n", str.c_str());
             TEST_EXPECTS( str == "Bonjour, je m'appelle René." );
 
             Memory_Manager_Report* report = memory_manager_generate_report();
@@ -480,7 +481,7 @@ int main(int argc, char *argv[])
             string_builder_appendf(sb, "%s", "Bonjour");
             string_builder_appendf(sb, "%s", "je m'appelle Josiane.");
             String str = string_builder_build_tstring(sb, ", " ); // uses temp_allocator() by default.
-            printf("\"%s\"\n", str.c_str());
+            BDC_LOG("\"%s\"\n", str.c_str());
             TEST_EXPECTS( str == "Bonjour, je m'appelle Josiane." );
 
             Memory_Manager_Report* report = memory_manager_generate_report();

@@ -147,7 +147,7 @@ namespace bdc
                 header->owners -= 1;
                 if( header->owners < 0 )
                 {
-                    BDC_LOG_STACKTRACE_WITH_REASON("Potential double free at %p\n", ptr);
+                    BDC_LOG_DEBUG_STACKTRACE_WITH_REASON("Potential double free at {}\n", ptr);
                 }
             #endif
         }
@@ -246,7 +246,7 @@ namespace bdc
         };
 
         // Allocate temporary buffer
-        BDC_LOG_DEBUG(" -- Allocating %zu bytes for the temp_allocator_buffer ...\n", temp_buffer_size);
+        BDC_LOG_DEBUG(" -- Allocating {} bytes for the temp_allocator_buffer ...\n", temp_buffer_size);
         char* data = reinterpret_cast<char*>(std::malloc(temp_buffer_size));
         BDC_ASSERT(data);        
         temp_allocator_buffer = {
@@ -276,7 +276,7 @@ namespace bdc
             return report;
         #else
 
-        BDC_LOG_DEBUG(" -- Storing report about %s ...\n", heap_allocator_tracker.allocator->name);
+        BDC_LOG_DEBUG(" -- Storing report about {} ...\n", heap_allocator_tracker.allocator->name);
 
         if( report == nullptr)
         {
@@ -306,7 +306,7 @@ namespace bdc
         }
 
         BDC_LOG_DEBUG(
-            " -- Temporary allocator buffer usage is %zu Byte(s) (total available: %zu Bytes).\n"
+            " -- Temporary allocator buffer usage is {} Byte(s) (total available: {} Bytes).\n"
             " -- Release temporary allocator buffer...\n",
             (size_t)temp_allocator_buffer.head - (size_t)temp_allocator_buffer.data,
             temp_allocator_buffer.size
@@ -323,7 +323,7 @@ namespace bdc
     #endif
     }
 
-    void memory_manager_report_print(Memory_Manager_Report* report, bool asserts_no_leaks)
+    void memory_manager_report_print(Memory_Manager_Report* report, Report_Options options )
     {
         BDC_LOG_DEBUG("allocators_report_print() ...\n");
 
@@ -333,16 +333,16 @@ namespace bdc
             return;
         }
 
-        BDC_LOG_DEBUG(" -- Here is the list of unfreed allocations for %s:\n", report->name);
+        BDC_LOG_DEBUG(" -- Here is the list of unfreed allocations for {}:\n", report->name);
         for(size_t i = 0; i < report->allocations.size; i++)
         {
             Memory_Allocation_Info& alloc_info = report->allocations.data[i];
-            BDC_LOG_DEBUG("    -- %zu Bytes at %p\n", alloc_info.size, alloc_info.data);
+            BDC_LOG_DEBUG("    -- {} Bytes at {}\n", alloc_info.size, alloc_info.data);
         }
         
-        if (asserts_no_leaks)
+        if (options.asserts_no_leaks)
         {
-            BDC_ASSERT(!report->has_leaked && "Memory Leak Found!");
+            BDC_ASSERT(!report->has_leaked, "Memory Leak Found!");
         }
     }
 
@@ -352,20 +352,20 @@ namespace bdc
     {   
         if (ptr == nullptr)
         {
-            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] %s was unable to malloc %lu byte(s)\n", allocator->name, size);
+            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] {} was unable to malloc {} byte(s)\n", allocator->name, size);
             return;
         }
 
         if( find_allocation(ptr) != nullptr )
         {
-            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] warning: %s already has an allocation at %p \n", allocator->name, ptr);
+            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] warning: {} already has an allocation at {} \n", allocator->name, ptr);
         }
 
         auto& info = allocations.emplace_back();
         info.data = ptr;
         info.size = size;
 
-        BDC_LOG_DEBUG("[Memory_Allocation_Tracker] %s malloc %lu byte(s) at %p\n", allocator->name, size, ptr);
+        BDC_LOG_DEBUG("[Memory_Allocation_Tracker] {} malloc {} byte(s) at {}\n", allocator->name, size, ptr);
     }
 
     const Memory_Allocation_Info* Memory_Allocation_Tracker::find_allocation(void* ptr) const
@@ -394,14 +394,14 @@ namespace bdc
         info.data = new_ptr;
         info.size = new_size;
 
-        BDC_LOG_DEBUG("[Memory_Allocation_Tracker] %s realloc %lu byte(s) at %p (previously: %p, %lu byte(s))\n", allocator->name, new_size, new_ptr, old->data, old->size);
+        BDC_LOG_DEBUG("[Memory_Allocation_Tracker] {} realloc {} byte(s) at {} (previously: {}, {} byte(s))\n", allocator->name, new_size, new_ptr, old->data, old->size);
     }
 
     void Memory_Allocation_Tracker::before_free(void* ptr)
     {               
         if( ptr == nullptr )
         {
-            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] %s warning: freeing nullptr will do nothing.\n", allocator->name); 
+            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] {} warning: freeing nullptr will do nothing.\n", allocator->name); 
             return;
         }
 
@@ -412,17 +412,17 @@ namespace bdc
 
         if ( it == allocations.end() )
         {
-            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] %s warning: allocation at %p will be released but: WAS NOT REGISTERED. Will crash.\n", allocator->name, ptr); 
+            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] {} warning: allocation at {} will be released but: WAS NOT REGISTERED. Will crash.\n", allocator->name, ptr); 
             return;
         }
 
-        BDC_LOG_DEBUG("[Memory_Allocation_Tracker] %s released %p (known size: %lu)\n", allocator->name, it->data, it->size);
+        BDC_LOG_DEBUG("[Memory_Allocation_Tracker] {} released {} (known size: {})\n", allocator->name, it->data, it->size);
 
         allocations.erase(it);
 
         if ( allocations.size() == 0 )
         {
-            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] %s's all allocations have been released.\n", allocator->name);
+            BDC_LOG_DEBUG("[Memory_Allocation_Tracker] {}'s all allocations have been released.\n", allocator->name);
         }
     }
     #endif // BDC_DEBUG_ALLOCATORS

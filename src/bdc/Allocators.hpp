@@ -1,17 +1,14 @@
 #pragma once
 #include <cstdlib>
 #include <cstring> // for memset
-
 #include "MACROS.hpp"
-
 #include "Types.hpp"
-#include "Stacktrace.hpp"
 
-#ifdef BDC_ENABLE_LOGS
-    #include <cstdio>     // for std::printf
-    #define BDC_LOG_STACKTRACE_WITH_REASON( fmt, ... ) \
-        std::printf("Printing stacktrace because: " fmt "\n", __VA_ARGS__); \
-        BDC_PRINT_STACKTRACE();
+#ifdef BDC_DEBUG_ALLOCATORS
+    #include "Stacktrace.hpp"
+    #define BDC_LOG_DEBUG_STACKTRACE_WITH_REASON( fmt, ... ) \
+        BDC_LOG_STACKTRACE(); \
+        BDC_LOG_DEBUG( fmt " (see stacktrace above).\n\n", __VA_ARGS__ );
 #else
     #define BDC_LOG_STACKTRACE_WITH_REASON( fmt, ... ) /* BDC_LOG_STACKTRACE_WITH_REASON is disabled */
 #endif // BDC_ENABLE_LOGS
@@ -75,7 +72,13 @@ namespace bdc
     void                                memory_manager_clear_trackers();
     void                                memory_manager_shutdown();
     Memory_Manager_Report*              memory_manager_generate_report(Memory_Manager_Report* report = nullptr);
-    void                                memory_manager_report_print(Memory_Manager_Report* report, bool asserts_no_leaks = true);
+
+    struct Report_Options
+    {
+        bool asserts_no_leaks = true;
+    };
+
+    void                                memory_manager_report_print(Memory_Manager_Report* report, Report_Options = {});
     size_t                              memory_manager_reset_temp_allocator_buffer();
     void                                push_allocator(Allocator*);
     void                                pop_allocator();
@@ -84,20 +87,20 @@ namespace bdc
     {
         void* ptr = _allocator->proc_malloc( size );
         BDC_ASSERT(ptr != nullptr, "proc_malloc was unable to return memory address");
-        BDC_LOG_STACKTRACE_WITH_REASON( "Allocated address %p", ptr );
+        BDC_LOG_DEBUG_STACKTRACE_WITH_REASON( "Allocated address {}", ptr );
         return ptr;
     }
 
     inline void memory_free(void* ptr, Allocator* _allocator = allocator )
     {
-        BDC_LOG_STACKTRACE_WITH_REASON( "Freeing address %p", ptr );
+        BDC_LOG_DEBUG_STACKTRACE_WITH_REASON( "Freeing address {}", ptr );
         return _allocator->proc_free( ptr );
     }
 
     [[nodiscard]] inline void* memory_realloc(void* ptr, size_t size, Allocator* _allocator = allocator )
     {
         BDC_ASSERT(ptr != nullptr, "Cannot reallocate a nullptr!");
-        BDC_LOG_STACKTRACE_WITH_REASON( "Reallocating address %p", ptr );
+        BDC_LOG_DEBUG_STACKTRACE_WITH_REASON( "Reallocating address {}", ptr );
         auto new_ptr = _allocator->proc_realloc(ptr, size);
         BDC_ASSERT(new_ptr != nullptr, "Unable to allocate!");
         return new_ptr;

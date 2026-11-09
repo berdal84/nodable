@@ -31,11 +31,10 @@ namespace bdc
     static void signal_handler(int sig)
     #endif
     {
-        BDC_PRINT_STACKTRACE();
-        std::cout << "Caught signal " << sig << " " << my_strsignal(sig) << ". For more info see stacktrace above."
-                << std::endl << std::endl
-                << std::flush;
-
+        BDC_LOG_STACKTRACE();
+        BDC_LOG("Caught signal {} ({}). For more info see stacktrace above.\n\n", my_strsignal(sig), sig);
+        BDC_LOG_FLUSH();
+        
         // re-raise with defaults
         signal(sig, SIG_DFL);
         raise(sig);

@@ -1,13 +1,34 @@
 #pragma once
 
 #ifdef BDC_ENABLE_LOGS
-    #define BDC_LOG(...) printf(__VA_ARGS__)
-    #define BDC_LOG_DEBUG(...) printf(__VA_ARGS__)
-    #define BDG_LOG_FLUSH() std::cout << std::flush;
+    #include <print>
+    namespace bdc 
+    {
+        struct Static_File
+        {
+            FILE* file;
+
+            Static_File(const char* path)
+            {
+                file = std::fopen(path, "w");
+            }
+
+            ~Static_File()
+            {
+                std::fclose(file);
+            }
+        };
+
+        static Static_File log_output_file{"bdc.logs.txt"};
+    }
+
+    #define BDC_LOG(...)       do { std::print(bdc::log_output_file.file, __VA_ARGS__); std::print(std::cout, __VA_ARGS__); } while (0)
+    #define BDC_LOG_DEBUG(...) do { std::print(bdc::log_output_file.file, __VA_ARGS__); } while (0)
+    #define BDC_LOG_FLUSH()    do { std::fflush(bdc::log_output_file.file); std::cout << std::flush; } while (0)
 #else
     #define BDC_LOG(...)
     #define BDC_LOG_DEBUG(...)
-    #define BDG_LOG_FLUSH()
+    #define BDC_LOG_FLUSH()
 #endif
 
 #pragma once
@@ -18,12 +39,12 @@
 #if BDC_ASSERTIONS_ENABLE
 
     #include <iostream> // for std::flush, std::cout
-
+    
     #define BDC_ASSERT(expression, ... ) \
         if( !(expression) ) \
         { \
-            printf("BDC_ASSERT( %s " __VA_OPT__(", \"" __VA_ARGS__ "\"") ") failed at " __FILE__ ":%i\n\n", #expression, __LINE__ ); \
-            std::cout << std::flush; \
+            BDC_LOG("BDC_ASSERT( {} " __VA_OPT__(", \"" __VA_ARGS__ "\"") ") failed at " __FILE__ ":{}\n\n", #expression, __LINE__ ); \
+            BDC_LOG_FLUSH(); \
             std::abort(); \
         }
 
