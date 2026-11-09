@@ -44,7 +44,6 @@ def base_target(name, type)
         "IMGUI_USER_CONFIG=\\\"ndbl/ImGuiExConfig.h\\\"",
         "NDBL_APP_NAME=\\\"nodable\\\"",
         "NDBL_BUILD_REF=\\\"#{`git describe --tags HEAD`.chomp}-#{CONFIG}\\\"",        
-        "CPPTRACE_STATIC_DEFINE", #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
 
     target.cxx_flags |= [    
