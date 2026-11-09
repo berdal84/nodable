@@ -133,11 +133,18 @@ namespace bdc
         return reinterpret_cast<Type*>( memory_realloc( ptr, sizeof(Type) * elem_count, _allocator ) );
     }
 
-    
     template<typename Type>
-    [[nodiscard]] inline Type* memory_new(Allocator* _allocator = allocator )
+    [[nodiscard]] inline auto* memory_new(Allocator* _new_allocator, auto&&... args )
     {
-        Type* ptr = memory_malloc<Type>( _allocator );
+        Type* ptr = memory_malloc<Type>( _new_allocator );
+        new (ptr) Type(std::forward<decltype(args)>(args)...);
+        return ptr;
+    }
+
+    template<typename Type>
+    [[nodiscard]] inline Type* memory_new(Allocator* _new_allocator = allocator )
+    {
+        Type* ptr = memory_malloc<Type>( _new_allocator );
         new (ptr) Type();
         return ptr;
     }

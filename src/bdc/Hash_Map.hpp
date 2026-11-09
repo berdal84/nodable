@@ -331,7 +331,7 @@ namespace bdc
 
             // Create a new and larger (if needed) Hash_Map to re-hash the current one
             Array<typename T::Entry_Type> old_entries = hashmap.entries;
-            Array<typename T::Entry_Type> new_entries = new_array<typename T::Entry_Type>(new_capacity, hashmap.allocator);
+            Array<typename T::Entry_Type> new_entries = resizable_array<typename T::Entry_Type>(new_capacity, hashmap.allocator);
 
             hashmap.entries   = new_entries;
             hashmap.size      = 0;

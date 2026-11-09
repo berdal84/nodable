@@ -14,7 +14,7 @@
 ndbl::Command command_##command_name(Command_Data_Type)
 
 #define COMMAND_RELEASE( command_name ) \
-void command_group_release(ndbl::Command*)
+void command_##command_name##_release(ndbl::Command*)
 
 #define COMMAND_DO( command_name ) \
 void command_##command_name##_do(ndbl::Command* command)
@@ -77,20 +77,20 @@ namespace ndbl
 
     struct Command_Data__Text_Replace
     {
-        const bdc::String* old_content;
-        const bdc::String* new_content;
+        const bdc::String old_content;
+        const bdc::String new_content;
     };
 
     struct Command_Data__Text_Undo_Record
     {
-        Text_Editor::UndoRecord* undo_record;
-        Text_Editor*             text_editor;
+        Text_Editor::UndoRecord undo_record;
+        Text_Editor*            text_editor;
     };
 
     struct Command_Data__Selection_Change
     {
-        Array<View>* old_selection;
-        Array<View>* new_selection;
+        Array<View> old_selection;
+        Array<View> new_selection;
     };
 
     typedef int Command_Flags;
@@ -118,9 +118,9 @@ namespace ndbl
         union {
             Command_Data                    data;
             Command_Data__Link              link;
-            Command_Data__Text_Replace      text_replace;
-            Command_Data__Text_Undo_Record  text_undo_record;
-            Command_Data__Selection_Change  selection_change;
+            Command_Data__Text_Replace*     text_replace;
+            Command_Data__Text_Undo_Record* text_undo_record;
+            Command_Data__Selection_Change* selection_change;
         };
 
         Contextual_Procedure_Type*  proc_do      = nullptr;
@@ -131,11 +131,11 @@ namespace ndbl
 
 
 
-    COMMAND_DECLARE_WITH_ARGS(connect           , Command_Data__Link)
-    COMMAND_DECLARE_WITH_ARGS(disconnect        , Command_Data__Link)
-    COMMAND_DECLARE_WITH_ARGS(replace_text      , Command_Data__Text_Replace)
-    COMMAND_DECLARE_WITH_ARGS(text_undo_record  , Command_Data__Text_Undo_Record)
-    COMMAND_DECLARE_WITH_ARGS(new_node          , Command_Data)
+    COMMAND_DECLARE_WITH_ARGS(connect           , const Command_Data__Link&)
+    COMMAND_DECLARE_WITH_ARGS(disconnect        , const Command_Data__Link&)
+    COMMAND_DECLARE_WITH_ARGS(replace_text      , const Command_Data__Text_Replace&)
+    COMMAND_DECLARE_WITH_ARGS(text_undo_record  , const Command_Data__Text_Undo_Record&)
+    COMMAND_DECLARE_WITH_ARGS(new_node          , const Command_Data&)
     COMMAND_DECLARE_WITH_ARGS(selection_change  , const Array<View>& new_selection)
 }
 

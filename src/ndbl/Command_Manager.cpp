@@ -178,9 +178,7 @@ void command_manager_AddUndoHandler(Text_Editor& editor, Text_Editor::UndoRecord
 
     if ( manager->push_text_editor_AddUndoRecord )
     {
-        auto* undo_record_copy = bdc::memory_new<Text_Editor::UndoRecord>();
-        *undo_record_copy = undo_record;
-	    Command cmd = command_text_undo_record({ undo_record_copy, &editor});
+	    Command cmd = command_text_undo_record({ undo_record, &editor});
         command_manager_push_command(cmd, true);
     }
 }

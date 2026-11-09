@@ -67,16 +67,6 @@ namespace bdc
         static_assert( N < (u32_t)-1, "array size must fit in u32_t");
     }
 
-    template<typename T>
-    Array<T> new_array(u32_t size, Allocator* _allocator = nullptr)
-    {
-        Resizable_Array<T> result{};
-        result.allocator = _allocator ? _allocator : allocator;
-        array_resize(result, size);
-        return result;
-    }
-
-
     //
     // Resizable_Array<T> is like a Array<T> memory wise, but is aware of its buffer capacity and allocator.
     //
@@ -105,6 +95,13 @@ namespace bdc
         inline const Elem_T* end() const                    { return data + size; }
     };
 
+    template<typename T>
+    Resizable_Array<T> resizable_array(u32_t size, Allocator* _allocator = allocator)
+    {
+        Resizable_Array<T> result{ _allocator };
+        array_resize(result, size);
+        return result;
+    }
 
     //
     // Inlined_Array is like a fixed-capacity Array<T> that is aware of its (fixed-)capacity.
@@ -278,7 +275,7 @@ namespace bdc
     template<typename T>
     T array_copy(const T& arr, Allocator* _allocator = bdc::allocator)
     {
-        T result = new_array<typename T::Elem_T>(arr.size, _allocator);
+        T result = resizable_array<typename T::Elem_T>(arr.size, _allocator);
         std::copy(arr.begin(), arr.end(), result.data);
         return result;
     }
