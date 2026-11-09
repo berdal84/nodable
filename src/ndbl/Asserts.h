@@ -13,7 +13,7 @@
         if( !(expression) ) \
         { \
             BDC_PRINT_STACKTRACE(); \
-            printf("NDBL_ASSERT: Expression '%s' is false. \n." __VA_OPT__(" Reason: " __VA_ARGS__ ), #expression ); \
+            printf("NDBL_ASSERT: Expression '%s' is false" __VA_OPT__(". Reason: " __VA_ARGS__ ) " at %s:%i\n\n.", #expression, __FILE__, __LINE__ ); \
             std::cout << std::flush; \
             assert( false ); \
         }
@@ -28,17 +28,17 @@
     #define NDBL_TODO( message ) \
         do { \
             BDC_PRINT_STACKTRACE(); \
-            printf("NDBL_TODO: %s\n", #message); \
+            printf("NDBL_TODO: %s\n\n", #message); \
             std::cout << std::flush; \
-            assert( false ); \
+            std::abort(); \
         } while(0)
 
     #define NDBL_UNREACHABLE( ... ) \
     do { \
         BDC_PRINT_STACKTRACE(); \
-        printf("NDBL_UNREACHABLE: %s\n", #__VA_ARGS__); \
+        printf("NDBL_UNREACHABLE: %s\n\n", #__VA_ARGS__); \
         std::cout << std::flush; \
-        assert( false ); \
+        std::abort(); \
     } while(0)
 
 #else // NDBL_ASSERTIONS_ENABLE
