@@ -2,7 +2,7 @@
 
 #define BDC_DEBUG_ALLOCATORS
 // since our tests are testing a fatal function, we want to disable this behavior to actually check whether it would be fatal without actually crashing the program
-#define BDC_TEMP_ALLOCATOR_BUFFER_AQUIRE_FAIL_IS_ALLOWED
+#define BDC_TEMP_ALLOCATOR_BUFFER_AQUIRE_FAIL_IS_NOT_FATAL
 
 // #define BDC_ENABLE_LOGS
 #include "Allocators.hpp"
@@ -12,13 +12,12 @@
 #include "String_Hash.hpp"
 #include "Hash_Map.hpp"
 #include "Stacktrace.hpp"
-#include <csignal>
-#include <cstdlib>
+#include "Signal_Handler.hpp"
+#include "Testing.hpp"
 
-// we include *.cpp to compile as a single translation unit
+// we include *.cpp to compile this cpp file as as a single translation unit
 #include "Allocators.cpp"
 //
-#include "Testing.hpp"
 
 using namespace bdc;
 
@@ -37,34 +36,10 @@ void hashmap_print(const Hash_Map_Type& hashmap)
     printf(" --- \n");
 }
 
-static void signal_handler(int sig)
-{
-    BDC_PRINT_STACKTRACE();
-    std::cout << "Fatal signal " << sig << " ('" << strsignal(sig) << "') caught, abording. For more info see stacktrace above."
-              << std::endl << std::endl
-              << std::flush;
-
-    // re-raise with defaults
-    signal(sig, SIG_DFL);
-    raise(sig);
-}
 
 int main(int argc, char *argv[])
 {
-    // sigaction
-    struct sigaction sa{};
-    sa.sa_handler = signal_handler;
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = 0;
-    sigaction(SIGSEGV, &sa, nullptr); /* ISO C99: Invalid access to storage.  */
-    sigaction(SIGFPE,  &sa, nullptr); /* ISO C99: Erroneous arithmetic operation.  */
-    sigaction(SIGILL,  &sa, nullptr); /* ISO C99: Illegal instruction.  */
-    sigaction(SIGABRT, &sa, nullptr); /* ISO C99: Abnormal termination.  */
-    sigaction(SIGBUS,  &sa, nullptr);
-    sigaction(SIGTERM, &sa, nullptr); /* ISO C99: Termination request.  */
-    #ifdef NDBL_LINUX
-    sigaction(SIGKILL, &sa, nullptr); /* POSIX:   Illegal instruction.  */
-    #endif
+    BDC_INSTALL_SIGNAL_HANDLER(); // to catch signals (ex: SIGSEGV, SIGILL, etc.)
 
     TEST_SUITE_BEGIN(Memory_Manager)
     {
