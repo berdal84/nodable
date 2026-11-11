@@ -1,0 +1,15 @@
+prefix=${pcfiledir}/../..
+# sdl pkg-config source file
+
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/../include
+
+Name: sdl2
+Description: Simple DirectMedia Layer is a cross-platform multimedia library designed to provide low level access to audio, keyboard, mouse, joystick, 3D hardware via OpenGL, and 2D video framebuffer.
+Version: 2.32.10
+Conflicts:
+
+Libs: "-L${libdir}" -lSDL2-staticd -lkernel32 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lversion -luuid -ladvapi32 -lsetupapi -lshell32 -ldinput8
+Requires: 
+Cflags: "-I${includedir}" "-I${includedir}/SDL2" 
