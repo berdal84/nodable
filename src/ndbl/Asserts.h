@@ -28,7 +28,7 @@
     #define NDBL_TODO( message ) \
         do { \
             BDC_LOG_STACKTRACE(); \
-            printf("NDBL_TODO: %s\n\n", #message); \
+            printf("NDBL_TODO: %s\n\n", message); \
             std::cout << std::flush; \
             std::abort(); \
         } while(0)
