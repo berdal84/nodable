@@ -81,17 +81,27 @@ bool graph_update(Graph* graph)
 
     // Update and delete nodes as necessary
     // Iterate from the end to the beginning to safely update and delete nodes
-    for(size_t i = graph->nodes.size; i > 0; --i)
+    for(u32_t i = 0; i < graph->nodes.size; ++i)
     {
-        if ( HAS_FLAGS(graph->nodes[i-1].flags, Node_Flag_MARKED_FOR_DELETION) )
+        Node* node = &graph->nodes[i];
+
+        if ( HAS_FLAGS(node->flags, Node_Flag_MARKED_FOR_DELETION) )
         {
             changed |= true;
-            _graph_remove_node(graph, &graph->nodes[i-1]);
-            array_remove_ordered(graph->nodes, i-1);
+            _graph_remove_node(graph, node);
+            NDBL_TODO(
+                "I currently can't move a Node in memory, if we do its address changes, and members pointing to it are unvalidated.\n"
+                "I have to take a decision:\n"
+                "1) Continue to use pointers => never move Node in memory.\n"
+                "2) Use uuid/hash to identify nodes => can move them safely.\n"
+            );
+            array_remove_unordered(graph->nodes, i);
+            continue;
         }
-        else if ( HAS_FLAGS(graph->nodes[i-1].flags, Node_Flag_IS_DIRTY) )
+        
+        if ( HAS_FLAGS(node->flags, Node_Flag_IS_DIRTY) )
         {
-            changed |= node_update(&graph->nodes[i-1]);
+            changed |= node_update(node);
         }
     }
 

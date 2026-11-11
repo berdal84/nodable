@@ -39,14 +39,14 @@ namespace ndbl
         Node_View_Flag_EXCLUDE_UNSELECTED     = 1 << 2
     };
 
-    enum Property_Category
+    enum Property_Group
     {
-        Property_Category_IN_STRICTLY = 0,
-        Property_Category_OUT_STRICTLY,
-        Property_Category_INOUT_STRICTLY,
-        Property_Category_IN,
-        Property_Category_OUT,
-        Property_Category_COUNT
+        Property_Group_IN_STRICTLY = 0,
+        Property_Group_OUT_STRICTLY,
+        Property_Group_INOUT_STRICTLY,
+        Property_Group_IN,
+        Property_Group_OUT,
+        Property_Group_COUNT
     };
 
     struct Node_View
@@ -55,8 +55,8 @@ namespace ndbl
         View_Flags                                               flags  = 0;
         const Vec4*                                              colors[Color_COUNT] = {&Config::COLOR_ERROR};
         bdc::Resizable_Array<Node_Slot_View*>                    slot_views;
-        bdc::Hash_Map<const Node_Property*, Node_Property_View*> view_by_property;
-        bdc::Resizable_Array<Node_Property_View*>                view_by_property_category[Property_Category_COUNT] = {};
+        bdc::Hash_Map<const Node_Property*, Node_Property_View*> propertyviews;
+        bdc::Resizable_Array<Node_Property_View*>                propertyviews_by_group[Property_Group_COUNT] = {};
         Node_Property_View*                                      value_view              = nullptr;
         Node_Slot_View*                                          hovered_slotview        = nullptr;
         float                                                    opacity                 = 1.f;

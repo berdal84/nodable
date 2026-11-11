@@ -352,13 +352,26 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
     {
         for (const Node_Slot* slot_out: node_filter_slots(&node_out, Node_Slot::Flag_OUTPUT))
         {
+            Node_View* node_view_out = slot_out->node->view;
+
+            if( node_view_out == nullptr)
+            {
+                continue;
+            }
+
             for(const Node_Slot* slot_in : slot_out->adjacent)
             {
                 if (slot_in == nullptr)
+                {
                     continue;
+                }
+                
+                Node_View* node_view_in = slot_in->node->view;
 
-                Node_View* node_view_out = slot_out->node->view;
-                Node_View* node_view_in  = slot_in->node->view;
+                if( node_view_in == nullptr)
+                {
+                    continue;
+                }
 
                 if ( HAS_FLAGS( node_view_out->flags | node_view_in->flags, View_Flag_HIDDEN) )
                 {
@@ -430,12 +443,10 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
     // Draw Node_Views
     for (Node& node : graphview->graph->nodes  )
     {
-        if( HAS_FLAGS(node.flags, Node_Flag_IS_DELETED) )
-        {
-            continue;
-        }
-        
-        if ( node.view == nullptr || HAS_FLAGS(node.view->flags, View_Flag_HIDDEN) )
+        if(    HAS_FLAGS(node.flags, Node_Flag_IS_DELETED)
+            || node.view == nullptr
+            || HAS_FLAGS(node.view->flags, View_Flag_HIDDEN)
+        )
         {
             continue;
         }

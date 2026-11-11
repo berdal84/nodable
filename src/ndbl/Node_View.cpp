@@ -32,15 +32,15 @@ using namespace ndbl;
 
 void ndbl::nodeview_init(Node_View* nodeview, Node* node)
 {
-    NDBL_ASSERT(node);    
-    nodeview->node = node;
+    NDBL_ASSERT(node);  
+    nodeview->node  = node;
 
     Config* cfg = config();
 
     // 1. Create Property views
     //-------------------------
 
-    NDBL_ASSERT(nodeview->view_by_property.size == 0, "Cannot be called twice");
+    NDBL_ASSERT(nodeview->propertyviews.size == 0, "Cannot be called twice");
 
     for (Node_Property* property : nodeview->node->props )
     {
@@ -79,18 +79,18 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
         bool has_out = node_find_slot_by_property(nodeview->node, property, Node_Slot::Flag_OUTPUT );
 
         if ( has_in)
-            array_append( nodeview->view_by_property_category[Property_Category_IN], propertyview);
+            array_append( nodeview->propertyviews_by_group[Property_Group_IN], propertyview);
         if ( has_out)
-            array_append( nodeview->view_by_property_category[Property_Category_OUT], propertyview);
+            array_append( nodeview->propertyviews_by_group[Property_Group_OUT], propertyview);
 
         if ( has_in && has_out )
-            array_append( nodeview->view_by_property_category[Property_Category_INOUT_STRICTLY], propertyview);
+            array_append( nodeview->propertyviews_by_group[Property_Group_INOUT_STRICTLY], propertyview);
         else if ( has_in )
-            array_append( nodeview->view_by_property_category[Property_Category_IN_STRICTLY], propertyview);
+            array_append( nodeview->propertyviews_by_group[Property_Group_IN_STRICTLY], propertyview);
         else if ( has_out )
-            array_append( nodeview->view_by_property_category[Property_Category_OUT_STRICTLY], propertyview);
+            array_append( nodeview->propertyviews_by_group[Property_Group_OUT_STRICTLY], propertyview);
 
-        hashmap_add( nodeview->view_by_property, property, propertyview);
+        hashmap_add( nodeview->propertyviews, property, propertyview);
     }
 
     // 2. Create a Node_Slot_View per slot
@@ -216,16 +216,16 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
 {
     spatialnode_clear(nodeview->shape.spatial_node);
 
-    FOR_EACH_HASHMAP_VALUE(each, nodeview->view_by_property)
+    FOR_EACH_HASHMAP_VALUE(each, nodeview->propertyviews)
     {
         nodepropertyview_deinit(each);
         bdc::memory_delete(each);
     }
-    hashmap_release( nodeview->view_by_property );
+    hashmap_release( nodeview->propertyviews );
 
-    for(u32_t i = 0; i < Property_Category_COUNT; ++i)
+    for(u32_t i = 0; i < Property_Group_COUNT; ++i)
     {
-        array_release(nodeview->view_by_property_category[i]);
+        array_release(nodeview->propertyviews_by_group[i]);
     }
 
     for(auto* each : nodeview->slot_views )
@@ -240,9 +240,9 @@ void ndbl::nodeview_deinit(Node_View* nodeview)
         bdc::memory_delete(internal_scope->view);
     }
     nodeview->hovered_slotview = nullptr;
+    nodeview->node             = nullptr;
+    nodeview->flags            = 0;
 
-    nodeview->node  = nullptr;
-    nodeview->flags = 0;
 }
 
 bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)
@@ -484,14 +484,14 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
     // Draw the properties depending on node type
     if (nodeview->node->type != Node_Type_OPERATOR )
     {
-        changed |= nodepropertyview_draw_all( nodeview->view_by_property_category[Property_Category_IN_STRICTLY]    , cfg->ui_node_detail);
-        changed |= nodepropertyview_draw_all( nodeview->view_by_property_category[Property_Category_INOUT_STRICTLY] , cfg->ui_node_detail);
-        changed |= nodepropertyview_draw_all( nodeview->view_by_property_category[Property_Category_OUT_STRICTLY]   , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all( nodeview->propertyviews_by_group[Property_Group_IN_STRICTLY]    , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all( nodeview->propertyviews_by_group[Property_Group_INOUT_STRICTLY] , cfg->ui_node_detail);
+        changed |= nodepropertyview_draw_all( nodeview->propertyviews_by_group[Property_Group_OUT_STRICTLY]   , cfg->ui_node_detail);
     }
     else
     {
         size_t i = 0;
-        for( Node_Property_View* property_view : nodeview->view_by_property_category[Property_Category_IN] )
+        for( Node_Property_View* property_view : nodeview->propertyviews_by_group[Property_Group_IN] )
         {
             ImGui::SameLine();
             changed |= nodepropertyview_draw( property_view, cfg->ui_node_detail );
@@ -619,10 +619,10 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
     };
 
     ImGui::Separator();
-    changed |= draw_properties("Inputs(s)", nodeview->view_by_property_category[Property_Category_IN_STRICTLY] );
-    changed |= draw_properties("In/Out(s)", nodeview->view_by_property_category[Property_Category_INOUT_STRICTLY] );
+    changed |= draw_properties("Inputs(s)", nodeview->propertyviews_by_group[Property_Group_IN_STRICTLY] );
+    changed |= draw_properties("In/Out(s)", nodeview->propertyviews_by_group[Property_Group_INOUT_STRICTLY] );
     ImGui::Separator();
-    changed |= draw_properties("Output(s)", nodeview->view_by_property_category[Property_Category_OUT_STRICTLY] );
+    changed |= draw_properties("Output(s)", nodeview->propertyviews_by_group[Property_Group_OUT_STRICTLY] );
 
 #ifdef NDBL_DEBUG
 
@@ -851,7 +851,7 @@ void ndbl::nodeview_draw_slot(Node_View* nodeview, Node_Slot_View* slot_view)
 
 Node_Property_View* ndbl::nodeview_find_property_view(Node_View* nodeview, const Node_Property* property)
 {
-    bdc::Result<Node_Property_View*> found = hashmap_find( nodeview->view_by_property, property );
+    bdc::Result<Node_Property_View*> found = hashmap_find( nodeview->propertyviews, property );
     if (found.ok)
         return found.data;
     return nullptr;
@@ -859,7 +859,7 @@ Node_Property_View* ndbl::nodeview_find_property_view(Node_View* nodeview, const
 
 void ndbl::nodeview_reset_all_properties(Node_View* nodeview)
 {
-    FOR_EACH_HASHMAP_VALUE( property_view, nodeview->view_by_property )
+    FOR_EACH_HASHMAP_VALUE( property_view, nodeview->propertyviews )
     {
         nodepropertyview_reset(property_view);
     }

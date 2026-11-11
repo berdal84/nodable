@@ -26,7 +26,7 @@ namespace ndbl
         bdc::String                      name;
         Token                            token;
         Node*                            node;
-        const Type_Descriptor*    type;
+        const Type_Descriptor*           type;
         Flags                            flags;
         bdc::Resizable_Array<Node_Slot*> slots;
 
@@ -35,7 +35,7 @@ namespace ndbl
     };
 
     void property_init      (Node_Property*, Node* /* owner */, const Type_Descriptor*, Node_Property::Flags, const bdc::String _name); // must be called once before use
-    void property_deinit   (Node_Property*);
+    void property_deinit    (Node_Property*);
     void property_set_type  (Node_Property*, const Type_Descriptor* /* new_type */ );
     void property_digest    (Node_Property*, Node_Property* /* other */);
 }
