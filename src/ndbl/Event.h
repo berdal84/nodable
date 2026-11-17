@@ -1,13 +1,10 @@
 #pragma once
 
-#include <cstring>
-
 #include "bdc/String.hpp"
 #include "bdc/Types.hpp"
 #include "bdc/Types.hpp"
 #include "geometry/Vec2.h"
 #include "Graph.h"
-#include "reflection/Type_Descriptor.h"
 #include "View.h"
 #include "Node.h"
 
@@ -16,8 +13,6 @@ namespace ndbl
     // forward declaration
     struct Node_View;
     struct Node_Slot;
-    struct Node;
-    struct Graph;
 
     typedef u32_t Event_Type;
     enum Event_Type_ : Event_Type
@@ -83,10 +78,9 @@ namespace ndbl
 
     struct Event_Data__Create_Node
     {
-        Node_State          node_state;
-        Node_Slot_View*     active_slotview;    // The slot view being dragged.
-        Vec2                desired_screen_pos; // The desired position for the new node view
-        Type_Descriptor*    function_type;
+        Node_Init_Params params;
+        Node_Slot_View* active_slotview;    // The slot view being dragged.
+        Vec2            desired_screen_pos; // The desired position for the new node view
     };
 
 }

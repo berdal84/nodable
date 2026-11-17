@@ -44,49 +44,51 @@ void command_undo(Command* command)
 
 //-----------------------------------------------------------------------------
 
-Command new_command_connect(const Command_Data__Link& link)
+Command make_cmd_connect(Cmd_Link link)
 {
-    Command command;
-    command.type        = Command_Type_CONNECT;
-    command.proc_do     = command_connect_do;
-    command.proc_undo   = command_connect_undo;
-    command.link        = link;
-    command.description = "Connect two slots";
 
-    NDBL_ASSERT(command.link.head != command.link.tail);
-    if ( command.link.tail->order() == Node_Slot::Flag_ORDER_2ND )
+
+    NDBL_ASSERT(link.head != link.tail);
+    if ( link.tail->order() == Node_Slot::Flag_ORDER_2ND )
     {
-        if ( command.link.head->order() == Node_Slot::Flag_ORDER_2ND )
+        if ( link.head->order() == Node_Slot::Flag_ORDER_2ND )
         {
             NDBL_LOG( NDBL_ERROR, "command_connect", "Unable to connect incompatible edges\n");
             return {};
         }
         NDBL_DEBUG_LOG( NDBL_DIAG, "command_connect", "Swapping edges to try to connect them\n");
-        std::swap(command.link.tail, command.link.head);
+        std::swap(link.tail, link.head);
     }
+
+    Command command;
+    command.type        = Command_Type_CONNECT;
+    command.proc_do     = command_connect_do;
+    command.proc_undo   = command_connect_undo;
+    command.data.link   = link;
+    command.description = "Connect two slots";
 
     return command;
 }
 
 void command_connect_do(Command* command)
 {
-    graph_connect( command->link.tail, command->link.head, Graph_Flag_ALLOW_SIDE_EFFECTS );
+    graph_connect( command->data.link.tail, command->data.link.head, Graph_Flag_ALLOW_SIDE_EFFECTS );
 }
 
 void command_connect_undo(Command* command)
 {
-    graph_disconnect(command->link.tail, command->link.head, Graph_Flag_ALLOW_SIDE_EFFECTS );
+    graph_disconnect(command->data.link.tail, command->data.link.head, Graph_Flag_ALLOW_SIDE_EFFECTS );
 }
 
 //-----------------------------------------------------------------------------
 
-Command new_command_disconnect(const Command_Data__Link& link)
+Command make_cmd_disconnect(Cmd_Link link)
 {
     Command command;
     command.type        = Command_Type_DISCONNECT;
     command.proc_do     = command_disconnect_do;
     command.proc_undo   = command_disconnect_undo;
-    command.link        = link;
+    command.data.link   = link;
     command.description = "Disconnect two slots";
 
     return command;
@@ -94,24 +96,24 @@ Command new_command_disconnect(const Command_Data__Link& link)
 
 void command_disconnect_do(Command* command)
 {
-    graph_disconnect( command->link.tail, command->link.head, Graph_Flag_ALLOW_SIDE_EFFECTS );
+    graph_disconnect( command->data.link.tail, command->data.link.head, Graph_Flag_ALLOW_SIDE_EFFECTS );
 }
 
 void command_disconnect_undo(Command* command)
 {
-    graph_connect(command->link.tail, command->link.head, Graph_Flag_ALLOW_SIDE_EFFECTS );
+    graph_connect(command->data.link.tail, command->data.link.head, Graph_Flag_ALLOW_SIDE_EFFECTS );
 }
 
 //-----------------------------------------------------------------------------
 
-Command new_command_text_undo_record(const Command_Data__Text_Undo_Record& text_undo_record)
+Command make_cmd_text_undo_record(const Cmd_Text_Undo_Record& text_undo_record)
 {
     Command command;
     command.type                = Command_Type_TEXT_UNDO_RECORD;
     command.proc_do             = command_text_undo_record_do;
     command.proc_undo           = command_text_undo_record_undo;
     command.proc_release        = command_text_undo_record_release;
-    command.text_undo_record    = memory_new<Command_Data__Text_Undo_Record>(allocator, text_undo_record);
+    command.data.text_undo_record    = memory_new<Cmd_Text_Undo_Record>(allocator, text_undo_record);
     command.description         = "Wraps a Text_Editor's Undo Record";
 
     return command;
@@ -120,30 +122,30 @@ Command new_command_text_undo_record(const Command_Data__Text_Undo_Record& text_
 void command_text_undo_record_do(Command* command)
 {
     Text_Editor* text_editor = &app_state()->current_file->view.text_editor;
-    command->text_undo_record->undo_record.Redo(text_editor);
+    command->data.text_undo_record->undo_record.Redo(text_editor);
 }
 
 void command_text_undo_record_undo(Command* command)
 {
     Text_Editor* text_editor = &app_state()->current_file->view.text_editor;
-    command->text_undo_record->undo_record.Undo(text_editor);
+    command->data.text_undo_record->undo_record.Undo(text_editor);
 }
 
 void command_text_undo_record_release(Command* command)
 {
-    memory_delete(command->text_undo_record);
-    *command = {};
+    memory_delete(command->data.text_undo_record);
+    command->data.text_undo_record = nullptr;
 }
 
 //-----------------------------------------------------------------------------
 
-Command new_command_new_node(const Command_Data& data)
+Command make_cmd_new_node(const Cmd_New_Node& data)
 {
     Command command;
     command.type        = Command_Type_CONNECT;
     command.proc_do     = command_new_node_do;
     command.proc_undo   = command_new_node_undo;
-    command.data        = data;
+    command.data.new_node = data;
     command.description = "Connect two slots";
 
     return command;
@@ -151,55 +153,23 @@ Command new_command_new_node(const Command_Data& data)
 
 void command_new_node_do(Command* command)
 {
-    Graph*  graph       = app_state()->current_file->graph;
-    auto    node_state  = static_cast<Node_State*>(command->data.data1);
+    auto&  data  = command->data.new_node;
+    Graph* graph = app_state()->current_file->graph;
 
-    if ( !graph_root(graph) )
-    {
-        NDBL_LOG(Verbosity_Error, "Nodable", "Unable to create_new primary_child, no root found on this graph.\n");
-        return;
-    }
-
-    Scope*  root_scope = graph_root_scope(graph);                 
-    Node*   new_node   = graph_create_node(graph, node_state, root_scope );
-
-    if ( node_state->user_created )
-    {
-        switch ( node_state->type )
-        {
-            case Node_Type_IF_ELSE:
-            case Node_Type_FOR_LOOP:
-            case Node_Type_WHILE_LOOP:
-            case Node_Type_SCOPE:
-            case Node_Type_ROOT:
-                new_node->suffix = token_end_of_line;
-                break;
-            case Node_Type_VARIABLE:
-            case Node_Type_RETURN:
-            case Node_Type_EMPTY_INSTRUCTION:
-                new_node->suffix = token_end_of_instruction;
-                break;
-            case Node_Type_LITERAL:
-            case Node_Type_FUNCTION:
-                break;
-            default:
-                NDBL_UNREACHABLE("Unexpected Node_Type: %i\n", node_state->type );
-        }
-    }
-
-    command->data.data2 = new_node;
+    graph_new_node(graph, command->data.new_node );
 }
 
 void command_new_node_undo(Command* command)
 {
-    auto node = static_cast<Node*>(command->data.data2);
-    if( node != nullptr)
-        graph_find_and_destroy_node( app_state()->current_file->graph, node);
+    auto&  data  = command->data.new_node;
+    Graph* graph = app_state()->current_file->graph;
+
+    graph_delete(graph, data.id);
 }
 
 //-----------------------------------------------------------------------------
 
-Command new_command_selection_change(const Array<View>& _selection) // TODO: we should not take a View_Selection as input arg, a const Array<View>& is enough
+Command make_cmd_selection_change(const Array<View>& _selection) // TODO: we should not take a View_Selection as input arg, a const Array<View>& is enough
 {
     Command cmd;
 
@@ -208,17 +178,17 @@ Command new_command_selection_change(const Array<View>& _selection) // TODO: we 
     cmd.proc_redo        = cmd.proc_do;
     cmd.proc_undo        = command_selection_change_undo;
     cmd.proc_release     = command_selection_change_release;
-    cmd.selection_change = memory_new<Command_Data__Selection_Change>();
+    cmd.data.selection_change = memory_new<Cmd_Selection_Change>();
     
-    cmd.selection_change->old_selection = array_copy( app_state()->current_file->view.graph_view->selection.items );
-    cmd.selection_change->new_selection = array_copy( _selection );
+    cmd.data.selection_change->old_selection = array_copy( app_state()->current_file->view.graph_view->selection.items );
+    cmd.data.selection_change->new_selection = array_copy( _selection );
 
     return cmd;
 }
 
 void command_selection_change_release(Command *command)
 {
-    memory_delete( command->selection_change );    
+    memory_delete( command->data.selection_change );    
     *command = {};
 }
 
@@ -226,14 +196,14 @@ void command_selection_change_do(Command *command)
 {
     auto& selection = app_state()->current_file->view.graph_view->selection;
     viewselection_clear( selection );
-    viewselection_add( selection, command->selection_change->new_selection);
+    viewselection_add( selection, command->data.selection_change->new_selection);
 }
 
 void command_selection_change_undo(Command *command)
 {
     auto& selection = app_state()->current_file->view.graph_view->selection;
     viewselection_clear( selection );
-    viewselection_add( selection, command->selection_change->old_selection);
+    viewselection_add( selection, command->data.selection_change->old_selection);
 }
 
 //-----------------------------------------------------------------------------

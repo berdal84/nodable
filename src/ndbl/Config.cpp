@@ -225,7 +225,6 @@ void config_reset()
         {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_FOR_LOOP    }, .label = ICON_FA_CODE " For Loop"              , .flags = Action_Flags_DISABLE_INDEXING },
         {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_WHILE_LOOP  }, .label = ICON_FA_CODE " While Loop"            , .flags = Action_Flags_DISABLE_INDEXING },
         {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_SCOPE       }, .label = ICON_FA_CODE " Scope"                 , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_ROOT        }, .label = ICON_FA_CODE " Entry Point"           , .flags = Action_Flags_DISABLE_INDEXING },
         {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " Boolean Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
         {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " Double Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
         {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " Integer Variable"  , .flags = Action_Flags_DISABLE_INDEXING },

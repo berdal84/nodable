@@ -110,9 +110,10 @@ void ndbl::graphview_init(Graph_View* graphview, Graph* graph)
     graphview->state_machine.bind<&_graphview_line_state_leave>(LINE_STATE, When::OnLeave);
 
     // add nodes present before connecting signals
-    for( Node& each_node : graphview->graph->nodes )
-        if( !HAS_FLAGS(each_node.flags, Node_Flag_IS_DELETED) )
-            _graphview_handle_add_node(graphview, &each_node);
+    FOR_EACH_HASHMAP_VALUE(node, graph->node_by_id)
+    {
+        _graphview_handle_add_node(graphview, node);
+    }
 
     graphview->selection.signal_change.connect<&_graphview_on_selection_change>(graphview);
     graph->signal_change.connect<&_graphview_on_graph_change>(graphview);
@@ -137,9 +138,10 @@ void ndbl::graphview_deinit(Graph_View* graphview)
     NDBL_ASSERT_DEBUG_ONLY( graphview->graph->signal_change.disconnect<&_graphview_on_graph_change>(graphview) );
     
     // add nodes still present after connecting signals
-    for( Node& each_node : graphview->graph->nodes )
-        if( !HAS_FLAGS(each_node.flags, Node_Flag_IS_DELETED) )
-            _graphview_handle_remove_node(graphview, &each_node);
+    FOR_EACH_HASHMAP_VALUE(node, graphview->graph->node_by_id)
+    {
+        _graphview_handle_remove_node(graphview, node);
+    }
 
     nodesearchinput_release(graphview->node_search_input);
     viewselection_release(graphview->selection);
@@ -290,12 +292,13 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
         cfg->ui_codeflow_thickness(),
         0.0f
     };
-    for (Node& each_node: graphview->graph->nodes )
+
+    FOR_EACH_HASHMAP_VALUE(node, graphview->graph->node_by_id )
     {
-        if ( each_node.view == nullptr || HAS_FLAGS(each_node.view->flags, View_Flag_HIDDEN) )
+        if ( node->view == nullptr || HAS_FLAGS(node->view->flags, View_Flag_HIDDEN) )
             continue;
 
-        Array<Node_Slot*> slots = node_filter_slots(&each_node, Node_Slot::Flag_FLOW_OUT);
+        Array<Node_Slot*> slots = node_filter_slots(node, Node_Slot::Flag_FLOW_OUT);
         for (Node_Slot *slot : slots)
         {
             if ( slot->adjacent.size == 0 )
@@ -348,9 +351,9 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
             cfg->ui_wire_bezier_roundness.x // roundness min
     };
     float time = ImGui::GetTime();
-    for (Node& node_out: graphview->graph->nodes )
+    FOR_EACH_HASHMAP_VALUE(node_out, graphview->graph->node_by_id )
     {
-        for (const Node_Slot* slot_out: node_filter_slots(&node_out, Node_Slot::Flag_OUTPUT))
+        for (const Node_Slot* slot_out: node_filter_slots(node_out, Node_Slot::Flag_OUTPUT))
         {
             Node_View* node_view_out = slot_out->node->view;
 
@@ -409,9 +412,9 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
                 }
 
                 // Draw transparent some "variable--->ref" wires in certain cases
-                if (node_out.type == Node_Type_VARIABLE ) // from a variable
+                if (node_out->type == Node_Type_VARIABLE ) // from a variable
                 {
-                    if (slot_out == node_out.component.variable.ref_out ) // from a reference slot (can't be a declaration link)
+                    if (slot_out == node_out->component.variable.ref_out ) // from a reference slot (can't be a declaration link)
                         if (!HAS_FLAGS(node_view_out->flags, View_Flag_SELECTED) && !HAS_FLAGS(node_view_in->flags, View_Flag_SELECTED) )
                             style.color.w *= 0.25f;
                 }
@@ -441,27 +444,24 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
     }
 
     // Draw Node_Views
-    for (Node& node : graphview->graph->nodes  )
+    FOR_EACH_HASHMAP_VALUE(node, graphview->graph->node_by_id )
     {
-        if(    HAS_FLAGS(node.flags, Node_Flag_IS_DELETED)
-            || node.view == nullptr
-            || HAS_FLAGS(node.view->flags, View_Flag_HIDDEN)
-        )
+        if( node->view == nullptr || HAS_FLAGS(node->view->flags, View_Flag_HIDDEN) )
         {
             continue;
         }
 
-        changed |= nodeview_draw(node.view);
+        changed |= nodeview_draw(node->view);
 
-        if ( HAS_FLAGS( node.view->flags, View_Flag_HOVERED) ) // no check if something else is hovered, last node always win against an edge
+        if ( HAS_FLAGS( node->view->flags, View_Flag_HOVERED) ) // no check if something else is hovered, last node always win against an edge
         {
-            if ( node.view->hovered_slotview != nullptr)
+            if ( node->view->hovered_slotview != nullptr)
             {
-                graphview->hovered = node.view->hovered_slotview;
+                graphview->hovered = node->view->hovered_slotview;
             }
             else
             {
-                graphview->hovered = {node.view};
+                graphview->hovered = {node->view};
             }
         }
     }
@@ -658,7 +658,7 @@ void ndbl::_graphview_do_layout_recursively(Graph_View* graphview, Node_View* no
         _graphview_do_layout_recursively_on_expressions_only(graphview, nodeview);
 
         // propagate on switch branches
-        if( node_has_switch_behavior(node))
+        if( node->component.kind == Node::Component_Kind_BRANCHING )
         {
             if( node->component.branching.branch_count > 1)
             {
@@ -739,9 +739,9 @@ void ndbl::graphview_update(Graph_View* graphview, float dt)
     }
     
     // Update Node_Views
-    for (Node& node : graphview->graph->nodes )
-        if ( node.view )
-            nodeview_update(node.view, dt);
+    FOR_EACH_HASHMAP_VALUE(node, graphview->graph->node_by_id)
+        if ( node->view )
+            nodeview_update(node->view, dt);
 
     // Update Scope_Views
     if( Scope* root = graph_root_scope(graphview->graph) )
@@ -758,9 +758,9 @@ void ndbl::graphview_update(Graph_View* graphview, float dt)
 
         // Select all in case selection is empty
         if ( !user_has_selection )
-            for (Node& node : graphview->graph->nodes )
-                if ( node.view )
-                    array_append(selected_views, node.view);
+            FOR_EACH_HASHMAP_VALUE(node, graphview->graph->node_by_id)
+                if ( node->view )
+                    array_append(selected_views, node->view);
 
         // Get selected node views rectangle
         const Rect selected_rect = view_bounding_rect( selected_views, WORLD_SPACE);
@@ -780,9 +780,9 @@ void ndbl::graphview_update(Graph_View* graphview, float dt)
         }
 
         // Apply the delta to all node views
-        for (Node& node : graphview->graph->nodes )
-            if ( node.view )
-                spatialnode_translate( node.view->shape.spatial_node, delta );
+        FOR_EACH_HASHMAP_VALUE(node, graphview->graph->node_by_id)
+            if ( node->view )
+                spatialnode_translate( node->view->shape.spatial_node, delta );
 
         graphview->flags &= ~Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
     }    
@@ -833,12 +833,12 @@ void ndbl::_graphview_reset(Graph_View* graphview)
         }
     }
 
-    for( Node& node : graphview->graph->nodes )
+    FOR_EACH_HASHMAP_VALUE(node, graphview->graph->node_by_id )
     {
-        if ( node.view )
+        if ( node->view )
         {
-            node.view->flags = View_Flag_NULL;
-            nodeview_reset_all_properties(node.view);
+            node->view->flags = View_Flag_NULL;
+            nodeview_reset_all_properties(node->view);
         }
     }
 }
@@ -850,9 +850,9 @@ bool ndbl::graphview_has_an_active_tool(const Graph_View* graphview)
 
 void ndbl::graphview_reset_all_properties(Graph_View* graphview)
 {
-    for( Node& node : graphview->graph->nodes )
-        if ( node.view )
-            nodeview_reset_all_properties(node.view);
+    FOR_EACH_HASHMAP_VALUE(node, graphview->graph->node_by_id )
+        if ( node->view )
+            nodeview_reset_all_properties(node->view);
 }
 
 //-----------------------------------------------------------------------------
@@ -960,7 +960,7 @@ void ndbl::_graphview_select_scope(Graph_View* graphview, Scope_View* scopeview)
     }
 
     // 2) Replace selection
-    Command cmd = new_command_selection_change(new_selection.items);
+    Command cmd = make_cmd_selection_change(new_selection.items);
     command_manager_push_command(cmd);
 }
 
@@ -1288,10 +1288,13 @@ void ndbl::_graphview_roi_state_tick(Graph_View* graphview)
         // Note: this might be expensive with a lots of nodes, we will need some sort of space partitionning in the future.
         bdc::Resizable_Array<View> nodeviews_inside_roi;
         nodeviews_inside_roi.allocator = &temp_allocator;
-        for ( Node& node : graphview->graph->nodes )
-            if ( node.view )
-                if ( rect_contains(roi, nodeview_get_rect(node.view, WORLD_SPACE)) )
-                    array_append(nodeviews_inside_roi, node.view );
+        FOR_EACH_HASHMAP_VALUE(node, graphview->graph->node_by_id )
+        {
+            if ( node->view && rect_contains(roi, nodeview_get_rect(node->view, WORLD_SPACE)) )
+            {
+                array_append(nodeviews_inside_roi, node->view );
+            }
+        }
 
         // Select them
         const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);

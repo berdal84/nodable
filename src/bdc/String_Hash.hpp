@@ -13,8 +13,16 @@ namespace bdc
         String  string;  // view to the original string (Remi did this, let's try and see, could be useful to debug)
     };
 
-    String_Hash string_hash(const String& str);
+    constexpr inline String_Hash string_hash(const String& str)
+    {
+        const u32_t hash = djb2_hash(str.data, str.size);
+        return { .hash = hash ? hash : 0, .string = str };
+    }
 
+    inline bool string_hash_is_null(const String_Hash& sh)
+    {
+        return sh.hash == 0;
+    }
 
     inline bool operator==(const String_Hash& a, const String_Hash& b)
     {
@@ -24,10 +32,5 @@ namespace bdc
     inline bool operator!=(const String_Hash& a, const String_Hash& b)
     {
         return a.hash != b.hash;
-    }
-
-    inline String_Hash string_hash(const String& str)
-    {
-        return { .hash = djb2_hash(str.data, str.size), .string = str };
     }
 }

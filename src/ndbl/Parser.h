@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bdc/Allocators.hpp"
 #include "bdc/String.hpp"
 #include "bdc/String_Builder.hpp"
 #include "bdc/Array.hpp"
@@ -73,9 +74,11 @@ namespace ndbl
     int                             langdef_get_precedence(const Language_Definition&, const Type_Descriptor*);         // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
     const Type_Descriptor*          langdef_get_type_descriptor_from_token_type(const Language_Definition&, Token_Type _token);                               // Get the type corresponding to a given token_t (must be a type keyword)
     Token_Type                      langdef_type_descriptor_to_token_type_literal(const Language_Definition&, const Type_Descriptor*);
+    const Type_Descriptor*          langdef_token_type_literal_to_type_descriptor(const Language_Definition&, Token_Type);
  
 	struct Parser_Context
     {
+        bdc::Allocator*                     allocator        = bdc::allocator;
         bool                                success          = false;
         const Language_Definition*          langdef          = nullptr;
         bool                                strict_mode      = false;

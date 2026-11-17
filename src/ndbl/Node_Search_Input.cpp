@@ -60,13 +60,18 @@ void _nodesearchinput_update_cache_based_on_signature(Node_Search_Input& input, 
 
         // Compatible with any argument type?
         if ( dragged_slot->allows(Node_Slot::Flag_ORDER_1ST ) &&
-            !event_data->function_type->function_has_arg_with_type( dragged_slot->property_type() )
-                )
+            !event_data->params.type_descriptor->function_has_arg_with_type( dragged_slot->property_type() ))
+        {
             continue;
+        }
 
         // Compatible return type?
-        if ( !type_equals( event_data->function_type->function.return_type, dragged_slot->property_type() ) )
+        NDBL_ASSERT( HAS_FLAGS(event_data->params.type_descriptor->flags, Type_Flags_IS_FUNCTION), "TODO" );
+        auto return_type = event_data->params.type_descriptor->function.return_type;
+        if ( !type_equals( return_type, dragged_slot->property_type() ) )
+        {
             continue;
+        }
 
         array_append(input.items_with_compatible_signature, i);
     }

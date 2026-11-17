@@ -53,7 +53,6 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
 
         switch ( nodeview->node->type )
         {
-            case Node_Type_ROOT:
             case Node_Type_SCOPE:
             case Node_Type_FUNCTION:
             case Node_Type_OPERATOR:
@@ -275,7 +274,6 @@ bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)
                 return "f(x)";
             return nodeview->node->name;
         }
-        case Node_Type_ROOT:
         case Node_Type_SCOPE:
         {
             if ( minimalist )
@@ -533,9 +531,6 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
 	ImGui::PopStyleVar();
 	ImGui::PopID();
 
-    if ( changed )
-        SET_FLAGS(nodeview->node->flags, Node_Flag_IS_DIRTY );
-
     const bool hovered = is_rect_hovered || nodeview->hovered_slotview != nullptr;
     SET_FLAGS_VALUE(nodeview->flags, View_Flag_HOVERED, hovered );
 
@@ -687,12 +682,6 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
             {
                 ImGui::Text("nullptr");
             }
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            ImGui::Text("dirty");
-            ImGui::TableNextColumn();
-            ImGui::Text(HAS_FLAGS(node->flags, Node_Flag_IS_DIRTY) ? "yes" : "no");
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();

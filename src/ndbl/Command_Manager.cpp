@@ -52,20 +52,22 @@ void command_manager_end_transaction()
     last_command.flags |= Command_Flags_TRANSACTION_END;
 }
 
-void command_manager_push_command(Command& command, bool skip_command_execution)
+Command* command_manager_push_command(const Command& command_to_push, bool skip_command_execution)
 {
     Config* cfg     = config();
     auto*   manager = command_manager();
-
-    // Set flags
-    command.flags = manager->next_command_flags;
-    manager->next_command_flags = 0;
 
     // clear any future commands (when we undo, commands are moved from past to future)
     if( manager->cursor < manager->commands.size )
     {
         array_resize(manager->commands, manager->cursor);
     }
+
+    // Set flags
+    manager->next_command_flags = 0;
+
+    Command& command = array_append(manager->commands, command_to_push);
+    command.flags = manager->next_command_flags;
 
     // execute the command except if it concern text_editor.
     // since modification is already handled by text editor itself
@@ -74,7 +76,7 @@ void command_manager_push_command(Command& command, bool skip_command_execution)
         command_do(&command);
     }
 
-    array_append(manager->commands, command);
+    
 
     // 
     // Ensure not to store too much undo commands.
@@ -92,6 +94,8 @@ void command_manager_push_command(Command& command, bool skip_command_execution)
     }
 
     manager->cursor = manager->commands.size;
+
+    return &command;
 }
 
 void _command_manager_release_range(u32_t begin, u32_t end)
@@ -178,7 +182,7 @@ void command_manager_AddUndoHandler(Text_Editor& editor, Text_Editor::UndoRecord
 
     if ( manager->push_text_editor_AddUndoRecord )
     {
-	    Command cmd = new_command_text_undo_record({ undo_record, &editor});
+	    Command cmd = make_cmd_text_undo_record({ undo_record, &editor});
         command_manager_push_command(cmd, true);
     }
 }

@@ -11,7 +11,9 @@ namespace ndbl
     struct Node;
     struct Node_Property;
     struct Node_Slot_View;
-    
+
+    typedef u32_t Node_Slot_ID;
+
     struct Node_Slot
     {
         // Nature of the connection allowed by a given Node_Slot
@@ -53,7 +55,7 @@ namespace ndbl
             Event_Remove
         };
 
-        Signal<void(Event, Node_Slot*)>  signal_change;
+        Signal<void(Event, Node_Slot*)>         signal_change;
         u32_t                                   position;       // In case multiple Node_Slot exists for the same type and order, we distinguish them with their position.
         Node*                                   node;           // parent node
         Node_Property*                          property;       // parent node's property

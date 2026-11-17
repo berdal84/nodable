@@ -11,7 +11,7 @@
 // MACROS to help declare new commands
 //
 #define NDBL_COMMAND( NAME, TYPE ) \
-ndbl::Command new_command_##NAME(TYPE)
+ndbl::Command make_cmd_##NAME(TYPE)
 
 #define NDBL_COMMAND_RELEASE( NAME ) \
 void command_##NAME##_release(ndbl::Command*)
@@ -63,34 +63,38 @@ namespace ndbl
         Command_Type_SELECTION_CHANGE,
     };
 
-    struct Command_Data
+    struct Cmd_Data
     {
         void*        data1;
         void*        data2;
     };
 
-    struct Command_Data__Link
+    struct Cmd_Link
     {
         Node_Slot*      tail;
         Node_Slot*      head;
     };
 
-    struct Command_Data__Text_Replace
+    struct Cmd_Text_Replace
     {
         const bdc::String old_content;
         const bdc::String new_content;
     };
 
-    struct Command_Data__Text_Undo_Record
+    struct Cmd_Text_Undo_Record
     {
         Text_Editor::UndoRecord undo_record;
         Text_Editor*            text_editor;
     };
 
-    struct Command_Data__Selection_Change
+    struct Cmd_Selection_Change
     {
         Array<View> old_selection;
         Array<View> new_selection;
+    };
+
+    struct Cmd_New_Node : Node_Init_Params
+    {
     };
 
     typedef int Command_Flags;
@@ -116,12 +120,13 @@ namespace ndbl
         bdc::String     description    = "";
         
         union {
-            Command_Data                    data;
-            Command_Data__Link              link;
-            Command_Data__Text_Replace*     text_replace;
-            Command_Data__Text_Undo_Record* text_undo_record;
-            Command_Data__Selection_Change* selection_change;
-        };
+            Cmd_Data              data;
+            Cmd_New_Node          new_node;
+            Cmd_Link              link;
+            Cmd_Text_Replace*     text_replace;
+            Cmd_Text_Undo_Record* text_undo_record;
+            Cmd_Selection_Change* selection_change;
+        } data;
 
         Contextual_Procedure_Type*  proc_do      = nullptr;
         Contextual_Procedure_Type*  proc_redo    = nullptr;
@@ -131,11 +136,11 @@ namespace ndbl
 
 
 
-    NDBL_COMMAND_DECLARE_WITH_ARGS(connect           , const Command_Data__Link&)
-    NDBL_COMMAND_DECLARE_WITH_ARGS(disconnect        , const Command_Data__Link&)
-    NDBL_COMMAND_DECLARE_WITH_ARGS(replace_text      , const Command_Data__Text_Replace&)
-    NDBL_COMMAND_DECLARE_WITH_ARGS(text_undo_record  , const Command_Data__Text_Undo_Record&)
-    NDBL_COMMAND_DECLARE_WITH_ARGS(new_node          , const Command_Data&)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(connect           , Cmd_Link)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(disconnect        , Cmd_Link)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(replace_text      , const Cmd_Text_Replace&)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(text_undo_record  , const Cmd_Text_Undo_Record&)
+    NDBL_COMMAND_DECLARE_WITH_ARGS(new_node          , const Cmd_New_Node&)
     NDBL_COMMAND_DECLARE_WITH_ARGS(selection_change  , const Array<View>& new_selection)
 }
 

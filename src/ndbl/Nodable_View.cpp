@@ -883,7 +883,7 @@ void appview_draw()
                 // Statistics
                 ImGui::Text("Graph statistics:");
                 ImGui::Indent();
-                ImGui::Text("Node count: %u", current_file->graph->nodes.size);
+                ImGui::Text("Node count: %u", current_file->graph->node_by_id.size);
                 ImGui::Unindent();
                 ImGui::NewLine();
 

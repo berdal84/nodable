@@ -5,7 +5,6 @@
 #include "bdc/String_Hash.hpp"
 #include "bdc/Types.hpp"
 #include "reflection/Type_Descriptor.h"
-#include "Event.h"
 #include "Node.h"
 #include "Scope.h"
 
@@ -24,17 +23,14 @@ namespace ndbl
 
 	struct Graph
 	{       
-        #define NODE_MAX_COUNT 4096
-
-        bdc::Hash_Map<bdc::String_Hash, size_t>  node_index_by_id;
-        bdc::Inlined_Array<Node, NODE_MAX_COUNT> nodes;
-
-        Graph_View*                  view                = {};
-        Simple_Signal                signal_reset        = {};
-        Simple_Broadcast_Signal      signal_change       = {};
-        Signal<void(Node*)>          signal_add_node     = {};
-        Signal<void(Node*)>          signal_remove_node  = {};
-        Simple_Signal                signal_is_complete  = {}; // user defined, usually when parser or user is done
+        bdc::Hash_Map<Node_ID, Node*>       node_by_id;
+        Node_ID                             root_node_id        = {};
+        Graph_View*                         view                = {};
+        Simple_Signal                       signal_reset        = {};
+        Simple_Broadcast_Signal             signal_change       = {};
+        Signal<void(Node*)>                 signal_add_node     = {};
+        Signal<void(Node*)>                 signal_remove_node  = {};
+        Simple_Signal                       signal_is_complete  = {}; // user defined, usually when parser or user is done
 
         struct Scope_Change {
             Node*  node;
@@ -42,59 +38,47 @@ namespace ndbl
             Scope* new_scope;
         };
         Signal<void(Scope_Change)>   signal_change_scope;
-
-        Graph() = default;
-        ~Graph() = default;
     };
 
     void                    graph_init(Graph*);
     void                    graph_deinit(Graph*);
+    void                    graph_add(Graph*, Node*, Scope*);
+    void                    graph_remove(Graph*, Node*);
+    void                    graph_delete(Graph*, Node* node); // remove, deinit, and release memory
     void                    graph_clear(Graph*); // Delete all nodes, wires, edges and reset scope.
     void                    graph_reset(Graph*); // clear + add root node
     bool                    graph_update(Graph*);
-    inline Node*            graph_root(Graph* graph) { return &graph->nodes[0]; /* we have the guarantee it exists, see graph_init */}
-    inline const Node*      graph_root(const Graph* graph) { return &graph->nodes[0]; }
-    inline Scope*           graph_root_scope(const Graph* graph) { return graph->nodes[0].internal_scope; };
-    inline bool             graph_is_empty(const Graph* graph)   { return scope_is_empty( graph_root_scope(graph) ); };
-    Node*                   graph_find_node(Graph* graph, const bdc::String_Hash& id);
-    void                    graph_find_and_destroy_node(Graph*, Node* node);
+    Node*                   graph_root(Graph*);
+    const Node*             graph_root(const Graph*);
+    Scope*                  graph_root_scope(const Graph*);
+    bool                    graph_is_empty(const Graph*);
     void                    graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags = Graph_Flag_NONE );
     void                    graph_connect(const std::set<Node_Slot*>& tails, Node_Slot* head, Graph_Flags _flags);
     void                    graph_connect_to_variable(Node_Slot* output_slot, Node* variable );
     void                    graph_connect_or_merge(Node_Slot* tail, Node_Slot* head);
     void                    graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags = Graph_Flag_NONE );
     void                    graph_transfer_children(Scope* /* from */, Scope* /* to */);
-    void                    graph_change_scope(Node*, Scope* /*desired_scope*/);
-    Node*                   graph_create_node(Graph*, Scope* = nullptr);
-    Node*                   graph_create_variable(Graph*, const Type_Descriptor*, const bdc::String& name, Scope* scope  = nullptr);
-    Node*                   graph_create_variable_ref(Graph*, Scope* = nullptr);
-    Node*                   graph_create_variable_decl(Graph*, const Type_Descriptor*, const bdc::String _name, Scope* = nullptr);
-    Node*                   graph_create_literal(Graph*, const Type_Descriptor*, Scope* = nullptr);
-    Node*                   graph_create_function(Graph*, const Type_Descriptor*, Scope* = nullptr);
-    Node*                   graph_create_operator(Graph*, const Type_Descriptor*, Scope* = nullptr);
-    Node*                   graph_create_cond_struct(Graph*, Scope* = nullptr);
-    Node*                   graph_create_for_loop(Graph*, Scope* = nullptr);
-    Node*                   graph_create_while_loop(Graph*, Scope* = nullptr);
-    Node*                   graph_create_empty_instruction(Graph*, Scope* = nullptr);
-    Node*                   graph_create_scope(Graph*, Scope* scope = nullptr);
-    Node*                   graph_create_return(Graph*, const Type_Descriptor*, Scope* = nullptr);
-    Node*                   graph_create_node(Graph*, const Node_State*, Scope* = nullptr);
+    void                    graph_change_node_scope(Node*, Scope* /*desired_scope*/);
     bdc::Array<Scope *>     graph_collect_scopes(const Graph*);
     bdc::Array<Scope *>     graph_collect_root_scopes(const Graph*);
     void                    graph_flag_node_to_delete(Node*, Graph_Flags = Graph_Flag_NONE);
     bool                    graph_contains(const Graph*, Node*);
-    Node*                   graph_get_latest_created_node(Graph*);
-    const Node*             graph_get_latest_created_node(const Graph*);
 
-    template<typename T>
-    Node* graph_create_variable_decl(Graph* graph, const bdc::String name = "var", Scope* scope = nullptr)
-    { return graph_create_variable_decl( graph, type_get<T>(), name, scope); }
+    // Pointers to/from ID conversion procedures
 
-    template<typename T>
-    Node* graph_create_variable(Graph* graph, const bdc::String name = "var", Scope* scope = nullptr)
-    { return graph_create_variable( graph, type_get<T>(), name, scope); }
+    Node*                   graph_get_node(Graph*, Node_ID);
+    Node_Slot*              graph_get_slot(Graph*, Node_Slot_ID);
+    Scope*                  graph_get_scope(Graph*, Scope_ID);
+    
+    Node_ID                 graph_get_node_id(Graph*, const Node*);
+    Node_Slot_ID            graph_get_slot_id(Graph*, const Node_Slot*);
+    Scope_ID                graph_get_scope_id(Graph*, Scope*);
 
-    template<typename T>
-    Node* graph_create_literal(Graph* graph, Scope* scope = nullptr)                          
-    { return graph_create_literal( graph, type_get<T>(), scope ); }
+    // ID-based procedures
+
+    Node*                   graph_new_node(Graph*, const Node_Init_Params&);
+    void                    graph_delete(Graph*, Node_ID);
+    void                    graph_change_node_scope(Graph*, Node_ID, Scope_ID /* new_scope */);
+    void                    graph_connect(Graph*, Node_Slot_ID tail, Node_Slot_ID head, Graph_Flags = Graph_Flag_NONE );
+    void                    graph_disconnect(Node_Slot_ID tail, Node_Slot_ID head, Graph_Flags = Graph_Flag_NONE );
 }

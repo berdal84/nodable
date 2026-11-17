@@ -12,12 +12,13 @@
 #include "reflection/Type_Descriptor.h"
 #include "Scope.h"
 #include "Graph.h"
+#include "Parser.h"
 
 namespace ndbl
 {
 using namespace bdc;
 
-Node::Component_Type to_component_type(Node_Type);
+Node::Component_Kind to_component_type(Node_Type);
            
 Node::Component& Node::Component::operator=(const Node::Component& other)
 {
@@ -26,19 +27,19 @@ Node::Component& Node::Component::operator=(const Node::Component& other)
         return *this;
     }
 
-    if( component_type != other.component_type )
+    if( kind != other.kind )
     {
-        node_deinit_component(this, other.component_type);
+        node_deinit_component(this, other.kind);
     }
 
-    switch (other.component_type)
+    switch (other.kind)
     {
-        case Component_Type_NULL:           component_type  = other.component_type; break;
-        case Component_Type_BRANCHING:      branching       = other.branching;      break;
-        case Component_Type_INVOKABLE:      invokable       = other.invokable;      break;
-        case Component_Type_VARIABLE:       variable        = other.variable;       break;
-        case Component_Type_VARIABLE_REF:   variableref     = other.variableref;    break;
-        case Component_Type_LITERAL:        literal         = other.literal;        break;
+        case Component_Kind_NULL:           kind  = other.kind; break;
+        case Component_Kind_BRANCHING:      branching       = other.branching;      break;
+        case Component_Kind_INVOKABLE:      invokable       = other.invokable;      break;
+        case Component_Kind_VARIABLE:       variable        = other.variable;       break;
+        case Component_Kind_VARIABLE_REF:   variableref     = other.variableref;    break;
+        case Component_Kind_LITERAL:        literal         = other.literal;        break;
     }
 
     return *this;
@@ -46,7 +47,7 @@ Node::Component& Node::Component::operator=(const Node::Component& other)
 
 Node::Component::~Component()
 {
-    node_deinit_component(this, component_type);
+    node_deinit_component(this, kind);
 }
             
 Array<Node*> Node::inputs() const
@@ -69,19 +70,376 @@ Array<Node*> Node::flow_outputs() const
     return node_get_adjacent_nodes(this, Node_Slot::Flag_FLOW_OUT);
 }
 
-void node_init(Node* node, Node_Type type, const String& label)
+void node_init(Node* node, const Node_Init_Params& params)
 {
     NDBL_ASSERT( node != nullptr );
-    NDBL_ASSERT( !HAS_FLAGS(node->flags, Node_Flag_IS_INITIALIZED), "You cannot initialize twice");
+    NDBL_ASSERT( !HAS_FLAGS(node->flags, Node_Flag_IS_INITIALIZED), "node was already initialized");
 
-    node->flags = Node_Flag_IS_DIRTY;
-    node->type  = type;
+    node->type  = params.type;
     node->value = node_add_prop<any>(node, DEFAULT_PROPERTY, Node_Property::Flag_IS_NODE_VALUE );
-    
-    node_set_name(node, label);
     node_init_component(&node->component, to_component_type(node->type) );
 
+    static u32_t next_node_id = 1; // 0 is reserved for null
+    node->id = next_node_id++;
     node->flags |= Node_Flag_IS_INITIALIZED;
+
+    switch ( params.type )
+    {
+        case Node_Type_EMPTY_INSTRUCTION:
+        {
+            node_set_name(node, "Instr.");
+
+            // Token will be/or not overriden as a Token_t::end_of_instruction by the parser
+            node->value->token = Token{Token_Type_NULL};
+
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+            node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT  , 1);
+            break;
+        }
+
+        case Node_Type_IF_ELSE:
+        {
+            node_set_name(node, "If");
+
+            node_init_internal_scope(node);
+            node_init_branches(node, 2);
+            node->component.branching.branch_prefix = Token_Type_keyword_if;
+            break;
+        }
+
+        case Node_Type_FOR_LOOP:
+        {
+            node_set_name(node, "For");
+
+            node->component.branching.branch_prefix = Token_Type_keyword_for;
+
+            // add initialization property and slot
+            Node_Property* init_prop = node_add_prop<any>(node, INITIALIZATION_PROPERTY);
+            node->component.branching.initialization_slot = node_add_slot(node, init_prop, Node_Slot::Flag_INPUT, 1);
+
+            // add conditional-related properties and slots
+            node_init_internal_scope(node);
+            node_init_branches(node, 2);
+
+            // add iteration property and slot
+            Node_Property* iter_prop = node_add_prop<any>(node, ITERATION_PROPERTY);
+            node->component.branching.iteration_slot = node_add_slot(node, iter_prop, Node_Slot::Flag_INPUT, 1);
+
+            break;
+        }
+
+        case Node_Type_WHILE_LOOP:
+        {  
+            node_set_name(node, "While");
+
+            node_init_internal_scope(node);
+            node_init_branches(node, 2);
+            node->component.branching.branch_prefix = {Token_Type_keyword_while};
+            break;
+        }
+
+        case Node_Type_SCOPE:
+        {
+            if( params.scope_is_root )
+            {
+                node_set_name(node, "BEGIN");
+            }
+            else
+            {
+                node_set_name(node, "Scope");
+                node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+                node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
+            }
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT | Node_Slot::Flag_IS_INTERNAL, 1);
+            node_init_internal_scope(node);
+            break;
+        }
+
+        case Node_Type_VARIABLE_REF:
+        {
+            node_set_name(node, "Ref.");
+
+            // Init identifier property
+            property_set_type(node->value, type_any());
+            node->value->token = Token{Token_Type_identifier};
+
+            // Init Node_Slots
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+            node_add_slot(node, node->value, Node_Slot::Flag_INPUT   , 1);
+            node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT  , 1); // ref can be connected once
+            break;
+        }
+
+        // TODO: I don't need specific functions if they share the same parameters. A switch/case can do the job no?
+        case Node_Type_RETURN:
+        {
+            node_set_name(node, "Return");
+
+            property_set_type(node->value, params.type_descriptor ? params.type_descriptor : type_get<void>() );
+            node_add_slot(node, node->value, Node_Slot::Flag_INPUT, 1);
+
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1); // nothing prevents for writing something after a return, at runtime it would not be executed, but in Nodable we do not care about that, we focus the code.
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+            // node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT   , 1); // we CANNOT use return's value in an expression! Of course!
+            break;
+        }     
+
+        case Node_Type_VARIABLE:
+        {
+            node_set_name(node, "Var.");
+
+            auto* variable_type = params.type_descriptor;
+
+            NDBL_ASSERT(
+                variable_type == type_get<bool>() ||
+                variable_type == type_get<double>() ||
+                variable_type == type_get<int>() ||
+                variable_type == type_get<bdc::String>(),
+                "variable_type not allowed"
+            );
+
+            // Init identifier property
+            property_set_type(node->value, variable_type);
+            node->value->token = Token{Token_Type_identifier};
+            token_replace_buffer_readonly(node->value->token, params.name); // might come from String::c_str()
+
+            // Init Node_Slots
+            node_add_slot(node, node->value, Node_Slot::Flag_INPUT, 1); // to connect an initialization expression
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+
+            node->component.variable.type_token        = {Token_Type_keyword_unknown }; // [int] var  =
+            node->component.variable.operator_token    = {Token_Type_operator };       //  int  var [=]
+            node->component.variable.flags             = VariableFlag_NONE;
+            node->component.variable.decl_out = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT, 1); // as declaration
+            node->component.variable.ref_out  = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT); // as reference
+
+            if( params.variable_with_assignment )
+            {
+                SET_FLAGS(node->component.variable.flags, VariableFlag_DECLARED); // TODO: should be VariableFlag_DEFINED no?
+
+                Token token = { Token_Type_keyword_operator, " = " };
+                token.prefix_size = token.word_size = token.suffix_size = 1;
+                
+                node->component.variable.operator_token = token;
+            }
+            break;
+        }
+        
+        case Node_Type_LITERAL:
+        {
+            node_set_name(node, "Lit.");
+
+            auto* literal_type = params.type_descriptor;
+
+            NDBL_ASSERT(
+                literal_type == type_get<bool>() ||
+                literal_type == type_get<double>() ||
+                literal_type == type_get<int>() ||
+                literal_type == type_get<bdc::String>(),
+                "literal_type not allowed"
+            );
+
+            node_set_name(node, "Lit.");
+            
+            property_set_type(node->value, literal_type);
+
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1);
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+            node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT   , 1);
+            
+            node->component.literal.token = {Token_Type_literal_any};
+            node->component.literal.type  = nullptr;
+            break;
+        }
+    
+        case Node_Type_OPERATOR:
+        case Node_Type_FUNCTION:
+        {
+            node_set_name(node, params.type_descriptor->name);
+        
+            node->component.invokable.type = *params.type_descriptor;
+            node->component.invokable.identifier_token = {
+                    Token_Type_identifier,
+                    params.type_descriptor->name
+            };
+            array_resize( node->component.invokable.argument_slots, params.type_descriptor->function.args.size);
+            array_resize( node->component.invokable.argument_props, params.type_descriptor->function.args.size);
+
+            node_set_name(node, params.type_descriptor->name);
+
+            // Create a result/value
+            property_set_type(node->value, params.type_descriptor->function.return_type );
+
+            node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT );
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1);
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN );
+
+            // Create arguments
+            if (node->type == Node_Type_OPERATOR )
+            {
+                NDBL_ASSERT(params.type_descriptor->function.args.size >= 1, "An operator must have one argument minimum");
+                NDBL_ASSERT(params.type_descriptor->function.args.size <= 2, "An operator cannot have more than 2 arguments");
+            }
+
+            for (size_t i = 0; i < params.type_descriptor->function.args.size; i++ )
+            {
+                String name;
+                // TODO: this could be done in the Node_View instead...
+                if (node->type == Node_Type_OPERATOR )
+                {
+                    if ( i == 0 )
+                        name = LEFT_VALUE_PROPERTY ;
+                    else if ( i == 1 )
+                        name = RIGHT_VALUE_PROPERTY;
+                }
+                else
+                {
+                    name = bdc::string_tprintf( "arg_%i", i );;
+                }
+
+                const Function_Arg_Descriptor& arg  = params.type_descriptor->function.args[i];
+                Node_Property* property = node_add_prop(node, arg.type, name );
+
+                SET_FLAGS_VALUE(property->flags, Node_Property::Flag_IS_REF, arg.pass_by_ref);
+
+                node->component.invokable.argument_slots[i] = node_add_slot(node, property, Node_Slot::Flag_INPUT, 1);
+                node->component.invokable.argument_props[i] = property;
+            }
+            break;
+        }
+
+        case Node_Type_NULL:
+        {
+            node_set_name(node, params.name);
+            break;
+        }
+        
+        default:
+            NDBL_UNREACHABLE("Unexpected Node_Type: %i\n", params.type);
+    }
+
+    NDBL_ASSERT(node != nullptr);
+
+    if ( params.created_by_the_user )
+    {
+        switch ( params.type )
+        {
+            case Node_Type_IF_ELSE:
+            case Node_Type_FOR_LOOP:
+            case Node_Type_WHILE_LOOP:
+            case Node_Type_SCOPE:
+                node->suffix = token_end_of_line;
+                break;
+            case Node_Type_VARIABLE:
+            case Node_Type_RETURN:
+            case Node_Type_EMPTY_INSTRUCTION:
+                node->suffix = token_end_of_instruction;
+                break;
+            case Node_Type_LITERAL:
+            case Node_Type_FUNCTION:
+                break;
+            default:
+                NDBL_UNREACHABLE("Unexpected Node_Type: %i\n", params.type );
+        }
+    }
+}
+
+void node_init_as_empty_instruction(Node* node)
+{
+    Node_Init_Params params{};
+    params.type = Node_Type_EMPTY_INSTRUCTION;
+    
+    node_init(node, params);
+}
+
+void node_init_as_for(Node* node)
+{
+    Node_Init_Params params{};
+    params.type = Node_Type_FOR_LOOP;
+    
+    node_init(node, params);
+}
+
+void node_init_as_function(Node* node, const Type_Descriptor* type_descriptor)
+{
+    Node_Init_Params params{};
+    params.type            = Node_Type_FUNCTION;
+    params.type_descriptor = type_descriptor;
+
+    node_init(node, params);
+}
+
+void node_init_as_if(Node* node)
+{
+    Node_Init_Params params{};
+    params.type = Node_Type_IF_ELSE;
+
+    node_init(node, params);
+}
+
+void node_init_as_literal(Node* node, const Type_Descriptor* type_descriptor)
+{
+    Node_Init_Params params{};
+    params.type            = Node_Type_LITERAL;
+    params.type_descriptor = type_descriptor;
+
+    node_init(node, params);
+}
+
+void node_init_as_operator(Node* node, const Type_Descriptor* type_descriptor)
+{
+    Node_Init_Params params{};
+    params.type            = Node_Type_OPERATOR;
+    params.type_descriptor = type_descriptor;
+
+    node_init(node, params);
+}
+
+void node_init_as_scope(Node* node)
+{
+    Node_Init_Params params{};
+    params.type = Node_Type_SCOPE;
+    
+    node_init(node, params);
+}
+
+void node_init_as_root_scope(Node* node)
+{
+    Node_Init_Params params{};
+    params.type          = Node_Type_SCOPE;
+    params.scope_is_root = true;
+
+    node_init(node, params);
+}
+
+void node_init_as_variable_ref(Node* node)
+{
+    Node_Init_Params params{};
+    params.type = Node_Type_VARIABLE_REF;
+    
+    node_init(node, params);
+}
+
+void node_init_as_variable(Node* node, const Type_Descriptor* type_descriptor, const bdc::String identifier, bool with_assignment)
+{
+    Node_Init_Params params{};
+    params.type                     = Node_Type_VARIABLE;
+    params.type_descriptor          = type_descriptor;
+    params.name                     = identifier.c_str();
+    params.variable_with_assignment = with_assignment;
+
+    node_init(node, params);
+}
+
+void node_init_as_while(Node* node)
+{
+    Node_Init_Params params{};
+    params.type = Node_Type_WHILE_LOOP;
+    
+    node_init(node, params);
 }
 
 void node_deinit(Node* node)
@@ -132,65 +490,72 @@ void node_deinit(Node* node)
     node->signal_deinit.emit();
 }
 
-void node_init_component(Node::Component* component, Node::Component_Type component_type) 
+Node* new_node(const Node_Init_Params& params)
 {
-    switch (component_type)
+    Node* node = memory_new<Node>();
+    node_init(node, params);
+    return node;
+}
+
+void node_init_component(Node::Component* component, Node::Component_Kind kind) 
+{
+    switch (kind)
     {
-        case Node::Component_Type_NULL:           break;
-        case Node::Component_Type_BRANCHING:      new (&component->branching)   Node::Branching_Component();    break;
-        case Node::Component_Type_LITERAL:        new (&component->literal)     Node::Literal_Component();      break;
-        case Node::Component_Type_INVOKABLE:      new (&component->invokable)   Node::Invokable_Component();    break;
-        case Node::Component_Type_VARIABLE_REF:   new (&component->variableref) Node::Variable_Ref_Component(); break;
-        case Node::Component_Type_VARIABLE:       new (&component->variable)    Node::Variable_Component();     break;
+        case Node::Component_Kind_NULL:           break;
+        case Node::Component_Kind_BRANCHING:      new (&component->branching)   Node::Branching_Component();    break;
+        case Node::Component_Kind_LITERAL:        new (&component->literal)     Node::Literal_Component();      break;
+        case Node::Component_Kind_INVOKABLE:      new (&component->invokable)   Node::Invokable_Component();    break;
+        case Node::Component_Kind_VARIABLE_REF:   new (&component->variableref) Node::Variable_Ref_Component(); break;
+        case Node::Component_Kind_VARIABLE:       new (&component->variable)    Node::Variable_Component();     break;
         default:
             // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            NDBL_UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
+            NDBL_UNREACHABLE("Unhandled Component_Kind (value: %i)\n", kind);
     }
 }
 
-void node_deinit_component(Node::Component* component, Node::Component_Type component_type)
+void node_deinit_component(Node::Component* component, Node::Component_Kind kind)
 {
-    switch (component_type)
+    switch (kind)
     {
-        case Node::Component_Type_NULL:           break;
-        case Node::Component_Type_BRANCHING:      component->branching.~Branching_Component();       break;
-        case Node::Component_Type_LITERAL:        component->literal.~Literal_Component();           break;
-        case Node::Component_Type_INVOKABLE:      component->invokable.~Invokable_Component();       break;
-        case Node::Component_Type_VARIABLE_REF:   component->variableref.~Variable_Ref_Component();  break;
-        case Node::Component_Type_VARIABLE:       component->variable.~Variable_Component();         break;
+        case Node::Component_Kind_NULL:           break;
+        case Node::Component_Kind_BRANCHING:      component->branching.~Branching_Component();       break;
+        case Node::Component_Kind_LITERAL:        component->literal.~Literal_Component();           break;
+        case Node::Component_Kind_INVOKABLE:      component->invokable.~Invokable_Component();       break;
+        case Node::Component_Kind_VARIABLE_REF:   component->variableref.~Variable_Ref_Component();  break;
+        case Node::Component_Kind_VARIABLE:       component->variable.~Variable_Component();         break;
         default:
             // If it breaks here, that's because a new type has been added but this function does not take it in account.
-            NDBL_UNREACHABLE("Unhandled Component_Type (value: %i)\n", component_type);
+            NDBL_UNREACHABLE("Unhandled Component_Kind (value: %i)\n", kind);
     }
 
-    component->component_type = 0;
+    component->kind = 0;
 }
 
-Node::Component_Type to_component_type(Node_Type type)
+Node::Component_Kind to_component_type(Node_Type type)
 {
     switch (type)
     {
         case Node_Type_IF_ELSE:    [[fallthrough]];     
         case Node_Type_WHILE_LOOP: [[fallthrough]];
         case Node_Type_FOR_LOOP:
-            return Node::Component_Type_BRANCHING;
+            return Node::Component_Kind_BRANCHING;
 
         case Node_Type_LITERAL:
-            return Node::Component_Type_LITERAL;           
+            return Node::Component_Kind_LITERAL;           
 
         case Node_Type_OPERATOR: [[fallthrough]];
         case Node_Type_FUNCTION:
-            return Node::Component_Type_INVOKABLE;
+            return Node::Component_Kind_INVOKABLE;
 
         case Node_Type_VARIABLE_REF:
-            return Node::Component_Type_VARIABLE_REF;
+            return Node::Component_Kind_VARIABLE_REF;
 
         case Node_Type_VARIABLE:
-            return Node::Component_Type_VARIABLE;
+            return Node::Component_Kind_VARIABLE;
 
         default:
             // Those types do not have a dedicated data struct in the union
-            return Node::Component_Type_NULL;
+            return Node::Component_Kind_NULL;
     }
 }
 
@@ -417,16 +782,6 @@ const Node_Slot* Node::flow_in() const
     return node_find_slot_by_property(this, value, Node_Slot::Flag_FLOW_IN );
 }
 
-bool node_update(Node* node)
-{
-    UNSET_FLAGS(node->flags, Node_Flag_IS_DIRTY);
-    
-    // I needed this, but I ended up removing the code since Nodable does not execute any code.
-    // I keep it just in case ...
-
-    return false;
-}
-
 void node_init_internal_scope(Node* node)
 {
     NDBL_ASSERT( node->internal_scope == nullptr, "Can't call init_internal_scope() more than once");
@@ -442,20 +797,6 @@ void node_init_internal_scope(Node* node)
 bool node_has_flow_adjacent(const Node* node)
 {
     return node->flow_inputs().size != 0 || node->flow_outputs().size != 0;
-}
-
-bool node_has_switch_behavior(const Node* node)
-{
-    switch (node->type)
-    {
-    case Node_Type_FOR_LOOP:
-    case Node_Type_IF_ELSE:
-    case Node_Type_WHILE_LOOP:
-        return true;
-    
-    default:
-        return false;
-    }
 }
 
 bool node_is_expression(const Node* node)
@@ -529,99 +870,6 @@ const Node_Property* node_find_prop_by_name(const Node* node, const String& name
     return nullptr;
 }
 
-void node_init_as_invokable(Node* node, const Type_Descriptor* function_desc, Node_Type node_type )
-{
-    NDBL_ASSERT(node != nullptr);
-    NDBL_ASSERT(node_type == Node_Type_OPERATOR || node_type == Node_Type_FUNCTION );
-
-    node_init(node, node_type, function_desc->name);
-    node->component.invokable.type = *function_desc;
-    node->component.invokable.identifier_token = {
-            Token_Type_identifier,
-            function_desc->name
-    };
-    array_resize( node->component.invokable.argument_slots, function_desc->function.args.size);
-    array_resize( node->component.invokable.argument_props, function_desc->function.args.size);
-
-    node_set_name(node, function_desc->name);
-
-    // Create a result/value
-    property_set_type(node->value, function_desc->function.return_type );
-
-    node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT );
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1);
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN );
-
-    // Create arguments
-    if (node->type == Node_Type_OPERATOR )
-    {
-        NDBL_ASSERT(function_desc->function.args.size >= 1, "An operator must have one argument minimum");
-        NDBL_ASSERT(function_desc->function.args.size <= 2, "An operator cannot have more than 2 arguments");
-    }
-
-    for (size_t i = 0; i < function_desc->function.args.size; i++ )
-    {
-        const Function_Arg_Descriptor& arg  = function_desc->function.args[i];
-
-        String name;
-        // TODO: this could be done in the Node_View instead...
-        if (node->type == Node_Type_OPERATOR )
-        {
-            if ( i == 0 )
-                name = LEFT_VALUE_PROPERTY ;
-            else if ( i == 1 )
-                name = RIGHT_VALUE_PROPERTY;
-        }
-        else
-        {
-            name = bdc::string_tprintf( "arg_%i", i );;
-        }
-
-        Node_Property* property  = node_add_prop(node, arg.type, name );
-
-        SET_FLAGS_VALUE(property->flags, Node_Property::Flag_IS_REF, arg.pass_by_ref);
-
-        node->component.invokable.argument_slots[i]  = node_add_slot(node, property, Node_Slot::Flag_INPUT, 1);
-        node->component.invokable.argument_props[i] = property;
-    }
-}
-
-void node_init_as_variable(Node* node, const Type_Descriptor* _type, const String _identifier)
-{
-    node_init(node, Node_Type_VARIABLE, "Var.");
-
-    // Init identifier property
-    property_set_type(node->value, _type);
-    node->value->token = Token{Token_Type_identifier};
-    token_replace_buffer_readonly(node->value->token, _identifier); // might come from String::c_str()
-
-    // Init Node_Slots
-    node_add_slot(node, node->value, Node_Slot::Flag_INPUT, 1); // to connect an initialization expression
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
-
-    node->component.variable.type_token        = {Token_Type_keyword_unknown }; // [int] var  =
-    node->component.variable.operator_token    = {Token_Type_operator };       //  int  var [=]
-    node->component.variable.flags             = VariableFlag_NONE;
-    node->component.variable.decl_out = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT, 1); // as declaration
-    node->component.variable.ref_out  = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT); // as reference
-}
-
-void node_init_as_variable_ref(Node* node)
-{
-    node_init(node, Node_Type_VARIABLE_REF, "Ref.");
-
-    // Init identifier property
-    property_set_type(node->value, type_any());
-    node->value->token = Token{Token_Type_identifier};
-
-    // Init Node_Slots
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
-    node_add_slot(node, node->value, Node_Slot::Flag_INPUT   , 1);
-    node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT  , 1); // ref can be connected once
-}
-
 void node_variable_ref_set_variable(Node* node, Node* variable_node)
 {
     NDBL_ASSERT_DEBUG_ONLY(variable_node != nullptr);
@@ -655,26 +903,10 @@ void node_variable_ref_handle_name_change(Node* node, const String& name)
     token_replace_word( node->value->token, name );
 }
 
-void node_init_as_literal(Node* node, const Type_Descriptor* type_descriptor)
-{
-    node_init(node, Node_Type_LITERAL, "Lit.");
-    
-    property_set_type(node->value, type_descriptor);
-
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1);
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
-    node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT   , 1);
-    
-    node->component.literal.token = {Token_Type_literal_any};
-    node->component.literal.type  = nullptr;
-}
-
-
 void node_init_branches(Node* node, size_t branch_count)
 {
+    NDBL_ASSERT( node->component.kind == Node::Component_Kind_BRANCHING, "Node does not have a switch behavior" );
     NDBL_ASSERT( 1 < branch_count && branch_count <= Node::Branching_Component::BRANCH_MAX, "branch_count is out of range");
-    NDBL_ASSERT( node_has_switch_behavior(node), "Node does not have a switch behavior" );
-
 
     node->component.branching.branch_count = branch_count;
 
@@ -695,87 +927,15 @@ void node_init_branches(Node* node, size_t branch_count)
     }
 }
 
-void node_init_as_cond_struct(Node* node)
-{
-    node_init(node, Node_Type_IF_ELSE, "If");
-    node_init_internal_scope(node);
-    node_init_branches(node, 2);
-    node->component.branching.branch_prefix = Token_Type_keyword_if;
-}
-
-void node_init_as_for_loop(Node* node)
-{
-    node_init(node, Node_Type_FOR_LOOP, "For");
-
-    node->component.branching.branch_prefix = Token_Type_keyword_for;
-
-    // add initialization property and slot
-    Node_Property* init_prop = node_add_prop<any>(node, INITIALIZATION_PROPERTY);
-    node->component.branching.initialization_slot = node_add_slot(node, init_prop, Node_Slot::Flag_INPUT, 1);
-
-    // add conditional-related properties and slots
-    node_init_internal_scope(node);
-    node_init_branches(node, 2);
-
-    // add iteration property and slot
-    Node_Property* iter_prop = node_add_prop<any>(node, ITERATION_PROPERTY);
-    node->component.branching.iteration_slot = node_add_slot(node, iter_prop, Node_Slot::Flag_INPUT, 1);
-}
-
-void node_init_as_while_loop(Node* node)
-{  
-    node_init(node, Node_Type_WHILE_LOOP, "While");
-    node_init_internal_scope(node);
-    node_init_branches(node, 2);
-    node->component.branching.branch_prefix = {Token_Type_keyword_while};
-}
-
 void node_init_as_return(Node* node, const Type_Descriptor* type_descriptor)
 {
-    node_init(node, Node_Type_RETURN, "Return");
+    Node_Init_Params params{};
+    params.type            = Node_Type_RETURN;
+    params.type_descriptor = type_descriptor;
 
-    if ( type_descriptor == nullptr)
-    {
-        type_descriptor = type_get<void>();
-    }
-    
-    property_set_type(node->value, type_descriptor);
-    node_add_slot(node, node->value, Node_Slot::Flag_INPUT, 1);
-
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT , 1); // nothing prevents for writing something after a return, at runtime it would not be executed, but in Nodable we do not care about that, we focus the code.
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
-    // node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT   , 1); // we CANNOT use return's value in an expression! Of course!
+    node_init(node, params);
 }
 
-void node_init_as_scope(Node* node)
-{
-    node_init(node, Node_Type_SCOPE, "Scope");
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT | Node_Slot::Flag_IS_INTERNAL, 1);
-    node_init_internal_scope(node);
-}
-
-void node_init_as_root_scope(Node* node)
-{
-    node_init(node, Node_Type_ROOT, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
-    // add_slot(node->value(), Node_Slot::Flag_FLOW_IN, Node_Slot::MAX_CAPACITY); nothing can be before...
-    // add_slot(node->value(), Node_Slot::Flag_FLOW_OUT, 1); nothing after either...
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT | Node_Slot::Flag_IS_INTERNAL, 1); // ...but something inside!
-    node_init_internal_scope(node);
-}
-
-void node_init_as_empty_instruction(Node* node)
-{
-    node_init(node, Node_Type_EMPTY_INSTRUCTION, ";");
-
-    // Token will be/or not overriden as a Token_t::end_of_instruction by the parser
-    node->value->token = Token{Token_Type_NULL};
-
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
-    node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
-    node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT  , 1);
-}
 
 Array<Node*> node_get_adjacent_nodes(const Node* node, Node_Slot::Flags flags)
 {

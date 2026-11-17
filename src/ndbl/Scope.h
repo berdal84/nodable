@@ -11,6 +11,8 @@ namespace ndbl
     // forward decl.
     struct Scope_View;
 
+    typedef u32_t Scope_ID;
+
     typedef int Scope_Flags;
     enum Scope_Flag_
     {

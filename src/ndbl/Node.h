@@ -16,6 +16,10 @@ namespace ndbl
     struct Scope;
     struct Node_View;
     
+    typedef u32_t Node_ID;
+    typedef u32_t Slot_Node_ID;
+    typedef u32_t Scope_ID;
+
     typedef int Node_Type;
     enum Node_Type_
     {
@@ -23,7 +27,6 @@ namespace ndbl
 
         Node_Type_NULL                  =  0,
         Node_Type_SCOPE                 =  1,
-        Node_Type_ROOT                  =  2,
         Node_Type_IF_ELSE               =  3,
         Node_Type_FOR_LOOP              =  4,
         Node_Type_WHILE_LOOP            =  5,
@@ -58,47 +61,26 @@ namespace ndbl
     enum Node_Flag_
     {
         Node_Flag_NONE                = 0,
-        Node_Flag_IS_DIRTY            = 1 << 0,
         Node_Flag_WAS_IN_A_SCOPE_ONCE = 1 << 1,
         Node_Flag_MARKED_FOR_DELETION = 1 << 2,
         Node_Flag_IS_INITIALIZED      = 1 << 3,
-        Node_Flag_IS_DELETED          = 1 << 4, // might be set by containers
         Node_Flag_ALL                 = ~Node_Flag_NONE,
         Node_Flag_DEFAULT             = Node_Flag_NONE,
-    };
-
-    struct Adjacent_Nodes /* Cached */
-    {
-        const Node*                     node;
-
-
-        Adjacent_Nodes(const Node* _node): node(_node) {}
-    };
-
-    const bdc::Resizable_Array<Node*>& adjacent_nodes_get(const Adjacent_Nodes*, Node_Slot::Flags);
-    
-    struct Node_State
-    {
-        Node_Type                   type;
-        bool                        user_created;
-        Type_Descriptor* function_type; // TODO: this has to be serializable!
     };
 
     struct Node
 	{
         DECLARE_REFLECT        
-        friend class Scope;
-        friend class Graph;
 
-        typedef int Component_Type;
-        enum Component_Type_
+        typedef int Component_Kind;
+        enum Component_Kind_
         {
-            Component_Type_NULL = 0,
-            Component_Type_BRANCHING,
-            Component_Type_INVOKABLE,
-            Component_Type_VARIABLE,
-            Component_Type_VARIABLE_REF,
-            Component_Type_LITERAL
+            Component_Kind_NULL = 0,
+            Component_Kind_BRANCHING,
+            Component_Kind_INVOKABLE,
+            Component_Kind_VARIABLE,
+            Component_Kind_VARIABLE_REF,
+            Component_Kind_LITERAL
         };
 
         struct Branching_Component
@@ -106,7 +88,7 @@ namespace ndbl
             // Handle any conditionnal structure, for now it only handle 2 branches, but it will be modified to have N branches (like a switch)
 
             static constexpr size_t BRANCH_MAX = 2;
-            Component_Type          component_type = Component_Type_BRANCHING;
+            Component_Kind          kind = Component_Kind_BRANCHING;
             Token                   branch_prefix; // for if|for|while
             Token                   branch_suffix; // for else
             size_t                  branch_count;
@@ -125,9 +107,9 @@ namespace ndbl
 
         struct Invokable_Component
         {
-            Component_Type                          component_type = Component_Type_INVOKABLE;
+            Component_Kind                          kind = Component_Kind_INVOKABLE;
             Token                                   identifier_token;
-            Type_Descriptor                  type; // not owned
+            Type_Descriptor                         type; // not owned
             bdc::Inlined_Array<Node_Slot*, 8>       argument_slots;
             bdc::Inlined_Array<Node_Property*, 8>   argument_props;
 
@@ -137,7 +119,7 @@ namespace ndbl
 
         struct Variable_Component
         { 
-            Component_Type  component_type = Component_Type_VARIABLE;
+            Component_Kind  kind = Component_Kind_VARIABLE;
             Token           type_token;       // [int] var  =
             Token           operator_token;   //  int  var [=]
             VariableFlags   flags;
@@ -147,25 +129,25 @@ namespace ndbl
 
         struct Variable_Ref_Component
         {
-            Component_Type  component_type = Component_Type_VARIABLE_REF;
+            Component_Kind  kind = Component_Kind_VARIABLE_REF;
             Node*           variable_node;
         };
 
         struct Literal_Component
         {
-            Component_Type                  component_type = Component_Type_LITERAL;
-            Token                           token;
+            Component_Kind           kind = Component_Kind_LITERAL;
+            Token                    token;
             const Type_Descriptor*   type;
         };
 
         union Component
         {          
-            Component_Type          component_type = 0;  
-            Branching_Component     branching;          // check component_type before to use!
-            Invokable_Component     invokable;          // check component_type before to use!
-            Variable_Component      variable;           // check component_type before to use!
-            Variable_Ref_Component  variableref;        // check component_type before to use!
-            Literal_Component       literal;            // check component_type before to use!
+            Component_Kind          kind = 0;  
+            Branching_Component     branching;          // check kind before to use!
+            Invokable_Component     invokable;          // check kind before to use!
+            Variable_Component      variable;           // check kind before to use!
+            Variable_Ref_Component  variableref;        // check kind before to use!
+            Literal_Component       literal;            // check kind before to use!
             Component() = default;
             Component(const Component& other) { *this = other; }
             Component& operator=(const Component& other);
@@ -175,7 +157,7 @@ namespace ndbl
         Node() {};
         ~Node() = default;
         
-        bdc::String_Hash                        id = {};
+        Node_ID                                 id = {};
         Component                               component;
         Simple_Signal                           signal_deinit;      // emit once component.deinit() has been called
         Signal<void(const bdc::String&)>        signal_name_change;   
@@ -209,24 +191,38 @@ namespace ndbl
         void                                    handle_slot_change(Node_Slot::Event, Node_Slot*);        
     };
 
-    void                    node_init(Node*, Node_Type, const bdc::String& name);
-    void                    node_init_as_empty_instruction(Node*);  // TODO: remove this, move code into node_init()
-    void                    node_init_as_while_loop(Node*);         // TODO:  (same)
-    void                    node_init_as_for_loop(Node*);           // TODO:  (same)
-    void                    node_init_as_cond_struct(Node*);        // TODO:  (same)
-    void                    node_init_as_scope(Node*);              // TODO:  (same)
-    void                    node_init_as_root_scope(Node*);         // TODO:  (same)
-    void                    node_init_as_variable_ref(Node*);       // TODO:  (same)
-    void                    node_init_as_return(Node* node, const Type_Descriptor* = nullptr);
-    void                    node_init_as_invokable(Node*, const Type_Descriptor*, Node_Type = Node_Type_FUNCTION);
-    void                    node_init_as_variable(Node*, const Type_Descriptor*, const bdc::String identifier);
+    
+    struct Node_Init_Params
+    {
+        Node_ID                 id;
+        Node_Type               type; // TODO: rename this "kind", here and in struct Node too. I want to remove confusion with type_descriptor.
+        const Type_Descriptor*  type_descriptor;
+        const char*             name;
+        Scope_ID                parent_scope_id;
+        bool                    created_by_the_user;        // TODO: could be in flags
+        bool                    variable_with_assignment;   // TODO: could be in flags
+        bool                    scope_is_root;              // TODO: could be in flags
+    };
+
+    Node*                   new_node(const Node_Init_Params&);
+    void                    node_init(Node*, const Node_Init_Params& = {}); // generic initialization
+    void                    node_init_as_empty_instruction(Node*);
+    void                    node_init_as_for(Node*);
+    void                    node_init_as_function(Node*, const Type_Descriptor*);
+    void                    node_init_as_if(Node*);
     void                    node_init_as_literal(Node*, const Type_Descriptor*);
+    void                    node_init_as_operator(Node*, const Type_Descriptor*);
+    void                    node_init_as_return(Node*, const Type_Descriptor* = nullptr);
+    void                    node_init_as_scope(Node*);
+    void                    node_init_as_root_scope(Node*);
+    void                    node_init_as_variable_ref(Node*);
+    void                    node_init_as_variable(Node*, const Type_Descriptor*, const bdc::String identifier, bool with_assignment);
+    void                    node_init_as_while(Node*);
     void                    node_init_internal_scope(Node*);
     void                    node_init_branches(Node*, size_t branch_count);
-    void                    node_init_component(Node::Component*, Node::Component_Type);
+    void                    node_init_component(Node::Component*, Node::Component_Kind);
     void                    node_deinit(Node*);
-    void                    node_deinit_component(Node::Component*, Node::Component_Type);
-    bool                    node_update(Node*);
+    void                    node_deinit_component(Node::Component*, Node::Component_Kind);
     void                    node_reset_scope(Node*, Scope*);
     void                    node_variable_ref_clear_variable(Node*);
     void                    node_variable_ref_set_variable(Node*, Node* /* variable_node */);

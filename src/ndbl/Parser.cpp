@@ -222,7 +222,25 @@ Token_Type langdef_type_descriptor_to_token_type_literal(const Language_Definiti
         return Token_Type_literal_string;
     if (type == type_get<any>() )
         return Token_Type_literal_any;
-    return Token_Type_literal_unknown;
+    
+    NDBL_UNREACHABLE("type cannot be converted to Token_Type_literal_xxx\n");
+}
+
+const Type_Descriptor* langdef_token_type_literal_to_type_descriptor(const Language_Definition&, Token_Type token_type)
+{
+    //
+    // TODO: this should be in a Hash_Map right?
+    //
+
+    switch(token_type)
+    {
+        case Token_Type_literal_double:     return type_get<double>();
+        case Token_Type_literal_int:        return type_get<int>();
+        case Token_Type_literal_bool:       return type_get<bool>();
+        case Token_Type_literal_string:     return type_get<bdc::String>();
+        case Token_Type_literal_any:        return type_get<any>();
+        default:                            return nullptr;
+    }
 }
 
 //---------------------------------------------------------------------------------------------------------------------------
@@ -462,54 +480,60 @@ int parse_int_or(const Parser_Context& ctx, bdc::String& buffer, int default_val
 
 Node_Slot* parse_token(const Parser_Context& ctx, Scope* parent_scope, const Token& token)
 {
-    if (token.type == Token_Type_identifier)
+    switch (token.type)
     {
-        bdc::String identifier = token_word_view(token);
-        if( Node* existing_node = scope_find_variable(parent_scope, identifier) )
+        case Token_Type_identifier:
         {
-            return existing_node->component.variable.ref_out;
+            bdc::String identifier = token_word_view(token);
+            if( Node* existing_node = scope_find_variable(parent_scope, identifier) )
+            {
+                return existing_node->component.variable.ref_out;
+            }
+
+            if ( ctx.strict_mode )
+            {
+                NDBL_LOG(Verbosity_Error,  "Parser", "%s is not declared (strict mode) \n", token_word_view(token).c_str() );
+                return nullptr;
+            }
+
+            // Insert a variable reference Node pointing to nothing.
+            NDBL_LOG(Verbosity_Warning,  "Parser", "%s is not declared, abstract graph can be generated but compilation will fail.\n",
+                        token_word_view(token).c_str() );
+            Node* node = memory_new<Node>(ctx.allocator);
+            node_init_as_variable_ref(node);
+            node->value->token = token;
+            graph_add(ctx.out_graph, node, parent_scope );
+            return node->value_out();
         }
 
-        if ( ctx.strict_mode )
+        case Token_Type_literal_string:
+        case Token_Type_literal_double:
+        case Token_Type_literal_int:
+        case Token_Type_literal_bool:
         {
-            NDBL_LOG(Verbosity_Error,  "Parser", "%s is not declared (strict mode) \n", token_word_view(token).c_str() );
+            const Type_Descriptor* literal_type = langdef_token_type_literal_to_type_descriptor(*ctx.langdef, token.type);
+            Node* literal_node = memory_new<Node>(ctx.allocator);
+            node_init_as_literal(literal_node, literal_type);
+            literal_node->value->token = token;
+
+            graph_add(ctx.out_graph, literal_node, parent_scope);
+
+            NDBL_DEBUG_LOG(
+                NDBL_DIAG, "Parser", NDBL_OK " Token %s converted to a Literal %s\n",
+                token_word_view(token).c_str(),
+                literal_node->value->type->name.c_str()
+            );
+
+            return literal_node->value_out();
+        }
+        
+        default:
+        {
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Unable to run token_to_slot with token %s!\n", token_word_view(token).c_str());
             return nullptr;
         }
 
-        // Insert a variable reference Node pointing to nothing.
-        NDBL_LOG(Verbosity_Warning,  "Parser", "%s is not declared, abstract graph can be generated but compilation will fail.\n",
-                    token_word_view(token).c_str() );
-        Node* ref = graph_create_variable_ref( ctx.out_graph, parent_scope );
-        ref->value->token = token;
-        return ref->value_out();
-        
     }
-
-    Node* literal = nullptr;
-
-    switch (token.type)
-    {
-        case Token_Type_literal_bool:   literal = graph_create_literal<bool>(ctx.out_graph, parent_scope );        break;
-        case Token_Type_literal_int:    literal = graph_create_literal<i32_t>( ctx.out_graph, parent_scope );       break;
-        case Token_Type_literal_double: literal = graph_create_literal<double>( ctx.out_graph, parent_scope );      break;
-        case Token_Type_literal_string: literal = graph_create_literal<bdc::String>( ctx.out_graph, parent_scope ); break;
-        default:
-            break; // we don't want to throw
-    }
-
-    if ( literal )
-    {
-        NDBL_DEBUG_LOG(
-            Verbosity_Diagnostic, "Parser", NDBL_OK " Token %s converted to a Literal %s\n",
-            token_word_view(token).c_str(),
-            literal->value->type->name.c_str()
-        );
-        literal->value->token = token;
-        return literal->value_out();
-    }
-
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Unable to run token_to_slot with token %s!\n", token_word_view(token).c_str());
-    return nullptr;
 }
 
 Node_Slot* parse_binary_operation_expression(Parser_Context& ctx, Scope* parent_scope, u8_t _precedence, Node_Slot* _left)
@@ -564,16 +588,16 @@ Node_Slot* parse_binary_operation_expression(Parser_Context& ctx, Scope* parent_
         type.function.args[0].type = _left->property->type;
         type.function.args[1].type = right->property->type;
 
-        Node* binary_op_node = graph_create_operator( ctx.out_graph, &type, _left->node->scope );
+        Node* binary_op_node = memory_new<Node>(ctx.allocator);
+        node_init_as_operator(binary_op_node, &type);
+        graph_add( ctx.out_graph, binary_op_node, _left->node->scope );
 
-        Node::Invokable_Component& binary_op = binary_op_node->component.invokable;
-
-        binary_op.identifier_token = operator_token;
-        binary_op.lvalue_in()->property->token.type = _left->property->token.type;
-        binary_op.rvalue_in()->property->token.type = right->property->token.type;
-
-        graph_connect_or_merge(_left, binary_op.lvalue_in());
-        graph_connect_or_merge(right, binary_op.rvalue_in() );
+        Node::Invokable_Component& invokable = binary_op_node->component.invokable;
+        invokable.identifier_token = operator_token;
+        invokable.lvalue_in()->property->token.type = _left->property->token.type;
+        invokable.rvalue_in()->property->token.type = right->property->token.type;
+        graph_connect_or_merge(_left, invokable.lvalue_in());
+        graph_connect_or_merge(right, invokable.rvalue_in() );
 
         parser_commit(ctx);
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Binary expression parsed:\n%s\n", parser_to_string(ctx).c_str());
@@ -627,7 +651,9 @@ Node_Slot* parse_unary_operation_expression(Parser_Context& ctx, Scope* parent_s
     type.name = token_word_view(operator_token);
     type.function.args[0].type = out_atomic->property->type;
 
-    Node* node = graph_create_operator(ctx.out_graph, &type, parent_scope );
+    Node* node = memory_new<Node>(ctx.allocator);
+    node_init_as_operator(node, &type);
+    graph_add(ctx.out_graph, node, parent_scope );
     node->component.invokable.identifier_token = operator_token;
     node->component.invokable.lvalue_in()->property->token.type = out_atomic->property->token.type;
 
@@ -731,8 +757,13 @@ Node* parse_expression_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot
         if ( node_is_connected_to_codeflow(variable) ) // in such case, we have to reference the variable, since a given variable can't be twice (be declared twice) in the codeflow
         {
             // create a new variable reference
-            Node* ref_node = graph_create_variable_ref( ctx.out_graph, parent_scope );
+            Node* ref_node = memory_new<Node>(ctx.allocator);
+            node_init_as_variable_ref(ref_node);
+            graph_add(ctx.out_graph, ref_node, parent_scope);
+
+            // connect it to the variable
             node_variable_ref_set_variable( ref_node, variable );
+
             // substitute value_out by variable reference's value_out
             value_out = ref_node->value_out();
         }
@@ -766,8 +797,11 @@ Node* parse_expression_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot
         {
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Empty expression found\n");
 
-            Node* empty_instr = graph_create_empty_instruction( ctx.out_graph, parent_scope );
-            value_out = empty_instr->value_out();
+            Node* empty_instr_node = memory_new<Node>(ctx.allocator);
+            node_init_as_empty_instruction(empty_instr_node);
+            graph_add( ctx.out_graph, empty_instr_node, parent_scope );
+
+            value_out = empty_instr_node->value_out();
         }
     }
 
@@ -809,7 +843,9 @@ Node* parse_empty_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flo
 {
     if ( parser_peek(ctx, Token_Type_end_of_instruction) )
     {
-        Node* node = graph_create_empty_instruction( ctx.out_graph, parent_scope );
+        Node* node = memory_new<Node>(ctx.allocator);
+        node_init_as_empty_instruction( node );
+        graph_add( ctx.out_graph, node, parent_scope );
         graph_connect( flow_out, node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS);
         return node;
     }
@@ -830,31 +866,35 @@ Node* parse_scoped_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* fl
 
     parser_start_transaction(ctx);
 
-    Node* node = graph_create_scope(ctx.out_graph, parent_scope);
+    Node* scope_node = memory_new<Node>(ctx.allocator);
+    node_init_as_scope(scope_node);
+    graph_add(ctx.out_graph, scope_node, parent_scope);
 
     if ( flow_out != nullptr )
-        graph_connect( flow_out, node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+    {
+        graph_connect( flow_out, scope_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
+    }
 
 
-    parse_code_block(ctx, node->internal_scope, node->flow_enter()); // no return check, allows empty scope
+    parse_code_block(ctx, scope_node->internal_scope, scope_node->flow_enter()); // no return check, allows empty scope
     
     Token token_end = parser_eat_if(ctx, Token_Type_scope_end);
 
     if ( token_end.type )
     {
-        node->internal_scope->token_begin = token_begin;
-        node->internal_scope->token_end = token_end;
+        scope_node->internal_scope->token_begin = token_begin;
+        scope_node->internal_scope->token_end = token_end;
 
         parser_commit(ctx);
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Scoped block parsed:\n%s\n", parser_to_string(ctx).c_str());
-        return node;
+        return scope_node;
     }
     else
     {
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Expecting close root_scope token\n");
     }
 
-    graph_find_and_destroy_node(ctx.out_graph, node);
+    graph_delete(ctx.out_graph, scope_node);
     parser_rollback(ctx);
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Scoped block parsed\n");
     return nullptr;
@@ -1387,7 +1427,9 @@ Node_Slot* parse_function_call(Parser_Context& ctx, Scope* parent_scope)
 
 
     // Find the prototype in the ctx library
-    Node* fct_node = graph_create_function( ctx.out_graph, &function_type, parent_scope );
+    Node* fct_node = memory_new<Node>();
+    node_init_as_function(fct_node, &function_type);
+    graph_add( ctx.out_graph, fct_node, parent_scope );
 
     for ( int i = 0; i < fct_node->component.invokable.argument_slots.size; i++ )
     {
@@ -1445,14 +1487,17 @@ Node* parse_if_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_o
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing if statement...\n");
 
     // if
-    Node* if_node  = graph_create_cond_struct( ctx.out_graph, parent_scope );
+    Node* if_node = memory_new<Node>(ctx.allocator);
+    node_init_as_if(if_node);
     if_node->component.branching.branch_prefix = parser_get_eaten(ctx);
+
+    graph_add(ctx.out_graph, if_node, parent_scope);
 
     graph_connect(flow_out, if_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
     if ( parser_eat_if(ctx, Token_Type_parenthesis_open).type == Token_Type_NULL )
     {
-        graph_find_and_destroy_node(ctx.out_graph, if_node);
+        graph_delete(ctx.out_graph, if_node);
         parser_rollback(ctx);
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Open bracket expected\n");
         return nullptr;
@@ -1464,7 +1509,7 @@ Node* parse_if_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_o
 
     if ( parser_eat_if(ctx, Token_Type_parenthesis_close).type == Token_Type_NULL )
     {
-        graph_find_and_destroy_node(ctx.out_graph, if_node);
+        graph_delete(ctx.out_graph, if_node);
         parser_rollback(ctx);
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Close bracket expected\n");
         return nullptr;
@@ -1502,8 +1547,8 @@ Node* parse_if_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_o
 
 Node* parse_for_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_out)
 {
-    bool        success     = false;
-    Node*    for_node    = nullptr;
+    bool  success  = false;
+    Node* for_node = nullptr;
 
     parser_start_transaction(ctx);
 
@@ -1512,7 +1557,9 @@ Node* parse_for_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_
     {
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing for loop ...\n");
 
-        for_node = graph_create_for_loop( ctx.out_graph, parent_scope );
+        for_node = memory_new<Node>(ctx.allocator);
+        node_init_as_for(for_node);
+        graph_add(ctx.out_graph, for_node, parent_scope);
         for_node->component.branching.branch_prefix = token_for;
 
         graph_connect( flow_out, for_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
@@ -1566,7 +1613,7 @@ Node* parse_for_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_
 
     if ( for_node )
     {
-        graph_find_and_destroy_node(ctx.out_graph, for_node);
+        graph_delete(ctx.out_graph, for_node);
     }
     parser_rollback(ctx);
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Could not parse for block\n");
@@ -1575,7 +1622,7 @@ Node* parse_for_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_
 
 Node* parse_while_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_out)
 {
-    bool        success     = false;
+    bool     success     = false;
     Node*    while_node  = nullptr;
     Node*    block       = nullptr;
 
@@ -1586,9 +1633,11 @@ Node* parse_while_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flo
     {
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while ...\n");
 
-        while_node = graph_create_while_loop( ctx.out_graph, parent_scope );
+        while_node = memory_new<Node>(ctx.allocator);
+        node_init_as_while(while_node);
         while_node->component.branching.branch_prefix = token_while;
 
+        graph_add( ctx.out_graph, while_node, parent_scope );
         graph_connect( flow_out, while_node->flow_in(), Graph_Flag_ALLOW_SIDE_EFFECTS );
 
         Token open_bracket = parser_eat_if(ctx, Token_Type_parenthesis_open);
@@ -1631,8 +1680,8 @@ Node* parse_while_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flo
     }
 
     parser_rollback(ctx);
-    graph_find_and_destroy_node(ctx.out_graph, while_node);
-    graph_find_and_destroy_node(ctx.out_graph, block);
+    graph_delete(ctx.out_graph, while_node);
+    graph_delete(ctx.out_graph, block);
 
     return {};
 }
@@ -1653,8 +1702,11 @@ Node* parse_return(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_out
         if ( Node_Slot* expression_out = parse_expression(ctx, parent_scope) )
         {
             const Type_Descriptor* type = expression_out->property->type;
-            Node* return_node = graph_create_return( ctx.out_graph, type, parent_scope );
+            Node* return_node = memory_new<Node>(ctx.allocator);
+            node_init_as_return(return_node, type);
             return_node->value->token = return_token;
+
+            graph_add( ctx.out_graph, return_node, parent_scope );
 
             // TODO: assign prefix and suffix to return Node
 
@@ -1688,12 +1740,14 @@ Node_Slot* parse_variable_declaration(Parser_Context& ctx, Scope* parent_scope)
     if ( token_type_is_keyword(type_token.type) && identifier_token.type == Token_Type_identifier)
     {
         const Type_Descriptor* type = langdef_get_type_descriptor_from_token_type(*ctx.langdef, type_token.type);
-        Node* variable_node = graph_create_variable( ctx.out_graph, type, token_word_view(identifier_token), parent_scope );
-
+        Node* variable_node = memory_new<Node>(ctx.allocator);
+        node_init_as_variable( variable_node, type, token_word_view(identifier_token), false );
         SET_FLAGS(variable_node->component.variable.flags, VariableFlag_DECLARED);
         variable_node->component.variable.type_token = type_token;
         node_set_identifier_token(variable_node, identifier_token );
 
+        graph_add(ctx.out_graph, variable_node, parent_scope);
+        
         // declaration with assignment ?
         Token operator_token = parser_eat_if(ctx, Token_Type_operator);
         if ( operator_token.type && token_word_view(operator_token) == "=")
@@ -1732,7 +1786,7 @@ Node_Slot* parse_variable_declaration(Parser_Context& ctx, Scope* parent_scope)
         NDBL_DEBUG_LOG(
             Verbosity_Diagnostic, "Parser", 
             NDBL_KO "  Initialization expression expected for %s\n", token_word_view(identifier_token).c_str());
-        graph_find_and_destroy_node(ctx.out_graph, variable_node);
+        graph_delete(ctx.out_graph, variable_node);
     }
 
     parser_rollback(ctx);
@@ -1999,7 +2053,6 @@ void serialize_node(Serializer_Context& ctx, const Node* node, Serialization_Fla
         case Node_Type_FUNCTION:          [[fallthrough]];        
         case Node_Type_OPERATOR:          serialize_invokable(ctx, node);                break;
         case Node_Type_EMPTY_INSTRUCTION: serialize_empty_instruction(ctx, node);        break;
-        case Node_Type_ROOT:              [[fallthrough]];
         case Node_Type_SCOPE:             serialize_scope(ctx, node->internal_scope );   break;
         default:                          NDBL_ASSERT(false, "Unhandled NodeType, can't serialize");
     }
