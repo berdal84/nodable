@@ -51,7 +51,7 @@ cd nodable
 rake install
 ```
 
-> _Note: The default target is "desktop", but you can build for the "web" by exporting `TARGET=web` to your environment or adding it as command line argument._
+> _Note: The default target is "linux" or "windows", but you can build for the "web" by exporting `TARGET=web` to your environment or adding it as command line argument._
 
 Build output should be available in `build-desktop-<arch>-<os>-release/bin`, simply run `./nodable` from this folder
 
@@ -60,18 +60,12 @@ Build output should be available in `build-desktop-<arch>-<os>-release/bin`, sim
 Run the following commands:
 
 ```console
-rake build
+rake build -- --config=release
 ```
 
-Build output should be available in `build-desktop-<arch>-<os>-debug/bin`, simply run `./nodable` from this folder
+Build output should be available in `build-{platform}-release/nodable/bin`, simply run `./nodable` from this folder
 
-You can run rake build with additionnal flags:
-
-```console
-rake build [-- --build-type=release --target=web|desktop --verbose]
-```
-
-To know more, run `rake help`.
+You can run rake build with additionnal flags, type ` rake help` for more info.
 
 ## Run
 
