@@ -51,14 +51,14 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
         spatialnode_add_child(nodeview->shape.spatial_node, propertyview->shape.spatial_node);
         spatialnode_set_position(propertyview->shape.spatial_node, {}, PARENT_SPACE);
 
-        switch ( nodeview->node->type )
+        switch ( nodeview->node->kind )
         {
-            case Node_Type_SCOPE:
-            case Node_Type_FUNCTION:
-            case Node_Type_OPERATOR:
-            case Node_Type_FOR_LOOP:
-            case Node_Type_IF_ELSE:
-            case Node_Type_WHILE_LOOP:
+            case Node_Kind_SCOPE:
+            case Node_Kind_FUNCTION:
+            case Node_Kind_OPERATOR:
+            case Node_Kind_FOR_LOOP:
+            case Node_Kind_IF_ELSE:
+            case Node_Kind_WHILE_LOOP:
             {
                 // hide THIS property
                 if ( HAS_FLAGS(property->flags, Node_Property::Flag_IS_NODE_VALUE) )
@@ -166,9 +166,9 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
     }
 
     // Adjust some slot views
-    switch ( nodeview->node->type )
+    switch ( nodeview->node->kind )
     {
-        case Node_Type_VARIABLE:
+        case Node_Kind_VARIABLE:
         {
             if ( Node_Slot* decl_out =  nodeview->node->component.variable.decl_out )
             {
@@ -181,7 +181,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
             }
             break;
         }
-        case Node_Type_FUNCTION:
+        case Node_Kind_FUNCTION:
         {
             if ( Node_Slot* value_out = nodeview->node->value_out() )
             {
@@ -199,7 +199,7 @@ void ndbl::nodeview_init(Node_View* nodeview, Node* node)
     //---------------------
 
     // note: We pass color by address to be able to change the color dynamically
-    nodeview->colors[Color_FILL] = &cfg->ui_node_fill_color[ nodeview->node->type];
+    nodeview->colors[Color_FILL] = &cfg->ui_node_fill_color[ nodeview->node->kind];
 
     // 4. Create Scope_View
     //--------------------
@@ -250,31 +250,31 @@ bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)
 
     bool minimalist = cfg->ui_node_detail == View_Detail_COMPACT;
 
-    switch (nodeview->node->type )
+    switch (nodeview->node->kind )
     {
-        case Node_Type_VARIABLE_REF:
+        case Node_Kind_VARIABLE_REF:
         {
             if ( minimalist )
                 return "&";
             return nodeview->node->name;
         }
-        case Node_Type_VARIABLE:
+        case Node_Kind_VARIABLE:
         {
             if (minimalist)
                 return "";
             return node_variable_type(nodeview->node)->name;
         }
-        case Node_Type_OPERATOR:
+        case Node_Kind_OPERATOR:
         {
             return nodeview->node->name;
         }
-        case Node_Type_FUNCTION:
+        case Node_Kind_FUNCTION:
         {
             if ( minimalist )
                 return "f(x)";
             return nodeview->node->name;
         }
-        case Node_Type_SCOPE:
+        case Node_Kind_SCOPE:
         {
             if ( minimalist )
             {
@@ -282,13 +282,13 @@ bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)
             }
             return nodeview->node->name;
         }
-        case Node_Type_IF_ELSE:
+        case Node_Kind_IF_ELSE:
         {
             if ( minimalist )
                 return "?";
             return nodeview->node->name;
         }
-        case Node_Type_FOR_LOOP:
+        case Node_Kind_FOR_LOOP:
         {
             if ( minimalist )
                 return "for";
@@ -383,7 +383,7 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
     }
     else if ( node_is_instruction( nodeview->node ) )
     {
-        border_color = cfg->ui_node_fill_color[Node_Type_NULL];
+        border_color = cfg->ui_node_fill_color[Node_Kind_NULL];
     }
 
     float border_width = cfg->ui_node_borderWidth;
@@ -435,9 +435,9 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
     std::vector<bdc::String> operator_label(1); // for binary (and ternary when implemented) operators
     bdc::String post_label;
 
-    switch ( nodeview->node->type )
+    switch ( nodeview->node->kind )
     {
-        case Node_Type_OPERATOR:
+        case Node_Kind_OPERATOR:
             if ( node_is_unary_operator(nodeview->node ) )
                 pre_label = nodeview_get_label(nodeview);
             else if ( node_is_binary_operator(nodeview->node ) )
@@ -447,7 +447,7 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
         default:
             pre_label = nodeview_get_label(nodeview);
             break;
-        case Node_Type_FUNCTION:
+        case Node_Kind_FUNCTION:
             pre_label = nodeview_get_label(nodeview);
 
             if ( cfg->ui_node_detail != View_Detail_COMPACT)
@@ -468,7 +468,7 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
 
         // Update slot_view_out to be positioned below the pre_label
 
-        if (nodeview->node->type == Node_Type_FUNCTION )
+        if (nodeview->node->kind == Node_Kind_FUNCTION )
             if (Node_Slot *slot_out = nodeview->node->value_out())
                 if (Node_Slot_View *slot_view_out = slot_out->view)
                 {
@@ -480,7 +480,7 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
     }
 
     // Draw the properties depending on node type
-    if (nodeview->node->type != Node_Type_OPERATOR )
+    if (nodeview->node->kind != Node_Kind_OPERATOR )
     {
         changed |= nodepropertyview_draw_all( nodeview->propertyviews_by_group[Property_Group_IN_STRICTLY]    , cfg->ui_node_detail);
         changed |= nodepropertyview_draw_all( nodeview->propertyviews_by_group[Property_Group_INOUT_STRICTLY] , cfg->ui_node_detail);

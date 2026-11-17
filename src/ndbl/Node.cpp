@@ -18,7 +18,7 @@ namespace ndbl
 {
 using namespace bdc;
 
-Node::Component_Kind to_component_type(Node_Type);
+Node::Component_Kind to_component_type(Node_Kind);
            
 Node::Component& Node::Component::operator=(const Node::Component& other)
 {
@@ -75,17 +75,17 @@ void node_init(Node* node, const Node_Init_Params& params)
     NDBL_ASSERT( node != nullptr );
     NDBL_ASSERT( !HAS_FLAGS(node->flags, Node_Flag_IS_INITIALIZED), "node was already initialized");
 
-    node->type  = params.type;
+    node->kind  = params.kind;
     node->value = node_add_prop<any>(node, DEFAULT_PROPERTY, Node_Property::Flag_IS_NODE_VALUE );
-    node_init_component(&node->component, to_component_type(node->type) );
+    node_init_component(&node->component, to_component_type(node->kind) );
 
     static u32_t next_node_id = 1; // 0 is reserved for null
     node->id = next_node_id++;
     node->flags |= Node_Flag_IS_INITIALIZED;
 
-    switch ( params.type )
+    switch ( params.kind )
     {
-        case Node_Type_EMPTY_INSTRUCTION:
+        case Node_Kind_EMPTY_INSTRUCTION:
         {
             node_set_name(node, "Instr.");
 
@@ -98,7 +98,7 @@ void node_init(Node* node, const Node_Init_Params& params)
             break;
         }
 
-        case Node_Type_IF_ELSE:
+        case Node_Kind_IF_ELSE:
         {
             node_set_name(node, "If");
 
@@ -108,7 +108,7 @@ void node_init(Node* node, const Node_Init_Params& params)
             break;
         }
 
-        case Node_Type_FOR_LOOP:
+        case Node_Kind_FOR_LOOP:
         {
             node_set_name(node, "For");
 
@@ -129,7 +129,7 @@ void node_init(Node* node, const Node_Init_Params& params)
             break;
         }
 
-        case Node_Type_WHILE_LOOP:
+        case Node_Kind_WHILE_LOOP:
         {  
             node_set_name(node, "While");
 
@@ -139,7 +139,7 @@ void node_init(Node* node, const Node_Init_Params& params)
             break;
         }
 
-        case Node_Type_SCOPE:
+        case Node_Kind_SCOPE:
         {
             if( params.scope_is_root )
             {
@@ -156,7 +156,7 @@ void node_init(Node* node, const Node_Init_Params& params)
             break;
         }
 
-        case Node_Type_VARIABLE_REF:
+        case Node_Kind_VARIABLE_REF:
         {
             node_set_name(node, "Ref.");
 
@@ -173,7 +173,7 @@ void node_init(Node* node, const Node_Init_Params& params)
         }
 
         // TODO: I don't need specific functions if they share the same parameters. A switch/case can do the job no?
-        case Node_Type_RETURN:
+        case Node_Kind_RETURN:
         {
             node_set_name(node, "Return");
 
@@ -186,7 +186,7 @@ void node_init(Node* node, const Node_Init_Params& params)
             break;
         }     
 
-        case Node_Type_VARIABLE:
+        case Node_Kind_VARIABLE:
         {
             node_set_name(node, "Var.");
 
@@ -212,14 +212,11 @@ void node_init(Node* node, const Node_Init_Params& params)
 
             node->component.variable.type_token        = {Token_Type_keyword_unknown }; // [int] var  =
             node->component.variable.operator_token    = {Token_Type_operator };       //  int  var [=]
-            node->component.variable.flags             = VariableFlag_NONE;
             node->component.variable.decl_out = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT, 1); // as declaration
             node->component.variable.ref_out  = node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT); // as reference
 
             if( params.variable_with_assignment )
             {
-                SET_FLAGS(node->component.variable.flags, VariableFlag_DECLARED); // TODO: should be VariableFlag_DEFINED no?
-
                 Token token = { Token_Type_keyword_operator, " = " };
                 token.prefix_size = token.word_size = token.suffix_size = 1;
                 
@@ -228,7 +225,7 @@ void node_init(Node* node, const Node_Init_Params& params)
             break;
         }
         
-        case Node_Type_LITERAL:
+        case Node_Kind_LITERAL:
         {
             node_set_name(node, "Lit.");
 
@@ -255,8 +252,8 @@ void node_init(Node* node, const Node_Init_Params& params)
             break;
         }
     
-        case Node_Type_OPERATOR:
-        case Node_Type_FUNCTION:
+        case Node_Kind_OPERATOR:
+        case Node_Kind_FUNCTION:
         {
             node_set_name(node, params.type_descriptor->name);
         
@@ -278,7 +275,7 @@ void node_init(Node* node, const Node_Init_Params& params)
             node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN );
 
             // Create arguments
-            if (node->type == Node_Type_OPERATOR )
+            if (node->kind == Node_Kind_OPERATOR )
             {
                 NDBL_ASSERT(params.type_descriptor->function.args.size >= 1, "An operator must have one argument minimum");
                 NDBL_ASSERT(params.type_descriptor->function.args.size <= 2, "An operator cannot have more than 2 arguments");
@@ -288,7 +285,7 @@ void node_init(Node* node, const Node_Init_Params& params)
             {
                 String name;
                 // TODO: this could be done in the Node_View instead...
-                if (node->type == Node_Type_OPERATOR )
+                if (node->kind == Node_Kind_OPERATOR )
                 {
                     if ( i == 0 )
                         name = LEFT_VALUE_PROPERTY ;
@@ -311,38 +308,38 @@ void node_init(Node* node, const Node_Init_Params& params)
             break;
         }
 
-        case Node_Type_NULL:
+        case Node_Kind_NULL:
         {
             node_set_name(node, params.name);
             break;
         }
         
         default:
-            NDBL_UNREACHABLE("Unexpected Node_Type: %i\n", params.type);
+            NDBL_UNREACHABLE("Unexpected Node_Kind: %i\n", params.kind);
     }
 
     NDBL_ASSERT(node != nullptr);
 
     if ( params.created_by_the_user )
     {
-        switch ( params.type )
+        switch ( params.kind )
         {
-            case Node_Type_IF_ELSE:
-            case Node_Type_FOR_LOOP:
-            case Node_Type_WHILE_LOOP:
-            case Node_Type_SCOPE:
+            case Node_Kind_IF_ELSE:
+            case Node_Kind_FOR_LOOP:
+            case Node_Kind_WHILE_LOOP:
+            case Node_Kind_SCOPE:
                 node->suffix = token_end_of_line;
                 break;
-            case Node_Type_VARIABLE:
-            case Node_Type_RETURN:
-            case Node_Type_EMPTY_INSTRUCTION:
+            case Node_Kind_VARIABLE:
+            case Node_Kind_RETURN:
+            case Node_Kind_EMPTY_INSTRUCTION:
                 node->suffix = token_end_of_instruction;
                 break;
-            case Node_Type_LITERAL:
-            case Node_Type_FUNCTION:
+            case Node_Kind_LITERAL:
+            case Node_Kind_FUNCTION:
                 break;
             default:
-                NDBL_UNREACHABLE("Unexpected Node_Type: %i\n", params.type );
+                NDBL_UNREACHABLE("Unexpected Node_Kind: %i\n", params.kind );
         }
     }
 }
@@ -350,7 +347,7 @@ void node_init(Node* node, const Node_Init_Params& params)
 void node_init_as_empty_instruction(Node* node)
 {
     Node_Init_Params params{};
-    params.type = Node_Type_EMPTY_INSTRUCTION;
+    params.kind = Node_Kind_EMPTY_INSTRUCTION;
     
     node_init(node, params);
 }
@@ -358,7 +355,7 @@ void node_init_as_empty_instruction(Node* node)
 void node_init_as_for(Node* node)
 {
     Node_Init_Params params{};
-    params.type = Node_Type_FOR_LOOP;
+    params.kind = Node_Kind_FOR_LOOP;
     
     node_init(node, params);
 }
@@ -366,7 +363,7 @@ void node_init_as_for(Node* node)
 void node_init_as_function(Node* node, const Type_Descriptor* type_descriptor)
 {
     Node_Init_Params params{};
-    params.type            = Node_Type_FUNCTION;
+    params.kind            = Node_Kind_FUNCTION;
     params.type_descriptor = type_descriptor;
 
     node_init(node, params);
@@ -375,7 +372,7 @@ void node_init_as_function(Node* node, const Type_Descriptor* type_descriptor)
 void node_init_as_if(Node* node)
 {
     Node_Init_Params params{};
-    params.type = Node_Type_IF_ELSE;
+    params.kind = Node_Kind_IF_ELSE;
 
     node_init(node, params);
 }
@@ -383,7 +380,7 @@ void node_init_as_if(Node* node)
 void node_init_as_literal(Node* node, const Type_Descriptor* type_descriptor)
 {
     Node_Init_Params params{};
-    params.type            = Node_Type_LITERAL;
+    params.kind            = Node_Kind_LITERAL;
     params.type_descriptor = type_descriptor;
 
     node_init(node, params);
@@ -392,7 +389,7 @@ void node_init_as_literal(Node* node, const Type_Descriptor* type_descriptor)
 void node_init_as_operator(Node* node, const Type_Descriptor* type_descriptor)
 {
     Node_Init_Params params{};
-    params.type            = Node_Type_OPERATOR;
+    params.kind            = Node_Kind_OPERATOR;
     params.type_descriptor = type_descriptor;
 
     node_init(node, params);
@@ -401,7 +398,7 @@ void node_init_as_operator(Node* node, const Type_Descriptor* type_descriptor)
 void node_init_as_scope(Node* node)
 {
     Node_Init_Params params{};
-    params.type = Node_Type_SCOPE;
+    params.kind = Node_Kind_SCOPE;
     
     node_init(node, params);
 }
@@ -409,7 +406,7 @@ void node_init_as_scope(Node* node)
 void node_init_as_root_scope(Node* node)
 {
     Node_Init_Params params{};
-    params.type          = Node_Type_SCOPE;
+    params.kind          = Node_Kind_SCOPE;
     params.scope_is_root = true;
 
     node_init(node, params);
@@ -418,7 +415,7 @@ void node_init_as_root_scope(Node* node)
 void node_init_as_variable_ref(Node* node)
 {
     Node_Init_Params params{};
-    params.type = Node_Type_VARIABLE_REF;
+    params.kind = Node_Kind_VARIABLE_REF;
     
     node_init(node, params);
 }
@@ -426,7 +423,7 @@ void node_init_as_variable_ref(Node* node)
 void node_init_as_variable(Node* node, const Type_Descriptor* type_descriptor, const bdc::String identifier, bool with_assignment)
 {
     Node_Init_Params params{};
-    params.type                     = Node_Type_VARIABLE;
+    params.kind                     = Node_Kind_VARIABLE;
     params.type_descriptor          = type_descriptor;
     params.name                     = identifier.c_str();
     params.variable_with_assignment = with_assignment;
@@ -437,7 +434,7 @@ void node_init_as_variable(Node* node, const Type_Descriptor* type_descriptor, c
 void node_init_as_while(Node* node)
 {
     Node_Init_Params params{};
-    params.type = Node_Type_WHILE_LOOP;
+    params.kind = Node_Kind_WHILE_LOOP;
     
     node_init(node, params);
 }
@@ -471,7 +468,7 @@ void node_deinit(Node* node)
     array_release(node->slots);
 
     // clean the index
-    node_deinit_component(&node->component, to_component_type(node->type) );
+    node_deinit_component(&node->component, to_component_type(node->kind) );
 
     if( node->view )
     {
@@ -531,26 +528,26 @@ void node_deinit_component(Node::Component* component, Node::Component_Kind kind
     component->kind = 0;
 }
 
-Node::Component_Kind to_component_type(Node_Type type)
+Node::Component_Kind to_component_type(Node_Kind type)
 {
     switch (type)
     {
-        case Node_Type_IF_ELSE:    [[fallthrough]];     
-        case Node_Type_WHILE_LOOP: [[fallthrough]];
-        case Node_Type_FOR_LOOP:
+        case Node_Kind_IF_ELSE:    [[fallthrough]];     
+        case Node_Kind_WHILE_LOOP: [[fallthrough]];
+        case Node_Kind_FOR_LOOP:
             return Node::Component_Kind_BRANCHING;
 
-        case Node_Type_LITERAL:
+        case Node_Kind_LITERAL:
             return Node::Component_Kind_LITERAL;           
 
-        case Node_Type_OPERATOR: [[fallthrough]];
-        case Node_Type_FUNCTION:
+        case Node_Kind_OPERATOR: [[fallthrough]];
+        case Node_Kind_FUNCTION:
             return Node::Component_Kind_INVOKABLE;
 
-        case Node_Type_VARIABLE_REF:
+        case Node_Kind_VARIABLE_REF:
             return Node::Component_Kind_VARIABLE_REF;
 
-        case Node_Type_VARIABLE:
+        case Node_Kind_VARIABLE:
             return Node::Component_Kind_VARIABLE;
 
         default:
@@ -930,7 +927,7 @@ void node_init_branches(Node* node, size_t branch_count)
 void node_init_as_return(Node* node, const Type_Descriptor* type_descriptor)
 {
     Node_Init_Params params{};
-    params.type            = Node_Type_RETURN;
+    params.kind            = Node_Kind_RETURN;
     params.type_descriptor = type_descriptor;
 
     node_init(node, params);
@@ -965,7 +962,7 @@ bool node_is_instruction(const Node* node)
 {
     if ( node_is_connected_to_codeflow(node) )
         return true;
-    if ( node->type == Node_Type_VARIABLE )
+    if ( node->kind == Node_Kind_VARIABLE )
         return true;
     return false;
 }
@@ -987,7 +984,7 @@ bool node_could_be_instruction(const Node* node)
 
 bool node_is_unary_operator(const Node* node)
 {
-    if (node->type == Node_Type_OPERATOR )
+    if (node->kind == Node_Kind_OPERATOR )
         if (node->component.invokable.type.function.args.size == 1 )
             return true;
     return false;
@@ -995,7 +992,7 @@ bool node_is_unary_operator(const Node* node)
 
 bool node_is_binary_operator(const Node* node)
 {
-    if (node->type == Node_Type_OPERATOR )
+    if (node->kind == Node_Kind_OPERATOR )
         if (node->component.invokable.type.function.args.size == 2 )
             return true;
     return false;
@@ -1003,11 +1000,11 @@ bool node_is_binary_operator(const Node* node)
 
 bool node_is_conditional(const Node* node)
 {
-    switch ( node->type )
+    switch ( node->kind )
     {
-        case Node_Type_FOR_LOOP:
-        case Node_Type_WHILE_LOOP:
-        case Node_Type_IF_ELSE:
+        case Node_Kind_FOR_LOOP:
+        case Node_Kind_WHILE_LOOP:
+        case Node_Kind_IF_ELSE:
             return true;
         default:
             return false;
@@ -1025,7 +1022,7 @@ bool node_is_output_node_in_expression(const Node* input_node, const Node* outpu
 
     if ( node_is_instruction(input_node ) )
     {
-        if ( input_node->type == Node_Type_VARIABLE )
+        if ( input_node->kind == Node_Kind_VARIABLE )
         {
             const Node_Slot* declaration_out = input_node->component.variable.decl_out;
             return declaration_out->first_adjacent_node() == output_node;

@@ -61,8 +61,8 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
         case View_Detail_COMPACT:
         {
             view->show = false;
-            view->show |= node->type == Node_Type_VARIABLE;
-            view->show |= node->type == Node_Type_VARIABLE_REF;
+            view->show |= node->kind == Node_Kind_VARIABLE;
+            view->show |= node->kind == Node_Kind_VARIABLE_REF;
             break;
         }
 
@@ -70,16 +70,16 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
         {
             // When untouched, it depends...
 
-            view->show |= node->type == Node_Type_LITERAL;
-            view->show |= node->type == Node_Type_VARIABLE;
-            view->show |= node->type == Node_Type_VARIABLE_REF;
+            view->show |= node->kind == Node_Kind_LITERAL;
+            view->show |= node->kind == Node_Kind_VARIABLE;
+            view->show |= node->kind == Node_Kind_VARIABLE_REF;
 
             // Always show when connected to a variable
             if ( const Node_Slot* slot = view->connected_slot() )
-                switch ( slot->node->type )
+                switch ( slot->node->kind )
                 {
-                    case Node_Type_VARIABLE:
-                    case Node_Type_VARIABLE_REF:
+                    case Node_Kind_VARIABLE:
+                    case Node_Kind_VARIABLE_REF:
                         view->show |= true;
                 }
 
@@ -184,12 +184,12 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
     // 2) if property is an identifier, or a literal we allow edition via an InputText, InputDouble/Int or Checkbox
 
     // 1
-    if (view->property->node->type != Node_Type_VARIABLE)
+    if (view->property->node->kind != Node_Kind_VARIABLE)
         if ( connected_slot != nullptr )
-            switch (connected_slot->node->type)
+            switch (connected_slot->node->kind)
             {
-                case Node_Type_VARIABLE:
-                case Node_Type_VARIABLE_REF:
+                case Node_Kind_VARIABLE:
+                case Node_Kind_VARIABLE_REF:
                 {
                     const Token &connected_property_token = connected_slot->property->token;
                     bdc::String buf = bdc::string_tcopy( token_word_view(connected_property_token) );

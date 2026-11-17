@@ -262,8 +262,8 @@ void graph_connect_or_merge(Node_Slot* tail, Node_Slot* head )
     }
 
     // case 2: merge literals when not connected to a variable
-    if (tail->node->type == Node_Type_LITERAL && tail->property->token.word_size < 16 )
-        if (head->node->type != Node_Type_VARIABLE )
+    if (tail->node->kind == Node_Kind_LITERAL && tail->property->token.word_size < 16 )
+        if (head->node->kind != Node_Kind_VARIABLE )
         {
             property_digest(head->property, tail->property );
             graph_delete(tail->node->graph, tail->node);
@@ -385,7 +385,7 @@ void graph_connect(Node_Slot* tail, Node_Slot* head, Graph_Flags _flags)
                 }
 
                 // make sure head property type matches with tail, update head when needed.
-                if ( head->node->type != Node_Type_VARIABLE )
+                if ( head->node->kind != Node_Kind_VARIABLE )
                 {
                     property_set_type(head->property, tail->property->type );
                 }
@@ -446,7 +446,7 @@ void graph_disconnect(Node_Slot* tail, Node_Slot* head, Graph_Flags flags)
                 NDBL_ASSERT(tail->type_and_order() == Node_Slot::Flag_OUTPUT );
 
                 // reset token to a default value to preserve a correct serialization
-                if (head->node->type != Node_Type_VARIABLE )
+                if (head->node->kind != Node_Kind_VARIABLE )
                 {
                     Serializer_Context ctx;
                     serializer_init(ctx);

@@ -83,8 +83,8 @@ TEST_F(Graph_, clear)
     Type_Descriptor  f;
     type_init<int(int, int)>(&f, "+");
 
-    Node* variable      = graph_new_node(graph, { .type = Node_Type_VARIABLE, .type_descriptor = type_get<int>(), .name = "var" });
-    Node* operator_node = graph_new_node(graph, { .type = Node_Type_OPERATOR, .type_descriptor = &f });
+    Node* variable      = graph_new_node(graph, { .kind = Node_Kind_VARIABLE, .type_descriptor = type_get<int>(), .name = "var" });
+    Node* operator_node = graph_new_node(graph, { .kind = Node_Kind_OPERATOR, .type_descriptor = &f });
 
     graph_connect(
             operator_node->value_out(),
@@ -105,8 +105,8 @@ TEST_F(Graph_, clear)
 TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
-    Node* node_1 = graph_new_node(app.graph, { .type = Node_Type_LITERAL, .type_descriptor = type_get<int>() });
-    Node* node_2 = graph_new_node(app.graph, { .type = Node_Type_VARIABLE, .type_descriptor = type_get<int>(), .name = "a" });
+    Node* node_1 = graph_new_node(app.graph, { .kind = Node_Kind_LITERAL, .type_descriptor = type_get<int>() });
+    Node* node_2 = graph_new_node(app.graph, { .kind = Node_Kind_VARIABLE, .type_descriptor = type_get<int>(), .name = "a" });
 
     // Act and test
 
@@ -121,7 +121,7 @@ TEST_F(Graph_, create_and_delete_relations)
 TEST_F(Graph_, erase_node_from_non_root_scope)
 {
     // prepare
-    Node* scope_node = graph_new_node(app.graph, { .type = Node_Type_SCOPE });
+    Node* scope_node = graph_new_node(app.graph, { .kind = Node_Kind_SCOPE });
     graph_connect(graph_root(app.graph)->flow_enter(), scope_node->flow_in());
     Node* child = _graph_new_simple_node(app.graph);
     graph_change_node_scope(child, scope_node->internal_scope);
@@ -138,7 +138,7 @@ TEST_F(Graph_, erase_node_from_non_root_scope)
 TEST_F(Graph_, erase_first_node_of_a_scope_with_another_child_after)
 {
     // prepare
-    Node* scope_node = graph_new_node(app.graph, { .type = Node_Type_SCOPE });
+    Node* scope_node = graph_new_node(app.graph, { .kind = Node_Kind_SCOPE });
     Node* child1     = _graph_new_simple_node( app.graph );
     Node* child2     = _graph_new_simple_node( app.graph );
 

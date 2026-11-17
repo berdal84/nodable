@@ -112,7 +112,7 @@ namespace ndbl
         bdc::String    ui_splashscreen_imagePath;
         bdc::String    ui_startup_window_label;
         bdc::String    ui_toolbar_window_label ;
-        std::array<Vec4,Node_Type_COUNT> ui_node_fill_color;
+        std::array<Vec4,Node_Kind_COUNT> ui_node_fill_color;
         std::vector<Action> actions;
         Palette        ui_text_editor_palette{};
         Padding        ui_scope_padding;

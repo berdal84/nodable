@@ -936,15 +936,15 @@ void appview_draw()
                 ImGui::Indent();
                 if ( ImGui::CollapsingHeader("Colors", flags ))
                 {
-                    ImGui::ColorEdit4("default"     , &config()->ui_node_fill_color[Node_Type_NULL].x );
-                    ImGui::ColorEdit4("entry point" , &config()->ui_node_fill_color[Node_Type_SCOPE].x );
-                    ImGui::ColorEdit4("condition"   , &config()->ui_node_fill_color[Node_Type_IF_ELSE].x );
-                    ImGui::ColorEdit4("for loop"    , &config()->ui_node_fill_color[Node_Type_FOR_LOOP].x );
-                    ImGui::ColorEdit4("while loop"  , &config()->ui_node_fill_color[Node_Type_WHILE_LOOP].x );
-                    ImGui::ColorEdit4("variable"    , &config()->ui_node_fill_color[Node_Type_VARIABLE].x );
-                    ImGui::ColorEdit4("literal"     , &config()->ui_node_fill_color[Node_Type_LITERAL].x );
-                    ImGui::ColorEdit4("function"    , &config()->ui_node_fill_color[Node_Type_FUNCTION].x );
-                    ImGui::ColorEdit4("operator"    , &config()->ui_node_fill_color[Node_Type_OPERATOR].x );
+                    ImGui::ColorEdit4("default"     , &config()->ui_node_fill_color[Node_Kind_NULL].x );
+                    ImGui::ColorEdit4("entry point" , &config()->ui_node_fill_color[Node_Kind_SCOPE].x );
+                    ImGui::ColorEdit4("condition"   , &config()->ui_node_fill_color[Node_Kind_IF_ELSE].x );
+                    ImGui::ColorEdit4("for loop"    , &config()->ui_node_fill_color[Node_Kind_FOR_LOOP].x );
+                    ImGui::ColorEdit4("while loop"  , &config()->ui_node_fill_color[Node_Kind_WHILE_LOOP].x );
+                    ImGui::ColorEdit4("variable"    , &config()->ui_node_fill_color[Node_Kind_VARIABLE].x );
+                    ImGui::ColorEdit4("literal"     , &config()->ui_node_fill_color[Node_Kind_LITERAL].x );
+                    ImGui::ColorEdit4("function"    , &config()->ui_node_fill_color[Node_Kind_FUNCTION].x );
+                    ImGui::ColorEdit4("operator"    , &config()->ui_node_fill_color[Node_Kind_OPERATOR].x );
                     ImGui::Separator();
                     ImGui::ColorEdit4("highlighted"         , &config()->ui_node_highlightedColor.x);
                     ImGui::ColorEdit4("shadow"              , &config()->ui_node_shadowColor.x);

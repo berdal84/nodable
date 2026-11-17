@@ -20,25 +20,26 @@ namespace ndbl
     typedef u32_t Slot_Node_ID;
     typedef u32_t Scope_ID;
 
-    typedef int Node_Type;
-    enum Node_Type_
+    typedef int Node_Kind;
+    enum Node_Kind_
     {
         // enum is used to index arrays, must start at 0 with no gaps
+        // values are provided for debug reference.
 
-        Node_Type_NULL                  =  0,
-        Node_Type_SCOPE                 =  1,
-        Node_Type_IF_ELSE               =  3,
-        Node_Type_FOR_LOOP              =  4,
-        Node_Type_WHILE_LOOP            =  5,
-        Node_Type_VARIABLE              =  6,
-        Node_Type_VARIABLE_REF          =  7,
-        Node_Type_LITERAL               =  8,
-        Node_Type_FUNCTION              =  9,
-        Node_Type_OPERATOR              = 10,
-        Node_Type_EMPTY_INSTRUCTION     = 11,
-        Node_Type_RETURN                = 12,
+        Node_Kind_NULL                  =  0,
+        Node_Kind_SCOPE                 =  1,
+        Node_Kind_IF_ELSE               =  3,
+        Node_Kind_FOR_LOOP              =  4,
+        Node_Kind_WHILE_LOOP            =  5,
+        Node_Kind_VARIABLE              =  6,
+        Node_Kind_VARIABLE_REF          =  7,
+        Node_Kind_LITERAL               =  8,
+        Node_Kind_FUNCTION              =  9,
+        Node_Kind_OPERATOR              = 10,
+        Node_Kind_EMPTY_INSTRUCTION     = 11,
+        Node_Kind_RETURN                = 12,
 
-        Node_Type_COUNT,
+        Node_Kind_COUNT,
     };
 
     typedef size_t Branch;
@@ -46,15 +47,6 @@ namespace ndbl
     {
         Branch_FALSE = 0,
         Branch_TRUE  = 1,
-    };
-
-    typedef int VariableFlags;
-    enum VariableFlags_
-    {
-        VariableFlag_NONE        = 0,
-        VariableFlag_DECLARED    = 1 << 0,
-        VariableFlag_INITIALIZED = 1 << 1,
-        VariableFlag_ALL         = ~VariableFlag_NONE
     };
 
     typedef int Node_Flags;
@@ -122,7 +114,6 @@ namespace ndbl
             Component_Kind  kind = Component_Kind_VARIABLE;
             Token           type_token;       // [int] var  =
             Token           operator_token;   //  int  var [=]
-            VariableFlags   flags;
             Node_Slot*      decl_out;
             Node_Slot*      ref_out;
         };
@@ -170,7 +161,7 @@ namespace ndbl
         Node_Property*                          value = nullptr;   // this Node_Property
         Scope*                                  scope = nullptr; 
         Scope*                                  internal_scope = nullptr;
-        Node_Type                               type  = 0;
+        Node_Kind                               kind  = 0;
         Node_Flags                              flags = 0;
         Node_View*                              view  = nullptr;
 
@@ -195,7 +186,7 @@ namespace ndbl
     struct Node_Init_Params
     {
         Node_ID                 id;
-        Node_Type               type; // TODO: rename this "kind", here and in struct Node too. I want to remove confusion with type_descriptor.
+        Node_Kind               kind; // TODO: rename this "kind", here and in struct Node too. I want to remove confusion with type_descriptor.
         const Type_Descriptor*  type_descriptor;
         const char*             name;
         Scope_ID                parent_scope_id;
@@ -279,6 +270,6 @@ namespace ndbl
     bool                    node_is_output_node_in_expression(const Node* input_node, const Node* output_node);
     bool                    node_is_initialized(const Node* node);
     bool                    node_is_expression(const Node*);
-    inline bool             node_is_invokable(const Node* node)     { return node->type == Node_Type_OPERATOR || node->type == Node_Type_FUNCTION; }
+    inline bool             node_is_invokable(const Node* node)     { return node->kind == Node_Kind_OPERATOR || node->kind == Node_Kind_FUNCTION; }
     inline bool             node_is_orphan(const Node* node)        { return node->scope == nullptr; }
 }

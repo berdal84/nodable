@@ -412,7 +412,7 @@ bool ndbl::graphview_draw(Graph_View* graphview, float dt)
                 }
 
                 // Draw transparent some "variable--->ref" wires in certain cases
-                if (node_out->type == Node_Type_VARIABLE ) // from a variable
+                if (node_out->kind == Node_Kind_VARIABLE ) // from a variable
                 {
                     if (slot_out == node_out->component.variable.ref_out ) // from a reference slot (can't be a declaration link)
                         if (!HAS_FLAGS(node_view_out->flags, View_Flag_SELECTED) && !HAS_FLAGS(node_view_in->flags, View_Flag_SELECTED) )
@@ -581,7 +581,7 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
 
         // When the input_node is from a different scope, we don't constrain it here
         // it is handled by the parent node from the same scope somewhere else in the code.
-        if ( input_node->type == Node_Type_VARIABLE && input_node->scope != node->scope )
+        if ( input_node->kind == Node_Kind_VARIABLE && input_node->scope != node->scope )
         {
             continue;
         }
@@ -618,7 +618,7 @@ void ndbl::_graphview_do_layout_recursively_on_expressions_only(Graph_View* grap
 
                 // When the input_node is from a different scope, we don't constrain it here
                 // it is handled by the parent node from the same scope somewhere else in the code.
-                if ( input_node->type == Node_Type_VARIABLE && input_node->scope != node->scope )
+                if ( input_node->kind == Node_Kind_VARIABLE && input_node->scope != node->scope )
                 {
                     continue;
                 }

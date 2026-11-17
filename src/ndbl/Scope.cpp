@@ -76,7 +76,7 @@ void scope_append(Scope* scope, Node *node)
     const auto& [_, ok] = scope->children.insert(node); NDBL_ASSERT(ok);
 
     // insert as variable?
-    if (node->type == Node_Type_VARIABLE )
+    if (node->kind == Node_Kind_VARIABLE )
     {
         if (scope_find_variable( scope, node_get_identifier(node)) != nullptr )
         {
@@ -97,7 +97,7 @@ void scope_append(Scope* scope, Node *node)
 
     // Insert inputs recursively
     for ( Node* input : node->inputs() )
-        if ( input->type != Node_Type_VARIABLE ) // variables must be manually added
+        if ( input->kind != Node_Kind_VARIABLE ) // variables must be manually added
             if (input->scope == previous_scope )
                 scope_append(scope, input);
 
@@ -149,7 +149,7 @@ void scope_remove(Scope* scope, Node *node)
     // inputs first
     for ( Node* inputnode : node->inputs() )
         if ( inputnode->scope == scope )
-            if ( inputnode->type != Node_Type_VARIABLE ) // variables must be manually removed
+            if ( inputnode->kind != Node_Kind_VARIABLE ) // variables must be manually removed
                 scope_remove(scope, inputnode);
 
     // erase node + side effects
@@ -160,7 +160,7 @@ void scope_remove(Scope* scope, Node *node)
     }
     node_reset_scope(node, nullptr);
 
-    if ( node->type == Node_Type_VARIABLE )
+    if ( node->kind == Node_Kind_VARIABLE )
     {
         scope->variables.erase(node);
     }

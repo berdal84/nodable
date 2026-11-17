@@ -106,11 +106,11 @@ void config_reset()
     for (auto& col : g_config->ui_node_fill_color)
         col = Vec4(0.7f, 0.9f, 0.7f, 1.0f); // green;
 
-    g_config->ui_node_fill_color[Node_Type_VARIABLE]     =  color_from_rgba_u8(171, 190, 255);
-    g_config->ui_node_fill_color[Node_Type_VARIABLE_REF] =  g_config->ui_node_fill_color[Node_Type_VARIABLE];
-    g_config->ui_node_fill_color[Node_Type_LITERAL]      =  color_from_rgba_u8(200, 200, 200);
-    g_config->ui_node_fill_color[Node_Type_FUNCTION]     =  color_from_rgba_u8(255, 199, 115);
-    g_config->ui_node_fill_color[Node_Type_OPERATOR]     =  g_config->ui_node_fill_color[Node_Type_FUNCTION];
+    g_config->ui_node_fill_color[Node_Kind_VARIABLE]     =  color_from_rgba_u8(171, 190, 255);
+    g_config->ui_node_fill_color[Node_Kind_VARIABLE_REF] =  g_config->ui_node_fill_color[Node_Kind_VARIABLE];
+    g_config->ui_node_fill_color[Node_Kind_LITERAL]      =  color_from_rgba_u8(200, 200, 200);
+    g_config->ui_node_fill_color[Node_Kind_FUNCTION]     =  color_from_rgba_u8(255, 199, 115);
+    g_config->ui_node_fill_color[Node_Kind_OPERATOR]     =  g_config->ui_node_fill_color[Node_Kind_FUNCTION];
 
     g_config->ui_slot_border_color                  = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
     g_config->ui_slot_hovered_color                 = color_from_rgba_u8(200, 200, 200);
@@ -220,19 +220,19 @@ void config_reset()
         {{ Event_Type_FRAME_SELECTION           }, "Frame Selection"    , {SDLK_f, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION | Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI},
         {{ Event_Type_FRAME_SELECTION           }, "Frame All"          , {SDLK_f, KMOD_LCTRL }, Action_Flags_DISABLE_INDEXING },
         {{ Event_Type_TOGGLE_HELP               }, "Splashscreen"       , {SDLK_F1 }},    
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_RETURN      }, .label = ICON_FA_CODE " Return Statement"      , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_IF_ELSE     }, .label = ICON_FA_CODE " Condition"             , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_FOR_LOOP    }, .label = ICON_FA_CODE " For Loop"              , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_WHILE_LOOP  }, .label = ICON_FA_CODE " While Loop"            , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_SCOPE       }, .label = ICON_FA_CODE " Scope"                 , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " Boolean Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " Double Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " Integer Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_VARIABLE    }, .label = ICON_FA_DATABASE " String Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, .label = ICON_FA_FILE " Boolean Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, .label = ICON_FA_FILE " Double Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, .label = ICON_FA_FILE " Integer Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Type_LITERAL     }, .label = ICON_FA_FILE " String Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_RETURN      }, .label = ICON_FA_CODE " Return Statement"      , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_IF_ELSE     }, .label = ICON_FA_CODE " Condition"             , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_FOR_LOOP    }, .label = ICON_FA_CODE " For Loop"              , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_WHILE_LOOP  }, .label = ICON_FA_CODE " While Loop"            , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_SCOPE       }, .label = ICON_FA_CODE " Scope"                 , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " Boolean Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " Double Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " Integer Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " String Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " Boolean Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " Double Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " Integer Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_NEW_NODE, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " String Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
     };
 }
 

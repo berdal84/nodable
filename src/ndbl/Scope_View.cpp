@@ -163,10 +163,10 @@ void TreeNode_Scope(const bdc::String& title, Scope* scope)
 void TreeNode_Node(Node* node)
 {
     bool open = false;
-    switch ( node->type )
+    switch ( node->kind )
     {
-        case Node_Type_OPERATOR:
-        case Node_Type_FUNCTION:
+        case Node_Kind_OPERATOR:
+        case Node_Kind_FUNCTION:
         {
             Serializer_Context ctx;
             serializer_init(ctx);
@@ -178,7 +178,7 @@ void TreeNode_Node(Node* node)
             serializer_deinit(ctx);
             break;
         }
-        case Node_Type_VARIABLE:
+        case Node_Kind_VARIABLE:
         {
             open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, token_word_view(node->value->token).c_str(), node->name.c_str());
             break;

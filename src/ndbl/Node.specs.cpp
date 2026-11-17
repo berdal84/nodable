@@ -13,12 +13,12 @@ TEST_F(Node_, ctor_and_dtor )
 {
     {
         Node node;
-        EXPECT_TRUE(node.type == Node_Type_NULL);
+        EXPECT_TRUE(node.kind == Node_Kind_NULL);
         EXPECT_FALSE(node.flags & Node_Flag_IS_INITIALIZED);
     }
 }
 
-TEST_F(Node_, init_a_Node_Type_NULL)
+TEST_F(Node_, init_a_Node_Kind_NULL)
 {
     Node node;
     node_init(&node, {.name = "My Node" });
