@@ -139,13 +139,13 @@ void command_text_undo_record_release(Command* command)
 
 //-----------------------------------------------------------------------------
 
-Command make_cmd_new_node(const Cmd_New_Node& data)
+Command make_cmd_new_node(const Node_Init_Params& node_init_params)
 {
     Command command;
     command.type        = Command_Type_CONNECT;
     command.proc_do     = command_new_node_do;
     command.proc_undo   = command_new_node_undo;
-    command.data.new_node = data;
+    command.data.new_node.node_init_params = node_init_params;
     command.description = "Connect two slots";
 
     return command;
@@ -156,7 +156,7 @@ void command_new_node_do(Command* command)
     auto&  data  = command->data.new_node;
     Graph* graph = app_state()->current_file->graph;
 
-    graph_new_node(graph, command->data.new_node );
+    graph_new_node(graph, data.node_init_params );
 }
 
 void command_new_node_undo(Command* command)
@@ -164,46 +164,65 @@ void command_new_node_undo(Command* command)
     auto&  data  = command->data.new_node;
     Graph* graph = app_state()->current_file->graph;
 
-    graph_delete(graph, data.id);
+    graph_delete(graph, data.node_init_params.id);
 }
 
 //-----------------------------------------------------------------------------
 
-Command make_cmd_selection_change(const Array<View>& _selection) // TODO: we should not take a View_Selection as input arg, a const Array<View>& is enough
+NDBL_COMMAND(selection_change, const Cmd_Selection_Change& selection_change)
 {
     Command cmd;
 
-    cmd.type             = Command_Type_SELECTION_CHANGE;
-    cmd.proc_do          = command_selection_change_do;
-    cmd.proc_redo        = cmd.proc_do;
-    cmd.proc_undo        = command_selection_change_undo;
-    cmd.proc_release     = command_selection_change_release;
-    cmd.data.selection_change = memory_new<Cmd_Selection_Change>();
-    
-    cmd.data.selection_change->old_selection = array_copy( app_state()->current_file->view.graph_view->selection.items );
-    cmd.data.selection_change->new_selection = array_copy( _selection );
+    cmd.type                    = Command_Type_SELECTION_CHANGE;
+    cmd.proc_do                 = command_selection_change_do;
+    cmd.proc_redo               = cmd.proc_do;
+    cmd.proc_undo               = command_selection_change_undo;
+    cmd.proc_release            = command_selection_change_release;
+    cmd.data.selection_change   = cmd_selection_change_copy(memory_new<Cmd_Selection_Change>(), &selection_change);
 
     return cmd;
 }
 
-void command_selection_change_release(Command *command)
+NDBL_COMMAND_RELEASE(selection_change, command)
 {
     memory_delete( command->data.selection_change );    
     *command = {};
 }
 
-void command_selection_change_do(Command *command)
+NDBL_COMMAND_DO(selection_change, command)
 {
     auto& selection = app_state()->current_file->view.graph_view->selection;
     viewselection_clear( selection );
     viewselection_add( selection, command->data.selection_change->new_selection);
 }
 
-void command_selection_change_undo(Command *command)
+NDBL_COMMAND_UNDO(selection_change, command)
 {
     auto& selection = app_state()->current_file->view.graph_view->selection;
     viewselection_clear( selection );
     viewselection_add( selection, command->data.selection_change->old_selection);
+}
+
+//-----------------------------------------------------------------------------
+
+NDBL_COMMAND(set_node_view_position, const Set_Node_View_Position& data)
+{
+    Command cmd;
+
+    cmd.type                        = Command_Type_SELECTION_CHANGE;
+    cmd.proc_do                     = command_set_node_view_position_do;
+    cmd.proc_redo                   = cmd.proc_do;
+    cmd.data.set_node_view_position = data;
+
+    return cmd;
+}
+
+NDBL_COMMAND_DO(set_node_view_position, command)
+{
+    Set_Node_View_Position& data = command->data.set_node_view_position;
+    Graph* graph = app_state()->current_file->graph;
+    Node*  node  = graph_get_node(graph, data.node_id);
+    spatialnode_set_position(node->view->shape.spatial_node, { data.x, data.y }, data.space);
 }
 
 //-----------------------------------------------------------------------------

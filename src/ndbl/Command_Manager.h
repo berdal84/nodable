@@ -27,7 +27,7 @@ namespace ndbl
 	Command_Manager* 	command_manager_init();
 	void             	command_manager_shutdown();
 	Command_Manager* 	command_manager();
-	Command*  			command_manager_push_command(const Command&, bool skip_command_execution = false); // set skip_command_execution = true in case command was already executed. When I write these lines, the text editor has its own undo/redo system, and Nodable get the UndoRecord after it has been executed, we don't want to run it twice.
+	Command*  			command_manager_push_command(const Command&, const Cmd_Push_Params& = { .skip_command_do_at_push = false }); // set skip_command_execution = true in case command was already executed. When I write these lines, the text editor has its own undo/redo system, and Nodable get the UndoRecord after it has been executed, we don't want to run it twice.
 	void 				command_manager_begin_transaction();
 	void 				command_manager_end_transaction();
 	void    			command_manager_enable_text_editor_undo_buffer(bool _val);

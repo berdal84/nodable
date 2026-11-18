@@ -185,14 +185,14 @@ namespace ndbl
     
     struct Node_Init_Params
     {
-        Node_ID                 id;
-        Node_Kind               kind; // TODO: rename this "kind", here and in struct Node too. I want to remove confusion with type_descriptor.
-        const Type_Descriptor*  type_descriptor;
+        Node_ID                 id;                 // optionnal, if null an automatic id will be generated (see node_generate_new_id()).
+        Node_Kind               kind;
         const char*             name;
-        Scope_ID                parent_scope_id;
-        bool                    created_by_the_user;        // TODO: could be in flags
-        bool                    variable_with_assignment;   // TODO: could be in flags
-        bool                    scope_is_root;              // TODO: could be in flags
+        Scope_ID                parent_scope_id;            // optionnal
+        const Type_Descriptor*  type_descriptor;            // optionnal
+        bool                    created_by_the_user;        // Note: could be in flags? But harder to debug..
+        bool                    variable_with_assignment;   // Note: could be in flags? But harder to debug..
+        bool                    scope_is_root;              // Note: could be in flags? But harder to debug..
     };
 
     Node*                   new_node(const Node_Init_Params&);
@@ -254,9 +254,11 @@ namespace ndbl
     inline Node_Property*   node_find_prop_by_name(Node* node, const bdc::String& name) { return const_cast<Node_Property*>( node_find_prop_by_name(const_cast<const Node*>(node), name) );}
     const Node_Property*    node_find_first_prop(const Node*, Node_Property::Flags, const Type_Descriptor* );
     inline Node_Property*   node_find_first_prop(Node* node, Node_Property::Flags flags, const Type_Descriptor* type ) { return const_cast<Node_Property*>( node_find_first_prop(const_cast<const Node*>(node), flags, type) );}
-    const Type_Descriptor* node_get_connected_function_type(const Node*, const bdc::String& property_name); //
+    const Type_Descriptor*  node_get_connected_function_type(const Node*, const bdc::String& property_name); //
 
     // Misc.
+
+    Node_ID                 node_generate_new_id();
 
     bdc::Array<ndbl::Node*> node_get_adjacent_nodes(const Node*, Node_Slot::Flags); // may update cache and return result
     Node*                   node_adjacent_node_at(const Node*, Node_Slot::Flags, u8_t pos);

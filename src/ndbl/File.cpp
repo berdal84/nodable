@@ -37,7 +37,7 @@ void file_init(File* file)
 
     // Fill the "create node" context menu
     for( const Action& action : action_manager()->actions )
-        if ( action.event.type == Event_Type_NEW_NODE )
+        if ( action.event.type == Event_Type_CREATE_NODE )
             array_append(graph_view->node_search_input.items, action);
 
     // File_View

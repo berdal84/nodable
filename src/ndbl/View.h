@@ -38,6 +38,10 @@ namespace ndbl
 
     struct View
     {
+        // TODO? it might be more convenient to store ids rather than pointers
+        //       to check whether an instance is selected, that would be equivalent (comparing addresses vs comparing ids)
+        //       and could be used by the command manager safely.
+
         View_Type type = 0;
 
         union

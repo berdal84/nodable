@@ -10,34 +10,32 @@
 //
 // MACROS to help declare new commands
 //
-#define NDBL_COMMAND( NAME, TYPE ) \
-ndbl::Command make_cmd_##NAME(TYPE)
+#define NDBL_COMMAND( NAME, ... ) \
+ndbl::Command make_cmd_##NAME(__VA_ARGS__)
 
-#define NDBL_COMMAND_RELEASE( NAME ) \
-void command_##NAME##_release(ndbl::Command*)
+#define NDBL_COMMAND_RELEASE( NAME, ... ) \
+void command_##NAME##_release(ndbl::Command* __VA_ARGS__)
 
-#define NDBL_COMMAND_DO( NAME ) \
-void command_##NAME##_do(ndbl::Command* command)
+#define NDBL_COMMAND_DO( NAME, ... ) \
+void command_##NAME##_do(ndbl::Command* __VA_ARGS__)
 
-#define NDBL_COMMAND_UNDO( NAME ) \
-void command_##NAME##_undo(ndbl::Command* command)
+#define NDBL_COMMAND_UNDO( NAME, ... ) \
+void command_##NAME##_undo(ndbl::Command* __VA_ARGS__)
 
-#define NDBL_COMMAND_REDO( NAME ) \
-void command_##NAME##_redo(ndbl::Command* command)
+#define NDBL_COMMAND_REDO( NAME, ... ) \
+void command_##NAME##_redo(ndbl::Command* __VA_ARGS__)
 
-#define NDBL_COMMAND_DECLARE_WITH_ARGS( NAME, TYPE ) \
-NDBL_COMMAND( NAME, TYPE ); \
+#define NDBL_COMMAND_DECLARE_UNDOABLE( NAME, ... ) \
+NDBL_COMMAND( NAME __VA_OPT__(,) __VA_ARGS__ ); \
 NDBL_COMMAND_RELEASE( NAME ); \
 NDBL_COMMAND_DO( NAME ); \
 NDBL_COMMAND_UNDO( NAME ); \
 NDBL_COMMAND_REDO( NAME );
 
-#define NDBL_COMMAND_DECLARE( NAME ) \
-ndbl::Command new_command_##NAME(); \
+#define NDBL_COMMAND_DECLARE_DOABLE( NAME, ... ) \
+NDBL_COMMAND( NAME __VA_OPT__(,) __VA_ARGS__ ); \
 NDBL_COMMAND_RELEASE( NAME ); \
-NDBL_COMMAND_DO( NAME ); \
-NDBL_COMMAND_UNDO( NAME ); \
-NDBL_COMMAND_REDO( NAME );
+NDBL_COMMAND_DO( NAME );
 
 namespace ndbl
 {
@@ -61,6 +59,7 @@ namespace ndbl
         Command_Type_TEXT_REPLACE,
         Command_Type_TEXT_UNDO_RECORD,
         Command_Type_SELECTION_CHANGE,
+        Command_Type_SET_NODE_VIEW_POSITION,
     };
 
     struct Cmd_Data
@@ -93,8 +92,23 @@ namespace ndbl
         Array<View> new_selection;
     };
 
-    struct Cmd_New_Node : Node_Init_Params
+    inline Cmd_Selection_Change* cmd_selection_change_copy(Cmd_Selection_Change* out, const Cmd_Selection_Change* in)
     {
+        out->old_selection = array_copy(in->old_selection);
+        out->new_selection = array_copy(in->new_selection);
+        return out;
+    };
+
+    struct Cmd_New_Node
+    {
+        Node_Init_Params node_init_params;
+    };
+
+    struct Set_Node_View_Position // could be Set_Spatial_Node_Position
+    {
+        Node_ID node_id; // could be spatial_node_id
+        float   x, y;
+        Space   space;
     };
 
     typedef int Command_Flags;
@@ -110,6 +124,11 @@ namespace ndbl
     void        command_redo(Command*);
     void        command_undo(Command*);
 
+    struct Cmd_Push_Params
+    {
+        bool skip_command_do_at_push;
+    };
+
     struct Command
     {
         typedef void(Contextual_Procedure_Type)(Command*);
@@ -120,12 +139,13 @@ namespace ndbl
         bdc::String     description    = "";
         
         union {
-            Cmd_Data              data;
-            Cmd_New_Node          new_node;
-            Cmd_Link              link;
-            Cmd_Text_Replace*     text_replace;
-            Cmd_Text_Undo_Record* text_undo_record;
-            Cmd_Selection_Change* selection_change;
+            Cmd_Data                data;
+            Cmd_New_Node            new_node;
+            Cmd_Link                link;
+            Set_Node_View_Position  set_node_view_position;
+            Cmd_Text_Replace*       text_replace;
+            Cmd_Text_Undo_Record*   text_undo_record;
+            Cmd_Selection_Change*   selection_change;
         } data;
 
         Contextual_Procedure_Type*  proc_do      = nullptr;
@@ -134,14 +154,13 @@ namespace ndbl
         Procedure_Type*             proc_release = nullptr;
     };
 
-
-
-    NDBL_COMMAND_DECLARE_WITH_ARGS(connect           , Cmd_Link)
-    NDBL_COMMAND_DECLARE_WITH_ARGS(disconnect        , Cmd_Link)
-    NDBL_COMMAND_DECLARE_WITH_ARGS(replace_text      , const Cmd_Text_Replace&)
-    NDBL_COMMAND_DECLARE_WITH_ARGS(text_undo_record  , const Cmd_Text_Undo_Record&)
-    NDBL_COMMAND_DECLARE_WITH_ARGS(new_node          , const Cmd_New_Node&)
-    NDBL_COMMAND_DECLARE_WITH_ARGS(selection_change  , const Array<View>& new_selection)
+    NDBL_COMMAND_DECLARE_UNDOABLE(connect           , Cmd_Link)
+    NDBL_COMMAND_DECLARE_UNDOABLE(disconnect        , Cmd_Link)
+    NDBL_COMMAND_DECLARE_UNDOABLE(replace_text      , const Cmd_Text_Replace&)
+    NDBL_COMMAND_DECLARE_UNDOABLE(text_undo_record  , const Cmd_Text_Undo_Record&)
+    NDBL_COMMAND_DECLARE_UNDOABLE(new_node          , const Node_Init_Params&)
+    NDBL_COMMAND_DECLARE_UNDOABLE(selection_change  , const Cmd_Selection_Change&)
+    NDBL_COMMAND_DECLARE_DOABLE(set_node_view_position, const Set_Node_View_Position&)
 }
 
 

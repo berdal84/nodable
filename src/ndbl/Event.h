@@ -41,7 +41,7 @@ namespace ndbl
         Event_Type_DELETE_LINK                  = 302,
         Event_Type_DELETE                       = 303,
         Event_Type_MOVE                         = 304,
-        Event_Type_NEW_NODE                     = 305,
+        Event_Type_CREATE_NODE                     = 305,
         Event_Type_FRAME_SELECTION              = 306,
         Event_Type_RESET_GRAPH_VIEW             = 307,
         Event_Type_SELECT_NEXT                  = 308,
@@ -78,9 +78,11 @@ namespace ndbl
 
     struct Event_Data__Create_Node
     {
-        Node_Init_Params params;
-        Node_Slot_View* active_slotview;    // The slot view being dragged.
-        Vec2            desired_screen_pos; // The desired position for the new node view
+        Node_Init_Params node_init_params;
+        Node_Slot_View*  active_slotview;    // The slot view being dragged.
+        float            desired_pos_x;
+        float            desired_pos_y;
+        Space            space = WORLD_SPACE;
     };
 
 }

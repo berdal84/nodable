@@ -390,36 +390,49 @@ void app_update()
                 break;
             }
 
-            case Event_Type_NEW_NODE:
+            case Event_Type_CREATE_NODE:
             {
+                Graph* graph = app_state()->current_file->graph;
+                NDBL_ASSERT(graph);
+
+                auto data = static_cast<Event_Data__Create_Node*>(event.data1);
+                NDBL_ASSERT(data);
+
+                // Begin a transaction (can be undo as a whole)
                 command_manager_begin_transaction();
 
-                auto event_data = static_cast<Event_Data__Create_Node*>(event.data1);
-
-                // Determine a unique hash
-                Node_Init_Params params = event_data->params;
-                params.id = string_hash("Node").hash;
-
-                // Create Node                
-                Command cmd = make_cmd_new_node({params});
-                command_manager_push_command(cmd);  
-
-                Node* new_node = graph_get_node(app->current_file->graph, params.id);
-
-                // clear selection and select the new node
-                //    TODO: replace selection (from current to the new_node's view)
-                if ( new_node->view )
+                // Generate a predetermined id for the new node
+                if( data->node_init_params.id == 0)
                 {
-                    Inlined_Array<View, 1> views = { new_node->view };
-                    Command cmd_selection_change = make_cmd_selection_change(views);
-                    // command_manager_push_command(cmd_selection_change); // <--- Note: why this command is not grouped with the new_node command?
+                    data->node_init_params.id = node_generate_new_id();
                 }
 
-                // Set Node_View position
-                spatialnode_set_position(new_node->view->shape.spatial_node, event_data->desired_screen_pos, WORLD_SPACE);
+                // Create Node
+                command_manager_push_command( make_cmd_new_node(data->node_init_params) );  
+                
+                Node* new_node = graph_get_node(graph, data->node_init_params.id);
+                if ( new_node->view )
+                {
+                    // Clear current selection and Select the new node's View
+                    Cmd_Selection_Change selection_change = {
+                        .old_selection = graph->view->selection.items,
+                        .new_selection = Inlined_Array<View, 1>{ new_node->view },
+                    };
+                    command_manager_push_command( make_cmd_selection_change(selection_change) );
+
+                    // Set Node_View position
+                    command_manager_push_command(
+                        make_cmd_set_node_view_position({
+                            .node_id = data->node_init_params.id,
+                            .x       = data->desired_pos_x,
+                            .y       = data->desired_pos_y,
+                            .space   = data->space,
+                        })
+                    );
+                }
 
                 // Connect the new node to the code flow if a slot is being dragged
-                if ( Node_Slot_View* slot_view = event_data->active_slotview )
+                if ( Node_Slot_View* slot_view = data->active_slotview )
                 {
                     Node_Slot::Flags        complementary_flags = node_slot_flags_toggle_order(slot_view->slot->type_and_order());
                     const Type_Descriptor*  type                = slot_view->property()->type;
@@ -435,9 +448,9 @@ void app_update()
                         std::swap( out, in );
                     }
 
-                    Command cmd_connect = make_cmd_connect({ out, in});
-                    command_manager_push_command(cmd_connect);
+                    command_manager_push_command( make_cmd_connect({ out, in}) );
 
+                    // TODO: this has to be a command, or be included in the previous one:
                     // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
                     if (node_is_instruction(out->node ) && out->type() == Node_Slot::Flag_TYPE_FLOW )
                     {

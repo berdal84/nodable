@@ -52,7 +52,7 @@ void command_manager_end_transaction()
     last_command.flags |= Command_Flags_TRANSACTION_END;
 }
 
-Command* command_manager_push_command(const Command& command_to_push, bool skip_command_execution)
+Command* command_manager_push_command(const Command& command_to_push, const Cmd_Push_Params& params)
 {
     Config* cfg     = config();
     auto*   manager = command_manager();
@@ -71,11 +71,10 @@ Command* command_manager_push_command(const Command& command_to_push, bool skip_
 
     // execute the command except if it concern text_editor.
     // since modification is already handled by text editor itself
-    if ( !skip_command_execution )
+    if ( !params.skip_command_do_at_push )
     {
         command_do(&command);
     }
-
     
 
     // 
@@ -183,7 +182,7 @@ void command_manager_AddUndoHandler(Text_Editor& editor, Text_Editor::UndoRecord
     if ( manager->push_text_editor_AddUndoRecord )
     {
 	    Command cmd = make_cmd_text_undo_record({ undo_record, &editor});
-        command_manager_push_command(cmd, true);
+        command_manager_push_command(cmd, { .skip_command_do_at_push = true }); // I skip the command_do because the change was done already by the text editor.
     }
 }
 

@@ -864,8 +864,9 @@ void ndbl::_graphview_draw_context_menu(Graph_View* graphview, Node_Slot_View* d
         // Generate an event from this action, add some info to the state and dispatch it.
         Event event = triggered_action->event;
         auto event_data = static_cast<Event_Data__Create_Node*>(event.data1);
-        event_data->active_slotview    = dragged_slotview;
-        event_data->desired_screen_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
+        event_data->active_slotview = dragged_slotview;
+        event_data->desired_pos_x   = ImGui::GetMousePosOnOpeningCurrentPopup().x;
+        event_data->desired_pos_y   = ImGui::GetMousePosOnOpeningCurrentPopup().y;
         event_manager_push_event( event );
         ImGui::CloseCurrentPopup();
     }
@@ -960,7 +961,13 @@ void ndbl::_graphview_select_scope(Graph_View* graphview, Scope_View* scopeview)
     }
 
     // 2) Replace selection
-    Command cmd = make_cmd_selection_change(new_selection.items);
+    //
+    // TODO: This is not good, here we don't want to rely on the command manager.
+    //       I want to have a separate method that can be undoable
+    Command cmd = make_cmd_selection_change({
+        .old_selection = graphview->selection.items,
+        .new_selection = new_selection.items
+    });
     command_manager_push_command(cmd);
 }
 

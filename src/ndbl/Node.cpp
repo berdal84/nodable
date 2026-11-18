@@ -70,18 +70,27 @@ Array<Node*> Node::flow_outputs() const
     return node_get_adjacent_nodes(this, Node_Slot::Flag_FLOW_OUT);
 }
 
+Node_ID node_generate_new_id()
+{
+    static u32_t next_node_id = 1; // 0 is reserved for null
+
+    Node_ID result = next_node_id;    
+    next_node_id++;
+
+    return result;
+}
+
 void node_init(Node* node, const Node_Init_Params& params)
 {
     NDBL_ASSERT( node != nullptr );
     NDBL_ASSERT( !HAS_FLAGS(node->flags, Node_Flag_IS_INITIALIZED), "node was already initialized");
 
-    node->kind  = params.kind;
-    node->value = node_add_prop<any>(node, DEFAULT_PROPERTY, Node_Property::Flag_IS_NODE_VALUE );
-    node_init_component(&node->component, to_component_type(node->kind) );
-
-    static u32_t next_node_id = 1; // 0 is reserved for null
-    node->id = next_node_id++;
+    node->kind   = params.kind;
+    node->value  = node_add_prop<any>(node, DEFAULT_PROPERTY, Node_Property::Flag_IS_NODE_VALUE );
+    node->id     = params.id == 0 ?  node_generate_new_id() : params.id;
     node->flags |= Node_Flag_IS_INITIALIZED;
+
+    node_init_component(&node->component, to_component_type(node->kind) );
 
     switch ( params.kind )
     {
@@ -89,11 +98,11 @@ void node_init(Node* node, const Node_Init_Params& params)
         {
             node_set_name(node, "Instr.");
 
-            // Token will be/or not overriden as a Token_t::end_of_instruction by the parser
+            // Token might be overriden as a Token_Type_end_of_instruction by the parser
             node->value->token = Token{Token_Type_NULL};
 
             node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
-            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
+            node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN    );
             node_add_slot(node, node->value, Node_Slot::Flag_OUTPUT  , 1);
             break;
         }
