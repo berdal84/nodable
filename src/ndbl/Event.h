@@ -60,6 +60,8 @@ namespace ndbl
 
     struct Event
     {
+        // TODO: perhaps this would be good to have any event carrying any command data?
+        //
         Event_Type      type;
         Event_User_Code code;
         void*           data1;

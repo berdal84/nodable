@@ -861,13 +861,20 @@ void ndbl::_graphview_draw_context_menu(Graph_View* graphview, Node_Slot_View* d
 {
     if (Action* triggered_action = nodesearchinput_draw( graphview->node_search_input, dragged_slotview, 10))
     {
-        // Generate an event from this action, add some info to the state and dispatch it.
-        Event event = triggered_action->event;
-        auto event_data = static_cast<Event_Data__Create_Node*>(event.data1);
-        event_data->active_slotview = dragged_slotview;
-        event_data->desired_pos_x   = ImGui::GetMousePosOnOpeningCurrentPopup().x;
-        event_data->desired_pos_y   = ImGui::GetMousePosOnOpeningCurrentPopup().y;
+        Event event = triggered_action->event; // copy
+
+        // Create event data 
+        auto data = bdc::memory_new<Event_Data__Create_Node>();
+        data->node_init_params.id   = node_generate_new_id();
+        data->node_init_params.kind = event.code;
+        data->active_slotview       = dragged_slotview;
+        data->desired_pos_x         = ImGui::GetMousePosOnOpeningCurrentPopup().x;
+        data->desired_pos_y         = ImGui::GetMousePosOnOpeningCurrentPopup().y;
+
+        // Dispatch data as a new event
+        event.data1 = data;
         event_manager_push_event( event );
+
         ImGui::CloseCurrentPopup();
     }
 }
