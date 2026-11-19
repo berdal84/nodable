@@ -98,9 +98,10 @@ CONFIG_DEFAULT          = CONFIG_DEBUG
 BUILD_CONFIGS           = [CONFIG_DEBUG, CONFIG_OPTIMIZED, CONFIG_RELEASE]
  
 BINARY_CLANG            = "clang"
-BINARY_EMCC             = "emcc"  # Assumes emsdk_env has been initialized
-BINARY_EMRUN            = "emrun" # Assumes emsdk_env has been initialized
-BINARY_CLOC             = 'cloc'
+BINARY_EMCC             = "emcc"  # Assumes user ran `source extern/emsdk/emsdk_env.sh`
+BINARY_EMRUN            = "emrun" # Assumes user ran `source extern/emsdk/emsdk_env.sh`
+BINARY_CLOC             = "cloc"
+BINARY_PYTHON           = "python3" # On Ubuntu, by default there is no python, only python3.
 
 # Enums (end) ------------------------------------------------------------------------------------------
 

@@ -74,6 +74,7 @@ def base_target(name, type)
         ]
 
         target.compiler_flags |= [
+            "-s STACK_SIZE=#{10*65536}", # default is 65536
             "-s USE_PTHREADS=1",
             "-s USE_FREETYPE=1",
             "-s USE_SDL=2",
@@ -85,7 +86,7 @@ def base_target(name, type)
             "-s PTHREAD_POOL_SIZE='navigator.hardwareConcurrency'",
             "-s EMBIND_STD_STRING_IS_UTF8=0",
             "-s ALLOW_MEMORY_GROWTH",
-            "-Wno-pthreads-mem-growth", # emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]
+            "-W no-pthreads-mem-growth", # emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]
             "-s MIN_WEBGL_VERSION=2",
             "-s MAX_WEBGL_VERSION=2",
             "--emrun"
@@ -392,11 +393,11 @@ APT_PACKAGES = [
 ]
 
 def install_emsdk()
-    system("python extern/emsdk/emsdk.py install latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+    system("#{BINARY_PYTHON} extern/emsdk/emsdk.py install latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
 end
 
 def activate_emsdk()
-    system("python extern/emsdk/emsdk.py activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+    system("#{BINARY_PYTHON} extern/emsdk/emsdk.py activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
 end
 
 def sudo_apt_update()
@@ -429,7 +430,7 @@ task :install do
     when PLATFORM_WEB
         install_emsdk()
         activate_emsdk()
-        puts("emsdk environment has been activated, consider running source extern/emsdk/emdsk_env.sh to get commands (emcc, emrun, etc)")
+        puts("\nINFO: emsdk environment has been activated, consider running source extern/emsdk/emdsk_env.sh to get commands (emcc, emrun, etc)")
     else
         puts "INFO: Nothing to install on #{PLATFORM}"
     end
