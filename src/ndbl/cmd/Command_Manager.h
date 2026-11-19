@@ -5,7 +5,7 @@
 #include "bdc/Array.hpp"
 #include "bdc/String.hpp"
 #include "Command.h"
-#include "texteditor/Text_Editor.h"
+#include "ndbl/texteditor/Text_Editor.h"
 
 namespace ndbl
 {
@@ -19,9 +19,9 @@ namespace ndbl
 	{
         bool 			  			is_dirty = false;
 		bool                    	push_text_editor_AddUndoRecord = true;
-		Command_Flags           	next_command_flags;
+		Cmd_Flags           	    next_command_flags;
 		u32_t                       cursor; // ex: if cursor is 5, it means we have 5 commands in the past ("c c c c c <cursor> c ...")
-		Resizable_Array<Command> 	commands;
+		bdc::Resizable_Array<Command>commands;
     };
 
 	Command_Manager* 	command_manager_init();
@@ -36,5 +36,5 @@ namespace ndbl
 	void    			command_manager_clear();
 	void                command_manager_set_cursor(u32_t pos); /** undo/redo automatically to set the cursor at a given position */
 	bdc::String         command_manager_get_cmd_description_at(u32_t pos);
-	void                command_manager_AddUndoHandler(Text_Editor& editor, Text_Editor::UndoRecord& undo_record);
+	void                command_manager_handle_undo_record(Text_Editor& editor, Text_Editor::UndoRecord& undo_record);
 }

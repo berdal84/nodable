@@ -155,6 +155,7 @@ namespace bdc
     template<typename Type>
     inline void memory_delete(Type* ptr, Allocator* _allocator = allocator )
     {
+        static_assert( !std::is_same_v<Type*, void*>, "ptr can't be void*, memory_delete needs to know the type to be able to call the destructor explicitly." );
         ptr->~Type();
         memory_free( ptr, _allocator );
     }

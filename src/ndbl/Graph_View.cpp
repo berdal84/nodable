@@ -10,8 +10,7 @@
 #include "bdc/String.hpp"
 
 #include "Asserts.h"
-#include "Command_Manager.h"
-#include "Command.h"
+#include "cmd/Command_Manager.h"
 #include "Config.h"
 #include "Event_Manager.h"
 #include "Event.h"
@@ -971,7 +970,7 @@ void ndbl::_graphview_select_scope(Graph_View* graphview, Scope_View* scopeview)
     //
     // TODO: This is not good, here we don't want to rely on the command manager.
     //       I want to have a separate method that can be undoable
-    Command cmd = make_cmd_selection_change({
+    Command cmd = make_cmd__selection_change({
         .old_selection = graphview->selection.items,
         .new_selection = new_selection.items
     });

@@ -1,10 +1,9 @@
 #include "Command_Manager.h"
 
-#include "Asserts.h"
+#include "ndbl/Asserts.h"
 #include "bdc/String_Builder.hpp"
-#include "Command.h"
-#include "Config.h"
-#include "Flags.h"
+#include "ndbl/Config.h"
+#include "ndbl/Flags.h"
 
 namespace ndbl
 {
@@ -40,7 +39,7 @@ void command_manager_shutdown()
 void command_manager_begin_transaction()
 {
     auto* manager = command_manager();
-    manager->next_command_flags = Command_Flags_TRANSACTION_BEGIN;
+    manager->next_command_flags = Cmd_Flags_TRANSACTION_BEGIN;
 }
 
 void command_manager_end_transaction()
@@ -48,8 +47,8 @@ void command_manager_end_transaction()
     auto* manager      = command_manager();
     auto& last_command = array_back(manager->commands);
 
-    NDBL_ASSERT(!HAS_FLAGS( last_command.flags, Command_Flags_TRANSACTION_BEGIN), "Cannot end a transaction on the same command that transaction begins");
-    last_command.flags |= Command_Flags_TRANSACTION_END;
+    NDBL_ASSERT(!HAS_FLAGS( last_command.flags, Cmd_Flags_TRANSACTION_BEGIN), "Cannot end a transaction on the same command that transaction begins");
+    last_command.flags |= Cmd_Flags_TRANSACTION_END;
 }
 
 Command* command_manager_push_command(const Command& command_to_push, const Cmd_Push_Params& params)
@@ -63,11 +62,11 @@ Command* command_manager_push_command(const Command& command_to_push, const Cmd_
         array_resize(manager->commands, manager->cursor);
     }
 
-    // Set flags
-    manager->next_command_flags = 0;
-
     Command& command = array_append(manager->commands, command_to_push);
-    command.flags = manager->next_command_flags;
+
+    // take flags
+    command.flags = manager->next_command_flags; 
+    manager->next_command_flags = 0;
 
     // execute the command except if it concern text_editor.
     // since modification is already handled by text editor itself
@@ -175,13 +174,13 @@ void command_manager_enable_text_editor_undo_buffer( bool enabled )
     manager->push_text_editor_AddUndoRecord = enabled;
 }
 
-void command_manager_AddUndoHandler(Text_Editor& editor, Text_Editor::UndoRecord& undo_record)
+void command_manager_handle_undo_record(Text_Editor& editor, Text_Editor::UndoRecord& undo_record)
 {
     auto* manager = command_manager();
 
     if ( manager->push_text_editor_AddUndoRecord )
     {
-	    Command cmd = make_cmd_text_undo_record({ undo_record, &editor});
+	    Command cmd = make_cmd__text_undo_record({ undo_record, &editor});
         command_manager_push_command(cmd, { .skip_command_do_at_push = true }); // I skip the command_do because the change was done already by the text editor.
     }
 }

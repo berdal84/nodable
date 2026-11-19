@@ -12,9 +12,8 @@
 #include "Action_Manager_View.h"
 #include "Action_Manager.h"
 #include "Asserts.h"
-#include "Command_Manager.h"
-#include "Command.h"
-#include "Config.h"
+#include "cmd/Command_Manager.h"
+#include "cmd/Command.h"
 #include "Config.h"
 #include "Event_Manager.h"
 #include "Event.h"
@@ -360,18 +359,20 @@ void app_update()
 
             case Event_Type_SLOT_DROPPED_ONTO_ANOTHER:
             {
-                auto tail = static_cast<Node_Slot*>(event.data1);
-                auto head = static_cast<Node_Slot*>(event.data2);
-                Command cmd = make_cmd_connect({tail, head});
+                Command cmd = make_cmd__connect({
+                    .tail = reinterpret_cast<Node_Slot*>(event.data1),
+                    .head = reinterpret_cast<Node_Slot*>(event.data2)
+                });
                 command_manager_push_command(cmd);
                 break;
             }
 
             case Event_Type_DELETE_LINK:
             {
-                auto tail = static_cast<Node_Slot*>(event.data1);
-                auto head = static_cast<Node_Slot*>(event.data2);
-                Command cmd = make_cmd_disconnect({tail, head});
+                Command cmd = make_cmd__disconnect({
+                    .tail = reinterpret_cast<Node_Slot*>(event.data1),
+                    .head = reinterpret_cast<Node_Slot*>(event.data2)
+                });
                 command_manager_push_command(cmd);
                 break;
             }
@@ -383,8 +384,11 @@ void app_update()
                 command_manager_begin_transaction();
                 for(Node_Slot* adjacent_slot : slot->adjacent )
                 {
-                    Command disconnect_cmd = make_cmd_disconnect({slot, adjacent_slot});
-                    command_manager_push_command( disconnect_cmd );
+                    Command cmd = make_cmd__disconnect({
+                        .tail = slot,
+                        .head = adjacent_slot
+                    });
+                    command_manager_push_command(cmd);
                 }
                 command_manager_end_transaction();
                 break;
@@ -408,21 +412,25 @@ void app_update()
                 }
 
                 // Create Node
-                command_manager_push_command( make_cmd_new_node(data->node_init_params) );  
+                command_manager_push_command(
+                    make_cmd__new_node(data->node_init_params)
+                );  
                 
                 Node* new_node = graph_get_node(graph, data->node_init_params.id);
                 if ( new_node->view )
                 {
                     // Clear current selection and Select the new node's View
-                    Cmd_Selection_Change selection_change = {
+                    Cmd_Data__Selection_Change selection_change = {
                         .old_selection = graph->view->selection.items,
                         .new_selection = Inlined_Array<View, 1>{ new_node->view },
                     };
-                    command_manager_push_command( make_cmd_selection_change(selection_change) );
+                    command_manager_push_command(
+                        make_cmd__selection_change(selection_change)
+                    );
 
                     // Set Node_View position
                     command_manager_push_command(
-                        make_cmd_set_node_view_position({
+                        make_cmd__set_node_view_position({
                             .node_id = data->node_init_params.id,
                             .x       = data->desired_pos_x,
                             .y       = data->desired_pos_y,
@@ -448,7 +456,9 @@ void app_update()
                         std::swap( out, in );
                     }
 
-                    command_manager_push_command( make_cmd_connect({ out, in}) );
+                    command_manager_push_command(
+                        make_cmd__connect({ .tail = out, .head = in })
+                    );
 
                     // TODO: this has to be a command, or be included in the previous one:
                     // Ensure has a "\n" when connecting using CODEFLOW (to split lines)

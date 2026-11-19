@@ -83,7 +83,7 @@ TEST_F(Graph_, clear)
     Type_Descriptor  f;
     type_init<int(int, int)>(&f, "+");
 
-    Node* variable      = graph_new_node(graph, { .kind = Node_Kind_VARIABLE, .type_descriptor = type_get<int>(), .name = "var" });
+    Node* variable      = graph_new_node(graph, { .kind = Node_Kind_VARIABLE, .name = "var", .type_descriptor = type_get<int>(),  });
     Node* operator_node = graph_new_node(graph, { .kind = Node_Kind_OPERATOR, .type_descriptor = &f });
 
     graph_connect(
@@ -106,7 +106,7 @@ TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
     Node* node_1 = graph_new_node(app.graph, { .kind = Node_Kind_LITERAL, .type_descriptor = type_get<int>() });
-    Node* node_2 = graph_new_node(app.graph, { .kind = Node_Kind_VARIABLE, .type_descriptor = type_get<int>(), .name = "a" });
+    Node* node_2 = graph_new_node(app.graph, { .kind = Node_Kind_VARIABLE, .name = "a", .type_descriptor = type_get<int>(),  });
 
     // Act and test
 

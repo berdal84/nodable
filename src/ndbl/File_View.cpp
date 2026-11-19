@@ -1,7 +1,7 @@
 #include "File_View.h"
 
 #include "Action_Manager.h"
-#include "Command_Manager.h"
+#include "cmd/Command_Manager.h"
 #include "Config.h"
 #include "Event.h"
 #include "File.h"

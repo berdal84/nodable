@@ -5,7 +5,7 @@
 #include "bdc/String_Builder.hpp"
 #include "Action_Manager.h"
 #include "Asserts.h"
-#include "Command_Manager.h"
+#include "ndbl/cmd/Command_Manager.h"
 #include "Event.h"
 #include "Event.h"
 #include "File_View.h"
@@ -48,7 +48,7 @@ void file_init(File* file)
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File", "View built, creating History ...\n");
 
     // History
-    fileview_set_AddUndoHandler(&file->view, &command_manager_AddUndoHandler );
+    fileview_set_AddUndoHandler(&file->view, &command_manager_handle_undo_record );
     command_manager()->push_text_editor_AddUndoRecord = true;
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File", "Constructor being called.\n");
 
