@@ -144,14 +144,7 @@ namespace ndbl
     Command make_cmd__disconnect(const Cmd_Payload__Link&);
     Command make_cmd__text_undo_record(const Cmd_Data__Text_Undo_Record&);
     Command make_cmd__new_node(const Node_Init_Params&);
-
-    struct Cmd_Data__Selection_Change
-    {
-        bdc::Array<View>     old_selection;
-        bdc::Array<View>     new_selection;
-    };
-
-    Command make_cmd__selection_change(const Cmd_Data__Selection_Change&);
+    Command make_cmd__selection_change(const bdc::Array<View>& /* views to select */);
     Command make_cmd__set_node_view_position(const Cmd_Payload__Set_Node_View_Position&);
 }
 

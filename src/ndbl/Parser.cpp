@@ -222,7 +222,9 @@ Token_Type langdef_type_descriptor_to_token_type_literal(const Language_Definiti
         return Token_Type_literal_string;
     if (type == type_get<any>() )
         return Token_Type_literal_any;
-    
+    if (type == type_get<void>() )
+        return Token_Type_NULL;
+
     NDBL_UNREACHABLE("type cannot be converted to Token_Type_literal_xxx\n");
 }
 

@@ -869,6 +869,7 @@ void ndbl::_graphview_draw_context_menu(Graph_View* graphview, Node_Slot_View* d
         Node_Init_Params node_init_params{};
         node_init_params.id   = node_generate_new_id();
         node_init_params.kind = triggered_action->event.code;
+        node_init_params.type_descriptor = static_cast<Type_Descriptor*>(triggered_action->event.data1);
 
         // Create Node
         push_command(
@@ -881,10 +882,9 @@ void ndbl::_graphview_draw_context_menu(Graph_View* graphview, Node_Slot_View* d
             // Select the Node_View
             // TODO: make_cmd__selection_change should take IDs
             push_command(
-                make_cmd__selection_change({
-                    .old_selection = graph->view->selection.items,
-                    .new_selection = Inlined_Array<View, 1>{ new_node->view },
-                })
+                make_cmd__selection_change(
+                    Inlined_Array<View, 1>{ new_node->view }
+                )
             );
 
             // Set Node_View position
@@ -1029,10 +1029,7 @@ void ndbl::_graphview_select_scope(Graph_View* graphview, Scope_View* scopeview)
     //
     // TODO: This is not good, here we don't want to rely on the command manager.
     //       I want to have a separate method that can be undoable
-    Command cmd = make_cmd__selection_change({
-        .old_selection = graphview->selection.items,
-        .new_selection = new_selection.items
-    });
+    Command cmd = make_cmd__selection_change(new_selection.items);
     push_command(cmd);
 }
 

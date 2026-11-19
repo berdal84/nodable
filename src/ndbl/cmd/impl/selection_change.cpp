@@ -10,7 +10,13 @@ void _selection_change__release(Command*);
 void _selection_change__do(Command*);
 void _selection_change__undo(Command*);
 
-Command make_cmd__selection_change(const Cmd_Data__Selection_Change& selection_change)
+struct Selection_Change
+{
+    bdc::Array<View>     old_selection;
+    bdc::Array<View>     new_selection;
+};
+
+Command make_cmd__selection_change(const Array<View>& view_to_select)
 {
     Command cmd{};
 
@@ -18,9 +24,11 @@ Command make_cmd__selection_change(const Cmd_Data__Selection_Change& selection_c
     cmd.proc_undo        = _selection_change__undo;
     cmd.proc_release     = _selection_change__release;
 
-    auto payload_data = bdc::memory_new<Cmd_Data__Selection_Change>();
-    payload_data->old_selection = array_copy(selection_change.old_selection);
-    payload_data->new_selection = array_copy(selection_change.new_selection);
+    View_Selection& current_selection = app_state()->current_file->view.graph_view->selection;
+
+    auto payload_data = bdc::memory_new<Selection_Change>(); // we should allocate the command data in an Arena.
+    payload_data->old_selection = array_copy(current_selection.items);
+    payload_data->new_selection = array_copy(view_to_select);
 
     cmd.payload.data.ptr = payload_data;
     cmd.description      = "Selection change";
@@ -30,7 +38,7 @@ Command make_cmd__selection_change(const Cmd_Data__Selection_Change& selection_c
 
 inline auto* _selection_change_payload_data(Command* cmd)
 {
-    return reinterpret_cast<Cmd_Data__Selection_Change*>(cmd->payload.data.ptr);
+    return reinterpret_cast<Selection_Change*>(cmd->payload.data.ptr);
 }
 
 void _selection_change__release(Command* cmd)

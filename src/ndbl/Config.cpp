@@ -220,7 +220,7 @@ void config_reset()
         {{ Event_Type_FRAME_SELECTION_REQUEST   }, "Frame Selection"            , {SDLK_f, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION | Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI},
         {{ Event_Type_FRAME_SELECTION_REQUEST   }, "Frame All"                  , {SDLK_f, KMOD_LCTRL }, Action_Flags_DISABLE_INDEXING },
         {{ Event_Type_TOGGLE_HELP_REQUEST       }, "Splashscreen"               , {SDLK_F1 }},    
-        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_RETURN      }, .label = ICON_FA_CODE " Return Statement"      , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_RETURN, .data1 = type_get<any>() }, .label = ICON_FA_CODE " Return Statement"      , .flags = Action_Flags_DISABLE_INDEXING },
         {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_IF_ELSE     }, .label = ICON_FA_CODE " Condition"             , .flags = Action_Flags_DISABLE_INDEXING },
         {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_FOR_LOOP    }, .label = ICON_FA_CODE " For Loop"              , .flags = Action_Flags_DISABLE_INDEXING },
         {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_WHILE_LOOP  }, .label = ICON_FA_CODE " While Loop"            , .flags = Action_Flags_DISABLE_INDEXING },

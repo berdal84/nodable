@@ -369,10 +369,7 @@ void app_update()
                             if ( successor_node->view )
                                 array_append(successors, successor_node->view );
 
-                Command cmd = make_cmd__selection_change({
-                    .old_selection = graph_view->selection.items,
-                    .new_selection = successors
-                });
+                Command cmd = make_cmd__selection_change(successors);
                 push_command(cmd);
 
                 break;

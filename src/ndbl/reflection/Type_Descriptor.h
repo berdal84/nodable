@@ -93,6 +93,7 @@ namespace ndbl
             std::unordered_set<std::type_index> children;
         } clss;
 
+        bool                      is_function() const { return flags & Type_Flags_IS_FUNCTION; }
         bool                      is_class() const { return flags & Type_Flags_IS_CLASS; }
         bool                      any_of(std::vector<const Type_Descriptor*> args)const;
         bool                      has_parent() const { return flags & Type_Flags_HAS_PARENT; }
