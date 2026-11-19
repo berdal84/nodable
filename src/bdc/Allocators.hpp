@@ -7,7 +7,7 @@
 #ifdef BDC_DEBUG_ALLOCATORS
     #include "Stacktrace.hpp"
     #define BDC_LOG_DEBUG_STACKTRACE_WITH_REASON( fmt, ... ) \
-        BDC_LOG_DEBUG_STACKTRACE(); \
+        bdc::debug_stacktrace(); \
         BDC_LOG_DEBUG( fmt " (see stacktrace above).\n\n", __VA_ARGS__ );
 #else
     #define BDC_LOG_DEBUG_STACKTRACE_WITH_REASON( fmt, ... ) /* BDC_LOG_DEBUG_STACKTRACE_WITH_REASON is disabled */

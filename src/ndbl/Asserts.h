@@ -9,12 +9,11 @@
     #include <iostream> // for std::flush, std::cout
 
     #ifdef __EMSCRIPTEN__
-        #define NDBL_PRINT_STACKTRACE() \
-            printf("NDBL_PRINT_STACKTRACE is not implemented on this plaftorm.\n")
+        #include "bdc/Stacktrace.hpp"
+        #define NDBL_PRINT_STACKTRACE() bdc::log_stacktrace()
     #else
         #include <stacktrace>
-        #define NDBL_PRINT_STACKTRACE() \
-            std::cout << std::stacktrace::current()
+        #define NDBL_PRINT_STACKTRACE() std::cout << std::stacktrace::current()
     #endif
 
     #define NDBL_ASSERT(expression, ... ) \

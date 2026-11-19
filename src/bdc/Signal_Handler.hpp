@@ -31,7 +31,7 @@ namespace bdc
 
     static void signal_handler(int sig)
     {
-        BDC_LOG_STACKTRACE();
+        log_stacktrace();
         BDC_LOG("Caught signal {} ({}). For more info see stacktrace above.\n\n", my_strsignal(sig), sig);
         BDC_LOG_FLUSH();
         

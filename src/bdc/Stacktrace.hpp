@@ -2,20 +2,29 @@
 #include "MACROS.hpp"
 
 #ifdef __EMSCRIPTEN__
-    // #include <emscripten/em_js.h>
-    // #include <iostream>
-
-    // namespace bdc
-    // {
-    //     EM_JS(void, print_stacktrace, (), {
-    //         console.log(stackTrace());
-    //     });
-    // }
-
-    #define BDC_LOG_STACKTRACE()       BDC_LOG("BDC_LOG_STACKTRACE is not implemented for this platform - {}:{}\n", __FILE__, __LINE__);
-    #define BDC_LOG_DEBUG_STACKTRACE() BDC_LOG_STACKTRACE();
+    #include <emscripten/em_asm.h> // for EM_ASM, console.log, console.debug
 #else
     #include <stacktrace> // for std::stacktrace
-    #define BDC_LOG_STACKTRACE()       BDC_LOG("{}", std::stacktrace::current());
-    #define BDC_LOG_DEBUG_STACKTRACE() BDC_LOG_DEBUG("{}", std::stacktrace::current());
-#endif 
+#endif
+
+namespace bdc
+{
+    inline void log_stacktrace()
+    {
+        #ifdef __EMSCRIPTEN__
+            EM_ASM({ console.log(stackTrace()); });
+        #else
+            BDC_LOG("{}", std::stacktrace::current());
+        #endif
+    }
+
+    inline void debug_stacktrace()
+    {
+        #ifdef __EMSCRIPTEN__
+            EM_ASM({ console.debug(stackTrace()); });
+        #else
+            BDC_LOG_DEBUG("{}", std::stacktrace::current());
+        #endif
+    }
+
+} // namespace ndbl

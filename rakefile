@@ -80,7 +80,7 @@ def base_target(name, type)
             "-sNO_DISABLE_EXCEPTION_CATCHING",
 			"-gsource-map",            
         ]
-        
+
         target.linker_flags |= [
             "-s STACK_SIZE=#{10*65536}", # default is 65536
             "-s PTHREAD_POOL_SIZE='navigator.hardwareConcurrency'",
@@ -89,6 +89,9 @@ def base_target(name, type)
             "-Wno-pthreads-mem-growth", # emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]
             "-s MIN_WEBGL_VERSION=2",
             "-s MAX_WEBGL_VERSION=2",
+            "-sEXPORTED_RUNTIME_METHODS=['stackTrace','jsStackTrace']",
+            "-fno-omit-frame-pointer", # better wasm stack walking
+            "-sASYNCIFY=0", # ensure not using asyncify, which mangles stacks
             "--emrun"
         ]
 
