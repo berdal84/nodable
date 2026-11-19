@@ -43,6 +43,16 @@ void fileview_deinit(File_View* file_view)
     string_release(file_view->graph_overlay_window_name);
 }
 
+void fileview_set_cursor_position(File_View* file_view, const Text_Editor::Coordinates& pos)
+{
+    file_view->file->text_editor.SetCursorPosition(pos);
+}
+
+Text_Editor::Coordinates fileview_get_cursor_position(const File_View* file_view)
+{
+    return file_view->file->text_editor.GetCursorPosition();
+}
+
 void fileview_update(File_View* file_view, float dt)
 {
     graphview_update(file_view->graph_view, dt);

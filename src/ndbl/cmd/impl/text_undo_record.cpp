@@ -30,7 +30,7 @@ Command make_cmd__text_undo_record(const Cmd_Data__Text_Undo_Record& text_undo_r
 
 void _text_undo_record_do(Command* cmd)
 {
-    Text_Editor*                text_editor  = &app_state()->current_file->view.text_editor;
+    Text_Editor*                text_editor  = &app_state()->current_file->text_editor;
     Cmd_Data__Text_Undo_Record* payload_data = _text_undo_record_undo_payload_data(cmd);
 
     payload_data->undo_record.Redo(text_editor);
@@ -38,7 +38,7 @@ void _text_undo_record_do(Command* cmd)
 
 void _text_undo_record_undo(Command* cmd)
 {
-    Text_Editor*                text_editor  = &app_state()->current_file->view.text_editor;
+    Text_Editor*                text_editor  = &app_state()->current_file->text_editor;
     Cmd_Data__Text_Undo_Record* payload_data = _text_undo_record_undo_payload_data(cmd);
 
     payload_data->undo_record.Undo(text_editor);

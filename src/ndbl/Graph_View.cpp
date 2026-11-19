@@ -860,29 +860,78 @@ void ndbl::_graphview_draw_context_menu(Graph_View* graphview, Node_Slot_View* d
 {
     if (Action* triggered_action = nodesearchinput_draw( graphview->node_search_input, dragged_slotview, 10))
     {
-        Event event = triggered_action->event; // copy
+        NDBL_ASSERT(triggered_action->event.type == Event_Type_CREATE_NODE_REQUEST);
+        
+        Graph* graph = graphview->graph;
 
-        // Create event data 
-        auto data = bdc::memory_new<Create_Node_Request>(&temp_allocator); // temp allocations are cleared AFTER events are processed.
+        begin_command_group();
 
-        // TODO: Here, there is a problem. I don't want to have this Create_Node_Request type.
-        //       I should construct several commands from here instead:
-        //       1) create a node
-        //       2) if any dragged slot: create a link
-        //       3) move node view to position
-        //
-        //       Basically, most of the code in the event loop related to 1+2+3 should be moved here.
-        //       But I have to make sure I can identify a Node, a Node_Slot, a Node_View by an ID.
+        Node_Init_Params node_init_params{};
+        node_init_params.id   = node_generate_new_id();
+        node_init_params.kind = triggered_action->event.code;
 
-        data->node_init_params.id   = node_generate_new_id();
-        data->node_init_params.kind = event.code;
-        data->active_slotview       = dragged_slotview;
-        data->desired_pos_x         = ImGui::GetMousePosOnOpeningCurrentPopup().x;
-        data->desired_pos_y         = ImGui::GetMousePosOnOpeningCurrentPopup().y;
+        // Create Node
+        push_command(
+            make_cmd__new_node(node_init_params)
+        );  
+        
+        Node* new_node = graph_get_node(graph, node_init_params.id);
+        if ( new_node->view )
+        {
+            // Select the Node_View
+            // TODO: make_cmd__selection_change should take IDs
+            push_command(
+                make_cmd__selection_change({
+                    .old_selection = graph->view->selection.items,
+                    .new_selection = Inlined_Array<View, 1>{ new_node->view },
+                })
+            );
 
-        // Dispatch data as a new event
-        event.data1 = data;
-        event_manager_push_event( event );
+            // Set Node_View position
+            ImVec2 desired_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
+            push_command(
+                make_cmd__set_node_view_position({
+                    .node_id = node_init_params.id,
+                    .x       = desired_pos.x,
+                    .y       = desired_pos.y,
+                    .space   = WORLD_SPACE,
+                })
+            );
+        }
+
+        // Connect the new node to the code flow if a slot is being dragged
+        if ( dragged_slotview )
+        {
+            Node_Slot::Flags        complementary_flags = node_slot_flags_toggle_order(dragged_slotview->slot->type_and_order());
+            const Type_Descriptor*  type                = dragged_slotview->property()->type;
+            Node_Slot*              complementary_slot  = node_find_slot_by_property_type(new_node, complementary_flags, type);
+
+            NDBL_ASSERT(complementary_slot != nullptr); // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
+
+            Node_Slot* out = dragged_slotview->slot;
+            Node_Slot* in  = complementary_slot;
+
+            if ( HAS_FLAGS(out->flags, Node_Slot::Flag_ORDER_2ND ) )
+            {
+                std::swap( out, in );
+            }
+
+            push_command(
+                make_cmd__connect({ .tail = out, .head = in })
+            );
+
+            // TODO: this has to be a command, or be included in the previous one:
+            // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
+            if (node_is_instruction(out->node ) && out->type() == Node_Slot::Flag_TYPE_FLOW )
+            {
+                if ( string_rfind( token_suffix_view(out->node->suffix), '\n') == String::invalid_pos )
+                {
+                    token_suffix_push_back(out->node->suffix, "\n");
+                }
+            }
+        }
+
+        end_command_group();
 
         ImGui::CloseCurrentPopup();
     }
