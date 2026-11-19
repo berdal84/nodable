@@ -1,0 +1,20 @@
+{
+  "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64/cl.exe" : 
+  {
+    "hash" : "82651775b7e2582693ef40017450d1ddfefa35a9",
+    "size" : 682568,
+    "timestamp" : 1771190030
+  },
+  "C:/Users/beren/nodable/extern/emsdk/upstream/emscripten/em++.bat" : 
+  {
+    "hash" : "6b4edb832e6ca8852942df94eb9c2a18ac362989",
+    "size" : 3613,
+    "timestamp" : 1772254031
+  },
+  "C:/Users/beren/nodable/extern/emsdk/upstream/emscripten/emcc.bat" : 
+  {
+    "hash" : "6b4edb832e6ca8852942df94eb9c2a18ac362989",
+    "size" : 3613,
+    "timestamp" : 1772254031
+  }
+}

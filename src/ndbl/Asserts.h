@@ -1,0 +1,62 @@
+#pragma once
+#ifndef NDBL_ASSERTIONS_ENABLE
+#define NDBL_ASSERTIONS_ENABLE true
+#endif
+
+#if NDBL_ASSERTIONS_ENABLE
+
+    #include <cassert>
+    #include <iostream> // for std::flush, std::cout
+
+    #ifdef __EMSCRIPTEN__
+        #define NDBL_PRINT_STACKTRACE() \
+            printf("NDBL_PRINT_STACKTRACE is not implemented on this plaftorm.\n")
+    #else
+        #include <stacktrace>
+        #define NDBL_PRINT_STACKTRACE() \
+            std::cout << std::stacktrace::current()
+    #endif
+
+    #define NDBL_ASSERT(expression, ... ) \
+        if( !(expression) ) \
+        { \
+            NDBL_PRINT_STACKTRACE(); \
+            printf("NDBL_ASSERT: Expression '%s' is false" __VA_OPT__(". Reason: " __VA_ARGS__ ) " at %s:%i\n\n.", #expression, __FILE__, __LINE__ ); \
+            std::cout << std::flush; \
+            assert( false ); \
+        }
+
+    #ifdef NDBL_DEBUG
+        #define NDBL_ASSERT_DEBUG_ONLY( ... ) \
+            NDBL_ASSERT(__VA_ARGS__, "(debug only)")
+    #else
+        #define NDBL_ASSERT_DEBUG_ONLY( ... ) // NDBL_ASSERT_DEBUG_ONLY was removed, NDBL_DEBUG is false.
+    #endif
+
+    #define NDBL_TODO( message ) \
+        do { \
+            NDBL_PRINT_STACKTRACE(); \
+            printf("NDBL_TODO: %s\n\n", message); \
+            std::cout << std::flush; \
+            std::abort(); \
+        } while(0)
+
+    #define NDBL_UNREACHABLE( ... ) \
+    do { \
+        NDBL_PRINT_STACKTRACE(); \
+        printf("NDBL_UNREACHABLE: %s\n\n", #__VA_ARGS__); \
+        std::cout << std::flush; \
+        std::abort(); \
+    } while(0)
+
+#else // NDBL_ASSERTIONS_ENABLE
+
+    #define NDBL_ASSERT(...)
+    #define NDBL_TODO(...)
+    #define NDBL_UNREACHABLE( ... )
+
+#endif // NDBL_ASSERTIONS_ENABLE
+
+
+
+
