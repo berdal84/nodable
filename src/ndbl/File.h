@@ -42,7 +42,8 @@ namespace ndbl
         Graph*                 graph;// graphical representation
         File_Flags             flags;
         Parser_Context         parser;
-        Serializer_Context     serializer;        
+        Serializer_Context     serializer; 
+		Text_Editor            text_editor;
     };
 
     void                    file_init(File*);

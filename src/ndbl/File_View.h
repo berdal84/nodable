@@ -59,7 +59,6 @@ namespace ndbl
         Graph_View*             graph_view                          = nullptr;
         bdc::String             text_overlay_window_name;
         bdc::String             graph_overlay_window_name;
-		Text_Editor             text_editor                         = {};
         Palette                 text_editor_palette                 = {};
 		float                   text_child_size                     = 0.3f;
 		float                   graph_child_size                    = 0.7f;
@@ -76,13 +75,12 @@ namespace ndbl
     void                            fileview_draw(File_View*, float dt);
     bdc::String                     fileview_get_text(const File_View*, bool isolation_on = false);
     void                            fileview_set_text(File_View*, bdc::String, bool isolation_on = false);
-    static void                     fileview_set_cursor_position(File_View* file_view, const Text_Editor::Coordinates& _cursorPosition) { file_view->text_editor.SetCursorPosition(_cursorPosition); }
-    static Text_Editor::Coordinates  fileview_get_cursor_position(const File_View* file_view) { return file_view->text_editor.GetCursorPosition(); }
+    static void                     fileview_set_cursor_position(File_View* file_view, const Text_Editor::Coordinates& _cursorPosition) { file_view->file->text_editor.SetCursorPosition(_cursorPosition); }
+    static Text_Editor::Coordinates  fileview_get_cursor_position(const File_View* file_view) { return file_view->file->text_editor.GetCursorPosition(); }
     void	                        fileview_set_AddUndoHandler(File_View*, Text_Editor::Add_Undo_Handler /* fct ptr*/ );
     void                            fileview_set_experimental_clipboard_auto_paste(File_View*, bool /* enable*/);
     void                            fileview_clear_overlay(File_View*);
     void                            fileview_refresh_overlay(File_View*);
     void                            fileview_push_overlay(File_View*, File_View_Overlay_Data, File_View_Overlay_Type) ;
     void                            fileview_draw_overlay(const bdc::String& title, const std::vector<File_View_Overlay_Data>& overlay_data, const Rect& rect, const Vec2& position);
-    size_t                          fileview_size(const File_View*);
 }

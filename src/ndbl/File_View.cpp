@@ -60,7 +60,7 @@ void fileview_update(File_View* file_view, float dt)
         DEFER( parser_deinit(parser); )
         parser_tokenize(parser);
 
-        for(auto& line : file_view->text_editor.mLines )
+        for(auto& line : file_view->file->text_editor.mLines )
         {
             for(auto& glyph : line )
             {
@@ -248,9 +248,9 @@ void fileview_draw(File_View* file_view, float dt)
         Vec2 text_editor_top_left_corner = ImGui::GetCursorPos();
         ImGui::BeginChild("text_editor", text_editor_size, false);
         {
-            auto old_cursor_position = file_view->text_editor.GetCursorPosition();
-            auto old_selected_text = file_view->text_editor.GetSelectedText();
-            auto old_line_text = file_view->text_editor.GetCurrentLineText();
+            auto old_cursor_position = file_view->file->text_editor.GetCursorPosition();
+            auto old_selected_text = file_view->file->text_editor.GetSelectedText();
+            auto old_line_text = file_view->file->text_editor.GetCurrentLineText();
 
             auto allow_keyboard = !graphview_has_an_active_tool(file_view->graph_view);
 
@@ -258,8 +258,8 @@ void fileview_draw(File_View* file_view, float dt)
                                !ImGui::IsAnyItemHovered() &&
                                !ImGui::IsAnyItemFocused();
 
-            file_view->text_editor.mHandleKeyboardInputs = allow_keyboard;
-            file_view->text_editor.mHandleMouseInputs    = allow_mouse;
+            file_view->file->text_editor.mHandleKeyboardInputs = allow_keyboard;
+            file_view->file->text_editor.mHandleMouseInputs    = allow_mouse;
 
             // listen to clipboard in background (disable by default)
             if (file_view->experimental_clipboard_auto_paste)
@@ -270,7 +270,7 @@ void fileview_draw(File_View* file_view, float dt)
                     file_view->experimental_clipboard_curr != file_view->experimental_clipboard_prev)
                 {
                     if (!file_view->experimental_clipboard_prev.size )
-                        file_view->text_editor.InsertText(file_view->experimental_clipboard_curr.c_str(), true);
+                        file_view->file->text_editor.InsertText(file_view->experimental_clipboard_curr.c_str(), true);
                     file_view->experimental_clipboard_prev = std::move(file_view->experimental_clipboard_curr);
                 }
             }
@@ -279,7 +279,7 @@ void fileview_draw(File_View* file_view, float dt)
 
             // render text editor
             const bool nochild = true;
-            const bool text_changed = text_editor_render(file_view->text_editor, "Text_Editor", file_view->text_editor_palette, ImGui::GetContentRegionAvail(), nochild);
+            const bool text_changed = text_editor_render(file_view->file->text_editor, "Text_Editor", file_view->text_editor_palette, ImGui::GetContentRegionAvail(), nochild);
             file_view->is_syntax_dirty |= text_changed;
 
             // overlay
@@ -293,16 +293,16 @@ void fileview_draw(File_View* file_view, float dt)
                 command_manager_enable_text_editor_undo_buffer(false); // avoid recording events caused by graph serialisation
             }
 
-            auto new_cursor_position = file_view->text_editor.GetCursorPosition();
-            auto new_selected_text   = file_view->text_editor.GetSelectedText();
-            auto new_line_text       = file_view->text_editor.GetCurrentLineText();
+            auto new_cursor_position = file_view->file->text_editor.GetCursorPosition();
+            auto new_selected_text   = file_view->file->text_editor.GetSelectedText();
+            auto new_line_text       = file_view->file->text_editor.GetCurrentLineText();
 
             auto is_line_text_modified = new_line_text != old_line_text &&
                                          new_cursor_position.mLine == old_cursor_position.mLine;
             auto is_selected_text_modified = new_cursor_position != old_cursor_position;
 
             text_view_changed  = is_line_text_modified;
-            text_view_changed |= file_view->text_editor.mTextChanged;
+            text_view_changed |= file_view->file->text_editor.mTextChanged;
             text_view_changed |= HAS_FLAGS(cfg->flags, Config_Flag_ISOLATION_ON) && is_selected_text_modified;
         }
         ImGui::EndChild();
@@ -352,15 +352,15 @@ bdc::String fileview_get_text( const File_View* file_view, bool isolation_on )
 
     if ( !isolation_on )
     {
-        tmp = file_view->text_editor.GetText();
+        tmp = file_view->file->text_editor.GetText();
     }
-    else if ( file_view->text_editor.HasSelection() )
+    else if ( file_view->file->text_editor.HasSelection() )
     {
-        tmp = file_view->text_editor.GetSelectedText();
+        tmp = file_view->file->text_editor.GetSelectedText();
     }
     else
     {
-        tmp = file_view->text_editor.GetCurrentLineText(); // By default, we consider the current line as the selection
+        tmp = file_view->file->text_editor.GetCurrentLineText(); // By default, we consider the current line as the selection
     }
 
     NDBL_ASSERT( tmp.size() < (u32_t)(-1));
@@ -378,34 +378,34 @@ void fileview_set_text(File_View* file_view, bdc::String new_text, bool isolatio
 
     if( isolation_on )
     {
-        auto start = file_view->text_editor.GetCursorPosition();
+        auto start = file_view->file->text_editor.GetCursorPosition();
 
         /* If there is no selection, selects current line */
-        auto hasSelection = file_view->text_editor.HasSelection();
-        auto selectionStart = file_view->text_editor.GetSelectionStart();
-        auto selectionEnd = file_view->text_editor.GetSelectionEnd();
+        auto hasSelection = file_view->file->text_editor.HasSelection();
+        auto selectionStart = file_view->file->text_editor.GetSelectionStart();
+        auto selectionEnd = file_view->file->text_editor.GetSelectionEnd();
 
         // Select the whole line if no selection is set
         if (!hasSelection) {
-            file_view->text_editor.MoveHome(false);
-            file_view->text_editor.MoveEnd(true);
-            file_view->text_editor.SetCursorPosition(Text_Editor::Coordinates(start.mLine, 0));
+            file_view->file->text_editor.MoveHome(false);
+            file_view->file->text_editor.MoveEnd(true);
+            file_view->file->text_editor.SetCursorPosition(Text_Editor::Coordinates(start.mLine, 0));
         }
 
         /* insert text (and select it) */
-        file_view->text_editor.InsertText(new_text.c_str(), true);
+        file_view->file->text_editor.InsertText(new_text.c_str(), true);
 
-        auto end = file_view->text_editor.GetCursorPosition();
+        auto end = file_view->file->text_editor.GetCursorPosition();
         if (!hasSelection && start.mLine == end.mLine) // no selection and insert text is still on the same line
         {
-            file_view->text_editor.SetSelection(selectionStart, selectionEnd);
+            file_view->file->text_editor.SetSelection(selectionStart, selectionEnd);
         }
         NDBL_LOG(Verbosity_Message, "File_View", "Selected text updated from graph.\n");
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", new_text.c_str());
     }
     else
     {
-        file_view->text_editor.SetText( new_text.c_str() );
+        file_view->file->text_editor.SetText( new_text.c_str() );
         // auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, text, &m_text_editor);
         // m_file->get_history()->push_command(cmd);
 
@@ -418,7 +418,7 @@ void fileview_set_text(File_View* file_view, bdc::String new_text, bool isolatio
 
 void fileview_set_AddUndoHandler(File_View* file_view, Text_Editor::Add_Undo_Handler handler )
 {
-	file_view->text_editor.mAddUndoHandler = handler;
+	file_view->file->text_editor.mAddUndoHandler = handler;
 }
 
 void fileview_set_experimental_clipboard_auto_paste(File_View* file_view, bool enable)
@@ -467,11 +467,6 @@ void fileview_clear_overlay(File_View* file_view)
 void fileview_push_overlay(File_View* file_view, File_View_Overlay_Data overlay_data, File_View_Overlay_Type overlay_type)
 {
     file_view->overlay_data[overlay_type].push_back(overlay_data);
-}
-
-size_t fileview_size(const File_View* file_view)
-{
-    return file_view->text_editor.Size();
 }
 
 void fileview_refresh_overlay(File_View* file_view )

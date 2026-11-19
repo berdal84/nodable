@@ -150,7 +150,7 @@ void file_parse_text(File* file, bool isolation_on)
 
 size_t file_size(const File* file)
 {
-    return fileview_size(&file->view);
+    return file->text_editor.Size();
 }
 
 bool file_write(File* file, const Path& path)
