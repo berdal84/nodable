@@ -151,13 +151,6 @@ namespace ndbl
         bdc::Array<View>     new_selection;
     };
 
-    inline Cmd_Data__Selection_Change* cmd_selection_change_copy(Cmd_Data__Selection_Change* out, const Cmd_Data__Selection_Change* in)
-    {
-        out->old_selection = array_copy(in->old_selection);
-        out->new_selection = array_copy(in->new_selection);
-        return out;
-    };
-
     Command make_cmd__selection_change(const Cmd_Data__Selection_Change&);
     Command make_cmd__set_node_view_position(const Cmd_Payload__Set_Node_View_Position&);
 }

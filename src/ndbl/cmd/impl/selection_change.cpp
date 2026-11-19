@@ -17,8 +17,14 @@ Command make_cmd__selection_change(const Cmd_Data__Selection_Change& selection_c
     cmd.proc_do          = _selection_change__do;
     cmd.proc_undo        = _selection_change__undo;
     cmd.proc_release     = _selection_change__release;
-    cmd.payload.data.ptr = cmd_selection_change_copy(bdc::memory_new<Cmd_Data__Selection_Change>(), &selection_change);
+
+    auto payload_data = bdc::memory_new<Cmd_Data__Selection_Change>();
+    payload_data->old_selection = array_copy(selection_change.old_selection);
+    payload_data->new_selection = array_copy(selection_change.new_selection);
+
+    cmd.payload.data.ptr = payload_data;
     cmd.description      = "Selection change";
+
     return cmd;
 }
 
@@ -29,7 +35,10 @@ inline auto* _selection_change_payload_data(Command* cmd)
 
 void _selection_change__release(Command* cmd)
 {
-    bdc::memory_delete( _selection_change_payload_data(cmd) );    
+    auto payload_data =  _selection_change_payload_data(cmd);
+    bdc::memory_free(payload_data->old_selection.data);
+    bdc::memory_free(payload_data->new_selection.data);
+    bdc::memory_delete(payload_data);    
     cmd->payload.data.ptr = nullptr;
 }
 
