@@ -9,8 +9,8 @@
     #include <iostream> // for std::flush, std::cout
 
     #ifdef __EMSCRIPTEN__
-        #define NDBL_PRINT_STACKTRACE()
-            std::cout << "NDBL_PRINT_STACKTRACE is not implemented on this plaftorm."
+        #define NDBL_PRINT_STACKTRACE() \
+            printf("NDBL_PRINT_STACKTRACE is not implemented on this plaftorm.\n")
     #else
         #include <stacktrace>
         #define NDBL_PRINT_STACKTRACE() \
