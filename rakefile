@@ -74,19 +74,19 @@ def base_target(name, type)
         ]
 
         target.compiler_flags |= [
-            "-s STACK_SIZE=#{10*65536}", # default is 65536
             "-s USE_PTHREADS=1",
             "-s USE_FREETYPE=1",
             "-s USE_SDL=2",
             "-sNO_DISABLE_EXCEPTION_CATCHING",
 			"-gsource-map",            
         ]
-
+        
         target.linker_flags |= [
+            "-s STACK_SIZE=#{10*65536}", # default is 65536
             "-s PTHREAD_POOL_SIZE='navigator.hardwareConcurrency'",
             "-s EMBIND_STD_STRING_IS_UTF8=0",
             "-s ALLOW_MEMORY_GROWTH",
-            "-W no-pthreads-mem-growth", # emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]
+            "-Wno-pthreads-mem-growth", # emcc: warning: -pthread + ALLOW_MEMORY_GROWTH may run non-wasm code slowly, see https://github.com/WebAssembly/design/issues/1271 [-Wpthreads-mem-growth]
             "-s MIN_WEBGL_VERSION=2",
             "-s MAX_WEBGL_VERSION=2",
             "--emrun"
