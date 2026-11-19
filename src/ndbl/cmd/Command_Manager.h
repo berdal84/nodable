@@ -27,9 +27,6 @@ namespace ndbl
 	Command_Manager* 	command_manager_init();
 	void             	command_manager_shutdown();
 	Command_Manager* 	command_manager();
-	Command*  			command_manager_push_command(const Command&, const Cmd_Push_Params& = { .skip_command_do_at_push = false }); // set skip_command_execution = true in case command was already executed. When I write these lines, the text editor has its own undo/redo system, and Nodable get the UndoRecord after it has been executed, we don't want to run it twice.
-	void 				command_manager_begin_transaction();
-	void 				command_manager_end_transaction();
 	void    			command_manager_enable_text_editor_undo_buffer(bool _val);
 	void    			command_manager_undo();
 	void    			command_manager_redo();
@@ -37,4 +34,8 @@ namespace ndbl
 	void                command_manager_set_cursor(u32_t pos); /** undo/redo automatically to set the cursor at a given position */
 	bdc::String         command_manager_get_cmd_description_at(u32_t pos);
 	void                command_manager_handle_undo_record(Text_Editor& editor, Text_Editor::UndoRecord& undo_record);
+
+	Command*  			push_command(const Command&, const Cmd_Push_Params& = { .skip_command_do_at_push = false }); // set skip_command_execution = true in case command was already executed. When I write these lines, the text editor has its own undo/redo system, and Nodable get the UndoRecord after it has been executed, we don't want to run it twice.
+	void 				begin_command_group();
+	void 				end_command_group();
 }

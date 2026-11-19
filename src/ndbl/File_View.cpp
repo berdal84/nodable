@@ -337,9 +337,9 @@ void fileview_draw(File_View* file_view, float dt)
         ImGui::EndChild();
 
         if ( text_view_changed )
-            file_view->signal_change.emit(File_View_Event_Type_TEXT_CHANGED);
+            file_view->signal_change.emit(File_View_Event_Type_REQUEST_TEXT_CHANGED);
         else if ( graph_view_changed )
-            file_view->signal_change.emit(File_View_Event_Type_GRAPH_CHANGED);
+            file_view->signal_change.emit(File_View_Event_Type_REQUEST_GRAPH_CHANGED);
     }
     ImGui::EndChild();
     ImGui::PopFont();

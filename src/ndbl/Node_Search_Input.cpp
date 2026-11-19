@@ -43,8 +43,9 @@ void _nodesearchinput_update_cache_based_on_signature(Node_Search_Input& input, 
 
     for (size_t i = 0; i < input.items.size; ++i )
     {   
-        Action& action = input.items[i];
-        Event_Data__Create_Node* event_data = static_cast<Event_Data__Create_Node*>(action.event.data1);
+        Action& action     = input.items[i];
+        auto*   event_data = static_cast<Create_Node_Request*>(action.event.data1);
+        NDBL_ASSERT(event_data != nullptr, "A valid Create_Node_Request* should be available.");
 
         // Connect FLOW ?
         if ( dragged_slot->allows(Node_Slot::Flag_TYPE_FLOW) )

@@ -36,23 +36,26 @@ void command_manager_shutdown()
     g_command_manager = nullptr;
 }
 
-void command_manager_begin_transaction()
+void begin_command_group()
 {
     auto* manager = command_manager();
-    manager->next_command_flags = Cmd_Flags_TRANSACTION_BEGIN;
+    manager->next_command_flags = Cmd_Flags_GROUP_BEGIN;
 }
 
-void command_manager_end_transaction()
+void end_command_group()
 {
     auto* manager      = command_manager();
     auto& last_command = array_back(manager->commands);
 
-    NDBL_ASSERT(!HAS_FLAGS( last_command.flags, Cmd_Flags_TRANSACTION_BEGIN), "Cannot end a transaction on the same command that transaction begins");
-    last_command.flags |= Cmd_Flags_TRANSACTION_END;
+    NDBL_ASSERT(!HAS_FLAGS( last_command.flags, Cmd_Flags_GROUP_BEGIN), "Cannot end a transaction on the same command that transaction begins");
+    last_command.flags |= Cmd_Flags_GROUP_END;
 }
 
-Command* command_manager_push_command(const Command& command_to_push, const Cmd_Push_Params& params)
+Command* push_command(const Command& command_to_push, const Cmd_Push_Params& params)
 {
+    NDBL_ASSERT( command_to_push.proc_do );
+    NDBL_ASSERT( command_to_push.proc_undo );
+
     Config* cfg     = config();
     auto*   manager = command_manager();
 
@@ -111,13 +114,35 @@ void command_manager_undo()
 {
     auto* manager = command_manager();
 
-	if ( manager->cursor > 0 )
-	{
-        Command& command_to_undo = manager->commands[manager->cursor-1];
-        command_undo(&command_to_undo);
-        --manager->cursor;
-        manager->is_dirty = true;
+    if( manager->cursor == 0)
+    {
+        return;
     }
+
+    Command* cmd = &manager->commands[manager->cursor-1];
+
+    if( cmd->flags & Cmd_Flags_GROUP_END )
+    {
+        while ( cmd )
+        {
+            command_undo(cmd);
+            --cmd;
+            --manager->cursor;
+            
+            NDBL_ASSERT((cmd->flags & Cmd_Flags_GROUP_END) == 0, "nesting not allowed!");
+
+            if( cmd->flags & Cmd_Flags_GROUP_BEGIN )
+            {
+                break;
+            }
+        }
+    }
+    else
+    {
+        command_undo(cmd);
+        --manager->cursor;        
+    }
+    manager->is_dirty = true;
 }
 
 void command_manager_redo()
@@ -181,7 +206,7 @@ void command_manager_handle_undo_record(Text_Editor& editor, Text_Editor::UndoRe
     if ( manager->push_text_editor_AddUndoRecord )
     {
 	    Command cmd = make_cmd__text_undo_record({ undo_record, &editor});
-        command_manager_push_command(cmd, { .skip_command_do_at_push = true }); // I skip the command_do because the change was done already by the text editor.
+        push_command(cmd, { .skip_command_do_at_push = true }); // I skip the command_do because the change was done already by the text editor.
     }
 }
 

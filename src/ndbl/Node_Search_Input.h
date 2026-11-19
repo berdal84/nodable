@@ -1,6 +1,9 @@
 #pragma once
+
 #include "bdc/Array.hpp"
 #include "Action.h"
+#include "Node.h"           // for Node_Init_Params
+#include "geometry/Space.h" // for Space
 
 namespace ndbl
 {
@@ -18,4 +21,13 @@ namespace ndbl
 
     void    nodesearchinput_release(Node_Search_Input&);
     Action* nodesearchinput_draw(Node_Search_Input&, Node_Slot_View* dragged_slotview, size_t result_max_count ); // Return the triggered action, user has to deal with the Action.
+
+    struct Create_Node_Request
+    {
+        Node_Init_Params node_init_params;
+        Node_Slot_View*  active_slotview; // The slot view being dragged.
+        float            desired_pos_x;
+        float            desired_pos_y;
+        Space            space = WORLD_SPACE;
+    };
 }

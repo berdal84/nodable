@@ -557,28 +557,28 @@ Node* graph_new_node(Graph* graph, const Node_Init_Params& params)
     return node;    
 }
 
+Node* graph_find_node(Graph* graph, Node_ID id)
+{
+    auto result = hashmap_find(graph->node_by_id, id);
+    return result.ok ? result.data : nullptr;
+}
+
 Node* graph_get_node(Graph* graph, Node_ID id)
 {
     bdc::Result<Node*> result = hashmap_find(graph->node_by_id, id);
-
-    if ( result.ok )
-    {
-        return result.data;
-    }
-
-    return nullptr;    
+    NDBL_ASSERT(result.ok, "Node id not found! Use graph_find_node instead.");
+    return result.data;
 }
 
 Scope* graph_get_scope(Graph* graph, Scope_ID id)
 {
-    Node* node = graph_get_node(graph, id);
+    Node* node = graph_find_node(graph, id);
     return node ? node->internal_scope : nullptr;
 }
 
 void graph_delete(Graph* graph, Node_ID id)
 {
     Node* node = graph_get_node(graph, id);
-    NDBL_ASSERT(node, "Unable to find node in graph");
     graph_delete(graph, node);
 }
 

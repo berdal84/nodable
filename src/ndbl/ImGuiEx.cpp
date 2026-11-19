@@ -343,12 +343,22 @@ void Grid(const Rect& region, float grid_size, int subdiv_count, ImU32 major_col
     }
 }
 
-const Action* MenuItem_for_event_type(Event_Type event_type, bool selected, bool enable)
+const Action* MenuItem_for_Event(Event_Type event_type, bool selected, bool enable)
+{
+    const bool auto_trigger = true;
+    return MenuItem_for_Event_Ex(event_type, selected, enable, auto_trigger );
+};
+
+const Action* MenuItem_for_Event_Ex(Event_Type event_type, bool selected, bool enable, bool auto_trigger)
 {
     const Action* action = action_manager_get_action_with_event_type(event_type);
 
     if (ImGui::MenuItem( action->label.c_str(), shortcut_to_tstring(action->shortcut).data, selected, enable))
     {
+        if( auto_trigger )
+        {
+            event_manager_push_event(action->event);
+        }
         return action;
     }
     return nullptr;

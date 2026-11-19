@@ -23,7 +23,7 @@ Config* config_init()
 
     // (to create functions/operators from the API)
     // TODO: add a list of preset to create operators/functions
-    // action_manager_add_action( label.c_str(), Shortcut{}, EventPayload_CreateNode{Event_Type_FUNCTION, invokable->get_sig() } );
+    // action_manager_add_action( label.c_str(), Shortcut{}, EventPayload_CreateNode{Event_Type_REQUEST_FUNCTION, invokable->get_sig() } );
     return g_config;
 }
 
@@ -202,37 +202,37 @@ void config_reset()
 
     // Actions
     g_config->actions = {
-        {{ Event_Type_FILE_SAVE         }, ICON_FA_SAVE " Save"         , {SDLK_s, KMOD_CTRL }},
-        {{ Event_Type_FILE_SAVE_AS      }, ICON_FA_SAVE " Save as"      , {SDLK_s, KMOD_CTRL }},
-        {{ Event_Type_FILE_CLOSE        }, ICON_FA_TIMES "  Close"      , {SDLK_w, KMOD_CTRL }},
-        {{ Event_Type_FILE_BROWSE       }, ICON_FA_FOLDER_OPEN " Open"  , {SDLK_o, KMOD_CTRL }},
-        {{ Event_Type_FILE_NEW          }, ICON_FA_FILE " New"          , {SDLK_n, KMOD_CTRL }},
-        {{ Event_Type_REQUEST_EXIT      }, ICON_FA_SIGN_OUT_ALT " Exit" , {SDLK_F4, KMOD_ALT }},
-        {{ Event_Type_UNDO              }, "Undo"                       , {SDLK_z, KMOD_CTRL }},
-        {{ Event_Type_REDO              }, "Redo"                       , {SDLK_y, KMOD_CTRL }},
-        {{ Event_Type_RESET_GRAPH_VIEW  }, "Reset Graph"                , {SDLK_F5, KMOD_NONE }},
-        {{ Event_Type_DELETE            }, "Delete Selection"           , {SDLK_DELETE, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION },
-        {{ Event_Type_RESET_LAYOUT              }, "Arrange Selection"  , {SDLK_a, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION | Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI},
-        {{ Event_Type_TOGGLE_FOLDING            }, "Fold Selection"     , {SDLK_x, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION | Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI},
-        {{ Event_Type_SELECT_NEXT               }, "Next"               , {SDLK_n, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION },
-        {{ Event_Type_TOGGLE_ISOLATION_FLAGS    }, "Isolation"          , {SDLK_i, KMOD_CTRL }, Action_Flags_ALWAYS_ENABLE | Action_Flags_SHOW_ON_TEXT_EDITOR_GUI},
-        {{ Event_Type_MOVE                      }, "Drag whole "        , {SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Action_Flags_ALWAYS_ENABLE | Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI},
-        {{ Event_Type_FRAME_SELECTION           }, "Frame Selection"    , {SDLK_f, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION | Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI},
-        {{ Event_Type_FRAME_SELECTION           }, "Frame All"          , {SDLK_f, KMOD_LCTRL }, Action_Flags_DISABLE_INDEXING },
-        {{ Event_Type_TOGGLE_HELP               }, "Splashscreen"       , {SDLK_F1 }},    
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_RETURN      }, .label = ICON_FA_CODE " Return Statement"      , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_IF_ELSE     }, .label = ICON_FA_CODE " Condition"             , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_FOR_LOOP    }, .label = ICON_FA_CODE " For Loop"              , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_WHILE_LOOP  }, .label = ICON_FA_CODE " While Loop"            , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_SCOPE       }, .label = ICON_FA_CODE " Scope"                 , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " Boolean Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " Double Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " Integer Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " String Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " Boolean Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " Double Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " Integer Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
-        {.event = { .type = Event_Type_CREATE_NODE, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " String Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
+        {{ Event_Type_FILE_SAVE_REQUEST         }, ICON_FA_SAVE " Save"         , {SDLK_s, KMOD_CTRL }},
+        {{ Event_Type_FILE_SAVE_AS_REQUEST      }, ICON_FA_SAVE " Save as"      , {SDLK_s, KMOD_CTRL }},
+        {{ Event_Type_FILE_CLOSE_REQUEST        }, ICON_FA_TIMES "  Close"      , {SDLK_w, KMOD_CTRL }},
+        {{ Event_Type_FILE_BROWSE_REQUEST       }, ICON_FA_FOLDER_OPEN " Open"  , {SDLK_o, KMOD_CTRL }},
+        {{ Event_Type_FILE_NEW_REQUEST          }, ICON_FA_FILE " New"          , {SDLK_n, KMOD_CTRL }},
+        {{ Event_Type_EXIT_PROGRAM_REQUEST              }, ICON_FA_SIGN_OUT_ALT " Exit" , {SDLK_F4, KMOD_ALT }},
+        {{ Event_Type_UNDO_REQUEST              }, "Undo"                       , {SDLK_z, KMOD_CTRL }},
+        {{ Event_Type_REDO_REQUEST              }, "Redo"                       , {SDLK_y, KMOD_CTRL }},
+        {{ Event_Type_RESET_GRAPH_VIEW_REQUEST  }, "Reset Graph"                , {SDLK_F5, KMOD_NONE }},
+        {{ Event_Type_DELETE_REQUEST            }, "Delete Selection"           , {SDLK_DELETE, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION },
+        {{ Event_Type_RESET_LAYOUT_REQUEST              }, "Arrange Selection"  , {SDLK_a, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION | Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI},
+        {{ Event_Type_TOGGLE_FOLDING_REQUEST            }, "Fold Selection"     , {SDLK_x, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION | Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI},
+        {{ Event_Type_SELECT_NEXT_REQUEST               }, "Next"               , {SDLK_n, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION },
+        {{ Event_Type_TOGGLE_ISOLATION_REQUEST    }, "Isolation"          , {SDLK_i, KMOD_CTRL }, Action_Flags_ALWAYS_ENABLE | Action_Flags_SHOW_ON_TEXT_EDITOR_GUI},
+        {{ Event_Type_MOVE_REQUEST                      }, "Drag whole "        , {SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Action_Flags_ALWAYS_ENABLE | Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI},
+        {{ Event_Type_FRAME_SELECTION_REQUEST           }, "Frame Selection"    , {SDLK_f, KMOD_NONE }, Action_Flags_ENABLE_IF_HAS_SELECTION | Action_Flags_SHOW_ON_GRAPH_EDITOR_GUI},
+        {{ Event_Type_FRAME_SELECTION_REQUEST           }, "Frame All"          , {SDLK_f, KMOD_LCTRL }, Action_Flags_DISABLE_INDEXING },
+        {{ Event_Type_TOGGLE_HELP_REQUEST               }, "Splashscreen"       , {SDLK_F1 }},    
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_RETURN      }, .label = ICON_FA_CODE " Return Statement"      , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_IF_ELSE     }, .label = ICON_FA_CODE " Condition"             , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_FOR_LOOP    }, .label = ICON_FA_CODE " For Loop"              , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_WHILE_LOOP  }, .label = ICON_FA_CODE " While Loop"            , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_SCOPE       }, .label = ICON_FA_CODE " Scope"                 , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " Boolean Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " Double Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " Integer Variable"  , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_VARIABLE    }, .label = ICON_FA_DATABASE " String Variable"   , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " Boolean Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " Double Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " Integer Literal"       , .flags = Action_Flags_DISABLE_INDEXING },
+        {.event = { .type = Event_Type_CREATE_NODE_REQUEST, .code = Node_Kind_LITERAL     }, .label = ICON_FA_FILE " String Literal"        , .flags = Action_Flags_DISABLE_INDEXING },
     };
 }
 

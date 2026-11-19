@@ -76,7 +76,8 @@ namespace ndbl
         float           CalcSegmentHoverMinDist( float line_thickness );
         void            DrawPath(ImDrawList* draw_list, const bdc::Array<Vec2>& path, const Vec4& color, float thickness);
         void            Grid(const Rect& screen_space_region, float grid_size, int subdiv_count, ImU32 major_color, ImU32 minor_color);
-        const Action*   MenuItem_for_event_type(Event_Type, bool selected = false, bool enable = true); // Shorthand to get a given action from the manager and draw a MenuItem from it.
+        const Action*   MenuItem_for_Event(Event_Type, bool selected = false, bool enable = true); // Shorthand to get a given action from the manager and draw a MenuItem from it.
+        const Action*   MenuItem_for_Event_Ex(Event_Type, bool selected, bool enable, bool auto_trigger);
 
         template<typename ...Args>
         static void DrawHelperEx(float alpha, const char* fmt, Args... args)

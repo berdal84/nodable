@@ -73,10 +73,10 @@ namespace ndbl
     Rect view_bounding_rect(const bdc::Array<View>&, Space space = WORLD_SPACE);
 
     typedef u8_t View_Selection_Event_Type;
-    enum View_Selection_Event_Type_
+    enum View_Selection_Event_Type_REQUEST_
     {
-        View_Selection_Event_Type_APPEND = 1,
-        View_Selection_Event_Type_REMOVE
+        View_Selection_Event_Type_REQUEST_APPEND = 1,
+        View_Selection_Event_Type_REQUEST_REMOVE
     };
 
     struct View_Selection

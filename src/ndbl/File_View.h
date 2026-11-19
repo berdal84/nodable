@@ -41,10 +41,10 @@ namespace ndbl
     } ;
 
     typedef u8_t File_View_Event_Type;
-    enum File_View_Event_Type_ : u8_t
+    enum File_View_Event_Type_REQUEST_ : u8_t
     {
-        File_View_Event_Type_GRAPH_CHANGED = 0,
-        File_View_Event_Type_TEXT_CHANGED,
+        File_View_Event_Type_REQUEST_GRAPH_CHANGED = 0,
+        File_View_Event_Type_REQUEST_TEXT_CHANGED,
     };
 
     struct File_View

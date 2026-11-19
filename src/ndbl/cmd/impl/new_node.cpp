@@ -4,7 +4,6 @@
 #include "ndbl/Graph_View.h"
 #include "ndbl/Graph.h"
 #include "ndbl/Nodable.h"
-#include "ndbl/View.h"
 
 namespace ndbl 
 {
@@ -19,7 +18,7 @@ Command make_cmd__new_node(const Node_Init_Params& node_init_params)
     cmd.proc_do     = _new_node__do;
     cmd.proc_undo   = _new_node__undo;
     cmd.payload.new_node.node_init_params = node_init_params,
-    cmd.description = "Connect two slots";
+    cmd.description = "New Node";
 
     return cmd;
 }

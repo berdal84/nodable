@@ -66,6 +66,8 @@ namespace ndbl
 
     // Pointers to/from ID conversion procedures
 
+    Node*                   graph_find_node(Graph*, Node_ID);
+
     Node*                   graph_get_node(Graph*, Node_ID);
     Node_Slot*              graph_get_slot(Graph*, Node_Slot_ID);
     Scope*                  graph_get_scope(Graph*, Scope_ID);

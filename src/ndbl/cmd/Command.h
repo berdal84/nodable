@@ -69,9 +69,9 @@ namespace ndbl
     typedef int Cmd_Flags;
     enum Cmd_Flags_ : int
     {
-        Cmd_Flags_NONE              = 0,
-        Cmd_Flags_TRANSACTION_BEGIN = 1 << 0,
-        Cmd_Flags_TRANSACTION_END   = 1 << 1
+        Cmd_Flags_NONE        = 0,
+        Cmd_Flags_GROUP_BEGIN = 1 << 0,
+        Cmd_Flags_GROUP_END   = 1 << 1
     };
 
     struct Cmd_Push_Params

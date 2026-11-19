@@ -66,6 +66,7 @@ const Event& event_manager_pop_event()
     VERIFY_EVENT_MANAGER_IS_INITIALIZED();
     if ( g_event_manager->event_queue_front == g_event_manager->event_queue_back )
     {
+        constexpr static Event null_event{ .type = Event_Type_NULL };
         return null_event;
     }
 

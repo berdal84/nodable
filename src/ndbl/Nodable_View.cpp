@@ -540,23 +540,17 @@ void appview_draw()
             bool has_file = current_file != nullptr;
             bool is_current_file_content_dirty = current_file != nullptr && HAS_FLAGS(current_file->flags, File_Flag_NEEDS_TO_BE_SAVED);
 
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_NEW))
-                event_manager_push_event(action->event);
-
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_BROWSE))
-                event_manager_push_event(action->event);
+            ImGuiEx::MenuItem_for_Event(Event_Type_FILE_NEW_REQUEST);
+            ImGuiEx::MenuItem_for_Event(Event_Type_FILE_BROWSE_REQUEST);
 
             ImGui::Separator();
 
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_SAVE_AS, false, has_file))
-                event_manager_push_event(action->event);
+            ImGuiEx::MenuItem_for_Event(Event_Type_FILE_SAVE_AS_REQUEST, false, has_file);
+            ImGuiEx::MenuItem_for_Event(Event_Type_FILE_SAVE_REQUEST   , false, has_file && is_current_file_content_dirty);
 
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_SAVE, false, has_file && is_current_file_content_dirty))
-                event_manager_push_event(action->event);
             ImGui::Separator();
 
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_FILE_CLOSE, false, has_file))
-                event_manager_push_event(action->event);
+            ImGuiEx::MenuItem_for_Event(Event_Type_FILE_CLOSE_REQUEST, false, has_file);
 
             auto auto_paste = has_file && current_file->view.experimental_clipboard_auto_paste;
 
@@ -565,26 +559,19 @@ void appview_draw()
                 fileview_set_experimental_clipboard_auto_paste(&current_file->view, !auto_paste);
             }
             
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_REQUEST_EXIT))
-                event_manager_push_event(action->event);
+            ImGuiEx::MenuItem_for_Event(Event_Type_EXIT_PROGRAM_REQUEST);
 
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Edit"))
         {
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_UNDO))
-                event_manager_push_event(action->event);
-
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_REDO))
-                event_manager_push_event(action->event);
+            ImGuiEx::MenuItem_for_Event(Event_Type_UNDO_REQUEST);
+            ImGuiEx::MenuItem_for_Event(Event_Type_REDO_REQUEST);
 
             ImGui::Separator();
             
-            if (ImGui::MenuItem("Delete", "Del.", false, selection.items.size ))
-            {
-                event_manager_push_event({ Event_Type_DELETE });
-            }
+            ImGuiEx::MenuItem_for_Event(Event_Type_DELETE_REQUEST, false, selection.items.size );
 
             ImGui::EndMenu();
         }
@@ -618,63 +605,31 @@ void appview_draw()
             view->show_imgui_demo = ImGui::MenuItem("Show ImGui Demo", "", view->show_imgui_demo);
 
             ImGui::Separator();
-
-            const bool is_fullscreen = appview_is_fullscreen();
-            if (ImGui::MenuItem("Fullscreen", "", is_fullscreen ))
-            {
-                appview_set_fullscreen(!is_fullscreen);
-            }
+            ImGuiEx::MenuItem_for_Event(Event_Type_TOGGLE_FULLSCREEN_REQUEST, appview_is_fullscreen() );
             ImGui::Separator();
-
-            if (ImGui::MenuItem("Reset Layout", ""))
-            {
-                view->should_reset_layout = true;
-            }
+            ImGuiEx::MenuItem_for_Event(Event_Type_RESET_LAYOUT_REQUEST);
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Code"))
         {
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_ISOLATION_FLAGS, HAS_FLAGS(config()->flags, Config_Flag_ISOLATION_ON)))
-            {
-                event_manager_push_event(action->event);
-            }
+            ImGuiEx::MenuItem_for_Event(Event_Type_TOGGLE_ISOLATION_REQUEST, HAS_FLAGS(config()->flags, Config_Flag_ISOLATION_ON));
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Graph"))
         {
-
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type( Event_Type_RESET_GRAPH_VIEW) )
-            {
-                event_manager_push_event( action->event);
-            }
-
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_RESET_LAYOUT,false, selection.items.size ) )
-            {
-                event_manager_push_event(action->event);
-            }
-
-            if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_FOLDING, false, selection.items.size ) )
-            {
-                event_manager_push_event(action->event);
-            }
+            ImGuiEx::MenuItem_for_Event(Event_Type_RESET_GRAPH_VIEW_REQUEST);
+            ImGuiEx::MenuItem_for_Event(Event_Type_RESET_LAYOUT_REQUEST,   false, selection.items.size );
+            ImGuiEx::MenuItem_for_Event(Event_Type_TOGGLE_FOLDING_REQUEST, false, selection.items.size );
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, selection.items.size ))
             {
-                if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_FOLDING,false, selection.items.size ))
-                {
-                    event_manager_push_event(action->event);
-                }
+                ImGuiEx::MenuItem_for_Event(Event_Type_TOGGLE_FOLDING_REQUEST,false, selection.items.size );
             }
 
             ImGui::Separator();
-            {
-                if(const Action* action = ImGuiEx::MenuItem_for_event_type(Event_Type_TOGGLE_ISOLATION_FLAGS, HAS_FLAGS(config()->flags, Config_Flag_ISOLATION_ON)))
-                {
-                    event_manager_push_event(action->event);
-                }
-            }
+            ImGuiEx::MenuItem_for_Event(Event_Type_TOGGLE_ISOLATION_REQUEST, HAS_FLAGS(config()->flags, Config_Flag_ISOLATION_ON));
 
             ImGui::EndMenu();
         }
@@ -797,7 +752,7 @@ void appview_draw()
 
             // reset
             if (ImGui::Button(ICON_FA_UNDO " Reset Graph View", button_size)) {
-                event_manager_push_event({ Event_Type_RESET_GRAPH_VIEW });
+                event_manager_push_event({ Event_Type_RESET_GRAPH_VIEW_REQUEST });
             }
             ImGui::SameLine();
 
@@ -807,7 +762,7 @@ void appview_draw()
                 : ICON_FA_CROP " isolation mode: OFF",
                 button_size))
             {
-                event_manager_push_event({ Event_Type_TOGGLE_ISOLATION_FLAGS });
+                event_manager_push_event({ Event_Type_TOGGLE_ISOLATION_REQUEST });
             }
             ImGui::SameLine();
             ImGui::EndGroup();
@@ -851,7 +806,7 @@ void appview_draw()
 
             if ( !open )
             {
-               event_manager_push_event({ Event_Type_FILE_CLOSE }); // we can't close the file right now, we must end the draw loop first
+               event_manager_push_event({ Event_Type_FILE_CLOSE_REQUEST }); // we can't close the file right now, we must end the draw loop first
             }
         }
 
@@ -1123,12 +1078,18 @@ void appview_draw()
                 ImGui::PushFont(font_manager_get_font(Font_Slot_ToolBtn));
                 ImGui::NewLine();
 
+                // TODO: use ImGuiEx::MenuItem_for_Event(...) for the next two ImGui::Button calls
+                //       but a label override is needed..
                 ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
                 if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                    event_manager_push_event({ Event_Type_FILE_NEW });
+                {
+                    event_manager_push_event({ Event_Type_FILE_NEW_REQUEST });
+                }
                 ImGui::SameLine();
                 if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                    event_manager_push_event({ Event_Type_FILE_BROWSE });
+                {
+                    event_manager_push_event({ Event_Type_FILE_BROWSE_REQUEST });
+                }
 
                 ImGui::NewLine();
                 ImGui::Separator();
@@ -1394,12 +1355,12 @@ Image appview_capture_screen()
 
 bool appview_is_fullscreen()
 {
-    return SDL_GetWindowFlags(appview()->sdl_window) & (SDL_WindowFlags::SDL_WINDOW_FULLSCREEN | SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP);
+    return HAS_FLAGS( SDL_GetWindowFlags(appview()->sdl_window), SDL_WindowFlags::SDL_WINDOW_FULLSCREEN);
 }
 
 void appview_set_fullscreen(bool b)
 {
-    SDL_SetWindowFullscreen(appview()->sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    SDL_SetWindowFullscreen(appview()->sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN : 0);
 }
 
 void appview_set_title(const bdc::String& title )

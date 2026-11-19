@@ -35,14 +35,13 @@ void file_init(File* file)
     graphview_init(graph_view, file->graph);
     graph->view = graph_view;
 
-    // Fill the "create node" context menu
+    // fill the graph view context menu with the events that are related to node creation
     for( const Action& action : action_manager()->actions )
-        if ( action.event.type == Event_Type_CREATE_NODE )
+        if ( action.event.type == Event_Type_CREATE_NODE_REQUEST )
             array_append(graph_view->node_search_input.items, action);
 
-    // File_View
+    // view
     fileview_init(&file->view, file);
-
     file->view.signal_change.connect<&file_handle_file_view_change>(file);
 
     NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File", "View built, creating History ...\n");
@@ -217,11 +216,11 @@ void file_handle_file_view_change(File* file, File_View_Event_Type type)
 {
     switch ( type )
     {
-        case File_View_Event_Type_GRAPH_CHANGED:
+        case File_View_Event_Type_REQUEST_GRAPH_CHANGED:
             SET_FLAGS(file->flags, File_Flag_TEXT_IS_DIRTY);
             break;
         
-        case File_View_Event_Type_TEXT_CHANGED:
+        case File_View_Event_Type_REQUEST_TEXT_CHANGED:
             SET_FLAGS(file->flags, File_Flag_GRAPH_IS_DIRTY);
             break;
         

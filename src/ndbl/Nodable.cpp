@@ -189,35 +189,41 @@ void app_update()
         graph_view = app->current_file->graph->view; // Q&A: Should be included in the event? No, because a event applies on current context, adnd the history can mutate the context via Commands.
     } 
 
-    while( (event = event_manager_pop_event()) )
+    while( event = event_manager_pop_event(), event.type != Event_Type_NULL )
     {
         switch ( event.type )
-        {
-            case Event_Type_REQUEST_EXIT:
+        {            
+            case Event_Type_EXIT_PROGRAM_REQUEST:
             {
                 SET_FLAGS(app_state()->flags, App_Flag_SHOULD_STOP);
                 break;
             }
 
-            case Event_Type_FILE_CLOSE:
+            case Event_Type_TOGGLE_FULLSCREEN_REQUEST:
+            {
+                appview_set_fullscreen( !appview_is_fullscreen() );
+                break;
+            }
+
+            case Event_Type_FILE_CLOSE_REQUEST:
             {
                 app_close_current_file();
                 break;
             }
 
-            case Event_Type_UNDO:
+            case Event_Type_UNDO_REQUEST:
             {
                 command_manager_undo();
                 break;
             }
 
-            case Event_Type_REDO:
+            case Event_Type_REDO_REQUEST:
             {
                 command_manager_redo();
                 break;
             }
 
-            case Event_Type_FILE_BROWSE:
+            case Event_Type_FILE_BROWSE_REQUEST:
             {
                 Path path;
                 if( appview_pick_file_path(path, Dialog_Type_Browse) )
@@ -230,13 +236,13 @@ void app_update()
 
             }
 
-            case Event_Type_FILE_NEW:
+            case Event_Type_FILE_NEW_REQUEST:
             {
                 app_new_file();
                 break;
             }
 
-            case Event_Type_FILE_SAVE_AS:
+            case Event_Type_FILE_SAVE_AS_REQUEST:
             {
                 if (app->current_file != nullptr)
                 {
@@ -250,25 +256,29 @@ void app_update()
                 break;
             }
 
-            case Event_Type_FILE_SAVE:
+            case Event_Type_FILE_SAVE_REQUEST:
             {
-                if (!app->current_file) break;
+                if (!app->current_file)
+                {
+                    break;
+                }
+
                 if( !app->current_file->path.empty())
                 {
                     app_save_file(app->current_file);
+                    break;
                 }
-                else
+
+                Path path;
+                if( appview_pick_file_path(path, Dialog_Type_SaveAs))
                 {
-                    Path path;
-                    if( appview_pick_file_path(path, Dialog_Type_SaveAs))
-                    {
-                        app_save_file_as(app->current_file, path);
-                    }
+                    app_save_file_as(app->current_file, path);
                 }
+
                 break;
             }
 
-            case Event_Type_TOGGLE_HELP:
+            case Event_Type_TOGGLE_HELP_REQUEST:
             {
                 appview()->show_splashscreen ^= true;
                 break;
@@ -282,14 +292,16 @@ void app_update()
                 break;
             }
 
-            case Event_Type_RESET_GRAPH_VIEW:
+            case Event_Type_RESET_GRAPH_VIEW_REQUEST:
             {
+                // TODO: this should undoable
                 graph_view->flags |= Graph_View_Flag_NEEDS_TO_BE_RESET | Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
                 break;
             }
 
-            case Event_Type_TOGGLE_ISOLATION_FLAGS:
+            case Event_Type_TOGGLE_ISOLATION_REQUEST:
             {
+                // TODO: this should undoable
                 config()->flags ^= Config_Flag_ISOLATION_ON;
                 if(app->current_file)
                 {
@@ -298,28 +310,38 @@ void app_update()
                 break;
             }
 
-            case Event_Type_FRAME_SELECTION:
+            case Event_Type_FRAME_SELECTION_REQUEST:
             {
+                // TODO: this should undoable
                 if( !graph_view ) break;
                 graph_view->flags |= Graph_View_Flag_NEEDS_TO_FRAME_CONTENT;
                 break;
             }
 
-            case Event_Type_DELETE:
+            case Event_Type_DELETE_REQUEST:
             {
+                // TODO: this should undoable
+
+                // TODO: code from graph view that needs to be integrated.
+                //       this comes from the contextual menu, when deleting a Scope_View:
+                // viewselection_clear(graphview->selection);
+                // viewselection_add(graphview->selection, scopeview);
+                // event_manager_push_event({ Event_Type_SELECTION_CHANGE_REQUEST, selection_change })
+
                 for( const View& selected_item : graph_view->selection.items )
                 {
                     switch ( selected_item.type )
                     {
-                        case View_Type_NODE:    { graph_flag_node_to_delete(selected_item.nodeview->node, Graph_Flag_NONE);                       break; }
+                        case View_Type_NODE:    { graph_flag_node_to_delete(selected_item.nodeview->node        , Graph_Flag_NONE);               break; }
                         case View_Type_SCOPE:   { graph_flag_node_to_delete(selected_item.scopeview->scope->node, Graph_Flag_ALLOW_SIDE_EFFECTS); break; }
                     }
                 }
                 break;
             }
 
-            case Event_Type_RESET_LAYOUT:
+            case Event_Type_RESET_LAYOUT_REQUEST:
             {
+                // TODO: this should undoable
                 for( const View& selected_item : graph_view->selection.items )
                 {
                     switch ( selected_item.type )
@@ -331,79 +353,50 @@ void app_update()
                 break;
             }
 
-            case Event_Type_SELECT_NEXT:
+            case Event_Type_SELECT_NEXT_REQUEST:
             {
                 if(!graph_view)
                 {
                     break;
                 }
-
-                viewselection_clear(graph_view->selection);
-
-                // Append all the successors to the selection
+                
+                // make the list of successor(s)
+                Resizable_Array<View> successors{};
+                successors.allocator = &temp_allocator;
                 for(View& selected_item : graph_view->selection.items )
                     if (selected_item.type == View_Type_NODE)
                         for (Node* successor_node : selected_item.nodeview->node->flow_outputs() )
                             if ( successor_node->view )
-                                viewselection_add(graph_view->selection, successor_node->view );
+                                array_append(successors, successor_node->view );
+
+                Command cmd = make_cmd__selection_change({
+                    .old_selection = graph_view->selection.items,
+                    .new_selection = successors
+                });
+                push_command(cmd);
+
                 break;
             }
 
-            case Event_Type_TOGGLE_FOLDING:
+            case Event_Type_TOGGLE_FOLDING_REQUEST:
             {
+                // TODO: this should undoable
                 for(View& selected_item : graph_view->selection.items )
                     if (selected_item.type == View_Type_NODE)
                         nodeview_toggle_expandcollapse( selected_item.nodeview );
                 break;
             }
 
-            case Event_Type_SLOT_DROPPED_ONTO_ANOTHER:
-            {
-                Command cmd = make_cmd__connect({
-                    .tail = reinterpret_cast<Node_Slot*>(event.data1),
-                    .head = reinterpret_cast<Node_Slot*>(event.data2)
-                });
-                command_manager_push_command(cmd);
-                break;
-            }
-
-            case Event_Type_DELETE_LINK:
-            {
-                Command cmd = make_cmd__disconnect({
-                    .tail = reinterpret_cast<Node_Slot*>(event.data1),
-                    .head = reinterpret_cast<Node_Slot*>(event.data2)
-                });
-                command_manager_push_command(cmd);
-                break;
-            }
-
-            case Event_Type_DELETE_ALL_LINKS:
-            {
-                auto slot = static_cast<Node_Slot*>(event.data1);
-
-                command_manager_begin_transaction();
-                for(Node_Slot* adjacent_slot : slot->adjacent )
-                {
-                    Command cmd = make_cmd__disconnect({
-                        .tail = slot,
-                        .head = adjacent_slot
-                    });
-                    command_manager_push_command(cmd);
-                }
-                command_manager_end_transaction();
-                break;
-            }
-
-            case Event_Type_CREATE_NODE:
+            case Event_Type_CREATE_NODE_REQUEST:
             {
                 Graph* graph = app_state()->current_file->graph;
                 NDBL_ASSERT(graph);
 
-                auto data = static_cast<Event_Data__Create_Node*>(event.data1);
+                auto data = static_cast<Create_Node_Request*>(event.data1);
                 NDBL_ASSERT(data);
 
                 // Begin a transaction (can be undo as a whole)
-                command_manager_begin_transaction();
+                begin_command_group();
 
                 // Generate a predetermined id for the new node
                 if( data->node_init_params.id == 0)
@@ -412,7 +405,7 @@ void app_update()
                 }
 
                 // Create Node
-                command_manager_push_command(
+                push_command(
                     make_cmd__new_node(data->node_init_params)
                 );  
                 
@@ -424,12 +417,12 @@ void app_update()
                         .old_selection = graph->view->selection.items,
                         .new_selection = Inlined_Array<View, 1>{ new_node->view },
                     };
-                    command_manager_push_command(
+                    push_command(
                         make_cmd__selection_change(selection_change)
                     );
 
                     // Set Node_View position
-                    command_manager_push_command(
+                    push_command(
                         make_cmd__set_node_view_position({
                             .node_id = data->node_init_params.id,
                             .x       = data->desired_pos_x,
@@ -456,7 +449,7 @@ void app_update()
                         std::swap( out, in );
                     }
 
-                    command_manager_push_command(
+                    push_command(
                         make_cmd__connect({ .tail = out, .head = in })
                     );
 
@@ -471,7 +464,7 @@ void app_update()
                     }
                 }
 
-                command_manager_end_transaction();
+                end_command_group();
                 break;
             }
 

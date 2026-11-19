@@ -11,17 +11,26 @@ namespace ndbl
 {
 
 void _set_node_view_position_do(Command*);
+void _set_node_view_position_undo(Command*);
 
 Command make_cmd__set_node_view_position(const Cmd_Payload__Set_Node_View_Position& data)
 {
     Command cmd{};
 
     cmd.proc_do     = _set_node_view_position_do;
-    cmd.proc_redo   = cmd.proc_do;
+    cmd.proc_undo   = _set_node_view_position_undo;
     cmd.description = "Set Node view position";
     cmd.payload.set_node_view_position = data;
 
     return cmd;
+}
+
+void _set_node_view_position_undo(Command* cmd)
+{
+    Cmd_Payload__Set_Node_View_Position& payload = cmd->payload.set_node_view_position;
+    Graph* graph = app_state()->current_file->graph;
+    Node*  node  = graph_get_node(graph, payload.node_id);
+    spatialnode_set_position(node->view->shape.spatial_node, { 0.0f, 0.0f }, payload.space);
 }
 
 void _set_node_view_position_do(Command* cmd)

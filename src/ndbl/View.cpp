@@ -31,7 +31,7 @@ void viewselection_clear(View_Selection& selection)
 {
     for(const View& elem : selection.items )
     {
-        selection.signal_change.emit( View_Selection_Event_Type_REMOVE, elem );
+        selection.signal_change.emit( View_Selection_Event_Type_REQUEST_REMOVE, elem );
     }
     
     array_clear(selection.items);
@@ -54,7 +54,7 @@ void viewselection_add(View_Selection& selection, const View& elem )
 {
     array_append(selection.items, elem);
     selection.count_by_type[elem.type]++;
-    selection.signal_change.emit( View_Selection_Event_Type_APPEND, elem );
+    selection.signal_change.emit( View_Selection_Event_Type_REQUEST_APPEND, elem );
 }
 
 void viewselection_add(View_Selection& selection, const Array<View>& views )
@@ -70,7 +70,7 @@ void viewselection_remove(View_Selection& selection, const View& elem)
     auto found = array_find(selection.items, elem);
     NDBL_ASSERT(found.ok);
     selection.count_by_type[elem.type]--;
-    selection.signal_change.emit( View_Selection_Event_Type_APPEND, elem );
+    selection.signal_change.emit( View_Selection_Event_Type_REQUEST_APPEND, elem );
     array_remove_ordered(selection.items, found.at_pos);
 }
 

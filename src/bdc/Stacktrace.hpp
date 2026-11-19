@@ -12,10 +12,10 @@
     //     });
     // }
 
-    #define BDC_LOG_STACKTRACE() \
-        BDC_LOG_DEBUG("BDC_LOG_STACKTRACE is not implemented for this platform - {}:{}\n", __FILE__, __LINE__);
+    #define BDC_LOG_STACKTRACE()       BDC_DEBUG("BDC_LOG_STACKTRACE is not implemented for this platform - {}:{}\n", __FILE__, __LINE__);
+    #define BDC_LOG_DEBUG_STACKTRACE() BDC_LOG_STACKTRACE();
 #else
     #include <stacktrace> // for std::stacktrace
-    #define BDC_LOG_STACKTRACE() \
-        BDC_LOG_DEBUG("{}", std::stacktrace::current());
+    #define BDC_LOG_STACKTRACE()       BDC_LOG("{}", std::stacktrace::current());
+    #define BDC_LOG_DEBUG_STACKTRACE() BDC_LOG_DEBUG("{}", std::stacktrace::current());
 #endif 

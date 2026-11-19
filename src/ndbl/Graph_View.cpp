@@ -794,7 +794,7 @@ void ndbl::_graphview_on_graph_change(Graph_View* graphview)
 
 void ndbl::_graphview_on_selection_change(Graph_View* graphview, View_Selection_Event_Type type, View view)
 {
-    bool selected = type == View_Selection_Event_Type_APPEND;
+    bool selected = type == View_Selection_Event_Type_REQUEST_APPEND;
 
     switch ( view.type )
     {
@@ -863,7 +863,17 @@ void ndbl::_graphview_draw_context_menu(Graph_View* graphview, Node_Slot_View* d
         Event event = triggered_action->event; // copy
 
         // Create event data 
-        auto data = bdc::memory_new<Event_Data__Create_Node>();
+        auto data = bdc::memory_new<Create_Node_Request>(&temp_allocator); // temp allocations are cleared AFTER events are processed.
+
+        // TODO: Here, there is a problem. I don't want to have this Create_Node_Request type.
+        //       I should construct several commands from here instead:
+        //       1) create a node
+        //       2) if any dragged slot: create a link
+        //       3) move node view to position
+        //
+        //       Basically, most of the code in the event loop related to 1+2+3 should be moved here.
+        //       But I have to make sure I can identify a Node, a Node_Slot, a Node_View by an ID.
+
         data->node_init_params.id   = node_generate_new_id();
         data->node_init_params.kind = event.code;
         data->active_slotview       = dragged_slotview;
@@ -974,7 +984,7 @@ void ndbl::_graphview_select_scope(Graph_View* graphview, Scope_View* scopeview)
         .old_selection = graphview->selection.items,
         .new_selection = new_selection.items
     });
-    command_manager_push_command(cmd);
+    push_command(cmd);
 }
 
 void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
@@ -1009,11 +1019,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
 
                 if ( ImGui::MenuItem("Delete") )
                 {
-                    // TODO: we should probably handle the selection when we perform a right click on something (slot, node.view, linkview, etc..)
-                    viewselection_clear(graphview->selection);
-                    viewselection_add(graphview->selection, scopeview);
-
-                    event_manager_push_event({ Event_Type_DELETE });
+                    event_manager_push_event({ Event_Type_DELETE_REQUEST});
                 }
 
 
@@ -1028,12 +1034,11 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
                 auto edge = graphview->focused.linkview;
                 if ( ImGui::MenuItem("Delete") )
                 {
-                    Event event = {
-                        .type  = Event_Type_DELETE_LINK,
-                        .data1 = edge.tail->slot,
-                        .data2 = edge.head->slot
-                    };
-                    event_manager_push_event( event );
+                    Command cmd = make_cmd__disconnect({
+                        .tail = edge.tail->slot,
+                        .head = edge.head->slot
+                    });
+                    push_command(cmd);
                 }
 
                 break;
@@ -1043,12 +1048,17 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
             {
                 if ( ImGui::MenuItem("Disconnect") )
                 {
-                    Event event = { 
-                        .type  = Event_Type_DELETE_ALL_LINKS, 
-                        .data1 = graphview->focused.slotview->slot
-                    };
-
-                    event_manager_push_event( event );
+                    Node_Slot* slot = graphview->focused.slotview->slot;
+                    begin_command_group();
+                    for(Node_Slot* adjacent_slot : slot->adjacent )
+                    {
+                        Command cmd = make_cmd__disconnect({
+                            .tail = slot,
+                            .head = adjacent_slot
+                        });
+                        push_command(cmd);
+                    }
+                    end_command_group();
                 }
 
                 break;
@@ -1079,7 +1089,7 @@ void ndbl::_graphview_cursor_state_tick(Graph_View* graphview)
                     viewselection_clear(graphview->selection);
                     viewselection_add(graphview->selection, nodeview);
 
-                    event_manager_push_event({ Event_Type_DELETE });
+                    event_manager_push_event({ Event_Type_DELETE_REQUEST });
                 }
 
                 break;
@@ -1245,13 +1255,11 @@ void ndbl::_graphview_line_state_tick(Graph_View* graphview)
         {
             if ( graphview->focused != graphview->hovered )
             {
-                
-                Event event = {
-                    .type  = Event_Type_SLOT_DROPPED_ONTO_ANOTHER,
-                    .data1 = graphview->focused.slotview->slot,
-                    .data2 = graphview->hovered.slotview->slot
-                };
-                event_manager_push_event(event);
+                Command cmd = make_cmd__connect({
+                    .tail = graphview->focused.slotview->slot,
+                    .head = graphview->hovered.slotview->slot
+                });
+                push_command(cmd);
                 graphview->state_machine.exit_state();
             }
         }
