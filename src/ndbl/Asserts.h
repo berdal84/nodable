@@ -5,14 +5,22 @@
 
 #if NDBL_ASSERTIONS_ENABLE
 
-    #include "bdc/Stacktrace.hpp"
     #include <cassert>
     #include <iostream> // for std::flush, std::cout
+
+    #ifdef __EMSCRIPTEN__
+        #define NDBL_PRINT_STACKTRACE()
+            std::cout << "NDBL_PRINT_STACKTRACE is not implemented on this plaftorm."
+    #else
+        #include <stacktrace>
+        #define NDBL_PRINT_STACKTRACE() \
+            std::cout << std::stacktrace::current()
+    #endif
 
     #define NDBL_ASSERT(expression, ... ) \
         if( !(expression) ) \
         { \
-            std::cout << std::stacktrace::current(); \
+            NDBL_PRINT_STACKTRACE(); \
             printf("NDBL_ASSERT: Expression '%s' is false" __VA_OPT__(". Reason: " __VA_ARGS__ ) " at %s:%i\n\n.", #expression, __FILE__, __LINE__ ); \
             std::cout << std::flush; \
             assert( false ); \
@@ -27,7 +35,7 @@
 
     #define NDBL_TODO( message ) \
         do { \
-            std::cout << std::stacktrace::current(); \
+            NDBL_PRINT_STACKTRACE(); \
             printf("NDBL_TODO: %s\n\n", message); \
             std::cout << std::flush; \
             std::abort(); \
@@ -35,7 +43,7 @@
 
     #define NDBL_UNREACHABLE( ... ) \
     do { \
-        std::cout << std::stacktrace::current(); \
+        NDBL_PRINT_STACKTRACE(); \
         printf("NDBL_UNREACHABLE: %s\n\n", #__VA_ARGS__); \
         std::cout << std::flush; \
         std::abort(); \
