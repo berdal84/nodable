@@ -399,10 +399,19 @@ def activate_emsdk()
     system("python extern/emsdk/emsdk.py activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
 end
 
+def sudo_apt_update()
+    system("sudo apt update", exception: true)
+end
+
+def sudo_apt_install(packages)
+    system("sudo apt install #{packages.join(" ")}", exception: true)  
+end
+
 task :ci do
     case PLATFORM
-    when PLATFORM_LINUX            
-        run_sudo_apt_install(APT_PACKAGES)
+    when PLATFORM_LINUX    
+        sudo_apt_update()        
+        sudo_apt_install(APT_PACKAGES)
     when PLATFORM_WEB  
         install_emsdk()
         activate_emsdk()
@@ -414,8 +423,9 @@ end
 desc "Install platform dependencies (apt packages|emscripten|...)"
 task :install do
     case PLATFORM
-    when PLATFORM_LINUX             
-        run_sudo_apt_install(APT_PACKAGES)    
+    when PLATFORM_LINUX
+        sudo_apt_update()        
+        sudo_apt_install(APT_PACKAGES)            
     when PLATFORM_WEB
         install_emsdk()
         activate_emsdk()
