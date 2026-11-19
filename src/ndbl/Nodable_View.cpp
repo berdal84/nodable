@@ -473,9 +473,7 @@ void appview_draw()
             if ( ImGui::BeginChild("messages") )
             {
                 bool is_log_empty = true;
-
                 Vec4 color_grey = { 0.5f, 0.5f, 0.5f, 1.0f };
-                ImGui::TextColored(color_grey, "--- begin ---");
                 
                 for(u32_t i = 0; i < log.ring_buffer_size; ++i)
                 {
@@ -496,10 +494,7 @@ void appview_draw()
                     Vec2 text_size = ImGui::CalcTextSize(msg.text.data, msg.text.data + msg.text.size );                   
                     if ( !ImGui::IsRectVisible( ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() + text_size ) )
                     {
-                        if( !is_log_empty )
-                        {
-                            ImGui::Dummy(text_size);
-                        }
+                        ImGui::Dummy(text_size);
                     }
                     else
                     {
@@ -509,19 +504,15 @@ void appview_draw()
                     is_log_empty = false;
                 }
 
-                if ( is_log_empty )
-                {
-                    ImGui::TextColored(color_grey, "--- empty ---" );
-                }
-                else if( ImGui::GetContentRegionAvail().y > ImGui::GetTextLineHeight() * 1.25f )
-                {
-                    ImGui::TextColored(color_grey, "---  end  ---");
-                }                
-
                 if ( !cfg->log_disable_follow )
                 {
                     ImGui::SetScrollY( ImGui::GetScrollMaxY() );
                 }
+
+                if ( is_log_empty )
+                {
+                    ImGui::TextColored(color_grey, "--- empty ---" );
+                }          
             }
             ImGui::EndChild();
         }
