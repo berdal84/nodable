@@ -1,0 +1,34 @@
+{
+	"folders":
+	[
+		{
+			"path": "/mnt/Shared/Projects/nodable",
+			"folder_exclude_patterns": [".cache"]
+		},
+	],
+	"build_systems": [{
+		"name": "rake",
+		"shell_cmd": "rake",
+		"file_regex": "^([^:]+):([0-9]+):([0-9]+)?: (.*)$", /* clang compilation errors format */
+		"working_dir": "/mnt/Shared/Projects/nodable",
+		"variants": [{
+			"name": "test",
+			"shell_cmd": "rake test",
+		},{
+			"name": "test (release)",
+			"shell_cmd": "rake test -- --config=release"
+		},{
+			"name": "run",
+			"shell_cmd": "rake run",
+		},{
+			"name": "run (release)",
+			"shell_cmd": "rake run -- --config=release"
+		},{
+			"name": "clobber",
+			"shell_cmd": "rake clobber",
+		},{
+			"name": "clobber (release)",
+			"shell_cmd": "rake clobber -- --config=release"
+		}],
+	}]
+}

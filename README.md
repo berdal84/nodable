@@ -1,3 +1,5 @@
+Home | [Build](HOW-TO-BUILD.md) | [Libraries](extern/README.md)
+
 <div>
 <img src="https://user-images.githubusercontent.com/942052/220032555-99cd216e-fd40-4dcf-9794-4eb6c11b642e.png"  alt="nodable-logo.png"/>
 </div>
@@ -35,6 +37,6 @@ Nodable is licensed under the GPL License, see [LICENSE](./LICENSE). Each submod
 
 ### Credits
 
-Nodable is developed by [@berdal84](https://github.com/berdal84) and rely on many ([libraries](./libs/README.md)).
+Nodable is developed by [@berdal84](https://github.com/berdal84) and rely on many ([libraries](extern/README.md)).
 
 More information about this project on [Nodable website](https://nodable.42borgata.com/).
