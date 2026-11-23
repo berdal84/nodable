@@ -91,9 +91,9 @@ namespace ndbl
         bdc::Resizable_Array<size_t>        transaction      = {}; //.............. transaction start indexes.
     };
 
-    void                            parser_init(Parser_Context&, Graph* /* out */ = nullptr, bdc::String /* in */ = "");
+    void                            parser_init(Parser_Context&, Graph* /* out */ = nullptr, bdc::String /* in */ = bdc::string(""));
     void                            parser_deinit(Parser_Context&);
-    void                            parser_reset(Parser_Context&, Graph* = nullptr /* out */, bdc::String = "" /* in */);
+    void                            parser_reset(Parser_Context&, Graph* = nullptr /* out */, bdc::String /* in */ = bdc::string("") );
     bool                            parser_tokenize(Parser_Context&);
     bool                            parser_can_eat(const Parser_Context&, size_t token_count = 1);
     Token                           parser_eat(Parser_Context&); // Return the next token and increment cursor

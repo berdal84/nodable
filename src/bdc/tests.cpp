@@ -38,7 +38,7 @@ void hashmap_print(const Hash_Map_Type& hashmap)
         BDC_LOG("    (empty)\n");
 
     FOR_EACH_HASHMAP_INDEXED_ENTRY(index, entry, hashmap)
-        BDC_LOG("    #%i | hash: %#010x | key: \"%s\" | value: \"%s\" \n", index, entry.hash, entry.key.c_str(), entry.value.c_str() );
+        BDC_LOG("    #%i | hash: %#010x | key: \"%s\" | value: \"%s\" \n", index, entry.hash, c_str(entry.key), c_str(entry.value) );
 
     BDC_LOG(" --- \n");
 }
@@ -320,19 +320,19 @@ int main(int argc, char *argv[])
         }
         TEST_END
 
-        TEST_BEGIN( "String{ char*, u32_t }" )
+        TEST_BEGIN( "string(const bdc::Array<char>&)" )
         {
-            char buffer[24]{};
-            String s{ buffer, sizeof(buffer) };
+            constexpr Inlined_Array<char, 24> buffer = {0};
+            String s = string(buffer);
 
-            TEST_EXPECTS(s.data == buffer);
-            TEST_EXPECTS(s.size == 24);
+            TEST_EXPECTS(s.data == buffer.data);
+            TEST_EXPECTS(s.size == buffer.size);
         }
         TEST_END
 
-        TEST_BEGIN( constexpr_constructor_from_cstr )
+        TEST_BEGIN( constexpr string(char (str&)[N] ) )
         {
-            constexpr String str = "Hello, World";
+            constexpr String str = string("Hello, World");
 
             TEST_EXPECTS(strcmp(str.data, "Hello, World") == 0);
             TEST_EXPECTS(str.size == strlen("Hello, World"));
@@ -341,66 +341,54 @@ int main(int argc, char *argv[])
 
         TEST_BEGIN( constructor_from_cstr )
         {
-            String str = "Hello, World";
+            String str = string("Hello, World");
 
             TEST_EXPECTS(strcmp(str.data, "Hello, World") == 0);
             TEST_EXPECTS(str.size == strlen("Hello, World"));
         }
         TEST_END
 
-        TEST_BEGIN( String / char array_literal[N] interoperability )
-        {
-            char array_literal[8] = { 'B', 'o', 'n', 'j', 'o', 'u', 'r', '\0'};
-
-            String str{ array_literal };
-
-            TEST_EXPECTS( str[0] == 'B' );
-            str[0] = 'b';
-            TEST_EXPECTS( str[0] == 'b' );
-        }
-        TEST_END
-
         TEST_BEGIN( String::operator== )
         {
-            TEST_EXPECTS(        String{""} == ""         );
-            TEST_EXPECTS(String{"Bérenger"} == "Bérenger" );
+            TEST_EXPECTS(        string("") == string("")         );
+            TEST_EXPECTS(string("Bérenger") == string("Bérenger") );
         }
         TEST_END
 
         TEST_BEGIN( String::operator!= )
         {
-            TEST_EXPECTS(      !(String{""} != "")        );
-            TEST_EXPECTS(        String{""} != " "        );
-            TEST_EXPECTS(String{"Bérenger"} != "Béranger" );
+            TEST_EXPECTS(      !(string("") != string("")));
+            TEST_EXPECTS(        string("") != string(" "));
+            TEST_EXPECTS(string("Bérenger") != string("Béranger"));
         }
         TEST_END
 
         TEST_BEGIN( string_printf )
         {
-            TEST_EXPECTS( string_printf("%s", "Hello, World") == "Hello, World");
-            TEST_EXPECTS( string_printf("%s%s%s", "Hello", ", ", "World") == "Hello, World");
+            TEST_EXPECTS( string_printf("%s", "Hello, World") == string("Hello, World"));
+            TEST_EXPECTS( string_printf("%s%s%s", "Hello", ", ", "World") == string("Hello, World"));
         }
         TEST_END
 
         TEST_BEGIN( string_rfind )
         {
-            TEST_EXPECTS( string_rfind( "filename.ext", '.') == 8);
-            TEST_EXPECTS( string_rfind( "01234,678901234,6789", ',') == 15 );
-            TEST_EXPECTS( string_rfind( "filename.ext", '/') == String::invalid_pos);
+            TEST_EXPECTS(         string_rfind( string("filename.ext"), '.') == 8);
+            TEST_EXPECTS( string_rfind( string("01234,678901234,6789"), ',') == 15 );
+            TEST_EXPECTS(         string_rfind( string("filename.ext"), '/') == String::invalid_pos);
         }
         TEST_END
 
         TEST_BEGIN( string_stem )
         {
-            String s = "file.jpg";
+            String s = string("file.jpg");
 
-            TEST_EXPECTS( string_stem(s) == "file" );
+            TEST_EXPECTS( string_stem(s) == string("file") );
         }
         TEST_END
 
         TEST_BEGIN( string_copy )
         {
-            String a = "file a.jpg";
+            String a = string("file a.jpg");
             String b = string_tcopy(a);
 
             TEST_EXPECTS( a.data != b.data);
@@ -409,17 +397,9 @@ int main(int argc, char *argv[])
         }
         TEST_END
 
-        TEST_BEGIN( string_rfind )
-        {
-            TEST_EXPECTS( string_rfind("filename.ext", '.') == 8);
-            TEST_EXPECTS( string_rfind("01234,678901234,6789", ',') == 15 );
-            TEST_EXPECTS( string_rfind("filename.ext", '/') == String::invalid_pos);
-        }
-        TEST_END
-
         TEST_BEGIN( string_reset )
         {
-            String s1 = "Bonjour";
+            String s1 = string("Bonjour");
             string_reset(s1);
             TEST_EXPECTS(s1.data == nullptr);
             TEST_EXPECTS(s1.size == 0);
@@ -428,7 +408,7 @@ int main(int argc, char *argv[])
 
         TEST_BEGIN( operator Array<char> )
         {
-            String      str  = "Bonjour";            
+            String      str  = string("Bonjour");            
             Array<char> arr1 = str;
             TEST_EXPECTS( strcmp(arr1.data, "Bonjour") == 0);
         }
@@ -437,10 +417,10 @@ int main(int argc, char *argv[])
         TEST_BEGIN( string_concat )
         {
             push_allocator(&temp_allocator);
-            Array<char> arr = string_concat("Hello", ", World");            
+            String str = string_concat(string("Hello"), string(", World"));            
             pop_allocator();
-            TEST_EXPECTS( arr.size == 5 + 7);
-            TEST_EXPECTS( arr == "Hello, World") ;
+            TEST_EXPECTS( str.size == 5 + 7);
+            TEST_EXPECTS( str == string("Hello, World")) ;
         }
         TEST_END
 
@@ -468,9 +448,9 @@ int main(int argc, char *argv[])
             String_Builder sb{};
             string_builder_append(sb, "Bonjour");
             string_builder_append(sb,  "je m'appelle René.");
-            String str = string_builder_build_tstring(sb, ", " ); // uses temp_allocator() by default.
-            BDC_LOG("\"%s\"\n", str.c_str());
-            TEST_EXPECTS( str == "Bonjour, je m'appelle René." );
+            String str = string_builder_build_tstring(sb, string(", ") ); // uses temp_allocator() by default.
+            BDC_LOG("\"%s\"\n", c_str(str));
+            TEST_EXPECTS( str == string("Bonjour, je m'appelle René.") );
 
             Memory_Manager_Report* report = memory_manager_generate_report();
             TEST_EXPECTS(!report->has_leaked);
@@ -486,9 +466,9 @@ int main(int argc, char *argv[])
             String_Builder sb{};
             string_builder_appendf(sb, "%s", "Bonjour");
             string_builder_appendf(sb, "%s", "je m'appelle Josiane.");
-            String str = string_builder_build_tstring(sb, ", " ); // uses temp_allocator() by default.
-            BDC_LOG("\"%s\"\n", str.c_str());
-            TEST_EXPECTS( str == "Bonjour, je m'appelle Josiane." );
+            String str = string_builder_build_tstring(sb, string(", ") ); // uses temp_allocator() by default.
+            BDC_LOG("\"%s\"\n", c_str(str));
+            TEST_EXPECTS( str == string("Bonjour, je m'appelle Josiane.") );
 
             Memory_Manager_Report* report = memory_manager_generate_report();
             TEST_EXPECTS(!report->has_leaked);
@@ -515,15 +495,15 @@ int main(int argc, char *argv[])
             Hash_Map<String, String> hashmap;
             hashmap.allocator = &temp_allocator;
 
-            TEST_EXPECTS( hashmap_add(hashmap, "bzh", "Merlin") );
+            TEST_EXPECTS( hashmap_add(hashmap, string("bzh"), string("Merlin") ) );
             hashmap_print(hashmap);
-            TEST_EXPECTS( hashmap_find(hashmap, "bzh") );
+            TEST_EXPECTS( hashmap_find(hashmap, string("bzh")) );
 
             hashmap_print(hashmap);
-            TEST_EXPECTS( !hashmap_add(hashmap, "bzh", "Merlin").ok );
+            TEST_EXPECTS( !hashmap_add(hashmap, string("bzh"), string("Merlin")).ok );
 
             hashmap_release(hashmap);
-            TEST_EXPECTS( !hashmap_find(hashmap, "bzh") );
+            TEST_EXPECTS( !hashmap_find(hashmap, string("bzh") ));
         }
         TEST_END
 
@@ -532,13 +512,13 @@ int main(int argc, char *argv[])
             Hash_Map<String, String> hashmap;
             hashmap.allocator = &temp_allocator;
 
-            hashmap_add(hashmap, "bzh", "Merlin");
+            hashmap_add(hashmap, string("bzh"), string("Merlin"));
 
-            TEST_EXPECTS( hashmap_find(hashmap, "bzh") );
+            TEST_EXPECTS( hashmap_find(hashmap, string("bzh")) );
 
             hashmap_release(hashmap);
 
-            TEST_EXPECTS( !hashmap_find(hashmap, "bzh") );
+            TEST_EXPECTS( !hashmap_find(hashmap, string("bzh")) );
         }
         TEST_END
 
@@ -547,18 +527,18 @@ int main(int argc, char *argv[])
             Hash_Map<String, String> hashmap;
             hashmap.allocator = &temp_allocator;
 
-            hashmap_add(hashmap, "bzh", "Merlin");
+            hashmap_add(hashmap, string("bzh"), string("Merlin"));
             hashmap_print(hashmap);
             
-            TEST_EXPECTS( hashmap_find(hashmap, "bzh") );
+            TEST_EXPECTS( hashmap_find(hashmap, string("bzh")) );
 
-            hashmap_remove(hashmap, "bzh");
-            TEST_EXPECTS( !hashmap_find(hashmap, "bzh") );
+            hashmap_remove(hashmap, string("bzh"));
+            TEST_EXPECTS( !hashmap_find(hashmap, string("bzh")) );
 
             hashmap_print(hashmap);
             hashmap_release(hashmap);
 
-            TEST_EXPECTS( !hashmap_find(hashmap, "bzh") );
+            TEST_EXPECTS( !hashmap_find(hashmap, string("bzh")) );
         }
         TEST_END
 
@@ -576,13 +556,13 @@ int main(int argc, char *argv[])
             Hash_Map<String, String> hashmap;
             hashmap.allocator = &temp_allocator;
             hashmap.hash_proc = Stupid_Hash::hash;
+            
+            hashmap_add(hashmap, string("georges-brassens"), string("Georges Brassens") );
+            hashmap_add(hashmap, string("jean-ferrat")     , string("Jean Ferrat")      );
 
-            hashmap_add(hashmap, "georges-brassens", "Georges Brassens");
-            hashmap_add(hashmap, "jean-ferrat", "Jean Ferrat");
-
-            TEST_EXPECTS( hashmap.size == 2);
-            TEST_EXPECTS( hashmap_find(hashmap, "georges-brassens") );
-            TEST_EXPECTS( hashmap_find(hashmap, "jean-ferrat") );
+            TEST_EXPECTS(hashmap.size == 2);
+            TEST_EXPECTS(hashmap_find(hashmap,  string("georges-brassens")) );
+            TEST_EXPECTS(hashmap_find(hashmap,  string("jean-ferrat")) );
 
             hashmap_print(hashmap);
             hashmap_release(hashmap);
@@ -632,7 +612,7 @@ int main(int argc, char *argv[])
             }
 
             TEST_EXPECTS(hashmap.capacity > 16);
-            TEST_EXPECTS(hashmap_find(hashmap, "elem-0").ok);
+            TEST_EXPECTS(hashmap_find(hashmap, string("elem-0") ).ok);
 
             hashmap_print(hashmap);
             hashmap_release(hashmap);
@@ -664,7 +644,7 @@ int main(int argc, char *argv[])
             TEST_EXPECTS(hashmap.live_size == 11);
             TEST_EXPECTS(hashmap.capacity  == 16);
 
-            hashmap_add(hashmap, "elem-11", "Valeur de l'élément 11" ); // we reach 12 elements, which is above 66%
+            hashmap_add(hashmap, string("elem-11"), string("Valeur de l'élément 11") ); // we reach 12 elements, which is above 66%
 
             TEST_EXPECTS(hashmap.size      == 1);
             TEST_EXPECTS(hashmap.live_size == 1); // all tombstones should have been dropped
@@ -681,7 +661,7 @@ int main(int argc, char *argv[])
             Hash_Map<String, Data> hashmap{};
             hashmap.allocator = &temp_allocator;
 
-            hashmap_add(hashmap, "Test", {});
+            hashmap_add(hashmap, string("Test"), {});
             TEST_EXPECTS(hashmap.size == 1);
             hashmap_release(hashmap);
 

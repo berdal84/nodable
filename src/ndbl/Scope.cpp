@@ -80,17 +80,17 @@ void scope_append(Scope* scope, Node *node)
     {
         if (scope_find_variable( scope, node_get_identifier(node)) != nullptr )
         {
-            NDBL_LOG(Verbosity_Error, "Scope", "Unable to append variable '%s', already exists in the same internal_scopeview.\n", node_get_identifier(node).c_str());
+            NDBL_LOG(Verbosity_Error, "Scope", "Unable to append variable '%s', already exists in the same internal_scopeview.\n", c_str(node_get_identifier(node)));
             // we do not return, graph is abstract, it just won't compile ...
         }
         else if ( node->scope )
         {
-            NDBL_LOG(Verbosity_Error, "Scope", "Unable to append variable '%s', already declared in another internal_scopeview. Remove it first.\n", node_get_identifier(node).c_str());
+            NDBL_LOG(Verbosity_Error, "Scope", "Unable to append variable '%s', already declared in another internal_scopeview. Remove it first.\n", c_str(node_get_identifier(node)));
             // we do not return, graph is abstract, it just won't compile ...
         }
         else
         {
-            NDBL_LOG(Verbosity_Diagnostic, "Scope", "Add '%s' variable to the internal_scopeview\n", node_get_identifier(node).c_str() );
+            NDBL_LOG(Verbosity_Diagnostic, "Scope", "Add '%s' variable to the internal_scopeview\n", c_str(node_get_identifier(node)) );
             scope->variables.insert(node);
         }
     }

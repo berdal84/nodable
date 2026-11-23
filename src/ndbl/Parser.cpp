@@ -53,52 +53,52 @@ Language_Definition& langdef_init()
     });
 
     array_append(langdef->keywords, {
-        { "if",       Token_Type_keyword_if },
-        { "for",      Token_Type_keyword_for },
-        { "while",    Token_Type_keyword_while },
-        { "else",     Token_Type_keyword_else },
-        { "true",     Token_Type_literal_bool },
-        { "false",    Token_Type_literal_bool },
-        { "operator", Token_Type_keyword_operator },
-        { "return",   Token_Type_keyword_return }
+        { string("if"),       Token_Type_keyword_if },
+        { string("for"),      Token_Type_keyword_for },
+        { string("while"),    Token_Type_keyword_while },
+        { string("else"),     Token_Type_keyword_else },
+        { string("true"),     Token_Type_literal_bool },
+        { string("false"),    Token_Type_literal_bool },
+        { string("operator"), Token_Type_keyword_operator },
+        { string("return"),   Token_Type_keyword_return }
     });
 
     array_append(langdef->types, {
         // TODO: instead of using type_get<T>(), I should use a more datadriven option,
         //       I should be able to do type_get(Token_Type_keyword_bool) for example,
         //       Or with an indirection level  type_get( token_type_keyword_to_type(Token_Type_keyword_bool) )  
-        { "bool",   Token_Type_keyword_bool,   type_get<bool>()},
-        { "string", Token_Type_keyword_string, type_get<bdc::String>()},
-        { "double", Token_Type_keyword_double, type_get<double>()},
-        { "i16",    Token_Type_keyword_i16,    type_get<i16_t>()},
-        { "int",    Token_Type_keyword_int,    type_get<i32_t>()},
-        { "any",    Token_Type_keyword_any,    type_get<any>()},
+        { string("bool"),   Token_Type_keyword_bool,   type_get<bool>()},
+        { string("string"), Token_Type_keyword_string, type_get<bdc::String>()},
+        { string("double"), Token_Type_keyword_double, type_get<double>()},
+        { string("i16"),    Token_Type_keyword_i16,    type_get<i16_t>()},
+        { string("int"),    Token_Type_keyword_int,    type_get<i32_t>()},
+        { string("any"),    Token_Type_keyword_any,    type_get<any>()},
         // we don't really want to parse/serialize that
         // { "unknown",Token_t::keyword_unknown,type_get<unknown>()},
     });
 
     array_append(langdef->operators, {
-        {"-",   Operator_Type::Unary,   5},
-        {"!",   Operator_Type::Unary,   5},
-        {"/",   Operator_Type::Binary, 20},
-        {"*",   Operator_Type::Binary, 20},
-        {"+",   Operator_Type::Binary, 10},
-        {"-",   Operator_Type::Binary, 10},
-        {"||",  Operator_Type::Binary, 10},
-        {"&&",  Operator_Type::Binary, 10},
-        {">=",  Operator_Type::Binary, 10},
-        {"<=",  Operator_Type::Binary, 10},
-        {"=>",  Operator_Type::Binary, 10},
-        {"==",  Operator_Type::Binary, 10},
-        {"<=>", Operator_Type::Binary, 10},
-        {"!=",  Operator_Type::Binary, 10},
-        {">",   Operator_Type::Binary, 10},
-        {"<",   Operator_Type::Binary, 10},
-        {"=",   Operator_Type::Binary,  0},
-        {"+=",  Operator_Type::Binary,  0},
-        {"-=",  Operator_Type::Binary,  0},
-        {"/=",  Operator_Type::Binary,  0},
-        {"*=",  Operator_Type::Binary,  0}
+        { string("-"),   Operator_Type::Unary,   5},
+        { string("!"),   Operator_Type::Unary,   5},
+        { string("/"),   Operator_Type::Binary, 20},
+        { string("*"),   Operator_Type::Binary, 20},
+        { string("+"),   Operator_Type::Binary, 10},
+        { string("-"),   Operator_Type::Binary, 10},
+        { string("||"),  Operator_Type::Binary, 10},
+        { string("&&"),  Operator_Type::Binary, 10},
+        { string(">="),  Operator_Type::Binary, 10},
+        { string("<="),  Operator_Type::Binary, 10},
+        { string("=>"),  Operator_Type::Binary, 10},
+        { string("=="),  Operator_Type::Binary, 10},
+        { string("<=>"), Operator_Type::Binary, 10},
+        { string("!="),  Operator_Type::Binary, 10},
+        { string(">"),   Operator_Type::Binary, 10},
+        { string("<"),   Operator_Type::Binary, 10},
+        { string("="),   Operator_Type::Binary,  0},
+        { string("+="),  Operator_Type::Binary,  0},
+        { string("-="),  Operator_Type::Binary,  0},
+        { string("/="),  Operator_Type::Binary,  0},
+        { string("*="),  Operator_Type::Binary,  0}
     });
 
     // A.2. Create indexes
@@ -260,7 +260,7 @@ void parser_init(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
 
 void parser_deinit(Parser_Context& ctx)
 {
-  parser_reset(ctx, nullptr, "");
+  parser_reset(ctx, nullptr, string(""));
 
   array_release(ctx.flow_out);
   // array_release(ctx.in_text); in_text is not owned
@@ -297,7 +297,7 @@ void parser_reset(Parser_Context& ctx, Graph* out_graph, bdc::String in_text )
 
 bool parse_graph(Parser_Context& ctx)
 {
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing ...\n%s\n", ctx.in_text.c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing ...\n%s\n", c_str(ctx.in_text) );
     NDBL_ASSERT(ctx.out_graph != nullptr, "A Graph is expected");
 
     //
@@ -359,7 +359,7 @@ bool parse_graph(Parser_Context& ctx)
                 default:
                 {
                     token_rextend_suffix(previous_token, ignored_chars_count);
-                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", token_view(previous_token).c_str() );
+                    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "      \"%s\" (update) \n", c_str(token_view(previous_token)) );
                 }
             }
 
@@ -367,7 +367,7 @@ bool parse_graph(Parser_Context& ctx)
         }
 
         array_append(new_tokens, token_copy);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4u) \"%s\" \n", i, token_view(token_copy).c_str() );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4u) \"%s\" \n", i, c_str(token_view(token_copy)) );
     }
 
     // Append remaining ignored chars to the ribbon's suffix
@@ -377,7 +377,7 @@ bool parse_graph(Parser_Context& ctx)
         token_rtrim_word( ctx.global_token, ignored_chars_count );
     }
 
-    NDBL_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Token_Ribbon optimized.\n%s\n", parser_to_string(ctx).c_str() );
+    NDBL_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Token_Ribbon optimized.\n%s\n", c_str(parser_to_string(ctx)) );
 
     // At this stage, ctx.tokens shoulw only include tokens that are pure views
     // but just in case, we check this.
@@ -414,12 +414,12 @@ bool parse_graph(Parser_Context& ctx)
         ctx.out_graph->signal_is_complete.emit();
         NDBL_LOG(Verbosity_Warning, "Parser", "Some token remains after getting an empty code block\n");
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " End of token ribbon expected\n");
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon").c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", c_str(Format::title("Token_Ribbon")));
         for( u32_t i = 0; i < ctx.tokens.size; ++i )
         {
-            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "token %4u: %s\n", i, token_serialize_json(ctx.tokens[i]).c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "token %4u: %s\n", i, c_str(token_serialize_json(ctx.tokens[i])));
         }
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", Format::title("Token_Ribbon end").c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s", c_str(Format::title("Token_Ribbon end")));
         NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Failed to parse from token at index %llu (tokens.size: %llu) and above.\n", ctx.cursor, ctx.tokens.size);
         NDBL_LOG(Verbosity_Error, "Parser", "Unable to parse all the tokens\n");
         
@@ -445,7 +445,7 @@ bool parse_bool_or(const Parser_Context& ctx, bdc::String& buffer, bool default_
     
     if (token.type == Token_Type_literal_bool )
     {
-        return token_word_view(token) == "true";
+        return token_word_view(token) == string("true");
     }
 
     return default_value;
@@ -457,7 +457,7 @@ double parse_double_or(const Parser_Context& ctx, bdc::String& buffer, double de
 
     if (token.type == Token_Type_literal_double )
     {
-        return std::stod( token_word_view(token).c_str() );
+        return std::stod( c_str(token_word_view(token)) );
     }
 
     return default_value;
@@ -469,7 +469,7 @@ int parse_int_or(const Parser_Context& ctx, bdc::String& buffer, int default_val
 
     if (token.type == Token_Type_literal_int )
     {
-        i64_t l = atoll(token_word_view(token).c_str());
+        i64_t l = atoll(c_str(token_word_view(token)));
         int n = std::clamp(l, (i64_t)std::numeric_limits<int>::min() , (i64_t)std::numeric_limits<int>::max());
         if( n > (int)l )
         {
@@ -494,13 +494,13 @@ Node_Slot* parse_token(const Parser_Context& ctx, Scope* parent_scope, const Tok
 
             if ( ctx.strict_mode )
             {
-                NDBL_LOG(Verbosity_Error,  "Parser", "%s is not declared (strict mode) \n", token_word_view(token).c_str() );
+                NDBL_LOG(Verbosity_Error,  "Parser", "%s is not declared (strict mode) \n", c_str(token_word_view(token)) );
                 return nullptr;
             }
 
             // Insert a variable reference Node pointing to nothing.
             NDBL_LOG(Verbosity_Warning,  "Parser", "%s is not declared, abstract graph can be generated but compilation will fail.\n",
-                        token_word_view(token).c_str() );
+                        c_str(token_word_view(token)) );
             Node* node = memory_new<Node>(ctx.allocator);
             node_init_as_variable_ref(node);
             node->value->token = token;
@@ -522,8 +522,8 @@ Node_Slot* parse_token(const Parser_Context& ctx, Scope* parent_scope, const Tok
 
             NDBL_DEBUG_LOG(
                 NDBL_DIAG, "Parser", NDBL_OK " Token %s converted to a Literal %s\n",
-                token_word_view(token).c_str(),
-                literal_node->value->type->name.c_str()
+                c_str(token_word_view(token)),
+                c_str(literal_node->value->type->name)
             );
 
             return literal_node->value_out();
@@ -531,7 +531,12 @@ Node_Slot* parse_token(const Parser_Context& ctx, Scope* parent_scope, const Tok
         
         default:
         {
-            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Unable to run token_to_slot with token %s!\n", token_word_view(token).c_str());
+            NDBL_DEBUG_LOG(
+                Verbosity_Diagnostic,
+                "Parser",
+                NDBL_KO " Unable to run token_to_slot with token %s!\n",
+                c_str(token_word_view(token))
+            );
             return nullptr;
         }
 
@@ -567,7 +572,7 @@ Node_Slot* parse_binary_operation_expression(Parser_Context& ctx, Scope* parent_
     const Operator *ope = langdef_find_operator(*ctx.langdef, { .identifier = token_word_view(operator_token), .type = Operator_Type::Binary} );
     if (ope == nullptr)
     {
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Operator %s not found\n", token_word_view(operator_token).c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Operator %s not found\n", c_str(token_word_view(operator_token)));
         parser_rollback(ctx);
         return nullptr;
     }
@@ -602,7 +607,7 @@ Node_Slot* parse_binary_operation_expression(Parser_Context& ctx, Scope* parent_
         graph_connect_or_merge(right, invokable.rvalue_in() );
 
         parser_commit(ctx);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Binary expression parsed:\n%s\n", parser_to_string(ctx).c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Binary expression parsed:\n%s\n", c_str(parser_to_string(ctx)));
         return binary_op_node->value_out();
     }
 
@@ -661,7 +666,7 @@ Node_Slot* parse_unary_operation_expression(Parser_Context& ctx, Scope* parent_s
 
     graph_connect_or_merge(out_atomic, node->component.invokable.lvalue_in() );
 
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Unary expression parsed:\n%s\n", parser_to_string(ctx).c_str());
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Unary expression parsed:\n%s\n", c_str(parser_to_string(ctx)));
     parser_commit(ctx);
 
     return node->value_out();
@@ -690,7 +695,7 @@ Node_Slot* parse_atomic_expression(Parser_Context& ctx, Scope* parent_scope)
     if ( Node_Slot* result = parse_token( ctx, parent_scope, token) )
     {
         parser_commit(ctx);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Atomic expression parsed:\n%s\n", parser_to_string(ctx).c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Atomic expression parsed:\n%s\n", c_str(parser_to_string(ctx)));
         return result;
     }
 
@@ -724,14 +729,13 @@ Node_Slot* parse_parenthesis_expression(Parser_Context& ctx, Scope* parent_scope
     {
         if ( parser_eat_if(ctx, Token_Type_parenthesis_close).type == Token_Type_NULL )
         {
-            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s \n", parser_to_string(ctx).c_str());
-            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Parenthesis close expected after \n",
-                token_view( parser_get_eaten(ctx) ).c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%s \n", c_str(parser_to_string(ctx)));
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Parenthesis close expected after \n", c_str(token_view(parser_get_eaten(ctx))));
             parser_rollback(ctx);
         }
         else
         {
-            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Parenthesis expression parsed:\n%s\n", parser_to_string(ctx).c_str());
+            NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Parenthesis expression parsed:\n%s\n", c_str(parser_to_string(ctx)));
             parser_commit(ctx);
         }
     }
@@ -836,7 +840,7 @@ Node* parse_expression_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot
 
     // Validate transaction
     parser_commit(ctx);
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " parse instruction:\n%s\n", parser_to_string(ctx).c_str());
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " parse instruction:\n%s\n", c_str(parser_to_string(ctx)));
 
     return value_out->node;
 }
@@ -888,7 +892,7 @@ Node* parse_scoped_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* fl
         scope_node->internal_scope->token_end = token_end;
 
         parser_commit(ctx);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Scoped block parsed:\n%s\n", parser_to_string(ctx).c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Scoped block parsed:\n%s\n", c_str(parser_to_string(ctx)));
         return scope_node;
     }
     else
@@ -931,7 +935,7 @@ Node* parse_code_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow
     if (last_node_flow_out != nullptr && last_node_flow_out != flow_out )
     {
         parser_commit(ctx);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " parse code block:\n%s\n", parser_to_string(ctx).c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " parse code block:\n%s\n", c_str(parser_to_string(ctx)));
         return last_node_flow_out->node;
     }
 
@@ -1007,7 +1011,7 @@ bool parser_tokenize(Parser_Context& ctx)
 
     bdc::String remainder = ctx.in_text;
 
-    while ( !remainder.empty() )
+    while ( remainder.size != 0 )
     {
         Token new_token = parse_token( ctx,  remainder );
 
@@ -1016,15 +1020,15 @@ bool parser_tokenize(Parser_Context& ctx)
             NDBL_LOG(
                 Verbosity_Warning, "Parser", 
                 NDBL_KO " Unable to tokenize from \"%20s...\" (at char %llu)\n", 
-                remainder.c_str(), (u64_t)remainder.data - (u64_t)ctx.in_text.data );
+                c_str(remainder), (u64_t)remainder.data - (u64_t)ctx.in_text.data );
             return false;
         }
 
         array_append(ctx.tokens, new_token);
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4u) \"%s\" \n", ctx.cursor, token_view(new_token).c_str() );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "%4u) \"%s\" \n", ctx.cursor, c_str(token_view(new_token)) );
     }
 
-    NDBL_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Tokenization.\n%s\n", parser_to_string(ctx).c_str() );
+    NDBL_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Tokenization.\n%s\n", c_str(parser_to_string(ctx)) );
     return true;
 }
 
@@ -1042,15 +1046,9 @@ Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
         }
         // cursor += 1; (we exclude new line)
         
-        String word = {
-            buffer.data,
-            cursor
-        };
+        String word = string_lsplit(buffer, cursor);
+        buffer      = string_advance(buffer, word.size);
 
-        buffer = {
-            buffer.data + cursor,
-            buffer.size - cursor 
-        };
         return Token{ Token_Type_comment, word };
     }
     
@@ -1068,15 +1066,9 @@ Token parse_token(const Parser_Context& ctx, bdc::String& buffer)
         }
         cursor += 1;
 
-        String word = {
-            buffer.data,
-            cursor
-        };
-
-        buffer = {
-            buffer.data + cursor,
-            buffer.size - cursor 
-        };
+        String word = string_lsplit(buffer, cursor);
+        buffer      = string_advance(buffer, word.size);
+        
         return Token{ Token_Type_multiline_comment, word };
     }
 
@@ -1274,7 +1266,7 @@ String parser_to_string(const Parser_Context& ctx)
             string_builder_append(sb, "."); // no transaction
         }
 
-        string_builder_appendf(sb, "%5zu) \"%s\"", token_index, token_word_view(ctx.tokens[token_index]).c_str() );
+        string_builder_appendf(sb, "%5zu) \"%s\"", token_index, c_str(token_word_view(ctx.tokens[token_index])) );
       
         if ( token_index == ctx.cursor )
         {
@@ -1327,7 +1319,7 @@ const Token& parser_peek(const Parser_Context& ctx)
 
 Token parser_eat(Parser_Context& ctx)
 {
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Eat token (idx %i) %s \n", ctx.cursor, token_view( parser_peek(ctx) ).c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Token_Ribbon", "Eat token (idx %i) %s \n", ctx.cursor, c_str(token_view(parser_peek(ctx))) );
     return ctx.tokens[ctx.cursor++];
 }
 
@@ -1440,7 +1432,7 @@ Node_Slot* parse_function_call(Parser_Context& ctx, Scope* parent_scope)
     }
 
     parser_commit(ctx);
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Function call parsed:\n%s\n", parser_to_string(ctx).c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_KO " Function call parsed:\n%s\n", c_str(parser_to_string(ctx)) );
 
     return fct_node->value_out();
 }
@@ -1468,7 +1460,7 @@ Node* parse_atomic_code_block(Parser_Context& ctx, Scope* parent_scope, Node_Slo
             block->suffix = token;
         }
 
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Block found (class \"%s\")\n", block->get_class()->name.c_str() );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Block found (class \"%s\")\n", c_str(block->get_class()->name) );
         return block;
     }
 
@@ -1542,7 +1534,7 @@ Node* parse_if_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flow_o
     }                   
 
     parser_commit(ctx);
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Parse conditional structure:\n%s\n", parser_to_string(ctx).c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Parse conditional structure:\n%s\n", c_str(parser_to_string(ctx)) );
     // TODO: connect true/false branches flow_out to scope flow_leave?"
     return if_node;
 }
@@ -1675,7 +1667,7 @@ Node* parse_while_block(Parser_Context& ctx, Scope* parent_scope, Node_Slot* flo
 
     if ( success )
     {
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while:\n%s\n", parser_to_string(ctx).c_str() );
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", "Parsing while:\n%s\n", c_str(parser_to_string(ctx)) );
         parser_commit(ctx);
         // TODO: Should we connect true/false branches to scope's flow_leave SLot?
         return while_node;
@@ -1751,7 +1743,7 @@ Node_Slot* parse_variable_declaration(Parser_Context& ctx, Scope* parent_scope)
         
         // declaration with assignment ?
         Token operator_token = parser_eat_if(ctx, Token_Type_operator);
-        if ( operator_token.type && token_word_view(operator_token) == "=")
+        if ( operator_token.type && token_word_view(operator_token) == string("=") )
         {
             // an expression is expected
             if ( Node_Slot* expression_out = parse_expression(ctx, parent_scope) )
@@ -1766,7 +1758,7 @@ Node_Slot* parse_variable_declaration(Parser_Context& ctx, Scope* parent_scope)
             {
                 NDBL_DEBUG_LOG(
                     Verbosity_Diagnostic, "Parser", 
-                    NDBL_KO "  Initialization expression expected for %s\n", token_word_view(identifier_token).c_str());
+                    NDBL_KO "  Initialization expression expected for %s\n", c_str(token_word_view(identifier_token)));
             }
         }
             // Declaration without assignment
@@ -1778,15 +1770,15 @@ Node_Slot* parse_variable_declaration(Parser_Context& ctx, Scope* parent_scope)
         if ( success )
         {
             NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Parser", NDBL_OK " Variable declaration: %s %s\n",
-                        variable_node->value->type->name.c_str(),
-                        token_word_view(identifier_token).c_str());
+                        c_str(variable_node->value->type->name),
+                        c_str(token_word_view(identifier_token)));
             parser_commit(ctx);
             return variable_node->value_out();
         }
 
         NDBL_DEBUG_LOG(
             Verbosity_Diagnostic, "Parser", 
-            NDBL_KO "  Initialization expression expected for %s\n", token_word_view(identifier_token).c_str());
+            NDBL_KO "  Initialization expression expected for %s\n", c_str(token_word_view(identifier_token)));
         graph_delete(ctx.out_graph, variable_node);
     }
 
@@ -2076,7 +2068,7 @@ void serialize_scope(Serializer_Context& ctx, const Scope* scope)
 
 bdc::String serialize_bool(const Serializer_Context& ctx, bool b)
 {
-    return b ? "true" : "false";
+    return string(b ? "true" : "false");
 }
 
 bdc::String serialize_int(const Serializer_Context& ctx, int i)
@@ -2098,15 +2090,15 @@ bdc::String serialize_token_type(const Serializer_Context& ctx, Token_Type token
 {
     switch (token_type)
     {
-        case Token_Type_operator:        return "operator";
-        case Token_Type_identifier:      return "identifier";
-        case Token_Type_literal_string:  return "\"\"";
-        case Token_Type_literal_double:  return "0.0";
-        case Token_Type_literal_int:     return "0";
-        case Token_Type_literal_bool:    return "false";
-        case Token_Type_literal_any:     return "0";
+        case Token_Type_operator:        return string("operator");
+        case Token_Type_identifier:      return string("identifier");
+        case Token_Type_literal_string:  return string("\"\"");
+        case Token_Type_literal_double:  return string("0.0");
+        case Token_Type_literal_int:     return string("0");
+        case Token_Type_literal_bool:    return string("false");
+        case Token_Type_literal_any:     return string("0");
         case Token_Type_NULL:          [[fallthrough]];
-        case Token_Type_literal_unknown: return "";
+        case Token_Type_literal_unknown: return string("");
         default:
         {
             if (auto found = hashmap_find(ctx.langdef->keyword_by_token_type, token_type))
@@ -2115,9 +2107,9 @@ bdc::String serialize_token_type(const Serializer_Context& ctx, Token_Type token
             }
             if (auto found = hashmap_find(ctx.langdef->single_char_by_keyword, token_type))
             {
-                return String{*found.data};
+                return string(found.data[0]);
             }
-            return "<?>";
+            return string("<?>");
         }
     }
 }
@@ -2204,7 +2196,7 @@ bdc::String serialize_type(const Serializer_Context& ctx, const Type_Descriptor*
     {
         return *found.data;
     }
-    return "";
+    return string("");
 }
 
 void serialize_literal(Serializer_Context& ctx, const Node* node)

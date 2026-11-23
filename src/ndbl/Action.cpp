@@ -15,9 +15,9 @@ String shortcut_to_tstring(const Shortcut& shortcut)
     if( shortcut.mod & KMOD_CTRL )       string_builder_append( sb, "Ctrl +");
     if( shortcut.mod & KMOD_ALT )        string_builder_append( sb, "Alt +");
     if( shortcut.key )                   string_builder_append( sb, SDL_GetKeyName(shortcut.key));
-    if( !shortcut.description.empty() )  string_builder_append( sb, shortcut.description);
+    if( shortcut.description.size != 0 ) string_builder_append( sb, shortcut.description);
 
-    return string_builder_build_tstring(sb, " ");
+    return string_builder_build_tstring(sb, string(" "));
 }
 
 } // namespace ndbl

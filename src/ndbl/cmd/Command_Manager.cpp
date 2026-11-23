@@ -186,11 +186,11 @@ bdc::String command_manager_get_cmd_description_at(u32_t pos)
 {
     auto* manager = command_manager();
 
-    if ( pos <= 0 )               return "History Begin";
-    if ( pos >= manager->cursor ) return "History End";
+    if ( pos <= 0 )               return string("History Begin");
+    if ( pos >= manager->cursor ) return string("History End");
 
     Command& cmd = manager->commands[pos];
-    return cmd.description;
+    return string(cmd.description);
 }
 
 void command_manager_enable_text_editor_undo_buffer( bool enabled )

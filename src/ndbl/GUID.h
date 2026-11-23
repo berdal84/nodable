@@ -45,7 +45,7 @@ namespace ndbl
             local_tm->tm_hour,
             local_tm->tm_min,
             local_tm->tm_sec,
-            salt.c_str(),
+            c_str(salt),
             g_unique_id_generator_counter++
         );
 

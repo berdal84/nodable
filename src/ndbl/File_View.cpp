@@ -184,12 +184,12 @@ void fileview_draw(File_View* file_view, float dt)
         if (i == cmd_manager->cursor )
         {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-            ImGui::Button(label.c_str(), {btn_width, btn_height});
+            ImGui::Button(c_str(label), {btn_width, btn_height});
             ImGui::PopStyleColor();
         }
         else // or a simple one for other history positions
         {
-            ImGui::Button(label.c_str(), {btn_width, btn_height});
+            ImGui::Button(c_str(label), {btn_width, btn_height});
         }
 
         // Hovered item
@@ -204,7 +204,7 @@ void fileview_draw(File_View* file_view, float dt)
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
             if (ImGuiEx::BeginTooltip())
             {
-                ImGui::Text("%s", command_manager_get_cmd_description_at(i).c_str());
+                ImGui::Text("%s", c_str(command_manager_get_cmd_description_at(i)));
                 ImGuiEx::EndTooltip();
             }
             ImGui::PopStyleVar();
@@ -274,13 +274,13 @@ void fileview_draw(File_View* file_view, float dt)
             // listen to clipboard in background (disable by default)
             if (file_view->experimental_clipboard_auto_paste)
             {
-                bdc::String clipboard = ImGui::GetClipboardText();
+                bdc::String clipboard = string(ImGui::GetClipboardText());
                 file_view->experimental_clipboard_curr = string_copy(clipboard);
                 if (!file_view->experimental_clipboard_curr.size &&
                     file_view->experimental_clipboard_curr != file_view->experimental_clipboard_prev)
                 {
                     if (!file_view->experimental_clipboard_prev.size )
-                        file_view->file->text_editor.InsertText(file_view->experimental_clipboard_curr.c_str(), true);
+                        file_view->file->text_editor.InsertText(c_str(file_view->experimental_clipboard_curr), true);
                     file_view->experimental_clipboard_prev = std::move(file_view->experimental_clipboard_curr);
                 }
             }
@@ -295,7 +295,7 @@ void fileview_draw(File_View* file_view, float dt)
             // overlay
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
             rect_expand(overlay_rect, -cfg->ui_textview_padding );
-            fileview_draw_overlay(file_view->text_overlay_window_name.data, file_view->overlay_data[File_View_Overlay_Type_TEXT], overlay_rect, Vec2(0, 1));
+            fileview_draw_overlay(file_view->text_overlay_window_name, file_view->overlay_data[File_View_Overlay_Type_TEXT], overlay_rect, Vec2(0, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             if ( HAS_FLAGS(cfg->flags, Config_Flag_EXPERIMENTAL_MULTI_SELECTION) )
@@ -333,7 +333,7 @@ void fileview_draw(File_View* file_view, float dt)
             // Draw overlay: shortcuts
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
             rect_expand(overlay_rect, -cfg->ui_textview_padding );
-            fileview_draw_overlay(file_view->graph_overlay_window_name.data, file_view->overlay_data[File_View_Overlay_Type_GRAPH], overlay_rect, Vec2(1, 1));
+            fileview_draw_overlay(file_view->graph_overlay_window_name, file_view->overlay_data[File_View_Overlay_Type_GRAPH], overlay_rect, Vec2(1, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
@@ -374,7 +374,7 @@ bdc::String fileview_get_text( const File_View* file_view, bool isolation_on )
     }
 
     NDBL_ASSERT( tmp.size() < (u32_t)(-1));
-    bdc::String result = bdc::string_tcopy( bdc::String{tmp.data(), (u32_t)tmp.size()} );
+    bdc::String result = bdc::string_tcopy( string(tmp) );
     return result;
 }
 
@@ -403,7 +403,7 @@ void fileview_set_text(File_View* file_view, bdc::String new_text, bool isolatio
         }
 
         /* insert text (and select it) */
-        file_view->file->text_editor.InsertText(new_text.c_str(), true);
+        file_view->file->text_editor.InsertText(c_str(new_text), true);
 
         auto end = file_view->file->text_editor.GetCursorPosition();
         if (!hasSelection && start.mLine == end.mLine) // no selection and insert text is still on the same line
@@ -411,16 +411,16 @@ void fileview_set_text(File_View* file_view, bdc::String new_text, bool isolatio
             file_view->file->text_editor.SetSelection(selectionStart, selectionEnd);
         }
         NDBL_LOG(Verbosity_Message, "File_View", "Selected text updated from graph.\n");
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", new_text.c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", c_str(new_text));
     }
     else
     {
-        file_view->file->text_editor.SetText( new_text.c_str() );
+        file_view->file->text_editor.SetText( c_str(new_text) );
         // auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, text, &m_text_editor);
         // m_file->get_history()->push_command(cmd);
 
         NDBL_LOG(Verbosity_Message, "File_View", "Whole text updated from graph.\n");
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", new_text.c_str());
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "File_View", "%s \n", c_str(new_text));
     }
 
     file_view->is_syntax_dirty = true;
@@ -436,7 +436,7 @@ void fileview_set_experimental_clipboard_auto_paste(File_View* file_view, bool e
     file_view->experimental_clipboard_auto_paste = enable;
     if( enable )
     {
-        file_view->experimental_clipboard_prev = "";
+        file_view->experimental_clipboard_prev = string("");
     }
 }
 
@@ -459,9 +459,9 @@ void fileview_draw_overlay(const bdc::String& title, const std::vector<File_View
     {
         ImGui::Indent( cfg->ui_overlay_indent);
         std::for_each(overlay_data.begin(), overlay_data.end(), [](const File_View_Overlay_Data& _data) {
-            ImGui::Text("%s:", _data.label.c_str());
+            ImGui::Text("%s:", c_str(_data.label));
             ImGui::SameLine(150);
-            ImGui::Text("%s", _data.description.c_str());
+            ImGui::Text("%s", c_str(_data.description));
         });
         ImGui::PopStyleColor(3);
     }

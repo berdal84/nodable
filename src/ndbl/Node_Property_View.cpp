@@ -122,7 +122,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
 
     if ( ImGuiEx::BeginTooltip() )
     {
-        ImGui::Text("%s %s\n", view->property->type->name.c_str(), view->property->name.c_str());
+        ImGui::Text("%s %s\n", c_str(view->property->type->name), c_str(view->property->name));
 
         Serializer_Context serializer;
         serializer_init(serializer);
@@ -131,7 +131,7 @@ bool ndbl::nodepropertyview_draw(Node_Property_View* view, View_Detail _detail)
         else
             serialize_property(serializer, view->property);
 
-        ImGui::Text("source: \"%s\"", serializer_build_tstring(serializer).c_str());
+        ImGui::Text("source: \"%s\"", c_str(serializer_build_tstring(serializer)));
         serializer_deinit(serializer);
         ImGuiEx::EndTooltip();
     }
@@ -161,7 +161,7 @@ void ndbl::nodepropertyview_reset(Node_Property_View* view)
 
 float ndbl::nodepropertyview_calc_input_width(const bdc::String& buf)
 {
-    return PROPERTY_INPUT_PADDING + std::max(ImGui::CalcTextSize(buf.c_str()).x, PROPERTY_INPUT_SIZE_MIN);
+    return PROPERTY_INPUT_PADDING + std::max(ImGui::CalcTextSize(c_str(buf)).x, PROPERTY_INPUT_SIZE_MIN);
 }
 
 bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mode, bdc::String override_label)
@@ -176,7 +176,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
     if ( override_label.size )
         label = override_label;
     else
-        label = bdc::string_tprintf("##%s", view->property->name.c_str() );
+        label = bdc::string_tprintf("##%s", c_str(view->property->name) );
 
     //
     // Strategy:
@@ -199,7 +199,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
                     ImGui::PushStyleColor(ImGuiCol_FrameBg, *nodeview->colors[Color_FILL]);
 
                     
-                    if (ImGui::InputText(label.c_str(), buf.data, buf.size, flags))
+                    if (ImGui::InputText( c_str(label), buf.data, buf.size, flags))
                     {
                         // is ReadOnly
                     }
@@ -216,7 +216,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
 
     if ( compact_mode )
     {
-        float w = nodepropertyview_calc_input_width( token_word_view(property_token).c_str() );
+        float w = nodepropertyview_calc_input_width( token_word_view(property_token) );
         ImGui::PushItemWidth(w);
     }
 
@@ -235,7 +235,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
             String word  = token_word_view(property_token);
             double value = parse_double_or(parser, word, 0);
 
-            if (ImGui::InputDouble(label.c_str(), &value, 0.0, 0.0, "%.6f", flags))
+            if (ImGui::InputDouble( c_str(label), &value, 0.0, 0.0, "%.6f", flags))
             {
                 bdc::String double_as_str = serialize_double(serializer, value);
                 token_replace_word( property_token, double_as_str );
@@ -249,7 +249,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
             String word = token_word_view(property_token);
             i32_t value = parse_int_or( parser, word, 0);
 
-            if (ImGui::InputInt(label.c_str(), &value, 0, 0, flags))
+            if (ImGui::InputInt( c_str(label), &value, 0, 0, flags))
             {
                 bdc::String int_as_str = serialize_int(serializer, value);
                 token_replace_word( property_token, int_as_str );
@@ -263,7 +263,7 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
             bdc::String word = token_word_view(property_token);
             bool value = parse_bool_or(parser, word, false);
 
-            if (ImGui::Checkbox(label.c_str(), &value))
+            if (ImGui::Checkbox(c_str(label), &value))
             {
                 bdc::String new_word = serialize_bool(serializer, value);
                 token_replace_word( property_token, new_word );
@@ -282,9 +282,9 @@ bool ndbl::nodepropertyview_draw_input(Node_Property_View* view, bool compact_mo
             strncpy(string_buffer, word.data, string_buffer_len );
 
             flags = 0; // ImGuiInputTextFlags_EnterReturnsTrue; // ReadOnly always OFF. ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
-            if (ImGui::InputText(label.c_str(), string_buffer, string_buffer_size, flags))
+            if (ImGui::InputText( c_str(label), string_buffer, string_buffer_size, flags))
             {
-                token_replace_word( property_token, (const char*)string_buffer );
+                token_replace_word( property_token, string(string_buffer) );
                 changed = true;
             }
             break;

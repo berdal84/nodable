@@ -44,8 +44,8 @@ Type_Descriptor* type_register_merge(Type_Descriptor* existing_type, const Type_
         Verbosity_Diagnostic,
         __FILE__,
         "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n",
-        existing_type->name.c_str(), existing_type->compiler_name.c_str(),
-        other_type->name.c_str(), other_type->compiler_name.c_str()
+        c_str(existing_type->name), c_str(existing_type->compiler_name),
+        c_str(other_type->name)   , c_str(other_type->compiler_name)
     );
 
     if( existing_type->name[0] == '\0' )
@@ -69,7 +69,7 @@ void type_register_log_statistics()
 
     for ( const auto& [type_hash, type] : g_type_register )
     {
-        NDBL_LOG(Verbosity_Diagnostic, "reflection", " %-16llu %-25s %-60s\n", type_hash, type->name.c_str(), type->compiler_name.c_str() );
+        NDBL_LOG(Verbosity_Diagnostic, "reflection", " %-16llu %-25s %-60s\n", type_hash, c_str(type->name), c_str(type->compiler_name) );
     }
 
     NDBL_LOG(Verbosity_Diagnostic, "reflection", "Logging done.\n");

@@ -171,7 +171,7 @@ bool file_write(File* file, const Path& path)
 
     if( !result.ok )
     {
-        NDBL_LOG(Verbosity_Error, "File", "%s\n", result.error.c_str() );
+        NDBL_LOG(Verbosity_Error, "File", "%s\n", c_str(result.error) );
         return false;
     }
 
@@ -192,7 +192,7 @@ bool file_read( File* file, const Path& path)
 
     if( !result.ok )
     {
-        NDBL_LOG(Verbosity_Error, "File", "%s\n", result.error.c_str() );
+        NDBL_LOG(Verbosity_Error, "File", "%s\n", c_str(result.error) );
         return false;
     }
 
@@ -203,7 +203,7 @@ bool file_read( File* file, const Path& path)
     file->path = path;
 
     string_release(file->name);
-    file->name = string_copy( { path.filename().c_str() });
+    file->name = string_copy( string(path.filename().c_str()) );
 
     UNSET_FLAGS(file->flags, File_Flag_NEEDS_TO_BE_SAVED);
 

@@ -139,9 +139,6 @@ namespace ndbl
             Variable_Component      variable;           // check kind before to use!
             Variable_Ref_Component  variableref;        // check kind before to use!
             Literal_Component       literal;            // check kind before to use!
-            Component() = default;
-            Component(const Component& other) { *this = other; }
-            Component& operator=(const Component& other);
             ~Component();
         };
 
@@ -150,15 +147,15 @@ namespace ndbl
         
         Node_ID                                 id = {};
         Component                               component;
-        Simple_Signal                           signal_deinit;      // emit once component.deinit() has been called
+        Simple_Signal                           signal_deinit;
         Signal<void(const bdc::String&)>        signal_name_change;   
-        bdc::Resizable_Array<Node_Property*>    props;              // TODO: use bdc::Resizable_Array
-        bdc::Resizable_Array<Node_Slot*>        slots;              // TODO: use bdc::Resizable_Array
+        bdc::Resizable_Array<Node_Property*>    props;
+        bdc::Resizable_Array<Node_Slot*>        slots;
         bdc::Hash_Map<bdc::String_Hash, Node_Property*>   props_by_name;
         bdc::String                             name;
         Token                                   suffix;
         Graph*                                  graph = nullptr;
-        Node_Property*                          value = nullptr;   // this Node_Property
+        Node_Property*                          value = nullptr; // equivalent of "this"
         Scope*                                  scope = nullptr; 
         Scope*                                  internal_scope = nullptr;
         Node_Kind                               kind  = 0;
@@ -187,7 +184,7 @@ namespace ndbl
     {
         Node_ID                 id;                 // optionnal, if null an automatic id will be generated (see node_generate_new_id()).
         Node_Kind               kind;
-        const char*             name;
+        bdc::String             name;
         Scope_ID                parent_scope_id;            // optionnal
         const Type_Descriptor*  type_descriptor;            // optionnal
         bool                    created_by_the_user;        // Note: could be in flags? But harder to debug..

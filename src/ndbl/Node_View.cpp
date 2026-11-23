@@ -255,13 +255,13 @@ bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)
         case Node_Kind_VARIABLE_REF:
         {
             if ( minimalist )
-                return "&";
+                return string("&");
             return nodeview->node->name;
         }
         case Node_Kind_VARIABLE:
         {
             if (minimalist)
-                return "";
+                return string("");
             return node_variable_type(nodeview->node)->name;
         }
         case Node_Kind_OPERATOR:
@@ -271,7 +271,7 @@ bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)
         case Node_Kind_FUNCTION:
         {
             if ( minimalist )
-                return "f(x)";
+                return string("f(x)");
             return nodeview->node->name;
         }
         case Node_Kind_SCOPE:
@@ -285,13 +285,13 @@ bdc::String ndbl::nodeview_get_label(const Node_View* nodeview)
         case Node_Kind_IF_ELSE:
         {
             if ( minimalist )
-                return "?";
+                return string("?");
             return nodeview->node->name;
         }
         case Node_Kind_FOR_LOOP:
         {
             if ( minimalist )
-                return "for";
+                return string("for");
             return nodeview->node->name;
         }
         default:
@@ -452,19 +452,19 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
 
             if ( cfg->ui_node_detail != View_Detail_COMPACT)
             {
-                pre_label  = bdc::string_tprintf( "%s(", pre_label.c_str() );
-                post_label = ")";
+                pre_label  = bdc::string_tprintf( "%s(", c_str(pre_label) );
+                post_label = string(")");
             }
             break;
     }
 
     if ( !nodeview->is_expanded )
-        pre_label = bdc::string_tprintf( "%s " ICON_FA_OBJECT_GROUP, pre_label.c_str() );
+        pre_label = bdc::string_tprintf( "%s " ICON_FA_OBJECT_GROUP, c_str(pre_label) );
 
     // Draw the pre_label when necessary
-    if ( !pre_label.empty() ) {
+    if ( pre_label.size != 0 ) {
         ImGui::SameLine();
-        ImGui::Text("%s", pre_label.c_str());
+        ImGui::Text("%s", c_str(pre_label));
 
         // Update slot_view_out to be positioned below the pre_label
 
@@ -495,17 +495,17 @@ bool ndbl::nodeview_draw(Node_View* nodeview)
             changed |= nodepropertyview_draw( property_view, cfg->ui_node_detail );
 
             // draw inner label when necessary
-            if ( i < operator_label.size() && !operator_label[i].empty() )
+            if ( i < operator_label.size() && operator_label[i].size != 0 )
             {
-                ImGui::SameLine(); ImGui::Text("%s", operator_label[i].c_str() );
+                ImGui::SameLine(); ImGui::Text("%s", c_str(operator_label[i]) );
             }
             ++i;
         }
     }
 
-    if ( !post_label.empty() )
+    if ( post_label.size != 0 )
     {
-        ImGui::SameLine(); ImGui::Text("%s", post_label.c_str());
+        ImGui::SameLine(); ImGui::Text("%s", c_str(post_label));
     }
 
 
@@ -569,31 +569,32 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
         // label (<name> (<type>): )
         ImGui::SetNextItemWidth(labelColumnWidth);
         ImGui::Text(
-                "%s (%s): ",
-                property->name.c_str(),
-                property->type->name.c_str());
+            "%s (%s): ",
+            c_str(property->name),
+            c_str(property->type->name)
+        );
 
         ImGui::SameLine();
         ImGui::Text("(?)");
         if ( ImGuiEx::BeginTooltip() )
         {
-            ImGui::Text("Source token:\n %s\n", token_serialize_json(property->token).c_str());
+            ImGui::Text("Source token:\n %s\n", c_str(token_serialize_json(property->token)));
             ImGuiEx::EndTooltip();
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        return nodepropertyview_draw_input(_property_view, !_show_advanced, nullptr);
+        return nodepropertyview_draw_input(_property_view, !_show_advanced);
     };
 
-    ImGui::Text("Name:  \"%s\"", node->name.c_str() );
-    ImGui::Text("Class: \"%s\"", node->get_class()->name.c_str() );
+    ImGui::Text("Name:  \"%s\"", c_str(node->name) );
+    ImGui::Text("Class: \"%s\"", c_str(node->get_class()->name) );
 
     // Draw exposed input properties
 
-    auto draw_properties = [&](const bdc::String title, const bdc::Array<Node_Property_View*>& views) -> bool
+    auto draw_properties = [&](const char* title, const bdc::Array<Node_Property_View*>& views) -> bool
     {
         bool changed = false;
-        ImGui::Text("%s:", title.c_str());
+        ImGui::Text("%s:", title);
         ImGui::Separator();
         ImGui::Indent();
         if( views.size == 0)
@@ -648,7 +649,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
 
             for (const Node* each_node : _nodes )
             {
-                ImGui::BulletText("- %s", each_node->name.c_str());
+                ImGui::BulletText("- %s", c_str(each_node->name));
             }
 
             ImGui::TreePop();
@@ -670,8 +671,8 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
             Scope* scope = node->scope;
             if (scope)
             {
-                bdc::String label = bdc::string_tprintf( "%s %p (%s %p)", scope->name.c_str(), scope, scope->node->name.c_str(), scope->node);
-                if ( ImGui::Button(label.c_str()) )
+                bdc::String label = bdc::string_tprintf( "%s %p (%s %p)", c_str(scope->name), scope, c_str(scope->node->name), scope->node);
+                if ( ImGui::Button( c_str(label)) )
                 {
                     NDBL_ASSERT(node->graph->view);
                     viewselection_clear(node->graph->view->selection);
@@ -687,7 +688,7 @@ bool ndbl::nodeview_draw_as_properties_panel(Node_View* nodeview, bool* _show_ad
             ImGui::TableNextColumn();
             ImGui::Text("suffix token");
             ImGui::TableNextColumn();
-            ImGui::Text("%s", token_serialize_json(node->suffix).c_str());
+            ImGui::Text("%s", c_str(token_serialize_json(node->suffix)));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();

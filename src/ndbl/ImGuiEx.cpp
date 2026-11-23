@@ -353,7 +353,7 @@ const Action* MenuItem_for_Event_Ex(Event_Type event_type, bool selected, bool e
 {
     const Action* action = action_manager_get_action_with_event_type(event_type);
 
-    if (ImGui::MenuItem( action->label.c_str(), shortcut_to_tstring(action->shortcut).data, selected, enable))
+    if (ImGui::MenuItem( c_str(action->label), shortcut_to_tstring(action->shortcut).data, selected, enable))
     {
         if( auto_trigger )
         {

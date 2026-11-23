@@ -44,7 +44,7 @@ namespace ndbl
 
 	struct App_View_State
 	{
-        bdc::String     title;
+        const char*     title;
         SDL_GLContext   sdl_gl_context                  = nullptr;
         SDL_Window*     sdl_window                      = nullptr;
         u32_t           dt_in_ms                        = 0;
@@ -64,12 +64,11 @@ namespace ndbl
     App_View_State* appview();
     void            appview_update();
     void            appview_draw();
-    void            appview_save_screenshot(const bdc::String relative_path);
+    void            appview_save_screenshot(const Path& relative_path);
     inline void     appview_show_splashscreen(bool b) { appview()->show_splashscreen = b; }
     int             appview_fps();      // get the current frame per second (un-smoothed)
     bool            appview_is_fullscreen();
     void            appview_set_fullscreen(bool b );
-    void            appview_set_title(const bdc::String& string );
     Image           appview_capture_screen();
     bool            appview_pick_file_path(Path& _out_path, Dialog_Type); // pick a file and store its path in _out_path
     Action_Flags    appview_calc_action_flags();

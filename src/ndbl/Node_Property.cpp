@@ -12,7 +12,7 @@ namespace ndbl
         Node*                   node,
         const Type_Descriptor*  type,
         Node_Property::Flags    flags,
-        const bdc::String       name
+        const bdc::String&      name
     )
     {
         NDBL_ASSERT( node    , "node is can't be nullptr");
@@ -33,7 +33,7 @@ namespace ndbl
         property->type  = nullptr;
         property->node  = nullptr;
         property->flags = 0;
-        property->name  = "released";
+        property->name  = string("released");
     }
 
     void property_digest(Node_Property* property, Node_Property* other)

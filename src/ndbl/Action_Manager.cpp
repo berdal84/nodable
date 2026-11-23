@@ -69,6 +69,6 @@ namespace ndbl
 
         array_append(g_action_manager->actions, action );
 
-        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Action_Manager", "Action '%s' bound to the event.type %i\n", action.label.c_str(), action.event.type);
+        NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Action_Manager", "Action '%s' bound to the event.type %i\n", c_str(action.label), action.event.type);
     }
 } // namespace ndbl

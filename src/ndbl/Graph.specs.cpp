@@ -38,11 +38,11 @@ TEST_F(Graph_, connect)
 {
     // Prepare
     Node*           node_1 = _graph_new_simple_node(app.graph);
-    Node_Property*  prop_1 = node_add_prop<bool>(node_1, "prop_1");
+    Node_Property*  prop_1 = node_add_prop<bool>(node_1, string("prop_1") );
     Node_Slot*      slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
     Node*           node_2 = _graph_new_simple_node(app.graph);
-    Node_Property*  prop_2 = node_add_prop<bool>(node_2, "prop_2");
+    Node_Property*  prop_2 = node_add_prop<bool>(node_2, string("prop_2"));
     Node_Slot*      slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
     // Act
@@ -58,11 +58,11 @@ TEST_F(Graph_, disconnect)
     // Prepare
     Graph* graph = app.graph;
     Node*           node_1 = _graph_new_simple_node(app.graph);
-    Node_Property*  prop_1 = node_add_prop<bool>(node_1, "prop_1");
+    Node_Property*  prop_1 = node_add_prop<bool>(node_1, string("prop_1"));
     Node_Slot*      slot_1 = node_add_slot(node_1, prop_1, Node_Slot::Flag_OUTPUT, 1);
 
     Node*           node_2 = _graph_new_simple_node(app.graph);
-    Node_Property*  prop_2 = node_add_prop<bool>(node_2, "prop_2");
+    Node_Property*  prop_2 = node_add_prop<bool>(node_2, string("prop_2"));
     Node_Slot*      slot_2 = node_add_slot(node_2, prop_2, Node_Slot::Flag_INPUT, 1);
 
     graph_connect_or_merge(slot_1, slot_2 );
@@ -83,7 +83,7 @@ TEST_F(Graph_, clear)
     Type_Descriptor  f;
     type_init<int(int, int)>(&f, "+");
 
-    Node* variable      = graph_new_node(graph, { .kind = Node_Kind_VARIABLE, .name = "var", .type_descriptor = type_get<int>(),  });
+    Node* variable      = graph_new_node(graph, { .kind = Node_Kind_VARIABLE, .name = string("var"), .type_descriptor = type_get<int>(),  });
     Node* operator_node = graph_new_node(graph, { .kind = Node_Kind_OPERATOR, .type_descriptor = &f });
 
     graph_connect(
@@ -106,7 +106,7 @@ TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
     Node* node_1 = graph_new_node(app.graph, { .kind = Node_Kind_LITERAL, .type_descriptor = type_get<int>() });
-    Node* node_2 = graph_new_node(app.graph, { .kind = Node_Kind_VARIABLE, .name = "a", .type_descriptor = type_get<int>(),  });
+    Node* node_2 = graph_new_node(app.graph, { .kind = Node_Kind_VARIABLE, .name = string("a"), .type_descriptor = type_get<int>(),  });
 
     // Act and test
 

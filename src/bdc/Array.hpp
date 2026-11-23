@@ -187,6 +187,16 @@ namespace bdc
         return arr[arr.size-1];
     }
 
+    template<Is_Array T>
+    constexpr const Array<typename T::Elem_T> array_view(const T& arr)
+    {
+        Array<typename T::Elem_T> result;
+        result.data = const_cast<T::Elem_T*>(arr.data);
+        result.size = arr.size;
+
+        return result;
+    }
+
     struct Array_Find_Result
     {
         bool  ok     = false;

@@ -512,7 +512,7 @@ File* app_new_file()
     
     auto* file = memory_new<File>();
     file_init(file);
-    file->path = name.c_str();
+    file->path = c_str(name);
     file->name = name;
 
     return app_add_file(file);

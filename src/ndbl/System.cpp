@@ -11,20 +11,20 @@
 
 namespace ndbl
 {
-int system_run_command(const bdc::String& command)
+int system_run_command(const char* command)
 {
-    int exit_code = ::system(command.c_str() );
+    int exit_code = ::system( command );
     if ( exit_code != 0 )
     {
-        NDBL_LOG(Verbosity_Error, "system", "Command failed: %s", command.c_str() );
+        NDBL_LOG(Verbosity_Error, "system", "Command failed: %s", command );
     }
     return exit_code;
 };
 
-void system_open_url_async(const bdc::String& url)
+void system_open_url_async(const char* url)
 {
-    bdc::String command = bdc::string_tprintf( "x-www-browser %s", url.c_str());
-    std::thread thread( system_run_command, command );
+    bdc::String command = bdc::string_tprintf( "x-www-browser %s", url);
+    std::thread thread( system_run_command, command.data );
     thread.detach();
 }
 

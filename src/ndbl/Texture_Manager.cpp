@@ -87,7 +87,7 @@ Texture* _texture_load_png_from_disk_to_gpu(const Path &path)
     Image_Load_Result loaded = image_load(path);
     if ( !loaded.ok )
     {
-        NDBL_LOG(Verbosity_Error, "Texture_Manager", "Unable to load png, error: %s\n", loaded.error.c_str());
+        NDBL_LOG(Verbosity_Error, "Texture_Manager", "Unable to load png, error: %s\n", c_str(loaded.error));
         NDBL_ASSERT(false, "Unable to load png");
     }
 

@@ -51,19 +51,19 @@ bdc::String nodeslotview_compute_tooltip(const Node_Slot_View* view)
 {
     switch (view->slot->type_and_order())
     {
-        case Node_Slot::Flag_FLOW_OUT: return "flow_out";
-        case Node_Slot::Flag_FLOW_IN:  return "flow_in";
+        case Node_Slot::Flag_FLOW_OUT: return string("flow_out");
+        case Node_Slot::Flag_FLOW_IN:  return string("flow_in");
     }
 
-    bdc::String prop_name = view->property() ? view->property()->name : "...";
+    bdc::String prop_name = view->property() ? view->property()->name : string("...");
 
     switch (view->slot->type_and_order())
     {
-        case Node_Slot::Flag_INPUT:  return bdc::string_tprintf( "%s (in)",  prop_name.c_str());
-        case Node_Slot::Flag_OUTPUT: return bdc::string_tprintf( "%s (out)", prop_name.c_str());
+        case Node_Slot::Flag_INPUT:  return bdc::string_tprintf( "%s (in)",  c_str(prop_name));
+        case Node_Slot::Flag_OUTPUT: return bdc::string_tprintf( "%s (out)", c_str(prop_name));
     }
 
-    return "";
+    return string("");
 }
 
 bool nodeslotview_draw(Node_Slot_View* view)
@@ -126,7 +126,7 @@ bool nodeslotview_draw(Node_Slot_View* view)
     if ( ImGuiEx::BeginTooltip() )
     {
         bdc::String tooltip = nodeslotview_compute_tooltip(view);
-        ImGui::Text("%s", tooltip.c_str() );
+        ImGui::Text("%s", c_str(tooltip) );
         ImGuiEx::EndTooltip();
     }
 

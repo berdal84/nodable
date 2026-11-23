@@ -54,28 +54,29 @@ namespace ndbl
         std::time_t time = std::chrono::system_clock::to_time_t(time_point);
         std::tm* tm_info = std::localtime(&time);
 
-        String result{};
-        result.data  = memory_malloc_array<char>( 32, &temp_allocator );
-        result.size  = std::strftime(result.data, 31, "%Y-%m-%d %H:%M:%S", tm_info);
-        result.flags = String_Flags_IS_NULL_TERMINATED;
+        push_allocator(&temp_allocator);
+        String result = new_string(32);
+        pop_allocator();
+
+        result.size = std::strftime(result.data, 31, "%Y-%m-%d %H:%M:%S", tm_info);
 
         return result; 
     }
         
-    String Format::title(const String& title, u32_t width) // Format a title for console output (ex: ------<=[ My Title ]=>--------)
+    String Format::title(const char* title, u32_t width) // Format a title for console output (ex: ------<=[ My Title ]=>--------)
     {
         /*
         * Takes _title and do:
         * ------------<=[ _title ]=>------------
         */
 
-        String pre       = "-=[ ";
-        String post      = " ]=-";
-        String padding   = "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=";
-        padding.size = (width - title.size - pre.size - post.size) / 2;
+        String pre       = string("-=[ ");
+        String post      = string(" ]=-");
+        String padding   = string("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=");
+        padding.size = (width - strlen(title) - pre.size - post.size) / 2;
 
         String_Builder sb{};
-        string_builder_appendf(sb, "%s%s%s%s%s", padding.c_str(), pre.c_str(), title.c_str(), post.c_str(), padding.c_str() );
+        string_builder_appendf(sb, "%s%s%s%s%s", c_str(padding), c_str(pre), title, c_str(post), c_str(padding) );
         
         String result = string_builder_build_tstring(sb);
         return result;

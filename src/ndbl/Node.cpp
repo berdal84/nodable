@@ -96,7 +96,7 @@ void node_init(Node* node, const Node_Init_Params& params)
     {
         case Node_Kind_EMPTY_INSTRUCTION:
         {
-            node_set_name(node, "Instr.");
+            node_set_name(node, bdc::string("Instr.") );
 
             // Token might be overriden as a Token_Type_end_of_instruction by the parser
             node->value->token = Token{Token_Type_NULL};
@@ -109,7 +109,7 @@ void node_init(Node* node, const Node_Init_Params& params)
 
         case Node_Kind_IF_ELSE:
         {
-            node_set_name(node, "If");
+            node_set_name(node, bdc::string("If") );
 
             node_init_internal_scope(node);
             node_init_branches(node, 2);
@@ -119,7 +119,7 @@ void node_init(Node* node, const Node_Init_Params& params)
 
         case Node_Kind_FOR_LOOP:
         {
-            node_set_name(node, "For");
+            node_set_name(node, bdc::string("For") );
 
             node->component.branching.branch_prefix = Token_Type_keyword_for;
 
@@ -140,7 +140,7 @@ void node_init(Node* node, const Node_Init_Params& params)
 
         case Node_Kind_WHILE_LOOP:
         {  
-            node_set_name(node, "While");
+            node_set_name(node, bdc::string("While") );
 
             node_init_internal_scope(node);
             node_init_branches(node, 2);
@@ -152,11 +152,11 @@ void node_init(Node* node, const Node_Init_Params& params)
         {
             if( params.scope_is_root )
             {
-                node_set_name(node, "BEGIN");
+                node_set_name(node, bdc::string("BEGIN"));
             }
             else
             {
-                node_set_name(node, "Scope");
+                node_set_name(node, bdc::string("Scope"));
                 node_add_slot(node, node->value, Node_Slot::Flag_FLOW_IN);
                 node_add_slot(node, node->value, Node_Slot::Flag_FLOW_OUT, 1);
             }
@@ -167,7 +167,7 @@ void node_init(Node* node, const Node_Init_Params& params)
 
         case Node_Kind_VARIABLE_REF:
         {
-            node_set_name(node, "Ref.");
+            node_set_name(node, bdc::string("Ref."));
 
             // Init identifier property
             property_set_type(node->value, type_any());
@@ -184,7 +184,7 @@ void node_init(Node* node, const Node_Init_Params& params)
         // TODO: I don't need specific functions if they share the same parameters. A switch/case can do the job no?
         case Node_Kind_RETURN:
         {
-            node_set_name(node, "Return");
+            node_set_name(node, bdc::string("Return"));
 
             property_set_type(node->value, params.type_descriptor ? params.type_descriptor : type_get<void>() );
             node_add_slot(node, node->value, Node_Slot::Flag_INPUT, 1);
@@ -197,7 +197,7 @@ void node_init(Node* node, const Node_Init_Params& params)
 
         case Node_Kind_VARIABLE:
         {
-            node_set_name(node, "Var.");
+            node_set_name(node, bdc::string("Var."));
 
             auto* variable_type = params.type_descriptor;
 
@@ -226,7 +226,7 @@ void node_init(Node* node, const Node_Init_Params& params)
 
             if( params.variable_with_assignment )
             {
-                Token token = { Token_Type_keyword_operator, " = " };
+                Token token = { Token_Type_keyword_operator, string(" = ") };
                 token.prefix_size = token.word_size = token.suffix_size = 1;
                 
                 node->component.variable.operator_token = token;
@@ -236,7 +236,7 @@ void node_init(Node* node, const Node_Init_Params& params)
         
         case Node_Kind_LITERAL:
         {
-            node_set_name(node, "Lit.");
+            node_set_name(node, string("Lit."));
 
             auto* literal_type = params.type_descriptor;
 
@@ -248,7 +248,7 @@ void node_init(Node* node, const Node_Init_Params& params)
                 "literal_type not allowed"
             );
 
-            node_set_name(node, "Lit.");
+            node_set_name(node, string("Lit."));
             
             property_set_type(node->value, literal_type);
 
@@ -434,7 +434,7 @@ void node_init_as_variable(Node* node, const Type_Descriptor* type_descriptor, c
     Node_Init_Params params{};
     params.kind                     = Node_Kind_VARIABLE;
     params.type_descriptor          = type_descriptor;
-    params.name                     = identifier.c_str();
+    params.name                     = identifier;
     params.variable_with_assignment = with_assignment;
 
     node_init(node, params);
@@ -794,7 +794,7 @@ void node_init_internal_scope(Node* node)
     NDBL_ASSERT( node->scope == nullptr, "Must be initialized prior to reset_parent()");
 
     auto* scope = memory_new<Scope>();
-    scope->name = "Internal Scope";
+    scope->name = string("Internal Scope");
     scope->node = node;
 
     node->internal_scope = scope;

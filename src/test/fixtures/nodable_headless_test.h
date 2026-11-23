@@ -27,7 +27,7 @@ public:
         nodable_init(&app);
 
         log_set_verbosity( Verbosity_Message );
-        log_set_verbosity( __FILE__, Verbosity_Diagnostic );
+        log_set_verbosity( string(__FILE_NAME__), Verbosity_Diagnostic );
     }
 
     void TearDown() override
@@ -44,12 +44,12 @@ public:
 
     String parse_and_serialize(const String &code)
     {
-        NDBL_DEBUG_LOG(Verbosity_Message, __FILE_NAME__, "parse_and_serialize parsing \"%s\"\n", code.c_str());
+        NDBL_DEBUG_LOG(Verbosity_Message, __FILE_NAME__, "parse_and_serialize parsing \"%s\"\n", c_str(code));
 
         NDBL_ASSERT( nodable_parse(&app, code) );
         String result = nodable_serialize(&app);
 
-        NDBL_DEBUG_LOG(Verbosity_Message, __FILE_NAME__, "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
+        NDBL_DEBUG_LOG(Verbosity_Message, __FILE_NAME__, "parse_and_serialize serialize_node() output is: \"%s\"\n", c_str(result));
 
         return result;
     }
@@ -62,7 +62,7 @@ public:
         pop_allocator();
         if(!result.ok)
         {
-            NDBL_LOG(Verbosity_Error, __FILE_NAME__, "%s\n", result.error.c_str() );
+            NDBL_LOG(Verbosity_Error, __FILE_NAME__, "%s\n", c_str(result.error) );
             NDBL_ASSERT(false, "Unable to open file!" );
         }
         return result.content;
@@ -71,7 +71,7 @@ public:
     void log_tokens()
     {
         String str = parser_to_string(app.parser);
-        NDBL_LOG(Verbosity_Message, "fixture::core", "%s\n\n", str.c_str());
+        NDBL_LOG(Verbosity_Message, "fixture::core", "%s\n\n", c_str(str));
     }
 };
 }

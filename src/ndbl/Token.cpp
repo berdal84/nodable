@@ -25,12 +25,12 @@ String token_serialize_json(const Token& token)
 
     String_Builder sb{};
 
-    string_builder_append(sb, "{\n");
+    string_builder_append(sb, string("{\n") );
     string_builder_append(sb, string_tprintf("\ttype: %i,\n", token.type));
-    string_builder_append(sb, string_tprintf("\tprefix_view: \"%s\",\n", token_prefix_view(token).c_str() ) );
-    string_builder_append(sb, string_tprintf("\tword_view: \"%s\",\n", token_word_view(token).c_str() ) );
-    string_builder_append(sb, string_tprintf("\tsuffix: \"%s\",\n", token_suffix_view(token).c_str() ) );
-    string_builder_append(sb, " }");
+    string_builder_append(sb, string_tprintf("\tprefix_view: \"%s\",\n", c_str(token_prefix_view(token)) ) );
+    string_builder_append(sb, string_tprintf("\tword_view: \"%s\",\n", c_str(token_word_view(token)) ) );
+    string_builder_append(sb, string_tprintf("\tsuffix: \"%s\",\n", c_str(token_suffix_view(token)) ) );
+    string_builder_append(sb, string(" }"));
 
     return string_builder_build_tstring(sb);
 }
@@ -123,14 +123,14 @@ void token_replace_buffer_readwrite(Token& token, const String& buffer )
 void token_replace_word(Token& token, const String& new_word)
 {
     // print a new buffer, and update the views
-    i8_t* new_data = string_printf("%s%s%s"
-                                  , token_prefix_view(token).c_str()
-                                  , new_word.c_str()
-                                  , token_suffix_view(token).c_str() ).data;
+    String new_buffer = string_printf("%s%s%s"
+                                  , c_str(token_prefix_view(token))
+                                  , c_str(new_word)
+                                  , c_str(token_suffix_view(token)));
 
     token_release_buffer_if_owned(token);
 
-    token.data            = new_data;
+    token.data            = new_buffer.data;
     token.owns_data       = true;
     // token.prefix_size  = ... (no change)
     token.word_size       = new_word.size;
@@ -139,7 +139,7 @@ void token_replace_word(Token& token, const String& new_word)
 
 void token_prefix_push_front(Token& token, const String& str)
 {
-    i8_t* new_data = string_printf("%s%s", str.c_str(), token_view(token).c_str() ).data;
+    i8_t* new_data = string_printf("%s%s", c_str(str), c_str(token_view(token)) ).data;
     
     token_release_buffer_if_owned(token);
 
@@ -152,7 +152,7 @@ void token_prefix_push_front(Token& token, const String& str)
 
 void token_suffix_push_back(Token& token, const String& str)
 {
-    i8_t* new_data = string_printf("%s%s", token_view(token).c_str(), str.c_str() ).data;
+    i8_t* new_data = string_printf("%s%s", c_str(token_view(token)), c_str(str) ).data;
     
     token_release_buffer_if_owned(token);
 

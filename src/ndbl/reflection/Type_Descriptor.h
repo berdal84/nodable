@@ -47,7 +47,7 @@ namespace ndbl
     //
     // type API
     //
-    template<typename T> Type_Descriptor*           type_create(bdc::String name = "" );
+    template<typename T> Type_Descriptor*           type_create(const char* name = "");
     bool                                            type_is_implicitly_convertible(const Type_Descriptor* from, const Type_Descriptor* to);
     bool                                            type_equals(const Type_Descriptor*, const Type_Descriptor*);
     const Type_Descriptor*                          type_any();
@@ -75,8 +75,8 @@ namespace ndbl
      */
     struct Type_Descriptor
     {
-        bdc::String         name          = "";
-        bdc::String         compiler_name = "";
+        bdc::String         name          = bdc::string("");
+        bdc::String         compiler_name = bdc::string("");
         Type_Flags          flags         = Type_Flags_NONE;
         std::type_index     primitive_id  = std::type_index(typeid(null)); // ex: int
         std::type_index     id            = std::type_index(typeid(null)); // ex: int**, int*
@@ -199,7 +199,7 @@ namespace ndbl
 
             type->id            = type_get_id<T>();
             type->primitive_id  = type_get_primitive_id<T>();
-            type->compiler_name = type_get_compiler_name<T>();
+            type->compiler_name = bdc::string(type_get_compiler_name<T>());
             type->flags         = type_get_flags<T>();
         }
         else if constexpr ( std::is_function_v<T> )
@@ -208,7 +208,7 @@ namespace ndbl
 
             type->id            = type_get_id<T>();
             type->primitive_id  = type_get_primitive_id<T>();
-            type->compiler_name = type_get_compiler_name<T>();
+            type->compiler_name = bdc::string(type_get_compiler_name<T>());
             type->flags         = type_get_flags<T>();
             
             type->function.return_type   = type_get<typename Function_Trait<T>::Result_Type >();
@@ -223,11 +223,11 @@ namespace ndbl
         {
             type->id            = type_get_id<T>();
             type->primitive_id  = type_get_primitive_id<T>();
-            type->compiler_name = type_get_compiler_name<T>();
+            type->compiler_name = bdc::string(type_get_compiler_name<T>());
             type->flags         = type_get_flags<T>();
         }
 
-        type->name = name;
+        type->name = bdc::string(name);
     }
 
     template<typename T>

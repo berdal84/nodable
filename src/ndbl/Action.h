@@ -37,6 +37,7 @@ namespace ndbl
         SDL_Keymod  mod         = KMOD_NONE;        // modifiers (alt, ctrl, etc.)
         bdc::String description;
     };
+    static_assert( std::is_trivially_copyable_v<Shortcut> );
 
     bdc::String shortcut_to_tstring(const Shortcut&); // Return a string including shortcut and description (ex: "Ctrl + Alt + M Do this")
 
@@ -47,4 +48,5 @@ namespace ndbl
         Shortcut        shortcut;
         Action_Flags    flags;
     };
+    static_assert( std::is_trivially_copyable_v<Action> );
 }

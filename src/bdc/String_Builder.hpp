@@ -13,11 +13,12 @@ namespace bdc
 
     void            string_builder_release(String_Builder&);
     void            string_builder_reset(String_Builder&);
-    String_Builder& string_builder_append(String_Builder&, const String& str);
+    String_Builder& string_builder_append(String_Builder&, const char*);
+    String_Builder& string_builder_append(String_Builder&, const String&);
     String_Builder& string_builder_append(String_Builder&, const Array<String>& arr);
     String_Builder& string_builder_appendf(String_Builder& sb, const char* fmt, auto...args);
-    String          string_builder_build_string(String_Builder& sb, String separator = "");
-    String          string_builder_build_tstring(String_Builder&, String separator = "");
+    String          string_builder_build_string(String_Builder& sb, String separator = string(""));
+    String          string_builder_build_tstring(String_Builder&, String separator = string(""));
 
     String_Builder& string_builder_appendf(String_Builder& sb, const char* fmt, auto...args)
     {
@@ -25,12 +26,11 @@ namespace bdc
         // We get a warning from sprintf called inside string_printf
         if constexpr (sizeof...(args) == 0)
         {
-            return string_builder_append(sb, fmt);
+            return string_builder_append(sb, string(fmt) );
         }
         else
         {
-            const String formatted_str = string_tprintf(fmt, args...);
-            return string_builder_append(sb, formatted_str);
+            return string_builder_append(sb, string_tprintf(fmt, args...));
         }
     }
 
@@ -44,6 +44,11 @@ namespace bdc
     inline void string_builder_reset(String_Builder& sb)
     {
         array_resize(sb.buffer, 0);
+    }
+
+    inline String_Builder& string_builder_append(String_Builder& sb, const char* cstr)
+    {
+        return string_builder_append(sb, string(cstr));
     }
 
     inline String_Builder& string_builder_append(String_Builder& sb, const String& str)
@@ -89,7 +94,7 @@ namespace bdc
 
         if( size == 0)
         {
-            return "";
+            return {};
         }
 
         size += 1; // +1 null-terminated
@@ -115,8 +120,9 @@ namespace bdc
 
         string_builder_reset(sb);
 
-        String result(data, size-1, String_Flags_IS_NULL_TERMINATED);
-
-        return result;
+        return String{
+            .size  = size-1,
+            .data  = data,
+        };
     }
 }

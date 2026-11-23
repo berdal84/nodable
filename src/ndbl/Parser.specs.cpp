@@ -13,9 +13,10 @@ using namespace ndbl;
 
 TEST_F(Language_basics, can_get_add_operator_with_short_identifier )
 {
-    EXPECT_TRUE(langdef_find_operator(langdef(), {"+", Operator_Type::Binary}));
-    EXPECT_TRUE(langdef_find_operator(langdef(), {"-", Operator_Type::Unary}));
+    EXPECT_TRUE( langdef_find_operator(langdef(), { string("+"), Operator_Type::Binary}));
+    EXPECT_TRUE( langdef_find_operator(langdef(), { string("-"), Operator_Type::Unary  }));
 }
+
 TEST_F(Language_basics, token_t_to_type)
 {
     EXPECT_EQ(langdef_get_type_descriptor_from_token_type(langdef(), Token_Type_keyword_bool)  , type_get<bool>());
@@ -34,136 +35,136 @@ TEST_F(Language_basics, token_t_to_type)
 
 TEST_F(Language_basics, type_to_string)
 {
-    EXPECT_EQ(serialize_type(app.serializer, type_get<bool>())        , "bool"     );
-    EXPECT_EQ(serialize_type(app.serializer, type_get<double>())      , "double"   );
-    EXPECT_EQ(serialize_type(app.serializer, type_get<i16_t>())       , "i16"      );
-    EXPECT_EQ(serialize_type(app.serializer, type_get<int>())         , "int"      );
-    EXPECT_EQ(serialize_type(app.serializer, type_get<i32_t>())       , "int"      );
-    EXPECT_EQ(serialize_type(app.serializer, type_get<bdc::String>()) , "string"   );
-    EXPECT_EQ(serialize_type(app.serializer, type_get<any>())         , "any"      );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<bool>())        , string("bool")     );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<double>())      , string("double")   );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<i16_t>())       , string("i16")      );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<int>())         , string("int")      );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<i32_t>())       , string("int")      );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<bdc::String>()) , string("string")   );
+    EXPECT_EQ(serialize_type(app.serializer, type_get<any>())         , string("any")      );
 }
 
 ///////////////////////// Atomic expressions ///////////////////////////////////////////////////////////////////////////
 
 TEST_F(Language_parse_token, atomic_expression_if)
 {
-    bdc::String buffer{"if"};
+    bdc::String buffer = string("if");
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_keyword_if);
-    EXPECT_EQ(token_view(token), "if");
+    EXPECT_EQ(token_view(token), string("if"));
 }
 
 TEST_F(Language_parse_token, atomic_expression_else)
 {
-    bdc::String buffer{"else"};
+    bdc::String buffer = string("else");
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_keyword_else);
-    EXPECT_EQ(token_view(token), "else");
+    EXPECT_EQ(token_view(token), string("else"));
 }
 
 TEST_F(Language_parse_token, atomic_expression_for)
 {
-    bdc::String buffer{"for"};
+    bdc::String buffer = string("for");
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_keyword_for);
-    EXPECT_EQ(token_view(token), "for");
+    EXPECT_EQ(token_view(token), string("for"));
 }
 
 TEST_F(Language_parse_token, atomic_expression_bool_true)
 {
-    bdc::String buffer{"true"};
+    bdc::String buffer = string("true");
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_bool);
-    EXPECT_EQ(token_view(token), "true");
+    EXPECT_EQ(token_view(token), string("true"));
 }
 
 TEST_F(Language_parse_token, atomic_expression_bool_false)
 {
-    bdc::String buffer{"false"};
+    bdc::String buffer = string("false");
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_bool);
-    EXPECT_EQ(token_view(token), "false");
+    EXPECT_EQ(token_view(token), string("false"));
 }
 
 TEST_F(Language_parse_token, atomic_expression_int_5)
 {
-    bdc::String buffer{"5"};
+    bdc::String buffer = string("5");
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_int);
 }
 
 TEST_F(Language_parse_token, atomic_expression_double_5_0)
 {
-    bdc::String buffer{"5.0"};
+    bdc::String buffer = string("5.0");
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_double);
-    EXPECT_EQ(token_view(token), "5.0");
+    EXPECT_EQ(token_view(token), string("5.0"));
 }
 
 TEST_F(Language_parse_token, atomic_expression_double_5_0001)
 {
-    bdc::String buffer{"5.0001"};
+    bdc::String buffer = string("5.0001");
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_double);
-    EXPECT_EQ(token_view(token), "5.0001");
+    EXPECT_EQ(token_view(token), string("5.0001"));
 }
 
 TEST_F(Language_parse_token, atomic_expression_string)
 {
-    bdc::String buffer{"\"Hello\""};
+    bdc::String buffer = string("\"Hello\"");
     Token token = parse_token(app.parser, buffer);
     EXPECT_EQ(token.type, Token_Type_literal_string);
-    EXPECT_EQ(token_view(token), "\"Hello\"");
+    EXPECT_EQ(token_view(token), string("\"Hello\""));
 }
 
 TEST_F(Language_tokenize, identifiers_can_start_by_a_keyword)
 {
-    auto& ctx = tokenize("int if_myvar_includes_a_keyword;");
+    auto& ctx = tokenize(string("int if_myvar_includes_a_keyword;"));
     log_tokens();
-    EXPECT_EQ(token_word_view(ctx.tokens[2]), "if_myvar_includes_a_keyword");
+    EXPECT_EQ(token_word_view(ctx.tokens[2]), string("if_myvar_includes_a_keyword"));
     EXPECT_EQ(ctx.tokens[2].type, Token_Type_identifier);
 }
 
 TEST_F(Language_tokenize, int_variable_declaration)
 {
-    auto& ctx = tokenize("int my_var ;");
+    auto& ctx = tokenize(string("int my_var ;"));
     log_tokens();
-    EXPECT_EQ(token_view(ctx.tokens[0]), "int");
-    EXPECT_EQ(token_view(ctx.tokens[1]), " ");
-    EXPECT_EQ(token_view(ctx.tokens[2]), "my_var");
-    EXPECT_EQ(token_view(ctx.tokens[3]), " ");
-    EXPECT_EQ(token_view(ctx.tokens[4]), ";");
+    EXPECT_EQ(token_view(ctx.tokens[0]), string("int"));
+    EXPECT_EQ(token_view(ctx.tokens[1]), string(" "));
+    EXPECT_EQ(token_view(ctx.tokens[2]), string("my_var"));
+    EXPECT_EQ(token_view(ctx.tokens[3]), string(" "));
+    EXPECT_EQ(token_view(ctx.tokens[4]), string(";"));
 }
 
 TEST_F(Language_tokenize, add_pow2of2_and_integer )
 {
-    auto& ctx = tokenize("pow(2,2) + 1");
+    auto& ctx = tokenize(string("pow(2,2) + 1"));
     log_tokens();
-    EXPECT_EQ(token_view(ctx.tokens[0]), "pow");
-    EXPECT_EQ(token_view(ctx.tokens[1]), "(");
-    EXPECT_EQ(token_view(ctx.tokens[2]), "2");
-    EXPECT_EQ(token_view(ctx.tokens[3]), ",");
-    EXPECT_EQ(token_view(ctx.tokens[4]), "2");
-    EXPECT_EQ(token_view(ctx.tokens[5]), ")"); // parser should not add a " " prefix after ")"
-    EXPECT_EQ(token_view(ctx.tokens[6]), " ");
-    EXPECT_EQ(token_view(ctx.tokens[7]), "+");
-    EXPECT_EQ(token_view(ctx.tokens[8]), " ");
-    EXPECT_EQ(token_view(ctx.tokens[9]), "1");
+    EXPECT_EQ(token_view(ctx.tokens[0]), string("pow"));
+    EXPECT_EQ(token_view(ctx.tokens[1]), string("("));
+    EXPECT_EQ(token_view(ctx.tokens[2]), string("2"));
+    EXPECT_EQ(token_view(ctx.tokens[3]), string(","));
+    EXPECT_EQ(token_view(ctx.tokens[4]), string("2"));
+    EXPECT_EQ(token_view(ctx.tokens[5]), string(")")); // parser should not add a " " prefix after ")"
+    EXPECT_EQ(token_view(ctx.tokens[6]), string(" "));
+    EXPECT_EQ(token_view(ctx.tokens[7]), string("+"));
+    EXPECT_EQ(token_view(ctx.tokens[8]), string(" "));
+    EXPECT_EQ(token_view(ctx.tokens[9]), string("1"));
 
 }
 
 TEST_F(Language_tokenize, return_integer )
 {
-    auto& ctx = tokenize("return 42");
-    EXPECT_EQ(token_view(ctx.tokens[0]), "return");
-    EXPECT_EQ(token_view(ctx.tokens[1]), " ");
-    EXPECT_EQ(token_view(ctx.tokens[2]), "42");
+    auto& ctx = tokenize(string("return 42"));
+    EXPECT_EQ(token_view(ctx.tokens[0]), string("return"));
+    EXPECT_EQ(token_view(ctx.tokens[1]), string(" "));
+    EXPECT_EQ(token_view(ctx.tokens[2]), string("42"));
 }
 
 TEST_F(Language_parse_function_call, dna_to_protein)
 {
     // tokenize
-    auto& ctx = tokenize("dna_to_protein(\"GATACA\")");
+    auto& ctx = tokenize(string("dna_to_protein(\"GATACA\")"));
 
     // check
     EXPECT_EQ(ctx.tokens.size, 4);
@@ -183,7 +184,7 @@ TEST_F(Language_parse_function_call, dna_to_protein)
 TEST_F(Language_parse_function_call, operator_add)
 {
     // tokenize
-    auto& ctx = tokenize("42+42");
+    auto& ctx = tokenize(string("42+42"));
 
     // check
     EXPECT_EQ(ctx.tokens.size, 3);
@@ -202,28 +203,28 @@ TEST_F(Language_parse_function_call, operator_add)
 
 TEST_F(Language_parse_and_serialize, decl_var_and_assign_string)
 {
-    String code   = R"(string s = "coucou";)";
+    String code   = string(R"(string s = "coucou";)");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, decl_var_and_assign_double)
 {
-    String code   = "double d = 15.0;";
+    String code   = string("double d = 15.0;");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, decl_var_and_assign_int)
 {
-    String code   = "int s = 10;";
+    String code   = string("int s = 10;");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, decl_var_and_assign_bool)
 {
-    String code   = "bool b = true;";
+    String code   = string("bool b = true;");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
@@ -232,11 +233,12 @@ TEST_F(Language_parse_and_serialize, decl_var_and_assign_bool)
 
 TEST_F(Language_parse_and_serialize, While_loop )
 {
-    String code =
+    String code = string(
         "int i = 0;"
         "while(i < 10){"
         "   i = i+1;"
-        "}";
+        "}"
+    );
     String result = parse_and_serialize(code);
     EXPECT_EQ( result, code);
 }
@@ -245,19 +247,20 @@ TEST_F(Language_parse_and_serialize, While_loop )
 
 TEST_F(Language_parse_and_serialize, Conditional_Structures_IF )
 {
-    String code =
+    String code = string(
         "double bob   = 10;"
         "double alice = 10;"
         "if(bob>alice){"
         "   string message = \"Bob is better than Alice.\";"
-        "}";
+        "}"
+    );
     String result = parse_and_serialize(code);
     EXPECT_EQ( result, code);
 }
 
 TEST_F(Language_parse_and_serialize, Conditional_Structures_IF_ELSE )
 {
-    String code =
+    String code = string(
         "double bob   = 10;"
         "double alice = 11;"
         "string message;"
@@ -265,14 +268,15 @@ TEST_F(Language_parse_and_serialize, Conditional_Structures_IF_ELSE )
         "   message= \"Alice is the best.\";"
         "}else{"
         "   message= \"Alice is not the best.\";"
-        "}";
+        "}"
+    );
     String result = parse_and_serialize(code);
     EXPECT_EQ( result, code);
 }
 
 TEST_F(Language_parse_and_serialize, Conditional_Structures_IF_ELSE_IF )
 {
-    String code =
+    String code = string(
         "double bob   = 10;"
         "double alice = 10;"
         "string message;"
@@ -282,7 +286,8 @@ TEST_F(Language_parse_and_serialize, Conditional_Structures_IF_ELSE_IF )
         "   message= \"Bob is lower than Alice.\";"
         "} else {"
         "   message= \"Bob and Alice are is.\";"
-        "}";
+        "}"
+    );
     String result = parse_and_serialize(code);
     EXPECT_EQ( result, code);
 }
@@ -291,14 +296,14 @@ TEST_F(Language_parse_and_serialize, Conditional_Structures_IF_ELSE_IF )
 
 TEST_F(Language_parse_and_serialize, parse_serialize_with_undeclared_variables )
 {
-    String code   = "double a = b + c * r - z;";
+    String code   = string("double a = b + c * r - z;");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_with_undeclared_variables_in_conditional )
 {
-    String code   = "if(a==b){}";
+    String code   = string("if(a==b){}");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
@@ -307,32 +312,36 @@ TEST_F(Language_parse_and_serialize, parse_serialize_with_undeclared_variables_i
 
 TEST_F(Language_parse_and_serialize, parse_serialize_empty_code )
 {
-    String result = parse_and_serialize("");
-    EXPECT_EQ( result, "" );
+    constexpr String code = string("");
+    String result = parse_and_serialize(code);
+    EXPECT_EQ( result, code );
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_empty_code_with_space )
 {
-    String result = parse_and_serialize(" ");
-    EXPECT_EQ( result, " " );
+    constexpr String code = string(" ");
+    String result = parse_and_serialize(code);
+    EXPECT_EQ( result, code );
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_single_line_code_with_a_comment_before )
 {
-    String code =
+    String code = string(
         "// comment\n"
-        "int a = 42;";
+        "int a = 42;"
+    );
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_single_code_line_with_two_sigle_line_comments_and_a_space )
 {
-    String code =
+    String code = string(
         "// first line\n"
         "// second line\n"
         "\n"
-        "int a = 42;";
+        "int a = 42;"
+    );
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
@@ -340,7 +349,7 @@ TEST_F(Language_parse_and_serialize, parse_serialize_single_code_line_with_two_s
 
 TEST_F(Language_parse_and_serialize, parse_serialize_binary_expression_with_funtion )
 {
-    String code   = "int i = pow(2,2) + 1";
+    String code   = string("int i = pow(2,2) + 1");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code); // should not be "int i = (pow(2,2))+ 1"
 }
@@ -349,7 +358,7 @@ TEST_F(Language_parse_and_serialize, parse_serialize_binary_expression_with_funt
 
 TEST_F(Language_parse_and_serialize, parse_serialize_variable_declaration )
 {
-    String code   = "int i = 42;";
+    String code   = string("int i = 42;");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
@@ -358,14 +367,14 @@ TEST_F(Language_parse_and_serialize, parse_serialize_variable_declaration )
 
 TEST_F(Language_parse_and_serialize, parse_serialize_variable_referenced )
 {
-    String code   = "int i = 42; int j = i;";
+    String code   = string("int i = 42; int j = i;");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_variable_referenced2 )
 {
-    String code   = "int i = 42; i;";
+    String code   = string("int i = 42; i;");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
@@ -374,53 +383,58 @@ TEST_F(Language_parse_and_serialize, parse_serialize_variable_referenced2 )
 
 TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope )
 {
-    String result = parse_and_serialize("{}");
-    EXPECT_EQ(result, "{}");
+    constexpr String code   = string("{}");
+    String result = parse_and_serialize(code);
+    EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces )
 {
-    String result = parse_and_serialize("{ }");
-    EXPECT_EQ(result, "{ }");
+    constexpr String code   = string("{ }");
+    String result = parse_and_serialize(code);
+    EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_after )
 {
-    String result = parse_and_serialize("{} ");
-    EXPECT_EQ(result, "{} ");
+    constexpr String code = string("{} ");
+    String result = parse_and_serialize(code);
+    EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_before )
 {
-    String result = parse_and_serialize(" {}");
-    EXPECT_EQ(result, " {}");
+    constexpr String code = string(" {}");
+    String result = parse_and_serialize(code);
+    EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_before_and_after )
 {
-    String result = parse_and_serialize(" {} ");
-    EXPECT_EQ(result, " {} ");
+    constexpr String code = string(" {} ");
+    String result = parse_and_serialize(code);
+    EXPECT_EQ(result, code);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST_F(Language_parse_and_serialize, partial_for1)
 {
-    String code = "for();";
-    String result = parse_and_serialize(code);
+    constexpr String code = string("for();");
+    String    result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, partial_for2)
 {
-    String code   = "for(;);";
+    String code   = string("for(;);");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, partial_for3)
 {
-    String code   = "for(;;);";
+    String code   = string("for(;;);");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
@@ -429,28 +443,28 @@ TEST_F(Language_parse_and_serialize, partial_for3)
 
 TEST_F(Language_parse_and_serialize, partial_if1)
 {
-    String code    = "if();";
+    String code    = string("if();");
     String result  = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, partial_if2)
 {
-    String code    = "if();else;";
+    String code    = string("if();else;");
     String result  = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, partial_if3)
 {
-    String code    = "if()else;";
+    String code    = string("if()else;");
     String result  = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
 
 TEST_F(Language_parse_and_serialize, partial_if4)
 {
-    String code    = "if()else";
+    String code    = string("if()else");
     String result  = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }
@@ -460,7 +474,7 @@ TEST_F(Language_parse_and_serialize, partial_if4)
 
 TEST_F(Language_parse_and_serialize, partial_while1)
 {
-    String code   = "while();";
+    String code   = string("while();");
     String result = parse_and_serialize(code);
     EXPECT_EQ(result, code);
 }

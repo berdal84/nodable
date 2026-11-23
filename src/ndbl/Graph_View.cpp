@@ -926,7 +926,7 @@ void ndbl::_graphview_draw_context_menu(Graph_View* graphview, Node_Slot_View* d
             {
                 if ( string_rfind( token_suffix_view(out->node->suffix), '\n') == String::invalid_pos )
                 {
-                    token_suffix_push_back(out->node->suffix, "\n");
+                    token_suffix_push_back(out->node->suffix, string("\n"));
                 }
             }
         }

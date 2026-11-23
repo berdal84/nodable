@@ -116,7 +116,7 @@ namespace ndbl
     template<typename...Args>
     void log(Verbosity verbosity, const char* category, const char* fmt, Args... args) // print a message like "[time|verbosity|category] message"
     {
-        if ( verbosity < log_get_verbosity(category) )
+        if ( verbosity < log_get_verbosity( string(category) ) )
         {
             return;
         }
@@ -142,7 +142,7 @@ namespace ndbl
 
         // message
         String_Builder sb{};
-        string_builder_appendf(sb, "[%s|%s|%s] ", Format::tprint_time_point(msg.date).c_str(), verbosity_info[verbosity].label, category);
+        string_builder_appendf(sb, "[%s|%s|%s] ", c_str(Format::tprint_time_point(msg.date)), verbosity_info[verbosity].label, category);
         string_builder_appendf(sb, fmt, args...);
 
         msg.text = string_builder_build_string(sb);
@@ -150,7 +150,7 @@ namespace ndbl
         // print to stdout
         std::print("{}{}{}",
             verbosity_info[verbosity].color,
-            msg.text.c_str(),
+            c_str(msg.text),
             NDBL_COLOR_DEFAULT);
 
         Log_State& state = log_manager();

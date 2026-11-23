@@ -21,8 +21,8 @@ TEST_F(Node_, ctor_and_dtor )
 TEST_F(Node_, init_a_Node_Kind_NULL)
 {
     Node node;
-    node_init(&node, {.name = "My Node" });
-    EXPECT_STREQ(node.name.c_str(), "My Node");
+    node_init(&node, { .name = string("My Node") });
+    EXPECT_STREQ(c_str(node.name), "My Node");
     EXPECT_TRUE(node.flags & Node_Flag_IS_INITIALIZED);
     node_deinit(&node);
 }
@@ -30,9 +30,9 @@ TEST_F(Node_, init_a_Node_Kind_NULL)
 TEST_F(Node_, copy)
 {
     Node node;
-    node_init(&node, {.name = "My Node"});
+    node_init(&node, {.name = string("My Node") });
     
     Node copy = node;
-    EXPECT_STREQ(copy.name.c_str(), "My Node");
+    EXPECT_STREQ(c_str(copy.name), "My Node");
     EXPECT_TRUE(copy.flags & Node_Flag_IS_INITIALIZED);
 }

@@ -95,7 +95,7 @@ ImFont* font_manager_load(const Font_Config& font_config)
 
     font->Scale = 1.0f / font_manager->config->subsamples;
 
-    NDBL_LOG(Verbosity_Diagnostic, "NodableView", "Font %s added: \"%s\"\n", font_config.id.c_str(), font_config.path.c_str() );
+    NDBL_LOG(Verbosity_Diagnostic, "NodableView", "Font %s added: \"%s\"\n", c_str(font_config.id), c_str(font_config.path) );
     return font;
 }
 

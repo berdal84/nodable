@@ -148,9 +148,9 @@ void scopeview_arrange_content(Scope_View* scope_view)
     }
 }
 
-void TreeNode_Scope(const bdc::String& title, Scope* scope)
+void TreeNode_Scope(const char* title, Scope* scope)
 {
-    if ( ImGui::TreeNode( title.c_str() ) )
+    if ( ImGui::TreeNode( title ) )
     {
         if ( scope )
             TreeNode_ScopeContent(scope);
@@ -173,19 +173,19 @@ void TreeNode_Node(Node* node)
 
             serialize_function_type(ctx, &node->component.invokable.type);
             String str = serializer_build_tstring(ctx);
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name.c_str(), node->get_class()->name.c_str(), str.c_str() );
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, c_str(node->name), c_str(node->get_class()->name), c_str(str) );
             
             serializer_deinit(ctx);
             break;
         }
         case Node_Kind_VARIABLE:
         {
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, token_word_view(node->value->token).c_str(), node->name.c_str());
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, c_str(token_word_view(node->value->token)), c_str(node->name));
             break;
         }
         default:
         {
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, node->name.c_str(), node->get_class()->name.c_str() );
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, c_str(node->name), c_str(node->get_class()->name) );
         }
     }
 

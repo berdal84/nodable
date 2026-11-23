@@ -17,7 +17,7 @@ namespace ndbl
         {}
 
         Path(const bdc::String& str)
-        : m_path(str.c_str())
+        : m_path({ str.data, str.size })
         {}
 
         Path(const std::filesystem::path& str)

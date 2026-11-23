@@ -8,7 +8,7 @@ namespace bdc
 
 namespace ndbl
 {
-    void system_open_url_async(const bdc::String& /* url */); // Browse a given URL asynchronously
+    void system_open_url_async(const char* /* url */); // Browse a given URL asynchronously
     void system_clear_console();
-    int  system_run_command(const bdc::String& /* command */);
+    int  system_run_command(const char* /* command */);
 }

@@ -84,7 +84,7 @@ namespace ndbl
         typedef void(Cmd_Proc_Type)(Command*);
         
         Cmd_Flags      flags           = Cmd_Flags_NONE;
-        bdc::String    description     = "";
+        const char*    description     = "";
         Cmd_Proc_Type* proc_do         = nullptr;
         Cmd_Proc_Type* proc_redo       = nullptr;
         Cmd_Proc_Type* proc_undo       = nullptr;
@@ -98,6 +98,8 @@ namespace ndbl
             Cmd_Payload__Set_Node_View_Position     set_node_view_position;
         } payload;
     };
+
+    static_assert( std::is_trivially_copyable_v<Command> );
 
     // Command API
 

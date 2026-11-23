@@ -28,7 +28,7 @@ namespace ndbl
         Token() = default;
 
         Token(Token_Type type)
-        : Token(type, "")
+        : Token(type, bdc::string(""))
         {}
 
         Token(Token_Type type, bdc::String buffer
@@ -49,10 +49,10 @@ namespace ndbl
     void                token_deinit(Token&);
     void                token_release_buffer_if_owned(Token& token);
     inline u32_t        token_size(const Token& token)            { return token.prefix_size + token.word_size + token.suffix_size; }  
-    inline bdc::String  token_view(const Token& token)            { return { token.data, token_size(token) }; }
-    inline bdc::String  token_prefix_view(const Token& token)     { return { token.data, token.prefix_size }; }
-    inline bdc::String  token_word_view(const Token& token)       { return { token.data + token.prefix_size, token.word_size }; }
-    inline bdc::String  token_suffix_view(const Token& token)     { return { token.data + token.prefix_size + token.word_size, token.suffix_size }; }
+    inline bdc::String  token_view(const Token& token)            { return { .size = token_size(token), .data = token.data }; }
+    inline bdc::String  token_prefix_view(const Token& token)     { return { .size = token.prefix_size, .data = token.data }; }
+    inline bdc::String  token_word_view(const Token& token)       { return { .size = token.word_size  , .data = token.data + token.prefix_size}; }
+    inline bdc::String  token_suffix_view(const Token& token)     { return { .size = token.suffix_size, .data = token.data + token.prefix_size + token.word_size }; }
     inline bool         token_empty(const Token& token)           { return token_size(token) == 0; }
     void                token_clear(Token&);
     void                token_set_offset(Token&, size_t new_offset);
@@ -72,8 +72,8 @@ namespace ndbl
     u32_t               token_char_position(const Token&);
     bdc::String         token_serialize_json(const Token&);
 
-    static const Token token_end_of_line        = { Token_Type_end_of_line       , "\n" };
-    static const Token token_end_of_instruction = { Token_Type_end_of_instruction, ";"  };
+    static const Token token_end_of_line        = { Token_Type_end_of_line       , bdc::string("\n") };
+    static const Token token_end_of_instruction = { Token_Type_end_of_instruction, bdc::string(";")  };
 
 
 }

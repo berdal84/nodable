@@ -17,85 +17,80 @@
 #define STRING_FMT_ARGS( str ) str.size, str.data
 
 namespace bdc 
-{
-    typedef u8_t String_Flags;
-    enum String_Flags_
-    {
-        String_Flags_NONE                 = 0,
-        String_Flags_IS_NULL_TERMINATED   = 1 << 0,
-
-        // Note: user may use the remaining bits to store whatever.
-    };
-    
+{   
     //
-    // String is super inspired by Jai parser's strings. However, it is not a builtin type in C++ of course.
-    // The main goal of it is to serves as replacement for const char* and avoid calling strlen frequently.
-    // The main difference with const char* - besides having a size - is that the data may not be null-terminated.
-    // That offers some nice features like free-allocation slicing.
-    // String can be converted to const char* at any time, by using String::s_str() or string_to_cstr(String&).
-    //
+    // String:
+    // - ..is super inspired by Jai's strings.
     // - ..is a view,
-    // - ..has flags to know if the pointed buffer has null terminator,
     // - ..is limited to almost 32-bits long strings (u32_t-1 is reserved),
     //
     struct String
     {
-        static constexpr u32_t invalid_pos = (u32_t)-1; // depends on context
-        
-        u32_t           size = 0; // string size ALWAYS excludes the null terminator, allocated buffer might be larger IF AND ONLY IF flags has String_Flags_IS_NULL_TERMINATED
-                              // size must be 1st, because it has to match with Array, Resizable_Array, and Inlined_Array memory layout.
-                              // it costs memory (8 bytes) but it is convenient when threating String as an Array<i8_t>.
-        i8_t*           data = nullptr; // may be a valid const char* IF AND ONLY IF flags has String_Flags_IS_NULL_TERMINATED
-        String_Flags    flags = 0;
+        static_assert(std::is_same_v<i8_t, char>);
 
-        // note: constexpr constructor must be defined in the header (just below string_xxx API)
-        constexpr       String() = default;
-        constexpr       String(const i8_t* cstr);
-        template<size_t N>
-        constexpr       String(const i8_t (&cstr)[N] );
-        constexpr       String(i8_t* data, u32_t len, String_Flags _flags = 0);
-        constexpr       String(const i8_t& c);
-        constexpr       String(const Array<i8_t>& arr);
-        constexpr       String(const String& other);
-        
-        constexpr       ~String() = default;
- 
-        inline i8_t     operator[](u32_t pos) const          { BDC_ASSERT(pos < size, "pos is out of bounds"); return data[pos]; };
-        inline i8_t&    operator[](u32_t pos)                { BDC_ASSERT(pos < size, "pos is out of bounds"); return data[pos]; };       
-        inline          operator Array<i8_t>& ()             { return *reinterpret_cast<Array<i8_t>*>(this); }
-        inline          operator const Array<i8_t>& () const { return *reinterpret_cast<const Array<i8_t>*>(this); }
-        String&         operator=(const String&) = default;
-        
-        const i8_t*     c_str() const;
-        inline bool     empty() const { return size == 0; }
+        static constexpr u32_t size_max    = (u32_t)-1; // largest uint is reserved...
+        static constexpr u32_t invalid_pos = size_max;  // ...meaning depends on context.
+
+        // string size ALWAYS excludes the null terminator, allocated buffer might be larger IF AND ONLY IF flags has String_Flags_IS_NULL_TERMINATED
+        // size must be 1st, because it has to match with Array, Resizable_Array, and Inlined_Array memory layout.
+        // it costs memory (8 bytes) but it is convenient when threating String as an Array<i8_t>.
+        u32_t           size  = 0;
+        i8_t*           data  = nullptr; // may be a valid null-terminated const char* IF AND ONLY IF flags has String_Flags_IS_NULL_TERMINATED
+
+        inline i8_t     operator[](u32_t pos) const;
+        inline i8_t&    operator[](u32_t pos);       
+        inline          operator Array<i8_t>& ();
+        inline          operator const Array<i8_t>& () const;
     };
+    static_assert( std::is_trivially_copyable_v<String> );
     static_assert( sizeof(String) <= 24, "String has an unexpected size!" );
 
-    void            string_reset(String&);
-    void            string_release(String&);
-    u32_t           string_rfind(const String&, i8_t c);
-    String          string_lsplit(const String&, u32_t index);
-    String          string_rsplit(const String&, u32_t index);
-    String          string_basename(const String&);
-    String          string_stem(const String&);
-    const i8_t*     string_cstr(const String&);
-    String          string_copy(const String& source);
-    String          string_tcopy(const String& source);
-    String&         string_copy(String& target, const String& source);
-    int             string_compare(const String&, const String&);
-    String          string_tprintf(const char* fmt, auto&& ...args);
-    String          string_printf(const char* fmt, auto&&...args );
-    String          string_concat(const String& a, const String& b);
-    String          string_case_insensitive_find(const String& haystack, const String& needle);
-    String          string_unquote(const String&);
-    String          string_view(const String&);
-    String&         string_advance(String&, u32_t amount);
-    bool            operator<(const String& a, const String& b);
-    bool            operator==(const String& a, const String& b);
-    bool            operator!=(const String& a, const String& b);
+    //
+    // String API
+    //
 
-    inline String new_string(u32_t size, bool zero_init = true)
+    // Note: there is no string(i8_t*, u32_t, String_Flags) procedure, you have to use the struct String itself.
+    //       String s{ .size = ..., .data = ..., .flags = ... };
+
+    constexpr String    string(const i8_t& single_character);
+    constexpr String    string(const std::string_view&);     
+    constexpr String    string_from_c_str(const i8_t* null_terminated_str);
+    constexpr String    string(const Array<i8_t>& arr);    
+    inline String       new_string(u32_t size, bool zero_init = true);
+    inline const i8_t*  c_str(const String& str);
+
+    inline String       string_tprintf(const i8_t* fmt, auto&&...args );
+    inline String       string_printf(const i8_t* fmt, auto&&...args );
+    inline String       string_concat(const String& a, const String& b );
+    inline void         string_reset(String& str);
+    inline void         string_release(String& str );
+    inline u32_t        string_rfind(const String& str, i8_t character);
+    inline String       string_lsplit(const String& str, u32_t index);
+    inline String       string_rsplit(const String& str, u32_t index);
+    inline String       string_basename(const String& str);
+    inline String       string_stem(const String& str);
+    inline String       string_tcopy(const String& source);
+    inline String       string_copy(const String& source );
+    inline int          string_compare(const String& a, const String& b);
+    inline String       string_case_insensitive_find(const String& haystack, const String& needle);
+    inline String       string_unquote(const String& str);
+    inline String&      string_advance(String& str, u32_t amount);
+
+    inline bool         operator<(const String& a, const String& b);
+    inline bool         operator==(const String& a, const String& b);    
+    inline bool         operator!=(const String& a, const String& b);
+
+    // constexpr version of strlen
+    constexpr u32_t _constexpr_strlen(const i8_t* cstr);
+
+    //
+    // Implementation:
+    //
+
+    inline String new_string(u32_t size, bool zero_init)
     {
+        BDC_ASSERT(size < String::size_max);
+
         String result{};
 
         result.data = memory_malloc_array<i8_t>( size );
@@ -110,9 +105,7 @@ namespace bdc
         return result;
     }
 
-    // note: constexpr stuff must be declared in the header too
-
-    constexpr u32_t constexpr_strlen(const i8_t* cstr)
+    constexpr u32_t _constexpr_strlen(const i8_t* cstr)
     {
         if( cstr == nullptr)
         {
@@ -124,47 +117,53 @@ namespace bdc
         {
             ++len;
         }
-        BDC_ASSERT(len < String::invalid_pos, "cstr is too long for String's buffer");
+        BDC_ASSERT(len < String::size_max);
         return (u32_t)len;
     }
 
     template<size_t N> // N = strlen(cstr) + 1
-    constexpr String::String(const i8_t (&cstr)[N] )
-    : data(const_cast<i8_t*>(cstr))
-    , size(N)
-    , flags(String_Flags_IS_NULL_TERMINATED)
+    constexpr String string(const char (&literal_c_str)[N] )
     {
+        static_assert( std::is_same_v<char, i8_t> );
+
+        return {
+            .size  = N-1,
+            .data  = const_cast<i8_t*>(literal_c_str),
+        };
     }
 
-    constexpr String::String(i8_t* data, u32_t len, String_Flags _flags)
-    : data(const_cast<i8_t*>(data))
-    , size(len)
-    , flags(_flags)
-    {}
-
-    constexpr String::String(const i8_t& c)
-    : data(const_cast<i8_t*>(&c))
-    , size(1)
-    , flags(0)
+    constexpr String string(const i8_t* null_terminated_str)
     {
+        return {
+            .size  = _constexpr_strlen(null_terminated_str),
+            .data  = const_cast<i8_t*>(null_terminated_str),
+        };
     }
 
-    constexpr String::String(const i8_t* cstr)
-    : data(const_cast<i8_t*>(cstr))
-    , size(constexpr_strlen(cstr))
-    , flags(String_Flags_IS_NULL_TERMINATED)
-    {}
+    constexpr String string(const i8_t& single_char)
+    {
+        return {
+            .size  = 1,
+            .data  = const_cast<i8_t*>(&single_char),
+        };
+    }
+    
+    constexpr String string(const std::string_view& s)
+    {
+        BDC_ASSERT( s.size() < String::size_max);
+        return {
+            .size = (u32_t)s.size(),
+            .data = const_cast<i8_t*>(s.data()),
+        };
+    }
 
-    constexpr String::String(const Array<i8_t>& arr)
-    : data(const_cast<i8_t*>(arr.data))
-    , size(arr.size)
-    {}
-
-    constexpr String::String(const String& other)
-    : data(other.data)
-    , size(other.size)
-    , flags(other.flags)
-    {}
+    constexpr String string(const Array<i8_t>& arr)
+    {
+        return {
+            .size = arr.size,
+            .data = const_cast<i8_t*>(arr.data)
+        };
+    }
 
     inline String string_tprintf(const i8_t* fmt, auto&&...args )
     {
@@ -188,7 +187,7 @@ namespace bdc
         }
 
         // allocate
-        BDC_ASSERT(required_alloc_size < String::invalid_pos);
+        BDC_ASSERT(required_alloc_size < String::size_max);
         String result = new_string((u32_t)required_alloc_size);
 
         // print
@@ -197,27 +196,15 @@ namespace bdc
         // hide the '\0' char
         result.size  -= 1;
 
-        // make the string aware of it
-        result.flags |= String_Flags_IS_NULL_TERMINATED;
-
         return result;
-    }
-
-    inline const i8_t* String::c_str() const
-    {
-        return string_cstr(*this);
     }
 
     inline String string_concat(const String& a, const String& b )
     {
-        String result = new_string(a.size + b.size + 1); // +1 for null termination
+        String result = new_string(a.size + b.size);
 
         memcpy(result.data          , a.data, a.size );
         memcpy(result.data + a.size , b.data, b.size);
-
-        result[result.size-1] = '\0';
-        result.size  -= 1;
-        result.flags |= String_Flags_IS_NULL_TERMINATED;
 
         return result;
     }
@@ -256,7 +243,6 @@ namespace bdc
 
         String result = str;
         result.size -= result.size - index;
-        result.flags &= ~String_Flags_IS_NULL_TERMINATED; // remove flag, we cut in the middle
 
         return result;
     }
@@ -267,14 +253,16 @@ namespace bdc
 
         if( index == 0 )
         {
-            return { str.data, 0 };
+            return String{
+                .size = 0,
+                .data = str.data,
+            };
         }
 
 
         String result = str;
         result.data += index;
         result.size -= index;
-        result.flags |= str.flags & String_Flags_IS_NULL_TERMINATED;
 
         return result;
     }
@@ -299,18 +287,13 @@ namespace bdc
         return string_lsplit(str, index);
     }
 
-    inline const i8_t* string_cstr(const String& str)
+    inline const i8_t* c_str(const String& str)
     {
         if ( str.data == nullptr )
         {
             return "";
         }
         
-        if ( (str.flags & String_Flags_IS_NULL_TERMINATED))
-        {
-            return str.data;
-        }
-
         String result = string_tprintf("%.*s", str.size, str.data);
 
         return result.data;
@@ -377,7 +360,10 @@ namespace bdc
 
             if (match)
             {
-                return String{ haystack.data + i, needle.size };
+                return String{
+                    .size = needle.size,
+                    .data = haystack.data + i
+                };
             }
         }
         return {};
@@ -389,13 +375,11 @@ namespace bdc
         BDC_ASSERT(str[0] == '\"');
         BDC_ASSERT(str[str.size-1]  == '\"');
 
-        return String{ str.data + 1, str.size -2};
+        return String{
+            .size = str.size - 2,
+            .data = str.data + 1,
+        };
     }
-
-    inline String string_view(const String& str)
-    {
-        return String(str.data, str.size);
-    };
 
     inline String& string_advance(String& str, u32_t amount)
     {
@@ -434,7 +418,7 @@ namespace bdc
 
         return true;
     }
-    
+
     inline bool operator!=(const String& a, const String& b)
     {
         if( a.size != b.size)
@@ -453,6 +437,27 @@ namespace bdc
         }
 
         return false;
+    }
+
+    inline i8_t     String::operator[](u32_t pos) const
+    {
+        BDC_ASSERT(pos < size, "pos is out of bounds"); return data[pos];
+    };
+
+    inline i8_t&    String::operator[](u32_t pos)
+    {
+        BDC_ASSERT(pos < size, "pos is out of bounds");
+        return data[pos];
+    };       
+
+    inline String::operator Array<i8_t>& ()
+    {
+        return *reinterpret_cast<Array<i8_t>*>(this);
+    }
+
+    inline String::operator const Array<i8_t>& () const
+    {
+        return *reinterpret_cast<const Array<i8_t>*>(this);
     }
     
 } // namespace bdc

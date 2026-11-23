@@ -89,7 +89,7 @@ void _nodesearchinput_update_cache_based_on_signature(Node_Search_Input& input, 
 void _nodesearchinput_update_cache_based_on_user_input(Node_Search_Input& input, Node_Slot_View* _dragged_slot, size_t _limit )
 {
     array_clear(input.items_matching_search);
-    bdc::String needle = (const char*)input.search_input_value;
+    bdc::String needle = string(input.search_input_value);
 
     for ( size_t i : input.items_with_compatible_signature )
     {
@@ -150,7 +150,7 @@ Action* nodesearchinput_draw(Node_Search_Input& input, Node_Slot_View* dragged_s
         if ( input.items_matching_search.size == 1)
         {
             auto action_index = input.items_matching_search[0];
-            if ( ImGui::SmallButton( input.items[action_index].label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
+            if ( ImGui::SmallButton( c_str(input.items[action_index].label)) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
             {
                 return &input.items[action_index];
             }
@@ -169,7 +169,7 @@ Action* nodesearchinput_draw(Node_Search_Input& input, Node_Slot_View* dragged_s
                 Action* action = &input.items[*it];
 
                 // User can click on the button...
-                ImGui::Button( action->label.c_str());
+                ImGui::Button(c_str(action->label));
                 if( ImGui::IsItemClicked(0) )
                     return action;
 

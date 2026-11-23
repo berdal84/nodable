@@ -134,9 +134,15 @@ File_Read_Result file_read(const Path& path)
             if ( stream.eof() )
             {
                 stream.clear();
-                return { .ok = true, .content = (Array<i8_t>)bytes }; 
+                return {
+                    .ok = true,
+                    .content = string(bytes)
+                }; 
             }
-            return { .ok = false, .error = "Line exceeded buffer size!" };
+            return {
+                .ok    = false,
+                .error = string("Line exceeded buffer size!")
+            };
         }
 
         // Since right now Resizable_Array<i8_t> reallocates linearly, we do a manual exponential resizesing

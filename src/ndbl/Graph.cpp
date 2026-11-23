@@ -165,13 +165,13 @@ void graph_add(Graph* graph, Node* node, Scope* scope)
     graph->signal_add_node.emit(node);
     graph->signal_change.broadcast();
 
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name.c_str(), node->get_class()->name.c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, c_str(node->name), c_str(node->get_class()->name) );
 }
 
 void graph_remove(Graph* graph, Node* node)
 {
     assert( node );
-    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "_graph_remove_node(...) - addr: %p, name: \"%s\" ..\n", node, node->name.c_str() );
+    NDBL_DEBUG_LOG(Verbosity_Diagnostic, "Graph", "_graph_remove_node(...) - addr: %p, name: \"%s\" ..\n", node, c_str(node->name) );
 
     graph->signal_remove_node.emit(node);
 

@@ -40,7 +40,7 @@ namespace ndbl
 constexpr const char*   k_status_window_name = "Status Bar";
 static App_View_State*  g_app_view = {};
 ImGuiID                 _nodableview_get_dockspace(Dockspace);
-void                    _nodableview_dock_window(const bdc::String& window_name, Dockspace); // Must be called within signal_reset_layout
+void                    _nodableview_dock_window(const char* window_name, Dockspace); // Must be called within signal_reset_layout
 
 App_View_State* appview()
 {
@@ -246,7 +246,7 @@ App_View_State* appview_init()
     NDBL_LOG(Verbosity_Diagnostic, "Nodable_View.cpp", "-- Init DONE\n");
 
     // Load splashscreen image
-    Path path        = Path::get_asset_path(config()->ui_splashscreen_imagePath );
+    Path path        = Path::get_asset_path( config()->ui_splashscreen_imagePath );
     g_app_view->logo = texture_manager_get_or_load(path);
 
     return g_app_view;
@@ -742,7 +742,7 @@ void appview_draw()
         ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {5.0f, 5.0f});
 
-        if ( ImGui::Begin( config()->ui_toolbar_window_label.data, NULL, flags ) )
+        if ( ImGui::Begin( config()->ui_toolbar_window_label, NULL, flags ) )
         {
             const Vec2&   button_size   = config()->ui_toolButton_size;
 
@@ -816,7 +816,7 @@ void appview_draw()
         
         if ( current_file != nullptr )
         {
-            if ( ImGui::Begin( config()->ui_file_info_window_label.data ))
+            if ( ImGui::Begin( config()->ui_file_info_window_label ))
             {
                 // Basic inFormation
                 ImGui::Text("Current file:");
@@ -848,7 +848,7 @@ void appview_draw()
 
         if( HAS_FLAGS( config()->debug_flags, Debug_Flags_SHOW_IMGUI_CONFIG_WINDOW) )
         {
-            if (ImGui::Begin( config()->ui_imgui_config_window_label.data ))
+            if (ImGui::Begin( config()->ui_imgui_config_window_label ))
             {
                 ImGui::ShowStyleEditor();
             }
@@ -859,7 +859,7 @@ void appview_draw()
         // Draw configuration window (to edit Config and Config)
         //----------------------------------------------------------------------------------------
 
-        if (ImGui::Begin( config()->ui_config_window_label.data ))
+        if (ImGui::Begin( config()->ui_config_window_label ))
         {
             const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth;
 
@@ -983,7 +983,7 @@ void appview_draw()
         // Draw node properties window
         //----------------------------------------------------------------------------------------
 
-        if (ImGui::Begin( config()->ui_node_properties_window_label.data ))
+        if (ImGui::Begin( config()->ui_node_properties_window_label ))
         {
             if( app_state()->current_file )
             {
@@ -1017,7 +1017,7 @@ void appview_draw()
         // Draw help window
         //----------------------------------------------------------------------------------------
         {
-        if (ImGui::Begin( config()->ui_help_window_label.data ))
+        if (ImGui::Begin( config()->ui_help_window_label ))
         {
             ImGui::PushFont(font_manager_get_font(Font_Slot_Heading));
             ImGui::Text("Welcome to Nodable!");
@@ -1061,7 +1061,7 @@ void appview_draw()
         ImGui::SetNextWindowDockID(ds_root, ImGuiCond_Always);
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3f, 0.3f, 0.3f, 1.f));
 
-        ImGui::Begin( config()->ui_startup_window_label.data );
+        ImGui::Begin( config()->ui_startup_window_label );
         {
             ImGui::PopStyleColor();
 
@@ -1098,8 +1098,8 @@ void appview_draw()
                 ImGui::Text("%s", "Open an example");
 
                 struct Example {
-                    const bdc::String label;
-                    const bdc::String path;
+                    const char* label;
+                    const char* path;
                 };
 
                 const std::array<Example, 4> examples = {
@@ -1117,7 +1117,7 @@ void appview_draw()
                 for (const Example& example : examples)
                 {
                     if (i % columns != 0) ImGui::SameLine();
-                    if (ImGui::Button(example.label.c_str(), example_btn_size))
+                    if (ImGui::Button(example.label, example_btn_size))
                     {
                         app_open_asset_file( example.path );
                     }
@@ -1199,13 +1199,13 @@ void appview_draw()
     before              = now;
 
     // Format nice title
-    bdc::String title = string_tprintf("%s | %4.0ffps %s", view->title.data, view->smoothed_fps, cfg->fps_limit_on ? "" : "unlimited!");
+    bdc::String title = string_tprintf("%s | %4.0ffps %s", view->title, view->smoothed_fps, cfg->fps_limit_on ? "" : "unlimited!");
 
     // Update window title
     SDL_SetWindowTitle(view->sdl_window, title.data);
 }
 
-void appview_save_screenshot(const bdc::String relative_path)
+void appview_save_screenshot(const Path& relative_path)
 {
     App_View_State* view = appview();
     
@@ -1225,7 +1225,7 @@ void appview_save_screenshot(const bdc::String relative_path)
 
     if(!result.ok)
     {
-        NDBL_LOG( NDBL_ERROR, "Nodable_View.cpp", "Unable to save screenshot (%s)\n", result.error.c_str());
+        NDBL_LOG( NDBL_ERROR, "Nodable_View.cpp", "Unable to save screenshot (%s)\n", c_str(result.error));
         return;
     }    
 
@@ -1323,9 +1323,9 @@ ImGuiID _nodableview_get_dockspace(Dockspace dockspace)
     return appview()->dockspaces[dockspace];
 }
 
-void _nodableview_dock_window(const bdc::String& window_name, Dockspace dockspace)
+void _nodableview_dock_window(const char* window_name, Dockspace dockspace)
 {
-    ImGui::DockBuilderDockWindow(window_name.data, appview()->dockspaces[dockspace]);
+    ImGui::DockBuilderDockWindow(window_name, appview()->dockspaces[dockspace]);
 }
 
 Image appview_capture_screen()
@@ -1361,12 +1361,6 @@ bool appview_is_fullscreen()
 void appview_set_fullscreen(bool b)
 {
     SDL_SetWindowFullscreen(appview()->sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN : 0);
-}
-
-void appview_set_title(const bdc::String& title )
-{
-    appview()->title = title;
-    SDL_SetWindowTitle( appview()->sdl_window, appview()->title.data );
 }
 
 } // namespace ndbl

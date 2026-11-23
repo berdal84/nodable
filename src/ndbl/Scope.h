@@ -23,7 +23,7 @@ namespace ndbl
 
     struct Scope
     {
-        bdc::String                     name                = "Scope";
+        bdc::String                     name                = bdc::string("Scope");
         std::set<Node*>                 children            = {};
         std::set<Node*>                 variables           = {};
         Token                           token_begin         = {};
